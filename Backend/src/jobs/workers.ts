@@ -123,6 +123,9 @@ export const initWorkers = () => {
       } else if (job.name === "daily-scraping") {
         const { contentScraperService } = await import("../services/content-scraper.service");
         await contentScraperService.scrapeFuelPrices();
+      } else if (job.name === "release-abandoned-parking-bookings") {
+        const { parkingService } = await import("../modules/parking/parking.service");
+        await parkingService.releaseAbandonedBookings();
       }
     },
     defaultWorkerOptions

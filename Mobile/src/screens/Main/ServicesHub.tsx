@@ -204,6 +204,9 @@ export default function ServicesHub() {
       case 'NearbyPlaces':
         navigation.navigate('NearbyPlaces');
         break;
+      case 'Parking':
+        navigation.navigate('ParkingSearch');
+        break;
       case 'CheckChallan':
         navigation.navigate('CheckChallan');
         break;

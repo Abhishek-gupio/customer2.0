@@ -291,6 +291,9 @@ importers:
       rate-limit-redis:
         specifier: ^4.3.1
         version: 4.3.1(express-rate-limit@8.3.1(express@5.2.1))
+      razorpay:
+        specifier: ^2.9.6
+        version: 2.9.6
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
@@ -502,6 +505,9 @@ importers:
       react-native-permissions:
         specifier: ^5.4.4
         version: 5.5.1(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
+      react-native-razorpay:
+        specifier: ^3.0.0
+        version: 3.0.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
       react-native-responsive-screen:
         specifier: ^1.4.2
         version: 1.4.2(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))
@@ -7554,6 +7560,9 @@ packages:
     resolution: {integrity: sha512-K5zQjDllxWkf7Z5xJdV0/B0WTNqx6vxG70zJE4N0kBs4LovmEYWJzQGxC9bS9RAKu3bgM40lrd5zoLJ12MQ5BA==}
     engines: {node: '>= 0.10'}
 
+  razorpay@2.9.6:
+    resolution: {integrity: sha512-zsHAQzd6e1Cc6BNoCNZQaf65ElL6O6yw0wulxmoG5VQDr363fZC90Mp1V5EktVzG45yPyNomNXWlf4cQ3622gQ==}
+
   rc9@2.1.2:
     resolution: {integrity: sha512-btXCnMmRIBINM2LDZoEmOogIZU7Qe7zn4BpomSKZ/ykbLObuBdvG+mFq11DL6fjH1DRwHhrlgtYWG96bJiC7Cg==}
 
@@ -7708,6 +7717,12 @@ packages:
     peerDependenciesMeta:
       react-native-windows:
         optional: true
+
+  react-native-razorpay@3.0.0:
+    resolution: {integrity: sha512-p7bcEJd8P3/FuNuV/kDvJAhF2QCHXaOwkMA7hkZV3XnmU2IJRap3dF8BYuSBAb+OEvzAm5RQbRHlZAnkr/+h+g==}
+    peerDependencies:
+      react: 19.2.0
+      react-native: '>=0.66.0'
 
   react-native-responsive-screen@1.4.2:
     resolution: {integrity: sha512-BLYz0UUpeohrib7jbz6wDmtBD5OmiuMRko4IT8kIF63taXPod/c5iZgmWnr5qOnK8hMuKiGMvsM3sC+eHX/lEQ==}
@@ -17731,6 +17746,12 @@ snapshots:
       iconv-lite: 0.7.2
       unpipe: 1.0.0
 
+  razorpay@2.9.6:
+    dependencies:
+      axios: 1.13.6
+    transitivePeerDependencies:
+      - debug
+
   rc9@2.1.2:
     dependencies:
       defu: 6.1.4
@@ -17871,6 +17892,11 @@ snapshots:
       react-native-blob-util: 0.24.7(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0)
 
   react-native-permissions@5.5.1(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+      react-native: 0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)
+
+  react-native-razorpay@3.0.0(react-native@0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0))(react@19.2.0):
     dependencies:
       react: 19.2.0
       react-native: 0.83.1(patch_hash=ma3accx7pwux7pzksaurmadxrm)(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@5.9.3))(@react-native/metro-config@0.83.1(@babel/core@7.29.0))(@types/react@19.2.0)(react@19.2.0)

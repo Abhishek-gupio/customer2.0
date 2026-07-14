@@ -175,6 +175,25 @@ export const placesService = {
     }
   },
 
+  /** Resolves an autocomplete placeId to coordinates — needed to search "near a destination" you typed rather than your current GPS. */
+  getPlaceDetails: async (placeId: string): Promise<{ latitude: number; longitude: number; name: string } | null> => {
+    const key = process.env.GOOGLE_MAPS_API_KEY || "";
+    if (!key || !placeId) return null;
+    try {
+      const response = await googleMapsClient.placeDetails({
+        params: { place_id: placeId, fields: ["geometry", "name"], key },
+      });
+      const result = response.data.result;
+      const lat = result?.geometry?.location?.lat;
+      const lng = result?.geometry?.location?.lng;
+      if (lat == null || lng == null) return null;
+      return { latitude: lat, longitude: lng, name: result?.name || "" };
+    } catch (err: any) {
+      console.error("Place Details error:", err?.message || err);
+      return null;
+    }
+  },
+
   searchPlaces: async (query: string): Promise<SearchSuggestion[]> => {
     const key = process.env.GOOGLE_MAPS_API_KEY || "";
     if (!key || !query) return [];

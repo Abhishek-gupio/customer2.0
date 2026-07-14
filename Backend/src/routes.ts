@@ -21,6 +21,8 @@ import { adminRoutes } from "./modules/admin/admin.routes";
 import { tripExpenseRoutes } from "./modules/trip-expense/trip-expense.routes";
 import { diyRoutes } from "./modules/diy/diy.routes";
 import { agentRoutes } from "./modules/agent/agent.routes";
+import { paymentsRoutes } from "./modules/payments/payments.routes";
+import { parkingRoutes } from "./modules/parking/parking.routes";
 
 const router = Router();
 
@@ -80,5 +82,7 @@ router.use("/v1/admin", adminRoutes);
 router.use("/v1/trip-expense", tripExpenseRoutes);
 router.use("/v1/diy", diyRoutes);
 router.use("/v1/agent", agentRoutes);
+router.use("/v1/payments", paymentsRoutes);
+router.use("/v1/parking", parkingRoutes);
 
 export const apiRoutes = router;

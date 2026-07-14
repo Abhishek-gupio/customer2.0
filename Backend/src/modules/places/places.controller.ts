@@ -85,4 +85,16 @@ export const placesController = {
     const suggestions = await placesService.searchPlaces(query);
     return success(res, { suggestions });
   }),
+
+  details: asyncHandler(async (req: Request, res: Response) => {
+    const placeId = req.params.placeId as string;
+    const details = await placesService.getPlaceDetails(placeId);
+    if (!details) {
+      return res.status(404).json({
+        success: false,
+        error: { message: "Could not resolve this place" },
+      });
+    }
+    return success(res, details);
+  }),
 };

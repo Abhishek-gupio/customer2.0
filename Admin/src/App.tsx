@@ -12,6 +12,7 @@ import VehicleCatalog from './pages/VehicleCatalog';
 import ExpenseDetail from './pages/ExpenseDetail';
 import Expenses from './pages/Expenses';
 import ManageAdmins from './pages/ManageAdmins';
+import DealerRoutes from './pages/dealer/DealerRoutes';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
 
@@ -145,6 +146,10 @@ export default function App() {
 
             <Route path="expenses" element={<Expenses />} />
           </Route>
+
+          {/* Parking partner (dealer) portal — separate auth from admin, not behind ProtectedRoute/Shell */}
+          <Route path="/dealer/*" element={<DealerRoutes />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

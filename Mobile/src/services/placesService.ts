@@ -105,4 +105,17 @@ export const placesService = {
     longitude: number,
     radiusMeters?: number
   ) => placesService.getNearby(latitude, longitude, "gas_station", radiusMeters),
+
+  getDetails: async (placeId: string): Promise<{ latitude: number; longitude: number; name: string } | null> => {
+    try {
+      const res = await api.get<{ data?: { latitude: number; longitude: number; name: string } }>(
+        `/v1/places/details/${placeId}`,
+      );
+      const data = (res as any)?.data ?? res;
+      return data?.latitude != null ? data : null;
+    } catch (err) {
+      console.error("Place Details API error:", err);
+      return null;
+    }
+  },
 };

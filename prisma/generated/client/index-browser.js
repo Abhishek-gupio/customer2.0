@@ -1198,6 +1198,116 @@ exports.Prisma.RolesScalarFieldEnum = {
   permissionsMask: 'permissionsMask'
 };
 
+exports.Prisma.CustomerOrderScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  purpose: 'purpose',
+  referenceId: 'referenceId',
+  amountPaise: 'amountPaise',
+  currency: 'currency',
+  status: 'status',
+  razorpayOrderId: 'razorpayOrderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomerPaymentAttemptScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
+  method: 'method',
+  status: 'status',
+  failureReason: 'failureReason',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CustomerRefundScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  amountPaise: 'amountPaise',
+  status: 'status',
+  razorpayRefundId: 'razorpayRefundId',
+  reason: 'reason',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WebhookEventScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  eventType: 'eventType',
+  dedupeKey: 'dedupeKey',
+  payload: 'payload',
+  signatureValid: 'signatureValid',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ParkingDealerScalarFieldEnum = {
+  id: 'id',
+  ownerName: 'ownerName',
+  phoneNumber: 'phoneNumber',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingListingScalarFieldEnum = {
+  id: 'id',
+  dealerId: 'dealerId',
+  name: 'name',
+  addressLine: 'addressLine',
+  city: 'city',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  fourWheelerCapacity: 'fourWheelerCapacity',
+  twoWheelerCapacity: 'twoWheelerCapacity',
+  hourlyRatePaise: 'hourlyRatePaise',
+  dailyRatePaise: 'dailyRatePaise',
+  photos: 'photos',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingSlotWindowScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  date: 'date',
+  startHour: 'startHour',
+  endHour: 'endHour',
+  capacity: 'capacity',
+  booked: 'booked'
+};
+
+exports.Prisma.ParkingBookingScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  listingId: 'listingId',
+  slotWindowId: 'slotWindowId',
+  vehicleId: 'vehicleId',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  amountPaise: 'amountPaise',
+  status: 'status',
+  orderId: 'orderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingWaitlistEntryScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  listingId: 'listingId',
+  desiredDate: 'desiredDate',
+  notified: 'notified',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1595,6 +1705,50 @@ exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
   REJECTED: 'REJECTED'
 };
 
+exports.PaymentPurpose = exports.$Enums.PaymentPurpose = {
+  PARKING_BOOKING: 'PARKING_BOOKING'
+};
+
+exports.OrderStatus = exports.$Enums.OrderStatus = {
+  CREATED: 'CREATED',
+  ATTEMPTED: 'ATTEMPTED',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.PaymentAttemptStatus = exports.$Enums.PaymentAttemptStatus = {
+  INITIATED: 'INITIATED',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+};
+
+exports.CustomerRefundStatus = exports.$Enums.CustomerRefundStatus = {
+  INITIATED: 'INITIATED',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED'
+};
+
+exports.DealerStatus = exports.$Enums.DealerStatus = {
+  PENDING_VERIFICATION: 'PENDING_VERIFICATION',
+  VERIFIED: 'VERIFIED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.ListingStatus = exports.$Enums.ListingStatus = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  REMOVED: 'REMOVED'
+};
+
+exports.BookingStatus = exports.$Enums.BookingStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED',
+  NO_SHOW: 'NO_SHOW'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   AdminUser: 'AdminUser',
@@ -1671,7 +1825,16 @@ exports.Prisma.ModelName = {
   fcm_tokens: 'fcm_tokens',
   permissions: 'permissions',
   role_permissions: 'role_permissions',
-  roles: 'roles'
+  roles: 'roles',
+  CustomerOrder: 'CustomerOrder',
+  CustomerPaymentAttempt: 'CustomerPaymentAttempt',
+  CustomerRefund: 'CustomerRefund',
+  WebhookEvent: 'WebhookEvent',
+  ParkingDealer: 'ParkingDealer',
+  ParkingListing: 'ParkingListing',
+  ParkingSlotWindow: 'ParkingSlotWindow',
+  ParkingBooking: 'ParkingBooking',
+  ParkingWaitlistEntry: 'ParkingWaitlistEntry'
 };
 
 /**

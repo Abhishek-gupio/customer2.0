@@ -393,6 +393,53 @@ export type role_permissions = $Result.DefaultSelection<Prisma.$role_permissions
  * 
  */
 export type roles = $Result.DefaultSelection<Prisma.$rolesPayload>
+/**
+ * Model CustomerOrder
+ * 
+ */
+export type CustomerOrder = $Result.DefaultSelection<Prisma.$CustomerOrderPayload>
+/**
+ * Model CustomerPaymentAttempt
+ * 
+ */
+export type CustomerPaymentAttempt = $Result.DefaultSelection<Prisma.$CustomerPaymentAttemptPayload>
+/**
+ * Model CustomerRefund
+ * 
+ */
+export type CustomerRefund = $Result.DefaultSelection<Prisma.$CustomerRefundPayload>
+/**
+ * Model WebhookEvent
+ * Idempotency + audit log for inbound Razorpay webhook events.
+ * `dedupeKey` = "<event>:<razorpay payment/refund entity id>" — Razorpay
+ * redelivers events, so this is what actually prevents double-processing.
+ */
+export type WebhookEvent = $Result.DefaultSelection<Prisma.$WebhookEventPayload>
+/**
+ * Model ParkingDealer
+ * 
+ */
+export type ParkingDealer = $Result.DefaultSelection<Prisma.$ParkingDealerPayload>
+/**
+ * Model ParkingListing
+ * 
+ */
+export type ParkingListing = $Result.DefaultSelection<Prisma.$ParkingListingPayload>
+/**
+ * Model ParkingSlotWindow
+ * Declared capacity for one hour-block on one date — not a physical bay.
+ */
+export type ParkingSlotWindow = $Result.DefaultSelection<Prisma.$ParkingSlotWindowPayload>
+/**
+ * Model ParkingBooking
+ * 
+ */
+export type ParkingBooking = $Result.DefaultSelection<Prisma.$ParkingBookingPayload>
+/**
+ * Model ParkingWaitlistEntry
+ * 
+ */
+export type ParkingWaitlistEntry = $Result.DefaultSelection<Prisma.$ParkingWaitlistEntryPayload>
 
 /**
  * Enums
@@ -950,6 +997,71 @@ export const VehicleStatus: {
 
 export type VehicleStatus = (typeof VehicleStatus)[keyof typeof VehicleStatus]
 
+
+export const PaymentPurpose: {
+  PARKING_BOOKING: 'PARKING_BOOKING'
+};
+
+export type PaymentPurpose = (typeof PaymentPurpose)[keyof typeof PaymentPurpose]
+
+
+export const OrderStatus: {
+  CREATED: 'CREATED',
+  ATTEMPTED: 'ATTEMPTED',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
+
+
+export const PaymentAttemptStatus: {
+  INITIATED: 'INITIATED',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+};
+
+export type PaymentAttemptStatus = (typeof PaymentAttemptStatus)[keyof typeof PaymentAttemptStatus]
+
+
+export const CustomerRefundStatus: {
+  INITIATED: 'INITIATED',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED'
+};
+
+export type CustomerRefundStatus = (typeof CustomerRefundStatus)[keyof typeof CustomerRefundStatus]
+
+
+export const DealerStatus: {
+  PENDING_VERIFICATION: 'PENDING_VERIFICATION',
+  VERIFIED: 'VERIFIED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+export type DealerStatus = (typeof DealerStatus)[keyof typeof DealerStatus]
+
+
+export const ListingStatus: {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  REMOVED: 'REMOVED'
+};
+
+export type ListingStatus = (typeof ListingStatus)[keyof typeof ListingStatus]
+
+
+export const BookingStatus: {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED',
+  NO_SHOW: 'NO_SHOW'
+};
+
+export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
+
 }
 
 export type AdminRole = $Enums.AdminRole
@@ -1167,6 +1279,34 @@ export const VEHICLE_TYPE: typeof $Enums.VEHICLE_TYPE
 export type VehicleStatus = $Enums.VehicleStatus
 
 export const VehicleStatus: typeof $Enums.VehicleStatus
+
+export type PaymentPurpose = $Enums.PaymentPurpose
+
+export const PaymentPurpose: typeof $Enums.PaymentPurpose
+
+export type OrderStatus = $Enums.OrderStatus
+
+export const OrderStatus: typeof $Enums.OrderStatus
+
+export type PaymentAttemptStatus = $Enums.PaymentAttemptStatus
+
+export const PaymentAttemptStatus: typeof $Enums.PaymentAttemptStatus
+
+export type CustomerRefundStatus = $Enums.CustomerRefundStatus
+
+export const CustomerRefundStatus: typeof $Enums.CustomerRefundStatus
+
+export type DealerStatus = $Enums.DealerStatus
+
+export const DealerStatus: typeof $Enums.DealerStatus
+
+export type ListingStatus = $Enums.ListingStatus
+
+export const ListingStatus: typeof $Enums.ListingStatus
+
+export type BookingStatus = $Enums.BookingStatus
+
+export const BookingStatus: typeof $Enums.BookingStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -2048,6 +2188,96 @@ export class PrismaClient<
     * ```
     */
   get roles(): Prisma.rolesDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customerOrder`: Exposes CRUD operations for the **CustomerOrder** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerOrders
+    * const customerOrders = await prisma.customerOrder.findMany()
+    * ```
+    */
+  get customerOrder(): Prisma.CustomerOrderDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customerPaymentAttempt`: Exposes CRUD operations for the **CustomerPaymentAttempt** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerPaymentAttempts
+    * const customerPaymentAttempts = await prisma.customerPaymentAttempt.findMany()
+    * ```
+    */
+  get customerPaymentAttempt(): Prisma.CustomerPaymentAttemptDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customerRefund`: Exposes CRUD operations for the **CustomerRefund** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomerRefunds
+    * const customerRefunds = await prisma.customerRefund.findMany()
+    * ```
+    */
+  get customerRefund(): Prisma.CustomerRefundDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.webhookEvent`: Exposes CRUD operations for the **WebhookEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WebhookEvents
+    * const webhookEvents = await prisma.webhookEvent.findMany()
+    * ```
+    */
+  get webhookEvent(): Prisma.WebhookEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingDealer`: Exposes CRUD operations for the **ParkingDealer** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingDealers
+    * const parkingDealers = await prisma.parkingDealer.findMany()
+    * ```
+    */
+  get parkingDealer(): Prisma.ParkingDealerDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingListing`: Exposes CRUD operations for the **ParkingListing** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingListings
+    * const parkingListings = await prisma.parkingListing.findMany()
+    * ```
+    */
+  get parkingListing(): Prisma.ParkingListingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingSlotWindow`: Exposes CRUD operations for the **ParkingSlotWindow** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingSlotWindows
+    * const parkingSlotWindows = await prisma.parkingSlotWindow.findMany()
+    * ```
+    */
+  get parkingSlotWindow(): Prisma.ParkingSlotWindowDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingBooking`: Exposes CRUD operations for the **ParkingBooking** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingBookings
+    * const parkingBookings = await prisma.parkingBooking.findMany()
+    * ```
+    */
+  get parkingBooking(): Prisma.ParkingBookingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingWaitlistEntry`: Exposes CRUD operations for the **ParkingWaitlistEntry** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingWaitlistEntries
+    * const parkingWaitlistEntries = await prisma.parkingWaitlistEntry.findMany()
+    * ```
+    */
+  get parkingWaitlistEntry(): Prisma.ParkingWaitlistEntryDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -2557,7 +2787,16 @@ export namespace Prisma {
     fcm_tokens: 'fcm_tokens',
     permissions: 'permissions',
     role_permissions: 'role_permissions',
-    roles: 'roles'
+    roles: 'roles',
+    CustomerOrder: 'CustomerOrder',
+    CustomerPaymentAttempt: 'CustomerPaymentAttempt',
+    CustomerRefund: 'CustomerRefund',
+    WebhookEvent: 'WebhookEvent',
+    ParkingDealer: 'ParkingDealer',
+    ParkingListing: 'ParkingListing',
+    ParkingSlotWindow: 'ParkingSlotWindow',
+    ParkingBooking: 'ParkingBooking',
+    ParkingWaitlistEntry: 'ParkingWaitlistEntry'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -2573,7 +2812,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingListing" | "parkingSlotWindow" | "parkingBooking" | "parkingWaitlistEntry"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -8201,6 +8440,672 @@ export namespace Prisma {
           }
         }
       }
+      CustomerOrder: {
+        payload: Prisma.$CustomerOrderPayload<ExtArgs>
+        fields: Prisma.CustomerOrderFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomerOrderFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomerOrderFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomerOrderFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomerOrderFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>
+          }
+          findMany: {
+            args: Prisma.CustomerOrderFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>[]
+          }
+          create: {
+            args: Prisma.CustomerOrderCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>
+          }
+          createMany: {
+            args: Prisma.CustomerOrderCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomerOrderCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomerOrderDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>
+          }
+          update: {
+            args: Prisma.CustomerOrderUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomerOrderDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomerOrderUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomerOrderUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomerOrderUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerOrderPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomerOrderAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomerOrder>
+          }
+          groupBy: {
+            args: Prisma.CustomerOrderGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomerOrderGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomerOrderCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomerOrderCountAggregateOutputType> | number
+          }
+        }
+      }
+      CustomerPaymentAttempt: {
+        payload: Prisma.$CustomerPaymentAttemptPayload<ExtArgs>
+        fields: Prisma.CustomerPaymentAttemptFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomerPaymentAttemptFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomerPaymentAttemptFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomerPaymentAttemptFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomerPaymentAttemptFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>
+          }
+          findMany: {
+            args: Prisma.CustomerPaymentAttemptFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>[]
+          }
+          create: {
+            args: Prisma.CustomerPaymentAttemptCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>
+          }
+          createMany: {
+            args: Prisma.CustomerPaymentAttemptCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomerPaymentAttemptCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomerPaymentAttemptDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>
+          }
+          update: {
+            args: Prisma.CustomerPaymentAttemptUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomerPaymentAttemptDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomerPaymentAttemptUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomerPaymentAttemptUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomerPaymentAttemptUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerPaymentAttemptPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomerPaymentAttemptAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomerPaymentAttempt>
+          }
+          groupBy: {
+            args: Prisma.CustomerPaymentAttemptGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomerPaymentAttemptGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomerPaymentAttemptCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomerPaymentAttemptCountAggregateOutputType> | number
+          }
+        }
+      }
+      CustomerRefund: {
+        payload: Prisma.$CustomerRefundPayload<ExtArgs>
+        fields: Prisma.CustomerRefundFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomerRefundFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomerRefundFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomerRefundFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomerRefundFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>
+          }
+          findMany: {
+            args: Prisma.CustomerRefundFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>[]
+          }
+          create: {
+            args: Prisma.CustomerRefundCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>
+          }
+          createMany: {
+            args: Prisma.CustomerRefundCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomerRefundCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomerRefundDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>
+          }
+          update: {
+            args: Prisma.CustomerRefundUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomerRefundDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomerRefundUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomerRefundUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomerRefundUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomerRefundPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomerRefundAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomerRefund>
+          }
+          groupBy: {
+            args: Prisma.CustomerRefundGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomerRefundGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomerRefundCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomerRefundCountAggregateOutputType> | number
+          }
+        }
+      }
+      WebhookEvent: {
+        payload: Prisma.$WebhookEventPayload<ExtArgs>
+        fields: Prisma.WebhookEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WebhookEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WebhookEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>
+          }
+          findFirst: {
+            args: Prisma.WebhookEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WebhookEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>
+          }
+          findMany: {
+            args: Prisma.WebhookEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>[]
+          }
+          create: {
+            args: Prisma.WebhookEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>
+          }
+          createMany: {
+            args: Prisma.WebhookEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WebhookEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>[]
+          }
+          delete: {
+            args: Prisma.WebhookEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>
+          }
+          update: {
+            args: Prisma.WebhookEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.WebhookEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WebhookEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WebhookEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.WebhookEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WebhookEventPayload>
+          }
+          aggregate: {
+            args: Prisma.WebhookEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWebhookEvent>
+          }
+          groupBy: {
+            args: Prisma.WebhookEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WebhookEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WebhookEventCountArgs<ExtArgs>
+            result: $Utils.Optional<WebhookEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingDealer: {
+        payload: Prisma.$ParkingDealerPayload<ExtArgs>
+        fields: Prisma.ParkingDealerFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingDealerFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingDealerFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingDealerFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingDealerFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingDealerFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingDealerCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingDealerCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingDealerCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingDealerDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>
+          }
+          update: {
+            args: Prisma.ParkingDealerUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingDealerDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingDealerUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingDealerUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingDealerUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingDealerPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingDealerAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingDealer>
+          }
+          groupBy: {
+            args: Prisma.ParkingDealerGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingDealerGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingDealerCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingDealerCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingListing: {
+        payload: Prisma.$ParkingListingPayload<ExtArgs>
+        fields: Prisma.ParkingListingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingListingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingListingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingListingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingListingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingListingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingListingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingListingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingListingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingListingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>
+          }
+          update: {
+            args: Prisma.ParkingListingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingListingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingListingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingListingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingListingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingListingPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingListingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingListing>
+          }
+          groupBy: {
+            args: Prisma.ParkingListingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingListingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingListingCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingListingCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingSlotWindow: {
+        payload: Prisma.$ParkingSlotWindowPayload<ExtArgs>
+        fields: Prisma.ParkingSlotWindowFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingSlotWindowFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingSlotWindowFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingSlotWindowFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingSlotWindowFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingSlotWindowFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingSlotWindowCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingSlotWindowCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingSlotWindowCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingSlotWindowDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>
+          }
+          update: {
+            args: Prisma.ParkingSlotWindowUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingSlotWindowDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingSlotWindowUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingSlotWindowUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingSlotWindowUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSlotWindowPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingSlotWindowAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingSlotWindow>
+          }
+          groupBy: {
+            args: Prisma.ParkingSlotWindowGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingSlotWindowGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingSlotWindowCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingSlotWindowCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingBooking: {
+        payload: Prisma.$ParkingBookingPayload<ExtArgs>
+        fields: Prisma.ParkingBookingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingBookingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingBookingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingBookingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingBookingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingBookingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingBookingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingBookingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingBookingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingBookingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>
+          }
+          update: {
+            args: Prisma.ParkingBookingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingBookingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingBookingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingBookingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingBookingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingBookingPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingBookingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingBooking>
+          }
+          groupBy: {
+            args: Prisma.ParkingBookingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingBookingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingBookingCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingBookingCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingWaitlistEntry: {
+        payload: Prisma.$ParkingWaitlistEntryPayload<ExtArgs>
+        fields: Prisma.ParkingWaitlistEntryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingWaitlistEntryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingWaitlistEntryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingWaitlistEntryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingWaitlistEntryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingWaitlistEntryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingWaitlistEntryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingWaitlistEntryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingWaitlistEntryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingWaitlistEntryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>
+          }
+          update: {
+            args: Prisma.ParkingWaitlistEntryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingWaitlistEntryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingWaitlistEntryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingWaitlistEntryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingWaitlistEntryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWaitlistEntryPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingWaitlistEntryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingWaitlistEntry>
+          }
+          groupBy: {
+            args: Prisma.ParkingWaitlistEntryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingWaitlistEntryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingWaitlistEntryCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingWaitlistEntryCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -8385,6 +9290,15 @@ export namespace Prisma {
     permissions?: permissionsOmit
     role_permissions?: role_permissionsOmit
     roles?: rolesOmit
+    customerOrder?: CustomerOrderOmit
+    customerPaymentAttempt?: CustomerPaymentAttemptOmit
+    customerRefund?: CustomerRefundOmit
+    webhookEvent?: WebhookEventOmit
+    parkingDealer?: ParkingDealerOmit
+    parkingListing?: ParkingListingOmit
+    parkingSlotWindow?: ParkingSlotWindowOmit
+    parkingBooking?: ParkingBookingOmit
+    parkingWaitlistEntry?: ParkingWaitlistEntryOmit
   }
 
   /* Types for Logging */
@@ -8478,6 +9392,9 @@ export namespace Prisma {
     supportTickets: number
     sharedVehicles: number
     plannedTrips: number
+    orders: number
+    parkingBookings: number
+    waitlistEntries: number
   }
 
   export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8494,6 +9411,9 @@ export namespace Prisma {
     supportTickets?: boolean | CustomerCountOutputTypeCountSupportTicketsArgs
     sharedVehicles?: boolean | CustomerCountOutputTypeCountSharedVehiclesArgs
     plannedTrips?: boolean | CustomerCountOutputTypeCountPlannedTripsArgs
+    orders?: boolean | CustomerCountOutputTypeCountOrdersArgs
+    parkingBookings?: boolean | CustomerCountOutputTypeCountParkingBookingsArgs
+    waitlistEntries?: boolean | CustomerCountOutputTypeCountWaitlistEntriesArgs
   }
 
   // Custom InputTypes
@@ -8596,6 +9516,27 @@ export namespace Prisma {
    */
   export type CustomerCountOutputTypeCountPlannedTripsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PlannedTripWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerOrderWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountParkingBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingBookingWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountWaitlistEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWaitlistEntryWhereInput
   }
 
 
@@ -9545,6 +10486,126 @@ export namespace Prisma {
    */
   export type RolesCountOutputTypeCountRole_permissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: role_permissionsWhereInput
+  }
+
+
+  /**
+   * Count Type CustomerOrderCountOutputType
+   */
+
+  export type CustomerOrderCountOutputType = {
+    attempts: number
+    refunds: number
+  }
+
+  export type CustomerOrderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    attempts?: boolean | CustomerOrderCountOutputTypeCountAttemptsArgs
+    refunds?: boolean | CustomerOrderCountOutputTypeCountRefundsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * CustomerOrderCountOutputType without action
+   */
+  export type CustomerOrderCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrderCountOutputType
+     */
+    select?: CustomerOrderCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * CustomerOrderCountOutputType without action
+   */
+  export type CustomerOrderCountOutputTypeCountAttemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerPaymentAttemptWhereInput
+  }
+
+  /**
+   * CustomerOrderCountOutputType without action
+   */
+  export type CustomerOrderCountOutputTypeCountRefundsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerRefundWhereInput
+  }
+
+
+  /**
+   * Count Type ParkingDealerCountOutputType
+   */
+
+  export type ParkingDealerCountOutputType = {
+    listings: number
+  }
+
+  export type ParkingDealerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listings?: boolean | ParkingDealerCountOutputTypeCountListingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ParkingDealerCountOutputType without action
+   */
+  export type ParkingDealerCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealerCountOutputType
+     */
+    select?: ParkingDealerCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ParkingDealerCountOutputType without action
+   */
+  export type ParkingDealerCountOutputTypeCountListingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingListingWhereInput
+  }
+
+
+  /**
+   * Count Type ParkingListingCountOutputType
+   */
+
+  export type ParkingListingCountOutputType = {
+    slotWindows: number
+    bookings: number
+    waitlist: number
+  }
+
+  export type ParkingListingCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    slotWindows?: boolean | ParkingListingCountOutputTypeCountSlotWindowsArgs
+    bookings?: boolean | ParkingListingCountOutputTypeCountBookingsArgs
+    waitlist?: boolean | ParkingListingCountOutputTypeCountWaitlistArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ParkingListingCountOutputType without action
+   */
+  export type ParkingListingCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListingCountOutputType
+     */
+    select?: ParkingListingCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ParkingListingCountOutputType without action
+   */
+  export type ParkingListingCountOutputTypeCountSlotWindowsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingSlotWindowWhereInput
+  }
+
+  /**
+   * ParkingListingCountOutputType without action
+   */
+  export type ParkingListingCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingBookingWhereInput
+  }
+
+  /**
+   * ParkingListingCountOutputType without action
+   */
+  export type ParkingListingCountOutputTypeCountWaitlistArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWaitlistEntryWhereInput
   }
 
 
@@ -11795,6 +12856,9 @@ export namespace Prisma {
     supportTickets?: boolean | Customer$supportTicketsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
     plannedTrips?: boolean | Customer$plannedTripsArgs<ExtArgs>
+    orders?: boolean | Customer$ordersArgs<ExtArgs>
+    parkingBookings?: boolean | Customer$parkingBookingsArgs<ExtArgs>
+    waitlistEntries?: boolean | Customer$waitlistEntriesArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customer"]>
 
@@ -11849,6 +12913,9 @@ export namespace Prisma {
     supportTickets?: boolean | Customer$supportTicketsArgs<ExtArgs>
     sharedVehicles?: boolean | Customer$sharedVehiclesArgs<ExtArgs>
     plannedTrips?: boolean | Customer$plannedTripsArgs<ExtArgs>
+    orders?: boolean | Customer$ordersArgs<ExtArgs>
+    parkingBookings?: boolean | Customer$parkingBookingsArgs<ExtArgs>
+    waitlistEntries?: boolean | Customer$waitlistEntriesArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -11873,6 +12940,9 @@ export namespace Prisma {
       supportTickets: Prisma.$SupportTicketPayload<ExtArgs>[]
       sharedVehicles: Prisma.$VehicleAccessPayload<ExtArgs>[]
       plannedTrips: Prisma.$PlannedTripPayload<ExtArgs>[]
+      orders: Prisma.$CustomerOrderPayload<ExtArgs>[]
+      parkingBookings: Prisma.$ParkingBookingPayload<ExtArgs>[]
+      waitlistEntries: Prisma.$ParkingWaitlistEntryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -12293,6 +13363,9 @@ export namespace Prisma {
     supportTickets<T extends Customer$supportTicketsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$supportTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sharedVehicles<T extends Customer$sharedVehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$sharedVehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     plannedTrips<T extends Customer$plannedTripsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$plannedTripsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlannedTripPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    orders<T extends Customer$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Customer$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    parkingBookings<T extends Customer$parkingBookingsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$parkingBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    waitlistEntries<T extends Customer$waitlistEntriesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$waitlistEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -13089,6 +14162,78 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PlannedTripScalarFieldEnum | PlannedTripScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.orders
+   */
+  export type Customer$ordersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    where?: CustomerOrderWhereInput
+    orderBy?: CustomerOrderOrderByWithRelationInput | CustomerOrderOrderByWithRelationInput[]
+    cursor?: CustomerOrderWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomerOrderScalarFieldEnum | CustomerOrderScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.parkingBookings
+   */
+  export type Customer$parkingBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    where?: ParkingBookingWhereInput
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    cursor?: ParkingBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingBookingScalarFieldEnum | ParkingBookingScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.waitlistEntries
+   */
+  export type Customer$waitlistEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    where?: ParkingWaitlistEntryWhereInput
+    orderBy?: ParkingWaitlistEntryOrderByWithRelationInput | ParkingWaitlistEntryOrderByWithRelationInput[]
+    cursor?: ParkingWaitlistEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
   }
 
   /**
@@ -99371,6 +100516,10370 @@ export namespace Prisma {
 
 
   /**
+   * Model CustomerOrder
+   */
+
+  export type AggregateCustomerOrder = {
+    _count: CustomerOrderCountAggregateOutputType | null
+    _avg: CustomerOrderAvgAggregateOutputType | null
+    _sum: CustomerOrderSumAggregateOutputType | null
+    _min: CustomerOrderMinAggregateOutputType | null
+    _max: CustomerOrderMaxAggregateOutputType | null
+  }
+
+  export type CustomerOrderAvgAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type CustomerOrderSumAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type CustomerOrderMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    purpose: $Enums.PaymentPurpose | null
+    referenceId: string | null
+    amountPaise: number | null
+    currency: string | null
+    status: $Enums.OrderStatus | null
+    razorpayOrderId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomerOrderMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    purpose: $Enums.PaymentPurpose | null
+    referenceId: string | null
+    amountPaise: number | null
+    currency: string | null
+    status: $Enums.OrderStatus | null
+    razorpayOrderId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CustomerOrderCountAggregateOutputType = {
+    id: number
+    customerId: number
+    purpose: number
+    referenceId: number
+    amountPaise: number
+    currency: number
+    status: number
+    razorpayOrderId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CustomerOrderAvgAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type CustomerOrderSumAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type CustomerOrderMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    purpose?: true
+    referenceId?: true
+    amountPaise?: true
+    currency?: true
+    status?: true
+    razorpayOrderId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomerOrderMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    purpose?: true
+    referenceId?: true
+    amountPaise?: true
+    currency?: true
+    status?: true
+    razorpayOrderId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CustomerOrderCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    purpose?: true
+    referenceId?: true
+    amountPaise?: true
+    currency?: true
+    status?: true
+    razorpayOrderId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CustomerOrderAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerOrder to aggregate.
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerOrders to fetch.
+     */
+    orderBy?: CustomerOrderOrderByWithRelationInput | CustomerOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomerOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomerOrders
+    **/
+    _count?: true | CustomerOrderCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CustomerOrderAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CustomerOrderSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomerOrderMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomerOrderMaxAggregateInputType
+  }
+
+  export type GetCustomerOrderAggregateType<T extends CustomerOrderAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomerOrder]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomerOrder[P]>
+      : GetScalarType<T[P], AggregateCustomerOrder[P]>
+  }
+
+
+
+
+  export type CustomerOrderGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerOrderWhereInput
+    orderBy?: CustomerOrderOrderByWithAggregationInput | CustomerOrderOrderByWithAggregationInput[]
+    by: CustomerOrderScalarFieldEnum[] | CustomerOrderScalarFieldEnum
+    having?: CustomerOrderScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomerOrderCountAggregateInputType | true
+    _avg?: CustomerOrderAvgAggregateInputType
+    _sum?: CustomerOrderSumAggregateInputType
+    _min?: CustomerOrderMinAggregateInputType
+    _max?: CustomerOrderMaxAggregateInputType
+  }
+
+  export type CustomerOrderGroupByOutputType = {
+    id: string
+    customerId: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency: string
+    status: $Enums.OrderStatus
+    razorpayOrderId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: CustomerOrderCountAggregateOutputType | null
+    _avg: CustomerOrderAvgAggregateOutputType | null
+    _sum: CustomerOrderSumAggregateOutputType | null
+    _min: CustomerOrderMinAggregateOutputType | null
+    _max: CustomerOrderMaxAggregateOutputType | null
+  }
+
+  type GetCustomerOrderGroupByPayload<T extends CustomerOrderGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomerOrderGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomerOrderGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomerOrderGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomerOrderGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomerOrderSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    purpose?: boolean
+    referenceId?: boolean
+    amountPaise?: boolean
+    currency?: boolean
+    status?: boolean
+    razorpayOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    attempts?: boolean | CustomerOrder$attemptsArgs<ExtArgs>
+    refunds?: boolean | CustomerOrder$refundsArgs<ExtArgs>
+    _count?: boolean | CustomerOrderCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerOrder"]>
+
+  export type CustomerOrderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    purpose?: boolean
+    referenceId?: boolean
+    amountPaise?: boolean
+    currency?: boolean
+    status?: boolean
+    razorpayOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerOrder"]>
+
+  export type CustomerOrderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    purpose?: boolean
+    referenceId?: boolean
+    amountPaise?: boolean
+    currency?: boolean
+    status?: boolean
+    razorpayOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerOrder"]>
+
+  export type CustomerOrderSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    purpose?: boolean
+    referenceId?: boolean
+    amountPaise?: boolean
+    currency?: boolean
+    status?: boolean
+    razorpayOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CustomerOrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "purpose" | "referenceId" | "amountPaise" | "currency" | "status" | "razorpayOrderId" | "createdAt" | "updatedAt", ExtArgs["result"]["customerOrder"]>
+  export type CustomerOrderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    attempts?: boolean | CustomerOrder$attemptsArgs<ExtArgs>
+    refunds?: boolean | CustomerOrder$refundsArgs<ExtArgs>
+    _count?: boolean | CustomerOrderCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type CustomerOrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type CustomerOrderIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $CustomerOrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomerOrder"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      attempts: Prisma.$CustomerPaymentAttemptPayload<ExtArgs>[]
+      refunds: Prisma.$CustomerRefundPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      purpose: $Enums.PaymentPurpose
+      referenceId: string
+      amountPaise: number
+      currency: string
+      status: $Enums.OrderStatus
+      razorpayOrderId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["customerOrder"]>
+    composites: {}
+  }
+
+  type CustomerOrderGetPayload<S extends boolean | null | undefined | CustomerOrderDefaultArgs> = $Result.GetResult<Prisma.$CustomerOrderPayload, S>
+
+  type CustomerOrderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomerOrderFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomerOrderCountAggregateInputType | true
+    }
+
+  export interface CustomerOrderDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomerOrder'], meta: { name: 'CustomerOrder' } }
+    /**
+     * Find zero or one CustomerOrder that matches the filter.
+     * @param {CustomerOrderFindUniqueArgs} args - Arguments to find a CustomerOrder
+     * @example
+     * // Get one CustomerOrder
+     * const customerOrder = await prisma.customerOrder.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomerOrderFindUniqueArgs>(args: SelectSubset<T, CustomerOrderFindUniqueArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomerOrder that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomerOrderFindUniqueOrThrowArgs} args - Arguments to find a CustomerOrder
+     * @example
+     * // Get one CustomerOrder
+     * const customerOrder = await prisma.customerOrder.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomerOrderFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomerOrderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomerOrder that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderFindFirstArgs} args - Arguments to find a CustomerOrder
+     * @example
+     * // Get one CustomerOrder
+     * const customerOrder = await prisma.customerOrder.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomerOrderFindFirstArgs>(args?: SelectSubset<T, CustomerOrderFindFirstArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomerOrder that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderFindFirstOrThrowArgs} args - Arguments to find a CustomerOrder
+     * @example
+     * // Get one CustomerOrder
+     * const customerOrder = await prisma.customerOrder.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomerOrderFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomerOrderFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomerOrders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomerOrders
+     * const customerOrders = await prisma.customerOrder.findMany()
+     * 
+     * // Get first 10 CustomerOrders
+     * const customerOrders = await prisma.customerOrder.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customerOrderWithIdOnly = await prisma.customerOrder.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomerOrderFindManyArgs>(args?: SelectSubset<T, CustomerOrderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomerOrder.
+     * @param {CustomerOrderCreateArgs} args - Arguments to create a CustomerOrder.
+     * @example
+     * // Create one CustomerOrder
+     * const CustomerOrder = await prisma.customerOrder.create({
+     *   data: {
+     *     // ... data to create a CustomerOrder
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomerOrderCreateArgs>(args: SelectSubset<T, CustomerOrderCreateArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomerOrders.
+     * @param {CustomerOrderCreateManyArgs} args - Arguments to create many CustomerOrders.
+     * @example
+     * // Create many CustomerOrders
+     * const customerOrder = await prisma.customerOrder.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomerOrderCreateManyArgs>(args?: SelectSubset<T, CustomerOrderCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomerOrders and returns the data saved in the database.
+     * @param {CustomerOrderCreateManyAndReturnArgs} args - Arguments to create many CustomerOrders.
+     * @example
+     * // Create many CustomerOrders
+     * const customerOrder = await prisma.customerOrder.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomerOrders and only return the `id`
+     * const customerOrderWithIdOnly = await prisma.customerOrder.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomerOrderCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomerOrderCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomerOrder.
+     * @param {CustomerOrderDeleteArgs} args - Arguments to delete one CustomerOrder.
+     * @example
+     * // Delete one CustomerOrder
+     * const CustomerOrder = await prisma.customerOrder.delete({
+     *   where: {
+     *     // ... filter to delete one CustomerOrder
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomerOrderDeleteArgs>(args: SelectSubset<T, CustomerOrderDeleteArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomerOrder.
+     * @param {CustomerOrderUpdateArgs} args - Arguments to update one CustomerOrder.
+     * @example
+     * // Update one CustomerOrder
+     * const customerOrder = await prisma.customerOrder.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomerOrderUpdateArgs>(args: SelectSubset<T, CustomerOrderUpdateArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomerOrders.
+     * @param {CustomerOrderDeleteManyArgs} args - Arguments to filter CustomerOrders to delete.
+     * @example
+     * // Delete a few CustomerOrders
+     * const { count } = await prisma.customerOrder.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomerOrderDeleteManyArgs>(args?: SelectSubset<T, CustomerOrderDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomerOrders
+     * const customerOrder = await prisma.customerOrder.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomerOrderUpdateManyArgs>(args: SelectSubset<T, CustomerOrderUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerOrders and returns the data updated in the database.
+     * @param {CustomerOrderUpdateManyAndReturnArgs} args - Arguments to update many CustomerOrders.
+     * @example
+     * // Update many CustomerOrders
+     * const customerOrder = await prisma.customerOrder.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomerOrders and only return the `id`
+     * const customerOrderWithIdOnly = await prisma.customerOrder.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomerOrderUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomerOrderUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomerOrder.
+     * @param {CustomerOrderUpsertArgs} args - Arguments to update or create a CustomerOrder.
+     * @example
+     * // Update or create a CustomerOrder
+     * const customerOrder = await prisma.customerOrder.upsert({
+     *   create: {
+     *     // ... data to create a CustomerOrder
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomerOrder we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomerOrderUpsertArgs>(args: SelectSubset<T, CustomerOrderUpsertArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomerOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderCountArgs} args - Arguments to filter CustomerOrders to count.
+     * @example
+     * // Count the number of CustomerOrders
+     * const count = await prisma.customerOrder.count({
+     *   where: {
+     *     // ... the filter for the CustomerOrders we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomerOrderCountArgs>(
+      args?: Subset<T, CustomerOrderCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomerOrderCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomerOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomerOrderAggregateArgs>(args: Subset<T, CustomerOrderAggregateArgs>): Prisma.PrismaPromise<GetCustomerOrderAggregateType<T>>
+
+    /**
+     * Group by CustomerOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerOrderGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomerOrderGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomerOrderGroupByArgs['orderBy'] }
+        : { orderBy?: CustomerOrderGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomerOrderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomerOrderGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomerOrder model
+   */
+  readonly fields: CustomerOrderFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomerOrder.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomerOrderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    attempts<T extends CustomerOrder$attemptsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerOrder$attemptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    refunds<T extends CustomerOrder$refundsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerOrder$refundsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomerOrder model
+   */
+  interface CustomerOrderFieldRefs {
+    readonly id: FieldRef<"CustomerOrder", 'String'>
+    readonly customerId: FieldRef<"CustomerOrder", 'String'>
+    readonly purpose: FieldRef<"CustomerOrder", 'PaymentPurpose'>
+    readonly referenceId: FieldRef<"CustomerOrder", 'String'>
+    readonly amountPaise: FieldRef<"CustomerOrder", 'Int'>
+    readonly currency: FieldRef<"CustomerOrder", 'String'>
+    readonly status: FieldRef<"CustomerOrder", 'OrderStatus'>
+    readonly razorpayOrderId: FieldRef<"CustomerOrder", 'String'>
+    readonly createdAt: FieldRef<"CustomerOrder", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomerOrder", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomerOrder findUnique
+   */
+  export type CustomerOrderFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerOrder to fetch.
+     */
+    where: CustomerOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerOrder findUniqueOrThrow
+   */
+  export type CustomerOrderFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerOrder to fetch.
+     */
+    where: CustomerOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerOrder findFirst
+   */
+  export type CustomerOrderFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerOrder to fetch.
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerOrders to fetch.
+     */
+    orderBy?: CustomerOrderOrderByWithRelationInput | CustomerOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerOrders.
+     */
+    cursor?: CustomerOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerOrders.
+     */
+    distinct?: CustomerOrderScalarFieldEnum | CustomerOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerOrder findFirstOrThrow
+   */
+  export type CustomerOrderFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerOrder to fetch.
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerOrders to fetch.
+     */
+    orderBy?: CustomerOrderOrderByWithRelationInput | CustomerOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerOrders.
+     */
+    cursor?: CustomerOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerOrders.
+     */
+    distinct?: CustomerOrderScalarFieldEnum | CustomerOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerOrder findMany
+   */
+  export type CustomerOrderFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerOrders to fetch.
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerOrders to fetch.
+     */
+    orderBy?: CustomerOrderOrderByWithRelationInput | CustomerOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomerOrders.
+     */
+    cursor?: CustomerOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerOrders.
+     */
+    distinct?: CustomerOrderScalarFieldEnum | CustomerOrderScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerOrder create
+   */
+  export type CustomerOrderCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomerOrder.
+     */
+    data: XOR<CustomerOrderCreateInput, CustomerOrderUncheckedCreateInput>
+  }
+
+  /**
+   * CustomerOrder createMany
+   */
+  export type CustomerOrderCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomerOrders.
+     */
+    data: CustomerOrderCreateManyInput | CustomerOrderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomerOrder createManyAndReturn
+   */
+  export type CustomerOrderCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomerOrders.
+     */
+    data: CustomerOrderCreateManyInput | CustomerOrderCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerOrder update
+   */
+  export type CustomerOrderUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomerOrder.
+     */
+    data: XOR<CustomerOrderUpdateInput, CustomerOrderUncheckedUpdateInput>
+    /**
+     * Choose, which CustomerOrder to update.
+     */
+    where: CustomerOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerOrder updateMany
+   */
+  export type CustomerOrderUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomerOrders.
+     */
+    data: XOR<CustomerOrderUpdateManyMutationInput, CustomerOrderUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerOrders to update
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * Limit how many CustomerOrders to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomerOrder updateManyAndReturn
+   */
+  export type CustomerOrderUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomerOrders.
+     */
+    data: XOR<CustomerOrderUpdateManyMutationInput, CustomerOrderUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerOrders to update
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * Limit how many CustomerOrders to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerOrder upsert
+   */
+  export type CustomerOrderUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomerOrder to update in case it exists.
+     */
+    where: CustomerOrderWhereUniqueInput
+    /**
+     * In case the CustomerOrder found by the `where` argument doesn't exist, create a new CustomerOrder with this data.
+     */
+    create: XOR<CustomerOrderCreateInput, CustomerOrderUncheckedCreateInput>
+    /**
+     * In case the CustomerOrder was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomerOrderUpdateInput, CustomerOrderUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomerOrder delete
+   */
+  export type CustomerOrderDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+    /**
+     * Filter which CustomerOrder to delete.
+     */
+    where: CustomerOrderWhereUniqueInput
+  }
+
+  /**
+   * CustomerOrder deleteMany
+   */
+  export type CustomerOrderDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerOrders to delete
+     */
+    where?: CustomerOrderWhereInput
+    /**
+     * Limit how many CustomerOrders to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomerOrder.attempts
+   */
+  export type CustomerOrder$attemptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    where?: CustomerPaymentAttemptWhereInput
+    orderBy?: CustomerPaymentAttemptOrderByWithRelationInput | CustomerPaymentAttemptOrderByWithRelationInput[]
+    cursor?: CustomerPaymentAttemptWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomerPaymentAttemptScalarFieldEnum | CustomerPaymentAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerOrder.refunds
+   */
+  export type CustomerOrder$refundsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    where?: CustomerRefundWhereInput
+    orderBy?: CustomerRefundOrderByWithRelationInput | CustomerRefundOrderByWithRelationInput[]
+    cursor?: CustomerRefundWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomerRefundScalarFieldEnum | CustomerRefundScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerOrder without action
+   */
+  export type CustomerOrderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerOrder
+     */
+    select?: CustomerOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerOrder
+     */
+    omit?: CustomerOrderOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerOrderInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CustomerPaymentAttempt
+   */
+
+  export type AggregateCustomerPaymentAttempt = {
+    _count: CustomerPaymentAttemptCountAggregateOutputType | null
+    _min: CustomerPaymentAttemptMinAggregateOutputType | null
+    _max: CustomerPaymentAttemptMaxAggregateOutputType | null
+  }
+
+  export type CustomerPaymentAttemptMinAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    razorpayPaymentId: string | null
+    razorpaySignature: string | null
+    method: string | null
+    status: $Enums.PaymentAttemptStatus | null
+    failureReason: string | null
+    paidAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type CustomerPaymentAttemptMaxAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    razorpayPaymentId: string | null
+    razorpaySignature: string | null
+    method: string | null
+    status: $Enums.PaymentAttemptStatus | null
+    failureReason: string | null
+    paidAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type CustomerPaymentAttemptCountAggregateOutputType = {
+    id: number
+    orderId: number
+    razorpayPaymentId: number
+    razorpaySignature: number
+    method: number
+    status: number
+    failureReason: number
+    paidAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CustomerPaymentAttemptMinAggregateInputType = {
+    id?: true
+    orderId?: true
+    razorpayPaymentId?: true
+    razorpaySignature?: true
+    method?: true
+    status?: true
+    failureReason?: true
+    paidAt?: true
+    createdAt?: true
+  }
+
+  export type CustomerPaymentAttemptMaxAggregateInputType = {
+    id?: true
+    orderId?: true
+    razorpayPaymentId?: true
+    razorpaySignature?: true
+    method?: true
+    status?: true
+    failureReason?: true
+    paidAt?: true
+    createdAt?: true
+  }
+
+  export type CustomerPaymentAttemptCountAggregateInputType = {
+    id?: true
+    orderId?: true
+    razorpayPaymentId?: true
+    razorpaySignature?: true
+    method?: true
+    status?: true
+    failureReason?: true
+    paidAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CustomerPaymentAttemptAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerPaymentAttempt to aggregate.
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPaymentAttempts to fetch.
+     */
+    orderBy?: CustomerPaymentAttemptOrderByWithRelationInput | CustomerPaymentAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomerPaymentAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPaymentAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPaymentAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomerPaymentAttempts
+    **/
+    _count?: true | CustomerPaymentAttemptCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomerPaymentAttemptMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomerPaymentAttemptMaxAggregateInputType
+  }
+
+  export type GetCustomerPaymentAttemptAggregateType<T extends CustomerPaymentAttemptAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomerPaymentAttempt]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomerPaymentAttempt[P]>
+      : GetScalarType<T[P], AggregateCustomerPaymentAttempt[P]>
+  }
+
+
+
+
+  export type CustomerPaymentAttemptGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerPaymentAttemptWhereInput
+    orderBy?: CustomerPaymentAttemptOrderByWithAggregationInput | CustomerPaymentAttemptOrderByWithAggregationInput[]
+    by: CustomerPaymentAttemptScalarFieldEnum[] | CustomerPaymentAttemptScalarFieldEnum
+    having?: CustomerPaymentAttemptScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomerPaymentAttemptCountAggregateInputType | true
+    _min?: CustomerPaymentAttemptMinAggregateInputType
+    _max?: CustomerPaymentAttemptMaxAggregateInputType
+  }
+
+  export type CustomerPaymentAttemptGroupByOutputType = {
+    id: string
+    orderId: string
+    razorpayPaymentId: string | null
+    razorpaySignature: string | null
+    method: string | null
+    status: $Enums.PaymentAttemptStatus
+    failureReason: string | null
+    paidAt: Date | null
+    createdAt: Date
+    _count: CustomerPaymentAttemptCountAggregateOutputType | null
+    _min: CustomerPaymentAttemptMinAggregateOutputType | null
+    _max: CustomerPaymentAttemptMaxAggregateOutputType | null
+  }
+
+  type GetCustomerPaymentAttemptGroupByPayload<T extends CustomerPaymentAttemptGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomerPaymentAttemptGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomerPaymentAttemptGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomerPaymentAttemptGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomerPaymentAttemptGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomerPaymentAttemptSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    razorpayPaymentId?: boolean
+    razorpaySignature?: boolean
+    method?: boolean
+    status?: boolean
+    failureReason?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerPaymentAttempt"]>
+
+  export type CustomerPaymentAttemptSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    razorpayPaymentId?: boolean
+    razorpaySignature?: boolean
+    method?: boolean
+    status?: boolean
+    failureReason?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerPaymentAttempt"]>
+
+  export type CustomerPaymentAttemptSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    razorpayPaymentId?: boolean
+    razorpaySignature?: boolean
+    method?: boolean
+    status?: boolean
+    failureReason?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerPaymentAttempt"]>
+
+  export type CustomerPaymentAttemptSelectScalar = {
+    id?: boolean
+    orderId?: boolean
+    razorpayPaymentId?: boolean
+    razorpaySignature?: boolean
+    method?: boolean
+    status?: boolean
+    failureReason?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type CustomerPaymentAttemptOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "razorpayPaymentId" | "razorpaySignature" | "method" | "status" | "failureReason" | "paidAt" | "createdAt", ExtArgs["result"]["customerPaymentAttempt"]>
+  export type CustomerPaymentAttemptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }
+  export type CustomerPaymentAttemptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }
+  export type CustomerPaymentAttemptIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }
+
+  export type $CustomerPaymentAttemptPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomerPaymentAttempt"
+    objects: {
+      order: Prisma.$CustomerOrderPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orderId: string
+      razorpayPaymentId: string | null
+      razorpaySignature: string | null
+      method: string | null
+      status: $Enums.PaymentAttemptStatus
+      failureReason: string | null
+      paidAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["customerPaymentAttempt"]>
+    composites: {}
+  }
+
+  type CustomerPaymentAttemptGetPayload<S extends boolean | null | undefined | CustomerPaymentAttemptDefaultArgs> = $Result.GetResult<Prisma.$CustomerPaymentAttemptPayload, S>
+
+  type CustomerPaymentAttemptCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomerPaymentAttemptFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomerPaymentAttemptCountAggregateInputType | true
+    }
+
+  export interface CustomerPaymentAttemptDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomerPaymentAttempt'], meta: { name: 'CustomerPaymentAttempt' } }
+    /**
+     * Find zero or one CustomerPaymentAttempt that matches the filter.
+     * @param {CustomerPaymentAttemptFindUniqueArgs} args - Arguments to find a CustomerPaymentAttempt
+     * @example
+     * // Get one CustomerPaymentAttempt
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomerPaymentAttemptFindUniqueArgs>(args: SelectSubset<T, CustomerPaymentAttemptFindUniqueArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomerPaymentAttempt that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomerPaymentAttemptFindUniqueOrThrowArgs} args - Arguments to find a CustomerPaymentAttempt
+     * @example
+     * // Get one CustomerPaymentAttempt
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomerPaymentAttemptFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomerPaymentAttemptFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomerPaymentAttempt that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptFindFirstArgs} args - Arguments to find a CustomerPaymentAttempt
+     * @example
+     * // Get one CustomerPaymentAttempt
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomerPaymentAttemptFindFirstArgs>(args?: SelectSubset<T, CustomerPaymentAttemptFindFirstArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomerPaymentAttempt that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptFindFirstOrThrowArgs} args - Arguments to find a CustomerPaymentAttempt
+     * @example
+     * // Get one CustomerPaymentAttempt
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomerPaymentAttemptFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomerPaymentAttemptFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomerPaymentAttempts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomerPaymentAttempts
+     * const customerPaymentAttempts = await prisma.customerPaymentAttempt.findMany()
+     * 
+     * // Get first 10 CustomerPaymentAttempts
+     * const customerPaymentAttempts = await prisma.customerPaymentAttempt.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customerPaymentAttemptWithIdOnly = await prisma.customerPaymentAttempt.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomerPaymentAttemptFindManyArgs>(args?: SelectSubset<T, CustomerPaymentAttemptFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomerPaymentAttempt.
+     * @param {CustomerPaymentAttemptCreateArgs} args - Arguments to create a CustomerPaymentAttempt.
+     * @example
+     * // Create one CustomerPaymentAttempt
+     * const CustomerPaymentAttempt = await prisma.customerPaymentAttempt.create({
+     *   data: {
+     *     // ... data to create a CustomerPaymentAttempt
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomerPaymentAttemptCreateArgs>(args: SelectSubset<T, CustomerPaymentAttemptCreateArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomerPaymentAttempts.
+     * @param {CustomerPaymentAttemptCreateManyArgs} args - Arguments to create many CustomerPaymentAttempts.
+     * @example
+     * // Create many CustomerPaymentAttempts
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomerPaymentAttemptCreateManyArgs>(args?: SelectSubset<T, CustomerPaymentAttemptCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomerPaymentAttempts and returns the data saved in the database.
+     * @param {CustomerPaymentAttemptCreateManyAndReturnArgs} args - Arguments to create many CustomerPaymentAttempts.
+     * @example
+     * // Create many CustomerPaymentAttempts
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomerPaymentAttempts and only return the `id`
+     * const customerPaymentAttemptWithIdOnly = await prisma.customerPaymentAttempt.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomerPaymentAttemptCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomerPaymentAttemptCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomerPaymentAttempt.
+     * @param {CustomerPaymentAttemptDeleteArgs} args - Arguments to delete one CustomerPaymentAttempt.
+     * @example
+     * // Delete one CustomerPaymentAttempt
+     * const CustomerPaymentAttempt = await prisma.customerPaymentAttempt.delete({
+     *   where: {
+     *     // ... filter to delete one CustomerPaymentAttempt
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomerPaymentAttemptDeleteArgs>(args: SelectSubset<T, CustomerPaymentAttemptDeleteArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomerPaymentAttempt.
+     * @param {CustomerPaymentAttemptUpdateArgs} args - Arguments to update one CustomerPaymentAttempt.
+     * @example
+     * // Update one CustomerPaymentAttempt
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomerPaymentAttemptUpdateArgs>(args: SelectSubset<T, CustomerPaymentAttemptUpdateArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomerPaymentAttempts.
+     * @param {CustomerPaymentAttemptDeleteManyArgs} args - Arguments to filter CustomerPaymentAttempts to delete.
+     * @example
+     * // Delete a few CustomerPaymentAttempts
+     * const { count } = await prisma.customerPaymentAttempt.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomerPaymentAttemptDeleteManyArgs>(args?: SelectSubset<T, CustomerPaymentAttemptDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerPaymentAttempts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomerPaymentAttempts
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomerPaymentAttemptUpdateManyArgs>(args: SelectSubset<T, CustomerPaymentAttemptUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerPaymentAttempts and returns the data updated in the database.
+     * @param {CustomerPaymentAttemptUpdateManyAndReturnArgs} args - Arguments to update many CustomerPaymentAttempts.
+     * @example
+     * // Update many CustomerPaymentAttempts
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomerPaymentAttempts and only return the `id`
+     * const customerPaymentAttemptWithIdOnly = await prisma.customerPaymentAttempt.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomerPaymentAttemptUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomerPaymentAttemptUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomerPaymentAttempt.
+     * @param {CustomerPaymentAttemptUpsertArgs} args - Arguments to update or create a CustomerPaymentAttempt.
+     * @example
+     * // Update or create a CustomerPaymentAttempt
+     * const customerPaymentAttempt = await prisma.customerPaymentAttempt.upsert({
+     *   create: {
+     *     // ... data to create a CustomerPaymentAttempt
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomerPaymentAttempt we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomerPaymentAttemptUpsertArgs>(args: SelectSubset<T, CustomerPaymentAttemptUpsertArgs<ExtArgs>>): Prisma__CustomerPaymentAttemptClient<$Result.GetResult<Prisma.$CustomerPaymentAttemptPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomerPaymentAttempts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptCountArgs} args - Arguments to filter CustomerPaymentAttempts to count.
+     * @example
+     * // Count the number of CustomerPaymentAttempts
+     * const count = await prisma.customerPaymentAttempt.count({
+     *   where: {
+     *     // ... the filter for the CustomerPaymentAttempts we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomerPaymentAttemptCountArgs>(
+      args?: Subset<T, CustomerPaymentAttemptCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomerPaymentAttemptCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomerPaymentAttempt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomerPaymentAttemptAggregateArgs>(args: Subset<T, CustomerPaymentAttemptAggregateArgs>): Prisma.PrismaPromise<GetCustomerPaymentAttemptAggregateType<T>>
+
+    /**
+     * Group by CustomerPaymentAttempt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerPaymentAttemptGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomerPaymentAttemptGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomerPaymentAttemptGroupByArgs['orderBy'] }
+        : { orderBy?: CustomerPaymentAttemptGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomerPaymentAttemptGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomerPaymentAttemptGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomerPaymentAttempt model
+   */
+  readonly fields: CustomerPaymentAttemptFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomerPaymentAttempt.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomerPaymentAttemptClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    order<T extends CustomerOrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerOrderDefaultArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomerPaymentAttempt model
+   */
+  interface CustomerPaymentAttemptFieldRefs {
+    readonly id: FieldRef<"CustomerPaymentAttempt", 'String'>
+    readonly orderId: FieldRef<"CustomerPaymentAttempt", 'String'>
+    readonly razorpayPaymentId: FieldRef<"CustomerPaymentAttempt", 'String'>
+    readonly razorpaySignature: FieldRef<"CustomerPaymentAttempt", 'String'>
+    readonly method: FieldRef<"CustomerPaymentAttempt", 'String'>
+    readonly status: FieldRef<"CustomerPaymentAttempt", 'PaymentAttemptStatus'>
+    readonly failureReason: FieldRef<"CustomerPaymentAttempt", 'String'>
+    readonly paidAt: FieldRef<"CustomerPaymentAttempt", 'DateTime'>
+    readonly createdAt: FieldRef<"CustomerPaymentAttempt", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomerPaymentAttempt findUnique
+   */
+  export type CustomerPaymentAttemptFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPaymentAttempt to fetch.
+     */
+    where: CustomerPaymentAttemptWhereUniqueInput
+  }
+
+  /**
+   * CustomerPaymentAttempt findUniqueOrThrow
+   */
+  export type CustomerPaymentAttemptFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPaymentAttempt to fetch.
+     */
+    where: CustomerPaymentAttemptWhereUniqueInput
+  }
+
+  /**
+   * CustomerPaymentAttempt findFirst
+   */
+  export type CustomerPaymentAttemptFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPaymentAttempt to fetch.
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPaymentAttempts to fetch.
+     */
+    orderBy?: CustomerPaymentAttemptOrderByWithRelationInput | CustomerPaymentAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerPaymentAttempts.
+     */
+    cursor?: CustomerPaymentAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPaymentAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPaymentAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPaymentAttempts.
+     */
+    distinct?: CustomerPaymentAttemptScalarFieldEnum | CustomerPaymentAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPaymentAttempt findFirstOrThrow
+   */
+  export type CustomerPaymentAttemptFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPaymentAttempt to fetch.
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPaymentAttempts to fetch.
+     */
+    orderBy?: CustomerPaymentAttemptOrderByWithRelationInput | CustomerPaymentAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerPaymentAttempts.
+     */
+    cursor?: CustomerPaymentAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPaymentAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPaymentAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPaymentAttempts.
+     */
+    distinct?: CustomerPaymentAttemptScalarFieldEnum | CustomerPaymentAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPaymentAttempt findMany
+   */
+  export type CustomerPaymentAttemptFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerPaymentAttempts to fetch.
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerPaymentAttempts to fetch.
+     */
+    orderBy?: CustomerPaymentAttemptOrderByWithRelationInput | CustomerPaymentAttemptOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomerPaymentAttempts.
+     */
+    cursor?: CustomerPaymentAttemptWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerPaymentAttempts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerPaymentAttempts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerPaymentAttempts.
+     */
+    distinct?: CustomerPaymentAttemptScalarFieldEnum | CustomerPaymentAttemptScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerPaymentAttempt create
+   */
+  export type CustomerPaymentAttemptCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomerPaymentAttempt.
+     */
+    data: XOR<CustomerPaymentAttemptCreateInput, CustomerPaymentAttemptUncheckedCreateInput>
+  }
+
+  /**
+   * CustomerPaymentAttempt createMany
+   */
+  export type CustomerPaymentAttemptCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomerPaymentAttempts.
+     */
+    data: CustomerPaymentAttemptCreateManyInput | CustomerPaymentAttemptCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomerPaymentAttempt createManyAndReturn
+   */
+  export type CustomerPaymentAttemptCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomerPaymentAttempts.
+     */
+    data: CustomerPaymentAttemptCreateManyInput | CustomerPaymentAttemptCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerPaymentAttempt update
+   */
+  export type CustomerPaymentAttemptUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomerPaymentAttempt.
+     */
+    data: XOR<CustomerPaymentAttemptUpdateInput, CustomerPaymentAttemptUncheckedUpdateInput>
+    /**
+     * Choose, which CustomerPaymentAttempt to update.
+     */
+    where: CustomerPaymentAttemptWhereUniqueInput
+  }
+
+  /**
+   * CustomerPaymentAttempt updateMany
+   */
+  export type CustomerPaymentAttemptUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomerPaymentAttempts.
+     */
+    data: XOR<CustomerPaymentAttemptUpdateManyMutationInput, CustomerPaymentAttemptUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerPaymentAttempts to update
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * Limit how many CustomerPaymentAttempts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomerPaymentAttempt updateManyAndReturn
+   */
+  export type CustomerPaymentAttemptUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomerPaymentAttempts.
+     */
+    data: XOR<CustomerPaymentAttemptUpdateManyMutationInput, CustomerPaymentAttemptUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerPaymentAttempts to update
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * Limit how many CustomerPaymentAttempts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerPaymentAttempt upsert
+   */
+  export type CustomerPaymentAttemptUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomerPaymentAttempt to update in case it exists.
+     */
+    where: CustomerPaymentAttemptWhereUniqueInput
+    /**
+     * In case the CustomerPaymentAttempt found by the `where` argument doesn't exist, create a new CustomerPaymentAttempt with this data.
+     */
+    create: XOR<CustomerPaymentAttemptCreateInput, CustomerPaymentAttemptUncheckedCreateInput>
+    /**
+     * In case the CustomerPaymentAttempt was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomerPaymentAttemptUpdateInput, CustomerPaymentAttemptUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomerPaymentAttempt delete
+   */
+  export type CustomerPaymentAttemptDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+    /**
+     * Filter which CustomerPaymentAttempt to delete.
+     */
+    where: CustomerPaymentAttemptWhereUniqueInput
+  }
+
+  /**
+   * CustomerPaymentAttempt deleteMany
+   */
+  export type CustomerPaymentAttemptDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerPaymentAttempts to delete
+     */
+    where?: CustomerPaymentAttemptWhereInput
+    /**
+     * Limit how many CustomerPaymentAttempts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomerPaymentAttempt without action
+   */
+  export type CustomerPaymentAttemptDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerPaymentAttempt
+     */
+    select?: CustomerPaymentAttemptSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerPaymentAttempt
+     */
+    omit?: CustomerPaymentAttemptOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerPaymentAttemptInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CustomerRefund
+   */
+
+  export type AggregateCustomerRefund = {
+    _count: CustomerRefundCountAggregateOutputType | null
+    _avg: CustomerRefundAvgAggregateOutputType | null
+    _sum: CustomerRefundSumAggregateOutputType | null
+    _min: CustomerRefundMinAggregateOutputType | null
+    _max: CustomerRefundMaxAggregateOutputType | null
+  }
+
+  export type CustomerRefundAvgAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type CustomerRefundSumAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type CustomerRefundMinAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    amountPaise: number | null
+    status: $Enums.CustomerRefundStatus | null
+    razorpayRefundId: string | null
+    reason: string | null
+    processedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type CustomerRefundMaxAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    amountPaise: number | null
+    status: $Enums.CustomerRefundStatus | null
+    razorpayRefundId: string | null
+    reason: string | null
+    processedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type CustomerRefundCountAggregateOutputType = {
+    id: number
+    orderId: number
+    amountPaise: number
+    status: number
+    razorpayRefundId: number
+    reason: number
+    processedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type CustomerRefundAvgAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type CustomerRefundSumAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type CustomerRefundMinAggregateInputType = {
+    id?: true
+    orderId?: true
+    amountPaise?: true
+    status?: true
+    razorpayRefundId?: true
+    reason?: true
+    processedAt?: true
+    createdAt?: true
+  }
+
+  export type CustomerRefundMaxAggregateInputType = {
+    id?: true
+    orderId?: true
+    amountPaise?: true
+    status?: true
+    razorpayRefundId?: true
+    reason?: true
+    processedAt?: true
+    createdAt?: true
+  }
+
+  export type CustomerRefundCountAggregateInputType = {
+    id?: true
+    orderId?: true
+    amountPaise?: true
+    status?: true
+    razorpayRefundId?: true
+    reason?: true
+    processedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type CustomerRefundAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerRefund to aggregate.
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerRefunds to fetch.
+     */
+    orderBy?: CustomerRefundOrderByWithRelationInput | CustomerRefundOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomerRefundWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerRefunds from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerRefunds.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomerRefunds
+    **/
+    _count?: true | CustomerRefundCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CustomerRefundAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CustomerRefundSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomerRefundMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomerRefundMaxAggregateInputType
+  }
+
+  export type GetCustomerRefundAggregateType<T extends CustomerRefundAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomerRefund]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomerRefund[P]>
+      : GetScalarType<T[P], AggregateCustomerRefund[P]>
+  }
+
+
+
+
+  export type CustomerRefundGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomerRefundWhereInput
+    orderBy?: CustomerRefundOrderByWithAggregationInput | CustomerRefundOrderByWithAggregationInput[]
+    by: CustomerRefundScalarFieldEnum[] | CustomerRefundScalarFieldEnum
+    having?: CustomerRefundScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomerRefundCountAggregateInputType | true
+    _avg?: CustomerRefundAvgAggregateInputType
+    _sum?: CustomerRefundSumAggregateInputType
+    _min?: CustomerRefundMinAggregateInputType
+    _max?: CustomerRefundMaxAggregateInputType
+  }
+
+  export type CustomerRefundGroupByOutputType = {
+    id: string
+    orderId: string
+    amountPaise: number
+    status: $Enums.CustomerRefundStatus
+    razorpayRefundId: string | null
+    reason: string | null
+    processedAt: Date | null
+    createdAt: Date
+    _count: CustomerRefundCountAggregateOutputType | null
+    _avg: CustomerRefundAvgAggregateOutputType | null
+    _sum: CustomerRefundSumAggregateOutputType | null
+    _min: CustomerRefundMinAggregateOutputType | null
+    _max: CustomerRefundMaxAggregateOutputType | null
+  }
+
+  type GetCustomerRefundGroupByPayload<T extends CustomerRefundGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomerRefundGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomerRefundGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomerRefundGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomerRefundGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomerRefundSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    razorpayRefundId?: boolean
+    reason?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerRefund"]>
+
+  export type CustomerRefundSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    razorpayRefundId?: boolean
+    reason?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerRefund"]>
+
+  export type CustomerRefundSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    razorpayRefundId?: boolean
+    reason?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customerRefund"]>
+
+  export type CustomerRefundSelectScalar = {
+    id?: boolean
+    orderId?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    razorpayRefundId?: boolean
+    reason?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type CustomerRefundOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "amountPaise" | "status" | "razorpayRefundId" | "reason" | "processedAt" | "createdAt", ExtArgs["result"]["customerRefund"]>
+  export type CustomerRefundInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }
+  export type CustomerRefundIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }
+  export type CustomerRefundIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | CustomerOrderDefaultArgs<ExtArgs>
+  }
+
+  export type $CustomerRefundPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomerRefund"
+    objects: {
+      order: Prisma.$CustomerOrderPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orderId: string
+      amountPaise: number
+      status: $Enums.CustomerRefundStatus
+      razorpayRefundId: string | null
+      reason: string | null
+      processedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["customerRefund"]>
+    composites: {}
+  }
+
+  type CustomerRefundGetPayload<S extends boolean | null | undefined | CustomerRefundDefaultArgs> = $Result.GetResult<Prisma.$CustomerRefundPayload, S>
+
+  type CustomerRefundCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomerRefundFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomerRefundCountAggregateInputType | true
+    }
+
+  export interface CustomerRefundDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomerRefund'], meta: { name: 'CustomerRefund' } }
+    /**
+     * Find zero or one CustomerRefund that matches the filter.
+     * @param {CustomerRefundFindUniqueArgs} args - Arguments to find a CustomerRefund
+     * @example
+     * // Get one CustomerRefund
+     * const customerRefund = await prisma.customerRefund.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomerRefundFindUniqueArgs>(args: SelectSubset<T, CustomerRefundFindUniqueArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomerRefund that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomerRefundFindUniqueOrThrowArgs} args - Arguments to find a CustomerRefund
+     * @example
+     * // Get one CustomerRefund
+     * const customerRefund = await prisma.customerRefund.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomerRefundFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomerRefundFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomerRefund that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundFindFirstArgs} args - Arguments to find a CustomerRefund
+     * @example
+     * // Get one CustomerRefund
+     * const customerRefund = await prisma.customerRefund.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomerRefundFindFirstArgs>(args?: SelectSubset<T, CustomerRefundFindFirstArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomerRefund that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundFindFirstOrThrowArgs} args - Arguments to find a CustomerRefund
+     * @example
+     * // Get one CustomerRefund
+     * const customerRefund = await prisma.customerRefund.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomerRefundFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomerRefundFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomerRefunds that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomerRefunds
+     * const customerRefunds = await prisma.customerRefund.findMany()
+     * 
+     * // Get first 10 CustomerRefunds
+     * const customerRefunds = await prisma.customerRefund.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customerRefundWithIdOnly = await prisma.customerRefund.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomerRefundFindManyArgs>(args?: SelectSubset<T, CustomerRefundFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomerRefund.
+     * @param {CustomerRefundCreateArgs} args - Arguments to create a CustomerRefund.
+     * @example
+     * // Create one CustomerRefund
+     * const CustomerRefund = await prisma.customerRefund.create({
+     *   data: {
+     *     // ... data to create a CustomerRefund
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomerRefundCreateArgs>(args: SelectSubset<T, CustomerRefundCreateArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomerRefunds.
+     * @param {CustomerRefundCreateManyArgs} args - Arguments to create many CustomerRefunds.
+     * @example
+     * // Create many CustomerRefunds
+     * const customerRefund = await prisma.customerRefund.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomerRefundCreateManyArgs>(args?: SelectSubset<T, CustomerRefundCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomerRefunds and returns the data saved in the database.
+     * @param {CustomerRefundCreateManyAndReturnArgs} args - Arguments to create many CustomerRefunds.
+     * @example
+     * // Create many CustomerRefunds
+     * const customerRefund = await prisma.customerRefund.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomerRefunds and only return the `id`
+     * const customerRefundWithIdOnly = await prisma.customerRefund.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomerRefundCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomerRefundCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomerRefund.
+     * @param {CustomerRefundDeleteArgs} args - Arguments to delete one CustomerRefund.
+     * @example
+     * // Delete one CustomerRefund
+     * const CustomerRefund = await prisma.customerRefund.delete({
+     *   where: {
+     *     // ... filter to delete one CustomerRefund
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomerRefundDeleteArgs>(args: SelectSubset<T, CustomerRefundDeleteArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomerRefund.
+     * @param {CustomerRefundUpdateArgs} args - Arguments to update one CustomerRefund.
+     * @example
+     * // Update one CustomerRefund
+     * const customerRefund = await prisma.customerRefund.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomerRefundUpdateArgs>(args: SelectSubset<T, CustomerRefundUpdateArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomerRefunds.
+     * @param {CustomerRefundDeleteManyArgs} args - Arguments to filter CustomerRefunds to delete.
+     * @example
+     * // Delete a few CustomerRefunds
+     * const { count } = await prisma.customerRefund.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomerRefundDeleteManyArgs>(args?: SelectSubset<T, CustomerRefundDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerRefunds.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomerRefunds
+     * const customerRefund = await prisma.customerRefund.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomerRefundUpdateManyArgs>(args: SelectSubset<T, CustomerRefundUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomerRefunds and returns the data updated in the database.
+     * @param {CustomerRefundUpdateManyAndReturnArgs} args - Arguments to update many CustomerRefunds.
+     * @example
+     * // Update many CustomerRefunds
+     * const customerRefund = await prisma.customerRefund.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomerRefunds and only return the `id`
+     * const customerRefundWithIdOnly = await prisma.customerRefund.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomerRefundUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomerRefundUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomerRefund.
+     * @param {CustomerRefundUpsertArgs} args - Arguments to update or create a CustomerRefund.
+     * @example
+     * // Update or create a CustomerRefund
+     * const customerRefund = await prisma.customerRefund.upsert({
+     *   create: {
+     *     // ... data to create a CustomerRefund
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomerRefund we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomerRefundUpsertArgs>(args: SelectSubset<T, CustomerRefundUpsertArgs<ExtArgs>>): Prisma__CustomerRefundClient<$Result.GetResult<Prisma.$CustomerRefundPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomerRefunds.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundCountArgs} args - Arguments to filter CustomerRefunds to count.
+     * @example
+     * // Count the number of CustomerRefunds
+     * const count = await prisma.customerRefund.count({
+     *   where: {
+     *     // ... the filter for the CustomerRefunds we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomerRefundCountArgs>(
+      args?: Subset<T, CustomerRefundCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomerRefundCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomerRefund.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomerRefundAggregateArgs>(args: Subset<T, CustomerRefundAggregateArgs>): Prisma.PrismaPromise<GetCustomerRefundAggregateType<T>>
+
+    /**
+     * Group by CustomerRefund.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomerRefundGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomerRefundGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomerRefundGroupByArgs['orderBy'] }
+        : { orderBy?: CustomerRefundGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomerRefundGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomerRefundGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomerRefund model
+   */
+  readonly fields: CustomerRefundFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomerRefund.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomerRefundClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    order<T extends CustomerOrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerOrderDefaultArgs<ExtArgs>>): Prisma__CustomerOrderClient<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomerRefund model
+   */
+  interface CustomerRefundFieldRefs {
+    readonly id: FieldRef<"CustomerRefund", 'String'>
+    readonly orderId: FieldRef<"CustomerRefund", 'String'>
+    readonly amountPaise: FieldRef<"CustomerRefund", 'Int'>
+    readonly status: FieldRef<"CustomerRefund", 'CustomerRefundStatus'>
+    readonly razorpayRefundId: FieldRef<"CustomerRefund", 'String'>
+    readonly reason: FieldRef<"CustomerRefund", 'String'>
+    readonly processedAt: FieldRef<"CustomerRefund", 'DateTime'>
+    readonly createdAt: FieldRef<"CustomerRefund", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomerRefund findUnique
+   */
+  export type CustomerRefundFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerRefund to fetch.
+     */
+    where: CustomerRefundWhereUniqueInput
+  }
+
+  /**
+   * CustomerRefund findUniqueOrThrow
+   */
+  export type CustomerRefundFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerRefund to fetch.
+     */
+    where: CustomerRefundWhereUniqueInput
+  }
+
+  /**
+   * CustomerRefund findFirst
+   */
+  export type CustomerRefundFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerRefund to fetch.
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerRefunds to fetch.
+     */
+    orderBy?: CustomerRefundOrderByWithRelationInput | CustomerRefundOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerRefunds.
+     */
+    cursor?: CustomerRefundWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerRefunds from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerRefunds.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerRefunds.
+     */
+    distinct?: CustomerRefundScalarFieldEnum | CustomerRefundScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerRefund findFirstOrThrow
+   */
+  export type CustomerRefundFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerRefund to fetch.
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerRefunds to fetch.
+     */
+    orderBy?: CustomerRefundOrderByWithRelationInput | CustomerRefundOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomerRefunds.
+     */
+    cursor?: CustomerRefundWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerRefunds from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerRefunds.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerRefunds.
+     */
+    distinct?: CustomerRefundScalarFieldEnum | CustomerRefundScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerRefund findMany
+   */
+  export type CustomerRefundFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomerRefunds to fetch.
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomerRefunds to fetch.
+     */
+    orderBy?: CustomerRefundOrderByWithRelationInput | CustomerRefundOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomerRefunds.
+     */
+    cursor?: CustomerRefundWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomerRefunds from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomerRefunds.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomerRefunds.
+     */
+    distinct?: CustomerRefundScalarFieldEnum | CustomerRefundScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerRefund create
+   */
+  export type CustomerRefundCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomerRefund.
+     */
+    data: XOR<CustomerRefundCreateInput, CustomerRefundUncheckedCreateInput>
+  }
+
+  /**
+   * CustomerRefund createMany
+   */
+  export type CustomerRefundCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomerRefunds.
+     */
+    data: CustomerRefundCreateManyInput | CustomerRefundCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomerRefund createManyAndReturn
+   */
+  export type CustomerRefundCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomerRefunds.
+     */
+    data: CustomerRefundCreateManyInput | CustomerRefundCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerRefund update
+   */
+  export type CustomerRefundUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomerRefund.
+     */
+    data: XOR<CustomerRefundUpdateInput, CustomerRefundUncheckedUpdateInput>
+    /**
+     * Choose, which CustomerRefund to update.
+     */
+    where: CustomerRefundWhereUniqueInput
+  }
+
+  /**
+   * CustomerRefund updateMany
+   */
+  export type CustomerRefundUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomerRefunds.
+     */
+    data: XOR<CustomerRefundUpdateManyMutationInput, CustomerRefundUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerRefunds to update
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * Limit how many CustomerRefunds to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomerRefund updateManyAndReturn
+   */
+  export type CustomerRefundUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomerRefunds.
+     */
+    data: XOR<CustomerRefundUpdateManyMutationInput, CustomerRefundUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomerRefunds to update
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * Limit how many CustomerRefunds to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomerRefund upsert
+   */
+  export type CustomerRefundUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomerRefund to update in case it exists.
+     */
+    where: CustomerRefundWhereUniqueInput
+    /**
+     * In case the CustomerRefund found by the `where` argument doesn't exist, create a new CustomerRefund with this data.
+     */
+    create: XOR<CustomerRefundCreateInput, CustomerRefundUncheckedCreateInput>
+    /**
+     * In case the CustomerRefund was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomerRefundUpdateInput, CustomerRefundUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomerRefund delete
+   */
+  export type CustomerRefundDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+    /**
+     * Filter which CustomerRefund to delete.
+     */
+    where: CustomerRefundWhereUniqueInput
+  }
+
+  /**
+   * CustomerRefund deleteMany
+   */
+  export type CustomerRefundDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomerRefunds to delete
+     */
+    where?: CustomerRefundWhereInput
+    /**
+     * Limit how many CustomerRefunds to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomerRefund without action
+   */
+  export type CustomerRefundDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomerRefund
+     */
+    select?: CustomerRefundSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomerRefund
+     */
+    omit?: CustomerRefundOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomerRefundInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WebhookEvent
+   */
+
+  export type AggregateWebhookEvent = {
+    _count: WebhookEventCountAggregateOutputType | null
+    _min: WebhookEventMinAggregateOutputType | null
+    _max: WebhookEventMaxAggregateOutputType | null
+  }
+
+  export type WebhookEventMinAggregateOutputType = {
+    id: string | null
+    provider: string | null
+    eventType: string | null
+    dedupeKey: string | null
+    signatureValid: boolean | null
+    processedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type WebhookEventMaxAggregateOutputType = {
+    id: string | null
+    provider: string | null
+    eventType: string | null
+    dedupeKey: string | null
+    signatureValid: boolean | null
+    processedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type WebhookEventCountAggregateOutputType = {
+    id: number
+    provider: number
+    eventType: number
+    dedupeKey: number
+    payload: number
+    signatureValid: number
+    processedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type WebhookEventMinAggregateInputType = {
+    id?: true
+    provider?: true
+    eventType?: true
+    dedupeKey?: true
+    signatureValid?: true
+    processedAt?: true
+    createdAt?: true
+  }
+
+  export type WebhookEventMaxAggregateInputType = {
+    id?: true
+    provider?: true
+    eventType?: true
+    dedupeKey?: true
+    signatureValid?: true
+    processedAt?: true
+    createdAt?: true
+  }
+
+  export type WebhookEventCountAggregateInputType = {
+    id?: true
+    provider?: true
+    eventType?: true
+    dedupeKey?: true
+    payload?: true
+    signatureValid?: true
+    processedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type WebhookEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WebhookEvent to aggregate.
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WebhookEvents to fetch.
+     */
+    orderBy?: WebhookEventOrderByWithRelationInput | WebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WebhookEvents
+    **/
+    _count?: true | WebhookEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WebhookEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WebhookEventMaxAggregateInputType
+  }
+
+  export type GetWebhookEventAggregateType<T extends WebhookEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateWebhookEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWebhookEvent[P]>
+      : GetScalarType<T[P], AggregateWebhookEvent[P]>
+  }
+
+
+
+
+  export type WebhookEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WebhookEventWhereInput
+    orderBy?: WebhookEventOrderByWithAggregationInput | WebhookEventOrderByWithAggregationInput[]
+    by: WebhookEventScalarFieldEnum[] | WebhookEventScalarFieldEnum
+    having?: WebhookEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WebhookEventCountAggregateInputType | true
+    _min?: WebhookEventMinAggregateInputType
+    _max?: WebhookEventMaxAggregateInputType
+  }
+
+  export type WebhookEventGroupByOutputType = {
+    id: string
+    provider: string
+    eventType: string
+    dedupeKey: string
+    payload: JsonValue
+    signatureValid: boolean
+    processedAt: Date | null
+    createdAt: Date
+    _count: WebhookEventCountAggregateOutputType | null
+    _min: WebhookEventMinAggregateOutputType | null
+    _max: WebhookEventMaxAggregateOutputType | null
+  }
+
+  type GetWebhookEventGroupByPayload<T extends WebhookEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WebhookEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WebhookEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WebhookEventGroupByOutputType[P]>
+            : GetScalarType<T[P], WebhookEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WebhookEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    provider?: boolean
+    eventType?: boolean
+    dedupeKey?: boolean
+    payload?: boolean
+    signatureValid?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["webhookEvent"]>
+
+  export type WebhookEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    provider?: boolean
+    eventType?: boolean
+    dedupeKey?: boolean
+    payload?: boolean
+    signatureValid?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["webhookEvent"]>
+
+  export type WebhookEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    provider?: boolean
+    eventType?: boolean
+    dedupeKey?: boolean
+    payload?: boolean
+    signatureValid?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["webhookEvent"]>
+
+  export type WebhookEventSelectScalar = {
+    id?: boolean
+    provider?: boolean
+    eventType?: boolean
+    dedupeKey?: boolean
+    payload?: boolean
+    signatureValid?: boolean
+    processedAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type WebhookEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "provider" | "eventType" | "dedupeKey" | "payload" | "signatureValid" | "processedAt" | "createdAt", ExtArgs["result"]["webhookEvent"]>
+
+  export type $WebhookEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WebhookEvent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      provider: string
+      eventType: string
+      dedupeKey: string
+      payload: Prisma.JsonValue
+      signatureValid: boolean
+      processedAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["webhookEvent"]>
+    composites: {}
+  }
+
+  type WebhookEventGetPayload<S extends boolean | null | undefined | WebhookEventDefaultArgs> = $Result.GetResult<Prisma.$WebhookEventPayload, S>
+
+  type WebhookEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WebhookEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WebhookEventCountAggregateInputType | true
+    }
+
+  export interface WebhookEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WebhookEvent'], meta: { name: 'WebhookEvent' } }
+    /**
+     * Find zero or one WebhookEvent that matches the filter.
+     * @param {WebhookEventFindUniqueArgs} args - Arguments to find a WebhookEvent
+     * @example
+     * // Get one WebhookEvent
+     * const webhookEvent = await prisma.webhookEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WebhookEventFindUniqueArgs>(args: SelectSubset<T, WebhookEventFindUniqueArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WebhookEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WebhookEventFindUniqueOrThrowArgs} args - Arguments to find a WebhookEvent
+     * @example
+     * // Get one WebhookEvent
+     * const webhookEvent = await prisma.webhookEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WebhookEventFindUniqueOrThrowArgs>(args: SelectSubset<T, WebhookEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WebhookEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventFindFirstArgs} args - Arguments to find a WebhookEvent
+     * @example
+     * // Get one WebhookEvent
+     * const webhookEvent = await prisma.webhookEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WebhookEventFindFirstArgs>(args?: SelectSubset<T, WebhookEventFindFirstArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WebhookEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventFindFirstOrThrowArgs} args - Arguments to find a WebhookEvent
+     * @example
+     * // Get one WebhookEvent
+     * const webhookEvent = await prisma.webhookEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WebhookEventFindFirstOrThrowArgs>(args?: SelectSubset<T, WebhookEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WebhookEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WebhookEvents
+     * const webhookEvents = await prisma.webhookEvent.findMany()
+     * 
+     * // Get first 10 WebhookEvents
+     * const webhookEvents = await prisma.webhookEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const webhookEventWithIdOnly = await prisma.webhookEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WebhookEventFindManyArgs>(args?: SelectSubset<T, WebhookEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WebhookEvent.
+     * @param {WebhookEventCreateArgs} args - Arguments to create a WebhookEvent.
+     * @example
+     * // Create one WebhookEvent
+     * const WebhookEvent = await prisma.webhookEvent.create({
+     *   data: {
+     *     // ... data to create a WebhookEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends WebhookEventCreateArgs>(args: SelectSubset<T, WebhookEventCreateArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WebhookEvents.
+     * @param {WebhookEventCreateManyArgs} args - Arguments to create many WebhookEvents.
+     * @example
+     * // Create many WebhookEvents
+     * const webhookEvent = await prisma.webhookEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WebhookEventCreateManyArgs>(args?: SelectSubset<T, WebhookEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WebhookEvents and returns the data saved in the database.
+     * @param {WebhookEventCreateManyAndReturnArgs} args - Arguments to create many WebhookEvents.
+     * @example
+     * // Create many WebhookEvents
+     * const webhookEvent = await prisma.webhookEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WebhookEvents and only return the `id`
+     * const webhookEventWithIdOnly = await prisma.webhookEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WebhookEventCreateManyAndReturnArgs>(args?: SelectSubset<T, WebhookEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WebhookEvent.
+     * @param {WebhookEventDeleteArgs} args - Arguments to delete one WebhookEvent.
+     * @example
+     * // Delete one WebhookEvent
+     * const WebhookEvent = await prisma.webhookEvent.delete({
+     *   where: {
+     *     // ... filter to delete one WebhookEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WebhookEventDeleteArgs>(args: SelectSubset<T, WebhookEventDeleteArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WebhookEvent.
+     * @param {WebhookEventUpdateArgs} args - Arguments to update one WebhookEvent.
+     * @example
+     * // Update one WebhookEvent
+     * const webhookEvent = await prisma.webhookEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WebhookEventUpdateArgs>(args: SelectSubset<T, WebhookEventUpdateArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WebhookEvents.
+     * @param {WebhookEventDeleteManyArgs} args - Arguments to filter WebhookEvents to delete.
+     * @example
+     * // Delete a few WebhookEvents
+     * const { count } = await prisma.webhookEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WebhookEventDeleteManyArgs>(args?: SelectSubset<T, WebhookEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WebhookEvents
+     * const webhookEvent = await prisma.webhookEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WebhookEventUpdateManyArgs>(args: SelectSubset<T, WebhookEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WebhookEvents and returns the data updated in the database.
+     * @param {WebhookEventUpdateManyAndReturnArgs} args - Arguments to update many WebhookEvents.
+     * @example
+     * // Update many WebhookEvents
+     * const webhookEvent = await prisma.webhookEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WebhookEvents and only return the `id`
+     * const webhookEventWithIdOnly = await prisma.webhookEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WebhookEventUpdateManyAndReturnArgs>(args: SelectSubset<T, WebhookEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WebhookEvent.
+     * @param {WebhookEventUpsertArgs} args - Arguments to update or create a WebhookEvent.
+     * @example
+     * // Update or create a WebhookEvent
+     * const webhookEvent = await prisma.webhookEvent.upsert({
+     *   create: {
+     *     // ... data to create a WebhookEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WebhookEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WebhookEventUpsertArgs>(args: SelectSubset<T, WebhookEventUpsertArgs<ExtArgs>>): Prisma__WebhookEventClient<$Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WebhookEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventCountArgs} args - Arguments to filter WebhookEvents to count.
+     * @example
+     * // Count the number of WebhookEvents
+     * const count = await prisma.webhookEvent.count({
+     *   where: {
+     *     // ... the filter for the WebhookEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends WebhookEventCountArgs>(
+      args?: Subset<T, WebhookEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WebhookEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WebhookEventAggregateArgs>(args: Subset<T, WebhookEventAggregateArgs>): Prisma.PrismaPromise<GetWebhookEventAggregateType<T>>
+
+    /**
+     * Group by WebhookEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WebhookEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WebhookEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WebhookEventGroupByArgs['orderBy'] }
+        : { orderBy?: WebhookEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WebhookEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWebhookEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WebhookEvent model
+   */
+  readonly fields: WebhookEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WebhookEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WebhookEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WebhookEvent model
+   */
+  interface WebhookEventFieldRefs {
+    readonly id: FieldRef<"WebhookEvent", 'String'>
+    readonly provider: FieldRef<"WebhookEvent", 'String'>
+    readonly eventType: FieldRef<"WebhookEvent", 'String'>
+    readonly dedupeKey: FieldRef<"WebhookEvent", 'String'>
+    readonly payload: FieldRef<"WebhookEvent", 'Json'>
+    readonly signatureValid: FieldRef<"WebhookEvent", 'Boolean'>
+    readonly processedAt: FieldRef<"WebhookEvent", 'DateTime'>
+    readonly createdAt: FieldRef<"WebhookEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WebhookEvent findUnique
+   */
+  export type WebhookEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which WebhookEvent to fetch.
+     */
+    where: WebhookEventWhereUniqueInput
+  }
+
+  /**
+   * WebhookEvent findUniqueOrThrow
+   */
+  export type WebhookEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which WebhookEvent to fetch.
+     */
+    where: WebhookEventWhereUniqueInput
+  }
+
+  /**
+   * WebhookEvent findFirst
+   */
+  export type WebhookEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which WebhookEvent to fetch.
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WebhookEvents to fetch.
+     */
+    orderBy?: WebhookEventOrderByWithRelationInput | WebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WebhookEvents.
+     */
+    cursor?: WebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WebhookEvents.
+     */
+    distinct?: WebhookEventScalarFieldEnum | WebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * WebhookEvent findFirstOrThrow
+   */
+  export type WebhookEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which WebhookEvent to fetch.
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WebhookEvents to fetch.
+     */
+    orderBy?: WebhookEventOrderByWithRelationInput | WebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WebhookEvents.
+     */
+    cursor?: WebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WebhookEvents.
+     */
+    distinct?: WebhookEventScalarFieldEnum | WebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * WebhookEvent findMany
+   */
+  export type WebhookEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter, which WebhookEvents to fetch.
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WebhookEvents to fetch.
+     */
+    orderBy?: WebhookEventOrderByWithRelationInput | WebhookEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WebhookEvents.
+     */
+    cursor?: WebhookEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WebhookEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WebhookEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WebhookEvents.
+     */
+    distinct?: WebhookEventScalarFieldEnum | WebhookEventScalarFieldEnum[]
+  }
+
+  /**
+   * WebhookEvent create
+   */
+  export type WebhookEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * The data needed to create a WebhookEvent.
+     */
+    data: XOR<WebhookEventCreateInput, WebhookEventUncheckedCreateInput>
+  }
+
+  /**
+   * WebhookEvent createMany
+   */
+  export type WebhookEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WebhookEvents.
+     */
+    data: WebhookEventCreateManyInput | WebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WebhookEvent createManyAndReturn
+   */
+  export type WebhookEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many WebhookEvents.
+     */
+    data: WebhookEventCreateManyInput | WebhookEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WebhookEvent update
+   */
+  export type WebhookEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * The data needed to update a WebhookEvent.
+     */
+    data: XOR<WebhookEventUpdateInput, WebhookEventUncheckedUpdateInput>
+    /**
+     * Choose, which WebhookEvent to update.
+     */
+    where: WebhookEventWhereUniqueInput
+  }
+
+  /**
+   * WebhookEvent updateMany
+   */
+  export type WebhookEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WebhookEvents.
+     */
+    data: XOR<WebhookEventUpdateManyMutationInput, WebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which WebhookEvents to update
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * Limit how many WebhookEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WebhookEvent updateManyAndReturn
+   */
+  export type WebhookEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * The data used to update WebhookEvents.
+     */
+    data: XOR<WebhookEventUpdateManyMutationInput, WebhookEventUncheckedUpdateManyInput>
+    /**
+     * Filter which WebhookEvents to update
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * Limit how many WebhookEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WebhookEvent upsert
+   */
+  export type WebhookEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * The filter to search for the WebhookEvent to update in case it exists.
+     */
+    where: WebhookEventWhereUniqueInput
+    /**
+     * In case the WebhookEvent found by the `where` argument doesn't exist, create a new WebhookEvent with this data.
+     */
+    create: XOR<WebhookEventCreateInput, WebhookEventUncheckedCreateInput>
+    /**
+     * In case the WebhookEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WebhookEventUpdateInput, WebhookEventUncheckedUpdateInput>
+  }
+
+  /**
+   * WebhookEvent delete
+   */
+  export type WebhookEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+    /**
+     * Filter which WebhookEvent to delete.
+     */
+    where: WebhookEventWhereUniqueInput
+  }
+
+  /**
+   * WebhookEvent deleteMany
+   */
+  export type WebhookEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WebhookEvents to delete
+     */
+    where?: WebhookEventWhereInput
+    /**
+     * Limit how many WebhookEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WebhookEvent without action
+   */
+  export type WebhookEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WebhookEvent
+     */
+    select?: WebhookEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WebhookEvent
+     */
+    omit?: WebhookEventOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingDealer
+   */
+
+  export type AggregateParkingDealer = {
+    _count: ParkingDealerCountAggregateOutputType | null
+    _min: ParkingDealerMinAggregateOutputType | null
+    _max: ParkingDealerMaxAggregateOutputType | null
+  }
+
+  export type ParkingDealerMinAggregateOutputType = {
+    id: string | null
+    ownerName: string | null
+    phoneNumber: string | null
+    email: string | null
+    passwordHash: string | null
+    status: $Enums.DealerStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingDealerMaxAggregateOutputType = {
+    id: string | null
+    ownerName: string | null
+    phoneNumber: string | null
+    email: string | null
+    passwordHash: string | null
+    status: $Enums.DealerStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingDealerCountAggregateOutputType = {
+    id: number
+    ownerName: number
+    phoneNumber: number
+    email: number
+    passwordHash: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ParkingDealerMinAggregateInputType = {
+    id?: true
+    ownerName?: true
+    phoneNumber?: true
+    email?: true
+    passwordHash?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingDealerMaxAggregateInputType = {
+    id?: true
+    ownerName?: true
+    phoneNumber?: true
+    email?: true
+    passwordHash?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingDealerCountAggregateInputType = {
+    id?: true
+    ownerName?: true
+    phoneNumber?: true
+    email?: true
+    passwordHash?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ParkingDealerAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingDealer to aggregate.
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingDealers to fetch.
+     */
+    orderBy?: ParkingDealerOrderByWithRelationInput | ParkingDealerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingDealerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingDealers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingDealers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingDealers
+    **/
+    _count?: true | ParkingDealerCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingDealerMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingDealerMaxAggregateInputType
+  }
+
+  export type GetParkingDealerAggregateType<T extends ParkingDealerAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingDealer]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingDealer[P]>
+      : GetScalarType<T[P], AggregateParkingDealer[P]>
+  }
+
+
+
+
+  export type ParkingDealerGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingDealerWhereInput
+    orderBy?: ParkingDealerOrderByWithAggregationInput | ParkingDealerOrderByWithAggregationInput[]
+    by: ParkingDealerScalarFieldEnum[] | ParkingDealerScalarFieldEnum
+    having?: ParkingDealerScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingDealerCountAggregateInputType | true
+    _min?: ParkingDealerMinAggregateInputType
+    _max?: ParkingDealerMaxAggregateInputType
+  }
+
+  export type ParkingDealerGroupByOutputType = {
+    id: string
+    ownerName: string
+    phoneNumber: string
+    email: string | null
+    passwordHash: string
+    status: $Enums.DealerStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: ParkingDealerCountAggregateOutputType | null
+    _min: ParkingDealerMinAggregateOutputType | null
+    _max: ParkingDealerMaxAggregateOutputType | null
+  }
+
+  type GetParkingDealerGroupByPayload<T extends ParkingDealerGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingDealerGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingDealerGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingDealerGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingDealerGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingDealerSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerName?: boolean
+    phoneNumber?: boolean
+    email?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    listings?: boolean | ParkingDealer$listingsArgs<ExtArgs>
+    _count?: boolean | ParkingDealerCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingDealer"]>
+
+  export type ParkingDealerSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerName?: boolean
+    phoneNumber?: boolean
+    email?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["parkingDealer"]>
+
+  export type ParkingDealerSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerName?: boolean
+    phoneNumber?: boolean
+    email?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["parkingDealer"]>
+
+  export type ParkingDealerSelectScalar = {
+    id?: boolean
+    ownerName?: boolean
+    phoneNumber?: boolean
+    email?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ParkingDealerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ownerName" | "phoneNumber" | "email" | "passwordHash" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingDealer"]>
+  export type ParkingDealerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listings?: boolean | ParkingDealer$listingsArgs<ExtArgs>
+    _count?: boolean | ParkingDealerCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ParkingDealerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type ParkingDealerIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $ParkingDealerPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingDealer"
+    objects: {
+      listings: Prisma.$ParkingListingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      ownerName: string
+      phoneNumber: string
+      email: string | null
+      passwordHash: string
+      status: $Enums.DealerStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["parkingDealer"]>
+    composites: {}
+  }
+
+  type ParkingDealerGetPayload<S extends boolean | null | undefined | ParkingDealerDefaultArgs> = $Result.GetResult<Prisma.$ParkingDealerPayload, S>
+
+  type ParkingDealerCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingDealerFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingDealerCountAggregateInputType | true
+    }
+
+  export interface ParkingDealerDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingDealer'], meta: { name: 'ParkingDealer' } }
+    /**
+     * Find zero or one ParkingDealer that matches the filter.
+     * @param {ParkingDealerFindUniqueArgs} args - Arguments to find a ParkingDealer
+     * @example
+     * // Get one ParkingDealer
+     * const parkingDealer = await prisma.parkingDealer.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingDealerFindUniqueArgs>(args: SelectSubset<T, ParkingDealerFindUniqueArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingDealer that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingDealerFindUniqueOrThrowArgs} args - Arguments to find a ParkingDealer
+     * @example
+     * // Get one ParkingDealer
+     * const parkingDealer = await prisma.parkingDealer.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingDealerFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingDealerFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingDealer that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerFindFirstArgs} args - Arguments to find a ParkingDealer
+     * @example
+     * // Get one ParkingDealer
+     * const parkingDealer = await prisma.parkingDealer.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingDealerFindFirstArgs>(args?: SelectSubset<T, ParkingDealerFindFirstArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingDealer that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerFindFirstOrThrowArgs} args - Arguments to find a ParkingDealer
+     * @example
+     * // Get one ParkingDealer
+     * const parkingDealer = await prisma.parkingDealer.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingDealerFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingDealerFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingDealers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingDealers
+     * const parkingDealers = await prisma.parkingDealer.findMany()
+     * 
+     * // Get first 10 ParkingDealers
+     * const parkingDealers = await prisma.parkingDealer.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingDealerWithIdOnly = await prisma.parkingDealer.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingDealerFindManyArgs>(args?: SelectSubset<T, ParkingDealerFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingDealer.
+     * @param {ParkingDealerCreateArgs} args - Arguments to create a ParkingDealer.
+     * @example
+     * // Create one ParkingDealer
+     * const ParkingDealer = await prisma.parkingDealer.create({
+     *   data: {
+     *     // ... data to create a ParkingDealer
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingDealerCreateArgs>(args: SelectSubset<T, ParkingDealerCreateArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingDealers.
+     * @param {ParkingDealerCreateManyArgs} args - Arguments to create many ParkingDealers.
+     * @example
+     * // Create many ParkingDealers
+     * const parkingDealer = await prisma.parkingDealer.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingDealerCreateManyArgs>(args?: SelectSubset<T, ParkingDealerCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingDealers and returns the data saved in the database.
+     * @param {ParkingDealerCreateManyAndReturnArgs} args - Arguments to create many ParkingDealers.
+     * @example
+     * // Create many ParkingDealers
+     * const parkingDealer = await prisma.parkingDealer.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingDealers and only return the `id`
+     * const parkingDealerWithIdOnly = await prisma.parkingDealer.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingDealerCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingDealerCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingDealer.
+     * @param {ParkingDealerDeleteArgs} args - Arguments to delete one ParkingDealer.
+     * @example
+     * // Delete one ParkingDealer
+     * const ParkingDealer = await prisma.parkingDealer.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingDealer
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingDealerDeleteArgs>(args: SelectSubset<T, ParkingDealerDeleteArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingDealer.
+     * @param {ParkingDealerUpdateArgs} args - Arguments to update one ParkingDealer.
+     * @example
+     * // Update one ParkingDealer
+     * const parkingDealer = await prisma.parkingDealer.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingDealerUpdateArgs>(args: SelectSubset<T, ParkingDealerUpdateArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingDealers.
+     * @param {ParkingDealerDeleteManyArgs} args - Arguments to filter ParkingDealers to delete.
+     * @example
+     * // Delete a few ParkingDealers
+     * const { count } = await prisma.parkingDealer.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingDealerDeleteManyArgs>(args?: SelectSubset<T, ParkingDealerDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingDealers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingDealers
+     * const parkingDealer = await prisma.parkingDealer.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingDealerUpdateManyArgs>(args: SelectSubset<T, ParkingDealerUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingDealers and returns the data updated in the database.
+     * @param {ParkingDealerUpdateManyAndReturnArgs} args - Arguments to update many ParkingDealers.
+     * @example
+     * // Update many ParkingDealers
+     * const parkingDealer = await prisma.parkingDealer.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingDealers and only return the `id`
+     * const parkingDealerWithIdOnly = await prisma.parkingDealer.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingDealerUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingDealerUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingDealer.
+     * @param {ParkingDealerUpsertArgs} args - Arguments to update or create a ParkingDealer.
+     * @example
+     * // Update or create a ParkingDealer
+     * const parkingDealer = await prisma.parkingDealer.upsert({
+     *   create: {
+     *     // ... data to create a ParkingDealer
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingDealer we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingDealerUpsertArgs>(args: SelectSubset<T, ParkingDealerUpsertArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingDealers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerCountArgs} args - Arguments to filter ParkingDealers to count.
+     * @example
+     * // Count the number of ParkingDealers
+     * const count = await prisma.parkingDealer.count({
+     *   where: {
+     *     // ... the filter for the ParkingDealers we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingDealerCountArgs>(
+      args?: Subset<T, ParkingDealerCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingDealerCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingDealer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingDealerAggregateArgs>(args: Subset<T, ParkingDealerAggregateArgs>): Prisma.PrismaPromise<GetParkingDealerAggregateType<T>>
+
+    /**
+     * Group by ParkingDealer.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingDealerGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingDealerGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingDealerGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingDealerGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingDealerGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingDealerGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingDealer model
+   */
+  readonly fields: ParkingDealerFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingDealer.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingDealerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    listings<T extends ParkingDealer$listingsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealer$listingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingDealer model
+   */
+  interface ParkingDealerFieldRefs {
+    readonly id: FieldRef<"ParkingDealer", 'String'>
+    readonly ownerName: FieldRef<"ParkingDealer", 'String'>
+    readonly phoneNumber: FieldRef<"ParkingDealer", 'String'>
+    readonly email: FieldRef<"ParkingDealer", 'String'>
+    readonly passwordHash: FieldRef<"ParkingDealer", 'String'>
+    readonly status: FieldRef<"ParkingDealer", 'DealerStatus'>
+    readonly createdAt: FieldRef<"ParkingDealer", 'DateTime'>
+    readonly updatedAt: FieldRef<"ParkingDealer", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingDealer findUnique
+   */
+  export type ParkingDealerFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingDealer to fetch.
+     */
+    where: ParkingDealerWhereUniqueInput
+  }
+
+  /**
+   * ParkingDealer findUniqueOrThrow
+   */
+  export type ParkingDealerFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingDealer to fetch.
+     */
+    where: ParkingDealerWhereUniqueInput
+  }
+
+  /**
+   * ParkingDealer findFirst
+   */
+  export type ParkingDealerFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingDealer to fetch.
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingDealers to fetch.
+     */
+    orderBy?: ParkingDealerOrderByWithRelationInput | ParkingDealerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingDealers.
+     */
+    cursor?: ParkingDealerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingDealers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingDealers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingDealers.
+     */
+    distinct?: ParkingDealerScalarFieldEnum | ParkingDealerScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingDealer findFirstOrThrow
+   */
+  export type ParkingDealerFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingDealer to fetch.
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingDealers to fetch.
+     */
+    orderBy?: ParkingDealerOrderByWithRelationInput | ParkingDealerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingDealers.
+     */
+    cursor?: ParkingDealerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingDealers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingDealers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingDealers.
+     */
+    distinct?: ParkingDealerScalarFieldEnum | ParkingDealerScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingDealer findMany
+   */
+  export type ParkingDealerFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingDealers to fetch.
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingDealers to fetch.
+     */
+    orderBy?: ParkingDealerOrderByWithRelationInput | ParkingDealerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingDealers.
+     */
+    cursor?: ParkingDealerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingDealers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingDealers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingDealers.
+     */
+    distinct?: ParkingDealerScalarFieldEnum | ParkingDealerScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingDealer create
+   */
+  export type ParkingDealerCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingDealer.
+     */
+    data: XOR<ParkingDealerCreateInput, ParkingDealerUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingDealer createMany
+   */
+  export type ParkingDealerCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingDealers.
+     */
+    data: ParkingDealerCreateManyInput | ParkingDealerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingDealer createManyAndReturn
+   */
+  export type ParkingDealerCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingDealers.
+     */
+    data: ParkingDealerCreateManyInput | ParkingDealerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingDealer update
+   */
+  export type ParkingDealerUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingDealer.
+     */
+    data: XOR<ParkingDealerUpdateInput, ParkingDealerUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingDealer to update.
+     */
+    where: ParkingDealerWhereUniqueInput
+  }
+
+  /**
+   * ParkingDealer updateMany
+   */
+  export type ParkingDealerUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingDealers.
+     */
+    data: XOR<ParkingDealerUpdateManyMutationInput, ParkingDealerUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingDealers to update
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * Limit how many ParkingDealers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingDealer updateManyAndReturn
+   */
+  export type ParkingDealerUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingDealers.
+     */
+    data: XOR<ParkingDealerUpdateManyMutationInput, ParkingDealerUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingDealers to update
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * Limit how many ParkingDealers to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingDealer upsert
+   */
+  export type ParkingDealerUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingDealer to update in case it exists.
+     */
+    where: ParkingDealerWhereUniqueInput
+    /**
+     * In case the ParkingDealer found by the `where` argument doesn't exist, create a new ParkingDealer with this data.
+     */
+    create: XOR<ParkingDealerCreateInput, ParkingDealerUncheckedCreateInput>
+    /**
+     * In case the ParkingDealer was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingDealerUpdateInput, ParkingDealerUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingDealer delete
+   */
+  export type ParkingDealerDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingDealer to delete.
+     */
+    where: ParkingDealerWhereUniqueInput
+  }
+
+  /**
+   * ParkingDealer deleteMany
+   */
+  export type ParkingDealerDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingDealers to delete
+     */
+    where?: ParkingDealerWhereInput
+    /**
+     * Limit how many ParkingDealers to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingDealer.listings
+   */
+  export type ParkingDealer$listingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    where?: ParkingListingWhereInput
+    orderBy?: ParkingListingOrderByWithRelationInput | ParkingListingOrderByWithRelationInput[]
+    cursor?: ParkingListingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingListingScalarFieldEnum | ParkingListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingDealer without action
+   */
+  export type ParkingDealerDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingDealer
+     */
+    select?: ParkingDealerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingDealer
+     */
+    omit?: ParkingDealerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingDealerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingListing
+   */
+
+  export type AggregateParkingListing = {
+    _count: ParkingListingCountAggregateOutputType | null
+    _avg: ParkingListingAvgAggregateOutputType | null
+    _sum: ParkingListingSumAggregateOutputType | null
+    _min: ParkingListingMinAggregateOutputType | null
+    _max: ParkingListingMaxAggregateOutputType | null
+  }
+
+  export type ParkingListingAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+    fourWheelerCapacity: number | null
+    twoWheelerCapacity: number | null
+    hourlyRatePaise: number | null
+    dailyRatePaise: number | null
+  }
+
+  export type ParkingListingSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+    fourWheelerCapacity: number | null
+    twoWheelerCapacity: number | null
+    hourlyRatePaise: number | null
+    dailyRatePaise: number | null
+  }
+
+  export type ParkingListingMinAggregateOutputType = {
+    id: string | null
+    dealerId: string | null
+    name: string | null
+    addressLine: string | null
+    city: string | null
+    latitude: number | null
+    longitude: number | null
+    fourWheelerCapacity: number | null
+    twoWheelerCapacity: number | null
+    hourlyRatePaise: number | null
+    dailyRatePaise: number | null
+    status: $Enums.ListingStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingListingMaxAggregateOutputType = {
+    id: string | null
+    dealerId: string | null
+    name: string | null
+    addressLine: string | null
+    city: string | null
+    latitude: number | null
+    longitude: number | null
+    fourWheelerCapacity: number | null
+    twoWheelerCapacity: number | null
+    hourlyRatePaise: number | null
+    dailyRatePaise: number | null
+    status: $Enums.ListingStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingListingCountAggregateOutputType = {
+    id: number
+    dealerId: number
+    name: number
+    addressLine: number
+    city: number
+    latitude: number
+    longitude: number
+    fourWheelerCapacity: number
+    twoWheelerCapacity: number
+    hourlyRatePaise: number
+    dailyRatePaise: number
+    photos: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ParkingListingAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
+    fourWheelerCapacity?: true
+    twoWheelerCapacity?: true
+    hourlyRatePaise?: true
+    dailyRatePaise?: true
+  }
+
+  export type ParkingListingSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
+    fourWheelerCapacity?: true
+    twoWheelerCapacity?: true
+    hourlyRatePaise?: true
+    dailyRatePaise?: true
+  }
+
+  export type ParkingListingMinAggregateInputType = {
+    id?: true
+    dealerId?: true
+    name?: true
+    addressLine?: true
+    city?: true
+    latitude?: true
+    longitude?: true
+    fourWheelerCapacity?: true
+    twoWheelerCapacity?: true
+    hourlyRatePaise?: true
+    dailyRatePaise?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingListingMaxAggregateInputType = {
+    id?: true
+    dealerId?: true
+    name?: true
+    addressLine?: true
+    city?: true
+    latitude?: true
+    longitude?: true
+    fourWheelerCapacity?: true
+    twoWheelerCapacity?: true
+    hourlyRatePaise?: true
+    dailyRatePaise?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingListingCountAggregateInputType = {
+    id?: true
+    dealerId?: true
+    name?: true
+    addressLine?: true
+    city?: true
+    latitude?: true
+    longitude?: true
+    fourWheelerCapacity?: true
+    twoWheelerCapacity?: true
+    hourlyRatePaise?: true
+    dailyRatePaise?: true
+    photos?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ParkingListingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingListing to aggregate.
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingListings to fetch.
+     */
+    orderBy?: ParkingListingOrderByWithRelationInput | ParkingListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingListings
+    **/
+    _count?: true | ParkingListingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingListingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingListingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingListingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingListingMaxAggregateInputType
+  }
+
+  export type GetParkingListingAggregateType<T extends ParkingListingAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingListing]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingListing[P]>
+      : GetScalarType<T[P], AggregateParkingListing[P]>
+  }
+
+
+
+
+  export type ParkingListingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingListingWhereInput
+    orderBy?: ParkingListingOrderByWithAggregationInput | ParkingListingOrderByWithAggregationInput[]
+    by: ParkingListingScalarFieldEnum[] | ParkingListingScalarFieldEnum
+    having?: ParkingListingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingListingCountAggregateInputType | true
+    _avg?: ParkingListingAvgAggregateInputType
+    _sum?: ParkingListingSumAggregateInputType
+    _min?: ParkingListingMinAggregateInputType
+    _max?: ParkingListingMaxAggregateInputType
+  }
+
+  export type ParkingListingGroupByOutputType = {
+    id: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity: number
+    twoWheelerCapacity: number
+    hourlyRatePaise: number
+    dailyRatePaise: number | null
+    photos: string[]
+    status: $Enums.ListingStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: ParkingListingCountAggregateOutputType | null
+    _avg: ParkingListingAvgAggregateOutputType | null
+    _sum: ParkingListingSumAggregateOutputType | null
+    _min: ParkingListingMinAggregateOutputType | null
+    _max: ParkingListingMaxAggregateOutputType | null
+  }
+
+  type GetParkingListingGroupByPayload<T extends ParkingListingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingListingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingListingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingListingGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingListingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingListingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    addressLine?: boolean
+    city?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    fourWheelerCapacity?: boolean
+    twoWheelerCapacity?: boolean
+    hourlyRatePaise?: boolean
+    dailyRatePaise?: boolean
+    photos?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+    slotWindows?: boolean | ParkingListing$slotWindowsArgs<ExtArgs>
+    bookings?: boolean | ParkingListing$bookingsArgs<ExtArgs>
+    waitlist?: boolean | ParkingListing$waitlistArgs<ExtArgs>
+    _count?: boolean | ParkingListingCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingListing"]>
+
+  export type ParkingListingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    addressLine?: boolean
+    city?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    fourWheelerCapacity?: boolean
+    twoWheelerCapacity?: boolean
+    hourlyRatePaise?: boolean
+    dailyRatePaise?: boolean
+    photos?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingListing"]>
+
+  export type ParkingListingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    addressLine?: boolean
+    city?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    fourWheelerCapacity?: boolean
+    twoWheelerCapacity?: boolean
+    hourlyRatePaise?: boolean
+    dailyRatePaise?: boolean
+    photos?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingListing"]>
+
+  export type ParkingListingSelectScalar = {
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    addressLine?: boolean
+    city?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    fourWheelerCapacity?: boolean
+    twoWheelerCapacity?: boolean
+    hourlyRatePaise?: boolean
+    dailyRatePaise?: boolean
+    photos?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ParkingListingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "dealerId" | "name" | "addressLine" | "city" | "latitude" | "longitude" | "fourWheelerCapacity" | "twoWheelerCapacity" | "hourlyRatePaise" | "dailyRatePaise" | "photos" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingListing"]>
+  export type ParkingListingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+    slotWindows?: boolean | ParkingListing$slotWindowsArgs<ExtArgs>
+    bookings?: boolean | ParkingListing$bookingsArgs<ExtArgs>
+    waitlist?: boolean | ParkingListing$waitlistArgs<ExtArgs>
+    _count?: boolean | ParkingListingCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ParkingListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }
+  export type ParkingListingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingListingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingListing"
+    objects: {
+      dealer: Prisma.$ParkingDealerPayload<ExtArgs>
+      slotWindows: Prisma.$ParkingSlotWindowPayload<ExtArgs>[]
+      bookings: Prisma.$ParkingBookingPayload<ExtArgs>[]
+      waitlist: Prisma.$ParkingWaitlistEntryPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      dealerId: string
+      name: string
+      addressLine: string
+      city: string
+      latitude: number
+      longitude: number
+      fourWheelerCapacity: number
+      twoWheelerCapacity: number
+      hourlyRatePaise: number
+      dailyRatePaise: number | null
+      photos: string[]
+      status: $Enums.ListingStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["parkingListing"]>
+    composites: {}
+  }
+
+  type ParkingListingGetPayload<S extends boolean | null | undefined | ParkingListingDefaultArgs> = $Result.GetResult<Prisma.$ParkingListingPayload, S>
+
+  type ParkingListingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingListingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingListingCountAggregateInputType | true
+    }
+
+  export interface ParkingListingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingListing'], meta: { name: 'ParkingListing' } }
+    /**
+     * Find zero or one ParkingListing that matches the filter.
+     * @param {ParkingListingFindUniqueArgs} args - Arguments to find a ParkingListing
+     * @example
+     * // Get one ParkingListing
+     * const parkingListing = await prisma.parkingListing.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingListingFindUniqueArgs>(args: SelectSubset<T, ParkingListingFindUniqueArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingListing that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingListingFindUniqueOrThrowArgs} args - Arguments to find a ParkingListing
+     * @example
+     * // Get one ParkingListing
+     * const parkingListing = await prisma.parkingListing.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingListingFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingListingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingListing that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingFindFirstArgs} args - Arguments to find a ParkingListing
+     * @example
+     * // Get one ParkingListing
+     * const parkingListing = await prisma.parkingListing.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingListingFindFirstArgs>(args?: SelectSubset<T, ParkingListingFindFirstArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingListing that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingFindFirstOrThrowArgs} args - Arguments to find a ParkingListing
+     * @example
+     * // Get one ParkingListing
+     * const parkingListing = await prisma.parkingListing.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingListingFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingListingFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingListings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingListings
+     * const parkingListings = await prisma.parkingListing.findMany()
+     * 
+     * // Get first 10 ParkingListings
+     * const parkingListings = await prisma.parkingListing.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingListingWithIdOnly = await prisma.parkingListing.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingListingFindManyArgs>(args?: SelectSubset<T, ParkingListingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingListing.
+     * @param {ParkingListingCreateArgs} args - Arguments to create a ParkingListing.
+     * @example
+     * // Create one ParkingListing
+     * const ParkingListing = await prisma.parkingListing.create({
+     *   data: {
+     *     // ... data to create a ParkingListing
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingListingCreateArgs>(args: SelectSubset<T, ParkingListingCreateArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingListings.
+     * @param {ParkingListingCreateManyArgs} args - Arguments to create many ParkingListings.
+     * @example
+     * // Create many ParkingListings
+     * const parkingListing = await prisma.parkingListing.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingListingCreateManyArgs>(args?: SelectSubset<T, ParkingListingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingListings and returns the data saved in the database.
+     * @param {ParkingListingCreateManyAndReturnArgs} args - Arguments to create many ParkingListings.
+     * @example
+     * // Create many ParkingListings
+     * const parkingListing = await prisma.parkingListing.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingListings and only return the `id`
+     * const parkingListingWithIdOnly = await prisma.parkingListing.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingListingCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingListingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingListing.
+     * @param {ParkingListingDeleteArgs} args - Arguments to delete one ParkingListing.
+     * @example
+     * // Delete one ParkingListing
+     * const ParkingListing = await prisma.parkingListing.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingListing
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingListingDeleteArgs>(args: SelectSubset<T, ParkingListingDeleteArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingListing.
+     * @param {ParkingListingUpdateArgs} args - Arguments to update one ParkingListing.
+     * @example
+     * // Update one ParkingListing
+     * const parkingListing = await prisma.parkingListing.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingListingUpdateArgs>(args: SelectSubset<T, ParkingListingUpdateArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingListings.
+     * @param {ParkingListingDeleteManyArgs} args - Arguments to filter ParkingListings to delete.
+     * @example
+     * // Delete a few ParkingListings
+     * const { count } = await prisma.parkingListing.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingListingDeleteManyArgs>(args?: SelectSubset<T, ParkingListingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingListings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingListings
+     * const parkingListing = await prisma.parkingListing.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingListingUpdateManyArgs>(args: SelectSubset<T, ParkingListingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingListings and returns the data updated in the database.
+     * @param {ParkingListingUpdateManyAndReturnArgs} args - Arguments to update many ParkingListings.
+     * @example
+     * // Update many ParkingListings
+     * const parkingListing = await prisma.parkingListing.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingListings and only return the `id`
+     * const parkingListingWithIdOnly = await prisma.parkingListing.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingListingUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingListingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingListing.
+     * @param {ParkingListingUpsertArgs} args - Arguments to update or create a ParkingListing.
+     * @example
+     * // Update or create a ParkingListing
+     * const parkingListing = await prisma.parkingListing.upsert({
+     *   create: {
+     *     // ... data to create a ParkingListing
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingListing we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingListingUpsertArgs>(args: SelectSubset<T, ParkingListingUpsertArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingListings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingCountArgs} args - Arguments to filter ParkingListings to count.
+     * @example
+     * // Count the number of ParkingListings
+     * const count = await prisma.parkingListing.count({
+     *   where: {
+     *     // ... the filter for the ParkingListings we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingListingCountArgs>(
+      args?: Subset<T, ParkingListingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingListingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingListing.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingListingAggregateArgs>(args: Subset<T, ParkingListingAggregateArgs>): Prisma.PrismaPromise<GetParkingListingAggregateType<T>>
+
+    /**
+     * Group by ParkingListing.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingListingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingListingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingListingGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingListingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingListingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingListingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingListing model
+   */
+  readonly fields: ParkingListingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingListing.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingListingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    dealer<T extends ParkingDealerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealerDefaultArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    slotWindows<T extends ParkingListing$slotWindowsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$slotWindowsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bookings<T extends ParkingListing$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    waitlist<T extends ParkingListing$waitlistArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$waitlistArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingListing model
+   */
+  interface ParkingListingFieldRefs {
+    readonly id: FieldRef<"ParkingListing", 'String'>
+    readonly dealerId: FieldRef<"ParkingListing", 'String'>
+    readonly name: FieldRef<"ParkingListing", 'String'>
+    readonly addressLine: FieldRef<"ParkingListing", 'String'>
+    readonly city: FieldRef<"ParkingListing", 'String'>
+    readonly latitude: FieldRef<"ParkingListing", 'Float'>
+    readonly longitude: FieldRef<"ParkingListing", 'Float'>
+    readonly fourWheelerCapacity: FieldRef<"ParkingListing", 'Int'>
+    readonly twoWheelerCapacity: FieldRef<"ParkingListing", 'Int'>
+    readonly hourlyRatePaise: FieldRef<"ParkingListing", 'Int'>
+    readonly dailyRatePaise: FieldRef<"ParkingListing", 'Int'>
+    readonly photos: FieldRef<"ParkingListing", 'String[]'>
+    readonly status: FieldRef<"ParkingListing", 'ListingStatus'>
+    readonly createdAt: FieldRef<"ParkingListing", 'DateTime'>
+    readonly updatedAt: FieldRef<"ParkingListing", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingListing findUnique
+   */
+  export type ParkingListingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingListing to fetch.
+     */
+    where: ParkingListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingListing findUniqueOrThrow
+   */
+  export type ParkingListingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingListing to fetch.
+     */
+    where: ParkingListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingListing findFirst
+   */
+  export type ParkingListingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingListing to fetch.
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingListings to fetch.
+     */
+    orderBy?: ParkingListingOrderByWithRelationInput | ParkingListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingListings.
+     */
+    cursor?: ParkingListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingListings.
+     */
+    distinct?: ParkingListingScalarFieldEnum | ParkingListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing findFirstOrThrow
+   */
+  export type ParkingListingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingListing to fetch.
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingListings to fetch.
+     */
+    orderBy?: ParkingListingOrderByWithRelationInput | ParkingListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingListings.
+     */
+    cursor?: ParkingListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingListings.
+     */
+    distinct?: ParkingListingScalarFieldEnum | ParkingListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing findMany
+   */
+  export type ParkingListingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingListings to fetch.
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingListings to fetch.
+     */
+    orderBy?: ParkingListingOrderByWithRelationInput | ParkingListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingListings.
+     */
+    cursor?: ParkingListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingListings.
+     */
+    distinct?: ParkingListingScalarFieldEnum | ParkingListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing create
+   */
+  export type ParkingListingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingListing.
+     */
+    data: XOR<ParkingListingCreateInput, ParkingListingUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingListing createMany
+   */
+  export type ParkingListingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingListings.
+     */
+    data: ParkingListingCreateManyInput | ParkingListingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingListing createManyAndReturn
+   */
+  export type ParkingListingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingListings.
+     */
+    data: ParkingListingCreateManyInput | ParkingListingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingListing update
+   */
+  export type ParkingListingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingListing.
+     */
+    data: XOR<ParkingListingUpdateInput, ParkingListingUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingListing to update.
+     */
+    where: ParkingListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingListing updateMany
+   */
+  export type ParkingListingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingListings.
+     */
+    data: XOR<ParkingListingUpdateManyMutationInput, ParkingListingUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingListings to update
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * Limit how many ParkingListings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingListing updateManyAndReturn
+   */
+  export type ParkingListingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingListings.
+     */
+    data: XOR<ParkingListingUpdateManyMutationInput, ParkingListingUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingListings to update
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * Limit how many ParkingListings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingListing upsert
+   */
+  export type ParkingListingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingListing to update in case it exists.
+     */
+    where: ParkingListingWhereUniqueInput
+    /**
+     * In case the ParkingListing found by the `where` argument doesn't exist, create a new ParkingListing with this data.
+     */
+    create: XOR<ParkingListingCreateInput, ParkingListingUncheckedCreateInput>
+    /**
+     * In case the ParkingListing was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingListingUpdateInput, ParkingListingUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingListing delete
+   */
+  export type ParkingListingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingListing to delete.
+     */
+    where: ParkingListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingListing deleteMany
+   */
+  export type ParkingListingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingListings to delete
+     */
+    where?: ParkingListingWhereInput
+    /**
+     * Limit how many ParkingListings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingListing.slotWindows
+   */
+  export type ParkingListing$slotWindowsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    where?: ParkingSlotWindowWhereInput
+    orderBy?: ParkingSlotWindowOrderByWithRelationInput | ParkingSlotWindowOrderByWithRelationInput[]
+    cursor?: ParkingSlotWindowWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingSlotWindowScalarFieldEnum | ParkingSlotWindowScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing.bookings
+   */
+  export type ParkingListing$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    where?: ParkingBookingWhereInput
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    cursor?: ParkingBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingBookingScalarFieldEnum | ParkingBookingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing.waitlist
+   */
+  export type ParkingListing$waitlistArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    where?: ParkingWaitlistEntryWhereInput
+    orderBy?: ParkingWaitlistEntryOrderByWithRelationInput | ParkingWaitlistEntryOrderByWithRelationInput[]
+    cursor?: ParkingWaitlistEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing without action
+   */
+  export type ParkingListingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingListing
+     */
+    select?: ParkingListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingListing
+     */
+    omit?: ParkingListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingListingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingSlotWindow
+   */
+
+  export type AggregateParkingSlotWindow = {
+    _count: ParkingSlotWindowCountAggregateOutputType | null
+    _avg: ParkingSlotWindowAvgAggregateOutputType | null
+    _sum: ParkingSlotWindowSumAggregateOutputType | null
+    _min: ParkingSlotWindowMinAggregateOutputType | null
+    _max: ParkingSlotWindowMaxAggregateOutputType | null
+  }
+
+  export type ParkingSlotWindowAvgAggregateOutputType = {
+    startHour: number | null
+    endHour: number | null
+    capacity: number | null
+    booked: number | null
+  }
+
+  export type ParkingSlotWindowSumAggregateOutputType = {
+    startHour: number | null
+    endHour: number | null
+    capacity: number | null
+    booked: number | null
+  }
+
+  export type ParkingSlotWindowMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    date: Date | null
+    startHour: number | null
+    endHour: number | null
+    capacity: number | null
+    booked: number | null
+  }
+
+  export type ParkingSlotWindowMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    date: Date | null
+    startHour: number | null
+    endHour: number | null
+    capacity: number | null
+    booked: number | null
+  }
+
+  export type ParkingSlotWindowCountAggregateOutputType = {
+    id: number
+    listingId: number
+    date: number
+    startHour: number
+    endHour: number
+    capacity: number
+    booked: number
+    _all: number
+  }
+
+
+  export type ParkingSlotWindowAvgAggregateInputType = {
+    startHour?: true
+    endHour?: true
+    capacity?: true
+    booked?: true
+  }
+
+  export type ParkingSlotWindowSumAggregateInputType = {
+    startHour?: true
+    endHour?: true
+    capacity?: true
+    booked?: true
+  }
+
+  export type ParkingSlotWindowMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    date?: true
+    startHour?: true
+    endHour?: true
+    capacity?: true
+    booked?: true
+  }
+
+  export type ParkingSlotWindowMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    date?: true
+    startHour?: true
+    endHour?: true
+    capacity?: true
+    booked?: true
+  }
+
+  export type ParkingSlotWindowCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    date?: true
+    startHour?: true
+    endHour?: true
+    capacity?: true
+    booked?: true
+    _all?: true
+  }
+
+  export type ParkingSlotWindowAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingSlotWindow to aggregate.
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSlotWindows to fetch.
+     */
+    orderBy?: ParkingSlotWindowOrderByWithRelationInput | ParkingSlotWindowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingSlotWindowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSlotWindows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSlotWindows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingSlotWindows
+    **/
+    _count?: true | ParkingSlotWindowCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingSlotWindowAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingSlotWindowSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingSlotWindowMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingSlotWindowMaxAggregateInputType
+  }
+
+  export type GetParkingSlotWindowAggregateType<T extends ParkingSlotWindowAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingSlotWindow]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingSlotWindow[P]>
+      : GetScalarType<T[P], AggregateParkingSlotWindow[P]>
+  }
+
+
+
+
+  export type ParkingSlotWindowGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingSlotWindowWhereInput
+    orderBy?: ParkingSlotWindowOrderByWithAggregationInput | ParkingSlotWindowOrderByWithAggregationInput[]
+    by: ParkingSlotWindowScalarFieldEnum[] | ParkingSlotWindowScalarFieldEnum
+    having?: ParkingSlotWindowScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingSlotWindowCountAggregateInputType | true
+    _avg?: ParkingSlotWindowAvgAggregateInputType
+    _sum?: ParkingSlotWindowSumAggregateInputType
+    _min?: ParkingSlotWindowMinAggregateInputType
+    _max?: ParkingSlotWindowMaxAggregateInputType
+  }
+
+  export type ParkingSlotWindowGroupByOutputType = {
+    id: string
+    listingId: string
+    date: Date
+    startHour: number
+    endHour: number
+    capacity: number
+    booked: number
+    _count: ParkingSlotWindowCountAggregateOutputType | null
+    _avg: ParkingSlotWindowAvgAggregateOutputType | null
+    _sum: ParkingSlotWindowSumAggregateOutputType | null
+    _min: ParkingSlotWindowMinAggregateOutputType | null
+    _max: ParkingSlotWindowMaxAggregateOutputType | null
+  }
+
+  type GetParkingSlotWindowGroupByPayload<T extends ParkingSlotWindowGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingSlotWindowGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingSlotWindowGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingSlotWindowGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingSlotWindowGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingSlotWindowSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    capacity?: boolean
+    booked?: boolean
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingSlotWindow"]>
+
+  export type ParkingSlotWindowSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    capacity?: boolean
+    booked?: boolean
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingSlotWindow"]>
+
+  export type ParkingSlotWindowSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    capacity?: boolean
+    booked?: boolean
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingSlotWindow"]>
+
+  export type ParkingSlotWindowSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    capacity?: boolean
+    booked?: boolean
+  }
+
+  export type ParkingSlotWindowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "listingId" | "date" | "startHour" | "endHour" | "capacity" | "booked", ExtArgs["result"]["parkingSlotWindow"]>
+  export type ParkingSlotWindowInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingSlotWindowIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingSlotWindowIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingSlotWindowPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingSlotWindow"
+    objects: {
+      listing: Prisma.$ParkingListingPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      date: Date
+      startHour: number
+      endHour: number
+      capacity: number
+      booked: number
+    }, ExtArgs["result"]["parkingSlotWindow"]>
+    composites: {}
+  }
+
+  type ParkingSlotWindowGetPayload<S extends boolean | null | undefined | ParkingSlotWindowDefaultArgs> = $Result.GetResult<Prisma.$ParkingSlotWindowPayload, S>
+
+  type ParkingSlotWindowCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingSlotWindowFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingSlotWindowCountAggregateInputType | true
+    }
+
+  export interface ParkingSlotWindowDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingSlotWindow'], meta: { name: 'ParkingSlotWindow' } }
+    /**
+     * Find zero or one ParkingSlotWindow that matches the filter.
+     * @param {ParkingSlotWindowFindUniqueArgs} args - Arguments to find a ParkingSlotWindow
+     * @example
+     * // Get one ParkingSlotWindow
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingSlotWindowFindUniqueArgs>(args: SelectSubset<T, ParkingSlotWindowFindUniqueArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingSlotWindow that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingSlotWindowFindUniqueOrThrowArgs} args - Arguments to find a ParkingSlotWindow
+     * @example
+     * // Get one ParkingSlotWindow
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingSlotWindowFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingSlotWindowFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingSlotWindow that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowFindFirstArgs} args - Arguments to find a ParkingSlotWindow
+     * @example
+     * // Get one ParkingSlotWindow
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingSlotWindowFindFirstArgs>(args?: SelectSubset<T, ParkingSlotWindowFindFirstArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingSlotWindow that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowFindFirstOrThrowArgs} args - Arguments to find a ParkingSlotWindow
+     * @example
+     * // Get one ParkingSlotWindow
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingSlotWindowFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingSlotWindowFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingSlotWindows that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingSlotWindows
+     * const parkingSlotWindows = await prisma.parkingSlotWindow.findMany()
+     * 
+     * // Get first 10 ParkingSlotWindows
+     * const parkingSlotWindows = await prisma.parkingSlotWindow.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingSlotWindowWithIdOnly = await prisma.parkingSlotWindow.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingSlotWindowFindManyArgs>(args?: SelectSubset<T, ParkingSlotWindowFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingSlotWindow.
+     * @param {ParkingSlotWindowCreateArgs} args - Arguments to create a ParkingSlotWindow.
+     * @example
+     * // Create one ParkingSlotWindow
+     * const ParkingSlotWindow = await prisma.parkingSlotWindow.create({
+     *   data: {
+     *     // ... data to create a ParkingSlotWindow
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingSlotWindowCreateArgs>(args: SelectSubset<T, ParkingSlotWindowCreateArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingSlotWindows.
+     * @param {ParkingSlotWindowCreateManyArgs} args - Arguments to create many ParkingSlotWindows.
+     * @example
+     * // Create many ParkingSlotWindows
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingSlotWindowCreateManyArgs>(args?: SelectSubset<T, ParkingSlotWindowCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingSlotWindows and returns the data saved in the database.
+     * @param {ParkingSlotWindowCreateManyAndReturnArgs} args - Arguments to create many ParkingSlotWindows.
+     * @example
+     * // Create many ParkingSlotWindows
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingSlotWindows and only return the `id`
+     * const parkingSlotWindowWithIdOnly = await prisma.parkingSlotWindow.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingSlotWindowCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingSlotWindowCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingSlotWindow.
+     * @param {ParkingSlotWindowDeleteArgs} args - Arguments to delete one ParkingSlotWindow.
+     * @example
+     * // Delete one ParkingSlotWindow
+     * const ParkingSlotWindow = await prisma.parkingSlotWindow.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingSlotWindow
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingSlotWindowDeleteArgs>(args: SelectSubset<T, ParkingSlotWindowDeleteArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingSlotWindow.
+     * @param {ParkingSlotWindowUpdateArgs} args - Arguments to update one ParkingSlotWindow.
+     * @example
+     * // Update one ParkingSlotWindow
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingSlotWindowUpdateArgs>(args: SelectSubset<T, ParkingSlotWindowUpdateArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingSlotWindows.
+     * @param {ParkingSlotWindowDeleteManyArgs} args - Arguments to filter ParkingSlotWindows to delete.
+     * @example
+     * // Delete a few ParkingSlotWindows
+     * const { count } = await prisma.parkingSlotWindow.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingSlotWindowDeleteManyArgs>(args?: SelectSubset<T, ParkingSlotWindowDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingSlotWindows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingSlotWindows
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingSlotWindowUpdateManyArgs>(args: SelectSubset<T, ParkingSlotWindowUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingSlotWindows and returns the data updated in the database.
+     * @param {ParkingSlotWindowUpdateManyAndReturnArgs} args - Arguments to update many ParkingSlotWindows.
+     * @example
+     * // Update many ParkingSlotWindows
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingSlotWindows and only return the `id`
+     * const parkingSlotWindowWithIdOnly = await prisma.parkingSlotWindow.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingSlotWindowUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingSlotWindowUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingSlotWindow.
+     * @param {ParkingSlotWindowUpsertArgs} args - Arguments to update or create a ParkingSlotWindow.
+     * @example
+     * // Update or create a ParkingSlotWindow
+     * const parkingSlotWindow = await prisma.parkingSlotWindow.upsert({
+     *   create: {
+     *     // ... data to create a ParkingSlotWindow
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingSlotWindow we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingSlotWindowUpsertArgs>(args: SelectSubset<T, ParkingSlotWindowUpsertArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingSlotWindows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowCountArgs} args - Arguments to filter ParkingSlotWindows to count.
+     * @example
+     * // Count the number of ParkingSlotWindows
+     * const count = await prisma.parkingSlotWindow.count({
+     *   where: {
+     *     // ... the filter for the ParkingSlotWindows we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingSlotWindowCountArgs>(
+      args?: Subset<T, ParkingSlotWindowCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingSlotWindowCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingSlotWindow.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingSlotWindowAggregateArgs>(args: Subset<T, ParkingSlotWindowAggregateArgs>): Prisma.PrismaPromise<GetParkingSlotWindowAggregateType<T>>
+
+    /**
+     * Group by ParkingSlotWindow.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSlotWindowGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingSlotWindowGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingSlotWindowGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingSlotWindowGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingSlotWindowGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingSlotWindowGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingSlotWindow model
+   */
+  readonly fields: ParkingSlotWindowFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingSlotWindow.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingSlotWindowClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingSlotWindow model
+   */
+  interface ParkingSlotWindowFieldRefs {
+    readonly id: FieldRef<"ParkingSlotWindow", 'String'>
+    readonly listingId: FieldRef<"ParkingSlotWindow", 'String'>
+    readonly date: FieldRef<"ParkingSlotWindow", 'DateTime'>
+    readonly startHour: FieldRef<"ParkingSlotWindow", 'Int'>
+    readonly endHour: FieldRef<"ParkingSlotWindow", 'Int'>
+    readonly capacity: FieldRef<"ParkingSlotWindow", 'Int'>
+    readonly booked: FieldRef<"ParkingSlotWindow", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingSlotWindow findUnique
+   */
+  export type ParkingSlotWindowFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSlotWindow to fetch.
+     */
+    where: ParkingSlotWindowWhereUniqueInput
+  }
+
+  /**
+   * ParkingSlotWindow findUniqueOrThrow
+   */
+  export type ParkingSlotWindowFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSlotWindow to fetch.
+     */
+    where: ParkingSlotWindowWhereUniqueInput
+  }
+
+  /**
+   * ParkingSlotWindow findFirst
+   */
+  export type ParkingSlotWindowFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSlotWindow to fetch.
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSlotWindows to fetch.
+     */
+    orderBy?: ParkingSlotWindowOrderByWithRelationInput | ParkingSlotWindowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingSlotWindows.
+     */
+    cursor?: ParkingSlotWindowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSlotWindows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSlotWindows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSlotWindows.
+     */
+    distinct?: ParkingSlotWindowScalarFieldEnum | ParkingSlotWindowScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSlotWindow findFirstOrThrow
+   */
+  export type ParkingSlotWindowFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSlotWindow to fetch.
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSlotWindows to fetch.
+     */
+    orderBy?: ParkingSlotWindowOrderByWithRelationInput | ParkingSlotWindowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingSlotWindows.
+     */
+    cursor?: ParkingSlotWindowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSlotWindows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSlotWindows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSlotWindows.
+     */
+    distinct?: ParkingSlotWindowScalarFieldEnum | ParkingSlotWindowScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSlotWindow findMany
+   */
+  export type ParkingSlotWindowFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSlotWindows to fetch.
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSlotWindows to fetch.
+     */
+    orderBy?: ParkingSlotWindowOrderByWithRelationInput | ParkingSlotWindowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingSlotWindows.
+     */
+    cursor?: ParkingSlotWindowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSlotWindows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSlotWindows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSlotWindows.
+     */
+    distinct?: ParkingSlotWindowScalarFieldEnum | ParkingSlotWindowScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSlotWindow create
+   */
+  export type ParkingSlotWindowCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingSlotWindow.
+     */
+    data: XOR<ParkingSlotWindowCreateInput, ParkingSlotWindowUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingSlotWindow createMany
+   */
+  export type ParkingSlotWindowCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingSlotWindows.
+     */
+    data: ParkingSlotWindowCreateManyInput | ParkingSlotWindowCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingSlotWindow createManyAndReturn
+   */
+  export type ParkingSlotWindowCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingSlotWindows.
+     */
+    data: ParkingSlotWindowCreateManyInput | ParkingSlotWindowCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingSlotWindow update
+   */
+  export type ParkingSlotWindowUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingSlotWindow.
+     */
+    data: XOR<ParkingSlotWindowUpdateInput, ParkingSlotWindowUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingSlotWindow to update.
+     */
+    where: ParkingSlotWindowWhereUniqueInput
+  }
+
+  /**
+   * ParkingSlotWindow updateMany
+   */
+  export type ParkingSlotWindowUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingSlotWindows.
+     */
+    data: XOR<ParkingSlotWindowUpdateManyMutationInput, ParkingSlotWindowUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingSlotWindows to update
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * Limit how many ParkingSlotWindows to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSlotWindow updateManyAndReturn
+   */
+  export type ParkingSlotWindowUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingSlotWindows.
+     */
+    data: XOR<ParkingSlotWindowUpdateManyMutationInput, ParkingSlotWindowUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingSlotWindows to update
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * Limit how many ParkingSlotWindows to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingSlotWindow upsert
+   */
+  export type ParkingSlotWindowUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingSlotWindow to update in case it exists.
+     */
+    where: ParkingSlotWindowWhereUniqueInput
+    /**
+     * In case the ParkingSlotWindow found by the `where` argument doesn't exist, create a new ParkingSlotWindow with this data.
+     */
+    create: XOR<ParkingSlotWindowCreateInput, ParkingSlotWindowUncheckedCreateInput>
+    /**
+     * In case the ParkingSlotWindow was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingSlotWindowUpdateInput, ParkingSlotWindowUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingSlotWindow delete
+   */
+  export type ParkingSlotWindowDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingSlotWindow to delete.
+     */
+    where: ParkingSlotWindowWhereUniqueInput
+  }
+
+  /**
+   * ParkingSlotWindow deleteMany
+   */
+  export type ParkingSlotWindowDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingSlotWindows to delete
+     */
+    where?: ParkingSlotWindowWhereInput
+    /**
+     * Limit how many ParkingSlotWindows to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSlotWindow without action
+   */
+  export type ParkingSlotWindowDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindow
+     */
+    select?: ParkingSlotWindowSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSlotWindow
+     */
+    omit?: ParkingSlotWindowOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSlotWindowInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingBooking
+   */
+
+  export type AggregateParkingBooking = {
+    _count: ParkingBookingCountAggregateOutputType | null
+    _avg: ParkingBookingAvgAggregateOutputType | null
+    _sum: ParkingBookingSumAggregateOutputType | null
+    _min: ParkingBookingMinAggregateOutputType | null
+    _max: ParkingBookingMaxAggregateOutputType | null
+  }
+
+  export type ParkingBookingAvgAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type ParkingBookingSumAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type ParkingBookingMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    listingId: string | null
+    slotWindowId: string | null
+    vehicleId: string | null
+    startTime: Date | null
+    endTime: Date | null
+    amountPaise: number | null
+    status: $Enums.BookingStatus | null
+    orderId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingBookingMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    listingId: string | null
+    slotWindowId: string | null
+    vehicleId: string | null
+    startTime: Date | null
+    endTime: Date | null
+    amountPaise: number | null
+    status: $Enums.BookingStatus | null
+    orderId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingBookingCountAggregateOutputType = {
+    id: number
+    customerId: number
+    listingId: number
+    slotWindowId: number
+    vehicleId: number
+    startTime: number
+    endTime: number
+    amountPaise: number
+    status: number
+    orderId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ParkingBookingAvgAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type ParkingBookingSumAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type ParkingBookingMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    listingId?: true
+    slotWindowId?: true
+    vehicleId?: true
+    startTime?: true
+    endTime?: true
+    amountPaise?: true
+    status?: true
+    orderId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingBookingMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    listingId?: true
+    slotWindowId?: true
+    vehicleId?: true
+    startTime?: true
+    endTime?: true
+    amountPaise?: true
+    status?: true
+    orderId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingBookingCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    listingId?: true
+    slotWindowId?: true
+    vehicleId?: true
+    startTime?: true
+    endTime?: true
+    amountPaise?: true
+    status?: true
+    orderId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ParkingBookingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingBooking to aggregate.
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingBookings to fetch.
+     */
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingBookings
+    **/
+    _count?: true | ParkingBookingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingBookingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingBookingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingBookingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingBookingMaxAggregateInputType
+  }
+
+  export type GetParkingBookingAggregateType<T extends ParkingBookingAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingBooking]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingBooking[P]>
+      : GetScalarType<T[P], AggregateParkingBooking[P]>
+  }
+
+
+
+
+  export type ParkingBookingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingBookingWhereInput
+    orderBy?: ParkingBookingOrderByWithAggregationInput | ParkingBookingOrderByWithAggregationInput[]
+    by: ParkingBookingScalarFieldEnum[] | ParkingBookingScalarFieldEnum
+    having?: ParkingBookingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingBookingCountAggregateInputType | true
+    _avg?: ParkingBookingAvgAggregateInputType
+    _sum?: ParkingBookingSumAggregateInputType
+    _min?: ParkingBookingMinAggregateInputType
+    _max?: ParkingBookingMaxAggregateInputType
+  }
+
+  export type ParkingBookingGroupByOutputType = {
+    id: string
+    customerId: string
+    listingId: string
+    slotWindowId: string
+    vehicleId: string | null
+    startTime: Date
+    endTime: Date
+    amountPaise: number
+    status: $Enums.BookingStatus
+    orderId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ParkingBookingCountAggregateOutputType | null
+    _avg: ParkingBookingAvgAggregateOutputType | null
+    _sum: ParkingBookingSumAggregateOutputType | null
+    _min: ParkingBookingMinAggregateOutputType | null
+    _max: ParkingBookingMaxAggregateOutputType | null
+  }
+
+  type GetParkingBookingGroupByPayload<T extends ParkingBookingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingBookingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingBookingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingBookingGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingBookingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingBookingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleId?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingBooking"]>
+
+  export type ParkingBookingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleId?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingBooking"]>
+
+  export type ParkingBookingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleId?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingBooking"]>
+
+  export type ParkingBookingSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleId?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    amountPaise?: boolean
+    status?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
+  export type ParkingBookingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingBookingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingBookingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingBookingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingBooking"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      listing: Prisma.$ParkingListingPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      listingId: string
+      slotWindowId: string
+      vehicleId: string | null
+      startTime: Date
+      endTime: Date
+      amountPaise: number
+      status: $Enums.BookingStatus
+      orderId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["parkingBooking"]>
+    composites: {}
+  }
+
+  type ParkingBookingGetPayload<S extends boolean | null | undefined | ParkingBookingDefaultArgs> = $Result.GetResult<Prisma.$ParkingBookingPayload, S>
+
+  type ParkingBookingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingBookingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingBookingCountAggregateInputType | true
+    }
+
+  export interface ParkingBookingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingBooking'], meta: { name: 'ParkingBooking' } }
+    /**
+     * Find zero or one ParkingBooking that matches the filter.
+     * @param {ParkingBookingFindUniqueArgs} args - Arguments to find a ParkingBooking
+     * @example
+     * // Get one ParkingBooking
+     * const parkingBooking = await prisma.parkingBooking.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingBookingFindUniqueArgs>(args: SelectSubset<T, ParkingBookingFindUniqueArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingBooking that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingBookingFindUniqueOrThrowArgs} args - Arguments to find a ParkingBooking
+     * @example
+     * // Get one ParkingBooking
+     * const parkingBooking = await prisma.parkingBooking.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingBookingFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingBookingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingBooking that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingFindFirstArgs} args - Arguments to find a ParkingBooking
+     * @example
+     * // Get one ParkingBooking
+     * const parkingBooking = await prisma.parkingBooking.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingBookingFindFirstArgs>(args?: SelectSubset<T, ParkingBookingFindFirstArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingBooking that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingFindFirstOrThrowArgs} args - Arguments to find a ParkingBooking
+     * @example
+     * // Get one ParkingBooking
+     * const parkingBooking = await prisma.parkingBooking.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingBookingFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingBookingFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingBookings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingBookings
+     * const parkingBookings = await prisma.parkingBooking.findMany()
+     * 
+     * // Get first 10 ParkingBookings
+     * const parkingBookings = await prisma.parkingBooking.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingBookingWithIdOnly = await prisma.parkingBooking.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingBookingFindManyArgs>(args?: SelectSubset<T, ParkingBookingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingBooking.
+     * @param {ParkingBookingCreateArgs} args - Arguments to create a ParkingBooking.
+     * @example
+     * // Create one ParkingBooking
+     * const ParkingBooking = await prisma.parkingBooking.create({
+     *   data: {
+     *     // ... data to create a ParkingBooking
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingBookingCreateArgs>(args: SelectSubset<T, ParkingBookingCreateArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingBookings.
+     * @param {ParkingBookingCreateManyArgs} args - Arguments to create many ParkingBookings.
+     * @example
+     * // Create many ParkingBookings
+     * const parkingBooking = await prisma.parkingBooking.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingBookingCreateManyArgs>(args?: SelectSubset<T, ParkingBookingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingBookings and returns the data saved in the database.
+     * @param {ParkingBookingCreateManyAndReturnArgs} args - Arguments to create many ParkingBookings.
+     * @example
+     * // Create many ParkingBookings
+     * const parkingBooking = await prisma.parkingBooking.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingBookings and only return the `id`
+     * const parkingBookingWithIdOnly = await prisma.parkingBooking.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingBookingCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingBookingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingBooking.
+     * @param {ParkingBookingDeleteArgs} args - Arguments to delete one ParkingBooking.
+     * @example
+     * // Delete one ParkingBooking
+     * const ParkingBooking = await prisma.parkingBooking.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingBooking
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingBookingDeleteArgs>(args: SelectSubset<T, ParkingBookingDeleteArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingBooking.
+     * @param {ParkingBookingUpdateArgs} args - Arguments to update one ParkingBooking.
+     * @example
+     * // Update one ParkingBooking
+     * const parkingBooking = await prisma.parkingBooking.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingBookingUpdateArgs>(args: SelectSubset<T, ParkingBookingUpdateArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingBookings.
+     * @param {ParkingBookingDeleteManyArgs} args - Arguments to filter ParkingBookings to delete.
+     * @example
+     * // Delete a few ParkingBookings
+     * const { count } = await prisma.parkingBooking.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingBookingDeleteManyArgs>(args?: SelectSubset<T, ParkingBookingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingBookings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingBookings
+     * const parkingBooking = await prisma.parkingBooking.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingBookingUpdateManyArgs>(args: SelectSubset<T, ParkingBookingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingBookings and returns the data updated in the database.
+     * @param {ParkingBookingUpdateManyAndReturnArgs} args - Arguments to update many ParkingBookings.
+     * @example
+     * // Update many ParkingBookings
+     * const parkingBooking = await prisma.parkingBooking.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingBookings and only return the `id`
+     * const parkingBookingWithIdOnly = await prisma.parkingBooking.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingBookingUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingBookingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingBooking.
+     * @param {ParkingBookingUpsertArgs} args - Arguments to update or create a ParkingBooking.
+     * @example
+     * // Update or create a ParkingBooking
+     * const parkingBooking = await prisma.parkingBooking.upsert({
+     *   create: {
+     *     // ... data to create a ParkingBooking
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingBooking we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingBookingUpsertArgs>(args: SelectSubset<T, ParkingBookingUpsertArgs<ExtArgs>>): Prisma__ParkingBookingClient<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingBookings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingCountArgs} args - Arguments to filter ParkingBookings to count.
+     * @example
+     * // Count the number of ParkingBookings
+     * const count = await prisma.parkingBooking.count({
+     *   where: {
+     *     // ... the filter for the ParkingBookings we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingBookingCountArgs>(
+      args?: Subset<T, ParkingBookingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingBookingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingBooking.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingBookingAggregateArgs>(args: Subset<T, ParkingBookingAggregateArgs>): Prisma.PrismaPromise<GetParkingBookingAggregateType<T>>
+
+    /**
+     * Group by ParkingBooking.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingBookingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingBookingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingBookingGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingBookingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingBookingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingBookingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingBooking model
+   */
+  readonly fields: ParkingBookingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingBooking.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingBookingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingBooking model
+   */
+  interface ParkingBookingFieldRefs {
+    readonly id: FieldRef<"ParkingBooking", 'String'>
+    readonly customerId: FieldRef<"ParkingBooking", 'String'>
+    readonly listingId: FieldRef<"ParkingBooking", 'String'>
+    readonly slotWindowId: FieldRef<"ParkingBooking", 'String'>
+    readonly vehicleId: FieldRef<"ParkingBooking", 'String'>
+    readonly startTime: FieldRef<"ParkingBooking", 'DateTime'>
+    readonly endTime: FieldRef<"ParkingBooking", 'DateTime'>
+    readonly amountPaise: FieldRef<"ParkingBooking", 'Int'>
+    readonly status: FieldRef<"ParkingBooking", 'BookingStatus'>
+    readonly orderId: FieldRef<"ParkingBooking", 'String'>
+    readonly createdAt: FieldRef<"ParkingBooking", 'DateTime'>
+    readonly updatedAt: FieldRef<"ParkingBooking", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingBooking findUnique
+   */
+  export type ParkingBookingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingBooking to fetch.
+     */
+    where: ParkingBookingWhereUniqueInput
+  }
+
+  /**
+   * ParkingBooking findUniqueOrThrow
+   */
+  export type ParkingBookingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingBooking to fetch.
+     */
+    where: ParkingBookingWhereUniqueInput
+  }
+
+  /**
+   * ParkingBooking findFirst
+   */
+  export type ParkingBookingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingBooking to fetch.
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingBookings to fetch.
+     */
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingBookings.
+     */
+    cursor?: ParkingBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingBookings.
+     */
+    distinct?: ParkingBookingScalarFieldEnum | ParkingBookingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingBooking findFirstOrThrow
+   */
+  export type ParkingBookingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingBooking to fetch.
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingBookings to fetch.
+     */
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingBookings.
+     */
+    cursor?: ParkingBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingBookings.
+     */
+    distinct?: ParkingBookingScalarFieldEnum | ParkingBookingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingBooking findMany
+   */
+  export type ParkingBookingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingBookings to fetch.
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingBookings to fetch.
+     */
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingBookings.
+     */
+    cursor?: ParkingBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingBookings.
+     */
+    distinct?: ParkingBookingScalarFieldEnum | ParkingBookingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingBooking create
+   */
+  export type ParkingBookingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingBooking.
+     */
+    data: XOR<ParkingBookingCreateInput, ParkingBookingUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingBooking createMany
+   */
+  export type ParkingBookingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingBookings.
+     */
+    data: ParkingBookingCreateManyInput | ParkingBookingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingBooking createManyAndReturn
+   */
+  export type ParkingBookingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingBookings.
+     */
+    data: ParkingBookingCreateManyInput | ParkingBookingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingBooking update
+   */
+  export type ParkingBookingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingBooking.
+     */
+    data: XOR<ParkingBookingUpdateInput, ParkingBookingUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingBooking to update.
+     */
+    where: ParkingBookingWhereUniqueInput
+  }
+
+  /**
+   * ParkingBooking updateMany
+   */
+  export type ParkingBookingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingBookings.
+     */
+    data: XOR<ParkingBookingUpdateManyMutationInput, ParkingBookingUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingBookings to update
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * Limit how many ParkingBookings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingBooking updateManyAndReturn
+   */
+  export type ParkingBookingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingBookings.
+     */
+    data: XOR<ParkingBookingUpdateManyMutationInput, ParkingBookingUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingBookings to update
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * Limit how many ParkingBookings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingBooking upsert
+   */
+  export type ParkingBookingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingBooking to update in case it exists.
+     */
+    where: ParkingBookingWhereUniqueInput
+    /**
+     * In case the ParkingBooking found by the `where` argument doesn't exist, create a new ParkingBooking with this data.
+     */
+    create: XOR<ParkingBookingCreateInput, ParkingBookingUncheckedCreateInput>
+    /**
+     * In case the ParkingBooking was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingBookingUpdateInput, ParkingBookingUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingBooking delete
+   */
+  export type ParkingBookingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingBooking to delete.
+     */
+    where: ParkingBookingWhereUniqueInput
+  }
+
+  /**
+   * ParkingBooking deleteMany
+   */
+  export type ParkingBookingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingBookings to delete
+     */
+    where?: ParkingBookingWhereInput
+    /**
+     * Limit how many ParkingBookings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingBooking without action
+   */
+  export type ParkingBookingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingWaitlistEntry
+   */
+
+  export type AggregateParkingWaitlistEntry = {
+    _count: ParkingWaitlistEntryCountAggregateOutputType | null
+    _min: ParkingWaitlistEntryMinAggregateOutputType | null
+    _max: ParkingWaitlistEntryMaxAggregateOutputType | null
+  }
+
+  export type ParkingWaitlistEntryMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    listingId: string | null
+    desiredDate: Date | null
+    notified: boolean | null
+    createdAt: Date | null
+  }
+
+  export type ParkingWaitlistEntryMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    listingId: string | null
+    desiredDate: Date | null
+    notified: boolean | null
+    createdAt: Date | null
+  }
+
+  export type ParkingWaitlistEntryCountAggregateOutputType = {
+    id: number
+    customerId: number
+    listingId: number
+    desiredDate: number
+    notified: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ParkingWaitlistEntryMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    listingId?: true
+    desiredDate?: true
+    notified?: true
+    createdAt?: true
+  }
+
+  export type ParkingWaitlistEntryMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    listingId?: true
+    desiredDate?: true
+    notified?: true
+    createdAt?: true
+  }
+
+  export type ParkingWaitlistEntryCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    listingId?: true
+    desiredDate?: true
+    notified?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ParkingWaitlistEntryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingWaitlistEntry to aggregate.
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWaitlistEntries to fetch.
+     */
+    orderBy?: ParkingWaitlistEntryOrderByWithRelationInput | ParkingWaitlistEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingWaitlistEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWaitlistEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWaitlistEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingWaitlistEntries
+    **/
+    _count?: true | ParkingWaitlistEntryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingWaitlistEntryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingWaitlistEntryMaxAggregateInputType
+  }
+
+  export type GetParkingWaitlistEntryAggregateType<T extends ParkingWaitlistEntryAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingWaitlistEntry]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingWaitlistEntry[P]>
+      : GetScalarType<T[P], AggregateParkingWaitlistEntry[P]>
+  }
+
+
+
+
+  export type ParkingWaitlistEntryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWaitlistEntryWhereInput
+    orderBy?: ParkingWaitlistEntryOrderByWithAggregationInput | ParkingWaitlistEntryOrderByWithAggregationInput[]
+    by: ParkingWaitlistEntryScalarFieldEnum[] | ParkingWaitlistEntryScalarFieldEnum
+    having?: ParkingWaitlistEntryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingWaitlistEntryCountAggregateInputType | true
+    _min?: ParkingWaitlistEntryMinAggregateInputType
+    _max?: ParkingWaitlistEntryMaxAggregateInputType
+  }
+
+  export type ParkingWaitlistEntryGroupByOutputType = {
+    id: string
+    customerId: string
+    listingId: string
+    desiredDate: Date
+    notified: boolean
+    createdAt: Date
+    _count: ParkingWaitlistEntryCountAggregateOutputType | null
+    _min: ParkingWaitlistEntryMinAggregateOutputType | null
+    _max: ParkingWaitlistEntryMaxAggregateOutputType | null
+  }
+
+  type GetParkingWaitlistEntryGroupByPayload<T extends ParkingWaitlistEntryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingWaitlistEntryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingWaitlistEntryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingWaitlistEntryGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingWaitlistEntryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingWaitlistEntrySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    desiredDate?: boolean
+    notified?: boolean
+    createdAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingWaitlistEntry"]>
+
+  export type ParkingWaitlistEntrySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    desiredDate?: boolean
+    notified?: boolean
+    createdAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingWaitlistEntry"]>
+
+  export type ParkingWaitlistEntrySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    desiredDate?: boolean
+    notified?: boolean
+    createdAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingWaitlistEntry"]>
+
+  export type ParkingWaitlistEntrySelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    listingId?: boolean
+    desiredDate?: boolean
+    notified?: boolean
+    createdAt?: boolean
+  }
+
+  export type ParkingWaitlistEntryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "desiredDate" | "notified" | "createdAt", ExtArgs["result"]["parkingWaitlistEntry"]>
+  export type ParkingWaitlistEntryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingWaitlistEntryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingWaitlistEntryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingWaitlistEntryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingWaitlistEntry"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      listing: Prisma.$ParkingListingPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      listingId: string
+      desiredDate: Date
+      notified: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["parkingWaitlistEntry"]>
+    composites: {}
+  }
+
+  type ParkingWaitlistEntryGetPayload<S extends boolean | null | undefined | ParkingWaitlistEntryDefaultArgs> = $Result.GetResult<Prisma.$ParkingWaitlistEntryPayload, S>
+
+  type ParkingWaitlistEntryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingWaitlistEntryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingWaitlistEntryCountAggregateInputType | true
+    }
+
+  export interface ParkingWaitlistEntryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingWaitlistEntry'], meta: { name: 'ParkingWaitlistEntry' } }
+    /**
+     * Find zero or one ParkingWaitlistEntry that matches the filter.
+     * @param {ParkingWaitlistEntryFindUniqueArgs} args - Arguments to find a ParkingWaitlistEntry
+     * @example
+     * // Get one ParkingWaitlistEntry
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingWaitlistEntryFindUniqueArgs>(args: SelectSubset<T, ParkingWaitlistEntryFindUniqueArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingWaitlistEntry that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingWaitlistEntryFindUniqueOrThrowArgs} args - Arguments to find a ParkingWaitlistEntry
+     * @example
+     * // Get one ParkingWaitlistEntry
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingWaitlistEntryFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingWaitlistEntryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingWaitlistEntry that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryFindFirstArgs} args - Arguments to find a ParkingWaitlistEntry
+     * @example
+     * // Get one ParkingWaitlistEntry
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingWaitlistEntryFindFirstArgs>(args?: SelectSubset<T, ParkingWaitlistEntryFindFirstArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingWaitlistEntry that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryFindFirstOrThrowArgs} args - Arguments to find a ParkingWaitlistEntry
+     * @example
+     * // Get one ParkingWaitlistEntry
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingWaitlistEntryFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingWaitlistEntryFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingWaitlistEntries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingWaitlistEntries
+     * const parkingWaitlistEntries = await prisma.parkingWaitlistEntry.findMany()
+     * 
+     * // Get first 10 ParkingWaitlistEntries
+     * const parkingWaitlistEntries = await prisma.parkingWaitlistEntry.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingWaitlistEntryWithIdOnly = await prisma.parkingWaitlistEntry.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingWaitlistEntryFindManyArgs>(args?: SelectSubset<T, ParkingWaitlistEntryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingWaitlistEntry.
+     * @param {ParkingWaitlistEntryCreateArgs} args - Arguments to create a ParkingWaitlistEntry.
+     * @example
+     * // Create one ParkingWaitlistEntry
+     * const ParkingWaitlistEntry = await prisma.parkingWaitlistEntry.create({
+     *   data: {
+     *     // ... data to create a ParkingWaitlistEntry
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingWaitlistEntryCreateArgs>(args: SelectSubset<T, ParkingWaitlistEntryCreateArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingWaitlistEntries.
+     * @param {ParkingWaitlistEntryCreateManyArgs} args - Arguments to create many ParkingWaitlistEntries.
+     * @example
+     * // Create many ParkingWaitlistEntries
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingWaitlistEntryCreateManyArgs>(args?: SelectSubset<T, ParkingWaitlistEntryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingWaitlistEntries and returns the data saved in the database.
+     * @param {ParkingWaitlistEntryCreateManyAndReturnArgs} args - Arguments to create many ParkingWaitlistEntries.
+     * @example
+     * // Create many ParkingWaitlistEntries
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingWaitlistEntries and only return the `id`
+     * const parkingWaitlistEntryWithIdOnly = await prisma.parkingWaitlistEntry.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingWaitlistEntryCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingWaitlistEntryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingWaitlistEntry.
+     * @param {ParkingWaitlistEntryDeleteArgs} args - Arguments to delete one ParkingWaitlistEntry.
+     * @example
+     * // Delete one ParkingWaitlistEntry
+     * const ParkingWaitlistEntry = await prisma.parkingWaitlistEntry.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingWaitlistEntry
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingWaitlistEntryDeleteArgs>(args: SelectSubset<T, ParkingWaitlistEntryDeleteArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingWaitlistEntry.
+     * @param {ParkingWaitlistEntryUpdateArgs} args - Arguments to update one ParkingWaitlistEntry.
+     * @example
+     * // Update one ParkingWaitlistEntry
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingWaitlistEntryUpdateArgs>(args: SelectSubset<T, ParkingWaitlistEntryUpdateArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingWaitlistEntries.
+     * @param {ParkingWaitlistEntryDeleteManyArgs} args - Arguments to filter ParkingWaitlistEntries to delete.
+     * @example
+     * // Delete a few ParkingWaitlistEntries
+     * const { count } = await prisma.parkingWaitlistEntry.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingWaitlistEntryDeleteManyArgs>(args?: SelectSubset<T, ParkingWaitlistEntryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingWaitlistEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingWaitlistEntries
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingWaitlistEntryUpdateManyArgs>(args: SelectSubset<T, ParkingWaitlistEntryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingWaitlistEntries and returns the data updated in the database.
+     * @param {ParkingWaitlistEntryUpdateManyAndReturnArgs} args - Arguments to update many ParkingWaitlistEntries.
+     * @example
+     * // Update many ParkingWaitlistEntries
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingWaitlistEntries and only return the `id`
+     * const parkingWaitlistEntryWithIdOnly = await prisma.parkingWaitlistEntry.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingWaitlistEntryUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingWaitlistEntryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingWaitlistEntry.
+     * @param {ParkingWaitlistEntryUpsertArgs} args - Arguments to update or create a ParkingWaitlistEntry.
+     * @example
+     * // Update or create a ParkingWaitlistEntry
+     * const parkingWaitlistEntry = await prisma.parkingWaitlistEntry.upsert({
+     *   create: {
+     *     // ... data to create a ParkingWaitlistEntry
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingWaitlistEntry we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingWaitlistEntryUpsertArgs>(args: SelectSubset<T, ParkingWaitlistEntryUpsertArgs<ExtArgs>>): Prisma__ParkingWaitlistEntryClient<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingWaitlistEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryCountArgs} args - Arguments to filter ParkingWaitlistEntries to count.
+     * @example
+     * // Count the number of ParkingWaitlistEntries
+     * const count = await prisma.parkingWaitlistEntry.count({
+     *   where: {
+     *     // ... the filter for the ParkingWaitlistEntries we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingWaitlistEntryCountArgs>(
+      args?: Subset<T, ParkingWaitlistEntryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingWaitlistEntryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingWaitlistEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingWaitlistEntryAggregateArgs>(args: Subset<T, ParkingWaitlistEntryAggregateArgs>): Prisma.PrismaPromise<GetParkingWaitlistEntryAggregateType<T>>
+
+    /**
+     * Group by ParkingWaitlistEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWaitlistEntryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingWaitlistEntryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingWaitlistEntryGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingWaitlistEntryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingWaitlistEntryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingWaitlistEntryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingWaitlistEntry model
+   */
+  readonly fields: ParkingWaitlistEntryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingWaitlistEntry.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingWaitlistEntryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingWaitlistEntry model
+   */
+  interface ParkingWaitlistEntryFieldRefs {
+    readonly id: FieldRef<"ParkingWaitlistEntry", 'String'>
+    readonly customerId: FieldRef<"ParkingWaitlistEntry", 'String'>
+    readonly listingId: FieldRef<"ParkingWaitlistEntry", 'String'>
+    readonly desiredDate: FieldRef<"ParkingWaitlistEntry", 'DateTime'>
+    readonly notified: FieldRef<"ParkingWaitlistEntry", 'Boolean'>
+    readonly createdAt: FieldRef<"ParkingWaitlistEntry", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingWaitlistEntry findUnique
+   */
+  export type ParkingWaitlistEntryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWaitlistEntry to fetch.
+     */
+    where: ParkingWaitlistEntryWhereUniqueInput
+  }
+
+  /**
+   * ParkingWaitlistEntry findUniqueOrThrow
+   */
+  export type ParkingWaitlistEntryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWaitlistEntry to fetch.
+     */
+    where: ParkingWaitlistEntryWhereUniqueInput
+  }
+
+  /**
+   * ParkingWaitlistEntry findFirst
+   */
+  export type ParkingWaitlistEntryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWaitlistEntry to fetch.
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWaitlistEntries to fetch.
+     */
+    orderBy?: ParkingWaitlistEntryOrderByWithRelationInput | ParkingWaitlistEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingWaitlistEntries.
+     */
+    cursor?: ParkingWaitlistEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWaitlistEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWaitlistEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingWaitlistEntries.
+     */
+    distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingWaitlistEntry findFirstOrThrow
+   */
+  export type ParkingWaitlistEntryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWaitlistEntry to fetch.
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWaitlistEntries to fetch.
+     */
+    orderBy?: ParkingWaitlistEntryOrderByWithRelationInput | ParkingWaitlistEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingWaitlistEntries.
+     */
+    cursor?: ParkingWaitlistEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWaitlistEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWaitlistEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingWaitlistEntries.
+     */
+    distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingWaitlistEntry findMany
+   */
+  export type ParkingWaitlistEntryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWaitlistEntries to fetch.
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWaitlistEntries to fetch.
+     */
+    orderBy?: ParkingWaitlistEntryOrderByWithRelationInput | ParkingWaitlistEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingWaitlistEntries.
+     */
+    cursor?: ParkingWaitlistEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWaitlistEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWaitlistEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingWaitlistEntries.
+     */
+    distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingWaitlistEntry create
+   */
+  export type ParkingWaitlistEntryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingWaitlistEntry.
+     */
+    data: XOR<ParkingWaitlistEntryCreateInput, ParkingWaitlistEntryUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingWaitlistEntry createMany
+   */
+  export type ParkingWaitlistEntryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingWaitlistEntries.
+     */
+    data: ParkingWaitlistEntryCreateManyInput | ParkingWaitlistEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingWaitlistEntry createManyAndReturn
+   */
+  export type ParkingWaitlistEntryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingWaitlistEntries.
+     */
+    data: ParkingWaitlistEntryCreateManyInput | ParkingWaitlistEntryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingWaitlistEntry update
+   */
+  export type ParkingWaitlistEntryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingWaitlistEntry.
+     */
+    data: XOR<ParkingWaitlistEntryUpdateInput, ParkingWaitlistEntryUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingWaitlistEntry to update.
+     */
+    where: ParkingWaitlistEntryWhereUniqueInput
+  }
+
+  /**
+   * ParkingWaitlistEntry updateMany
+   */
+  export type ParkingWaitlistEntryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingWaitlistEntries.
+     */
+    data: XOR<ParkingWaitlistEntryUpdateManyMutationInput, ParkingWaitlistEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingWaitlistEntries to update
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * Limit how many ParkingWaitlistEntries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingWaitlistEntry updateManyAndReturn
+   */
+  export type ParkingWaitlistEntryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingWaitlistEntries.
+     */
+    data: XOR<ParkingWaitlistEntryUpdateManyMutationInput, ParkingWaitlistEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingWaitlistEntries to update
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * Limit how many ParkingWaitlistEntries to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingWaitlistEntry upsert
+   */
+  export type ParkingWaitlistEntryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingWaitlistEntry to update in case it exists.
+     */
+    where: ParkingWaitlistEntryWhereUniqueInput
+    /**
+     * In case the ParkingWaitlistEntry found by the `where` argument doesn't exist, create a new ParkingWaitlistEntry with this data.
+     */
+    create: XOR<ParkingWaitlistEntryCreateInput, ParkingWaitlistEntryUncheckedCreateInput>
+    /**
+     * In case the ParkingWaitlistEntry was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingWaitlistEntryUpdateInput, ParkingWaitlistEntryUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingWaitlistEntry delete
+   */
+  export type ParkingWaitlistEntryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingWaitlistEntry to delete.
+     */
+    where: ParkingWaitlistEntryWhereUniqueInput
+  }
+
+  /**
+   * ParkingWaitlistEntry deleteMany
+   */
+  export type ParkingWaitlistEntryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingWaitlistEntries to delete
+     */
+    where?: ParkingWaitlistEntryWhereInput
+    /**
+     * Limit how many ParkingWaitlistEntries to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingWaitlistEntry without action
+   */
+  export type ParkingWaitlistEntryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWaitlistEntry
+     */
+    select?: ParkingWaitlistEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWaitlistEntry
+     */
+    omit?: ParkingWaitlistEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWaitlistEntryInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -100690,6 +112199,143 @@ export namespace Prisma {
   export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof RolesScalarFieldEnum]
 
 
+  export const CustomerOrderScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    purpose: 'purpose',
+    referenceId: 'referenceId',
+    amountPaise: 'amountPaise',
+    currency: 'currency',
+    status: 'status',
+    razorpayOrderId: 'razorpayOrderId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CustomerOrderScalarFieldEnum = (typeof CustomerOrderScalarFieldEnum)[keyof typeof CustomerOrderScalarFieldEnum]
+
+
+  export const CustomerPaymentAttemptScalarFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    razorpayPaymentId: 'razorpayPaymentId',
+    razorpaySignature: 'razorpaySignature',
+    method: 'method',
+    status: 'status',
+    failureReason: 'failureReason',
+    paidAt: 'paidAt',
+    createdAt: 'createdAt'
+  };
+
+  export type CustomerPaymentAttemptScalarFieldEnum = (typeof CustomerPaymentAttemptScalarFieldEnum)[keyof typeof CustomerPaymentAttemptScalarFieldEnum]
+
+
+  export const CustomerRefundScalarFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    amountPaise: 'amountPaise',
+    status: 'status',
+    razorpayRefundId: 'razorpayRefundId',
+    reason: 'reason',
+    processedAt: 'processedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type CustomerRefundScalarFieldEnum = (typeof CustomerRefundScalarFieldEnum)[keyof typeof CustomerRefundScalarFieldEnum]
+
+
+  export const WebhookEventScalarFieldEnum: {
+    id: 'id',
+    provider: 'provider',
+    eventType: 'eventType',
+    dedupeKey: 'dedupeKey',
+    payload: 'payload',
+    signatureValid: 'signatureValid',
+    processedAt: 'processedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
+
+
+  export const ParkingDealerScalarFieldEnum: {
+    id: 'id',
+    ownerName: 'ownerName',
+    phoneNumber: 'phoneNumber',
+    email: 'email',
+    passwordHash: 'passwordHash',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ParkingDealerScalarFieldEnum = (typeof ParkingDealerScalarFieldEnum)[keyof typeof ParkingDealerScalarFieldEnum]
+
+
+  export const ParkingListingScalarFieldEnum: {
+    id: 'id',
+    dealerId: 'dealerId',
+    name: 'name',
+    addressLine: 'addressLine',
+    city: 'city',
+    latitude: 'latitude',
+    longitude: 'longitude',
+    fourWheelerCapacity: 'fourWheelerCapacity',
+    twoWheelerCapacity: 'twoWheelerCapacity',
+    hourlyRatePaise: 'hourlyRatePaise',
+    dailyRatePaise: 'dailyRatePaise',
+    photos: 'photos',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ParkingListingScalarFieldEnum = (typeof ParkingListingScalarFieldEnum)[keyof typeof ParkingListingScalarFieldEnum]
+
+
+  export const ParkingSlotWindowScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    date: 'date',
+    startHour: 'startHour',
+    endHour: 'endHour',
+    capacity: 'capacity',
+    booked: 'booked'
+  };
+
+  export type ParkingSlotWindowScalarFieldEnum = (typeof ParkingSlotWindowScalarFieldEnum)[keyof typeof ParkingSlotWindowScalarFieldEnum]
+
+
+  export const ParkingBookingScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    listingId: 'listingId',
+    slotWindowId: 'slotWindowId',
+    vehicleId: 'vehicleId',
+    startTime: 'startTime',
+    endTime: 'endTime',
+    amountPaise: 'amountPaise',
+    status: 'status',
+    orderId: 'orderId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ParkingBookingScalarFieldEnum = (typeof ParkingBookingScalarFieldEnum)[keyof typeof ParkingBookingScalarFieldEnum]
+
+
+  export const ParkingWaitlistEntryScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    listingId: 'listingId',
+    desiredDate: 'desiredDate',
+    notified: 'notified',
+    createdAt: 'createdAt'
+  };
+
+  export type ParkingWaitlistEntryScalarFieldEnum = (typeof ParkingWaitlistEntryScalarFieldEnum)[keyof typeof ParkingWaitlistEntryScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -101546,6 +113192,104 @@ export namespace Prisma {
    */
   export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
     
+
+
+  /**
+   * Reference to a field of type 'PaymentPurpose'
+   */
+  export type EnumPaymentPurposeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentPurpose'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentPurpose[]'
+   */
+  export type ListEnumPaymentPurposeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentPurpose[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'OrderStatus'
+   */
+  export type EnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'OrderStatus[]'
+   */
+  export type ListEnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentAttemptStatus'
+   */
+  export type EnumPaymentAttemptStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentAttemptStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentAttemptStatus[]'
+   */
+  export type ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentAttemptStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'CustomerRefundStatus'
+   */
+  export type EnumCustomerRefundStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CustomerRefundStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'CustomerRefundStatus[]'
+   */
+  export type ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CustomerRefundStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DealerStatus'
+   */
+  export type EnumDealerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DealerStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'DealerStatus[]'
+   */
+  export type ListEnumDealerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DealerStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ListingStatus'
+   */
+  export type EnumListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ListingStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ListingStatus[]'
+   */
+  export type ListEnumListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ListingStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BookingStatus'
+   */
+  export type EnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'BookingStatus[]'
+   */
+  export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -101698,6 +113442,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
     plannedTrips?: PlannedTripListRelationFilter
+    orders?: CustomerOrderListRelationFilter
+    parkingBookings?: ParkingBookingListRelationFilter
+    waitlistEntries?: ParkingWaitlistEntryListRelationFilter
   }
 
   export type CustomerOrderByWithRelationInput = {
@@ -101725,6 +113472,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketOrderByRelationAggregateInput
     sharedVehicles?: VehicleAccessOrderByRelationAggregateInput
     plannedTrips?: PlannedTripOrderByRelationAggregateInput
+    orders?: CustomerOrderOrderByRelationAggregateInput
+    parkingBookings?: ParkingBookingOrderByRelationAggregateInput
+    waitlistEntries?: ParkingWaitlistEntryOrderByRelationAggregateInput
   }
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -101755,6 +113505,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketListRelationFilter
     sharedVehicles?: VehicleAccessListRelationFilter
     plannedTrips?: PlannedTripListRelationFilter
+    orders?: CustomerOrderListRelationFilter
+    parkingBookings?: ParkingBookingListRelationFilter
+    waitlistEntries?: ParkingWaitlistEntryListRelationFilter
   }, "id" | "phoneNumber" | "googleId">
 
   export type CustomerOrderByWithAggregationInput = {
@@ -108398,6 +120151,721 @@ export namespace Prisma {
     permissionsMask?: BigIntWithAggregatesFilter<"roles"> | bigint | number
   }
 
+  export type CustomerOrderWhereInput = {
+    AND?: CustomerOrderWhereInput | CustomerOrderWhereInput[]
+    OR?: CustomerOrderWhereInput[]
+    NOT?: CustomerOrderWhereInput | CustomerOrderWhereInput[]
+    id?: StringFilter<"CustomerOrder"> | string
+    customerId?: StringFilter<"CustomerOrder"> | string
+    purpose?: EnumPaymentPurposeFilter<"CustomerOrder"> | $Enums.PaymentPurpose
+    referenceId?: StringFilter<"CustomerOrder"> | string
+    amountPaise?: IntFilter<"CustomerOrder"> | number
+    currency?: StringFilter<"CustomerOrder"> | string
+    status?: EnumOrderStatusFilter<"CustomerOrder"> | $Enums.OrderStatus
+    razorpayOrderId?: StringNullableFilter<"CustomerOrder"> | string | null
+    createdAt?: DateTimeFilter<"CustomerOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerOrder"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    attempts?: CustomerPaymentAttemptListRelationFilter
+    refunds?: CustomerRefundListRelationFilter
+  }
+
+  export type CustomerOrderOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    purpose?: SortOrder
+    referenceId?: SortOrder
+    amountPaise?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    razorpayOrderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+    attempts?: CustomerPaymentAttemptOrderByRelationAggregateInput
+    refunds?: CustomerRefundOrderByRelationAggregateInput
+  }
+
+  export type CustomerOrderWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    razorpayOrderId?: string
+    AND?: CustomerOrderWhereInput | CustomerOrderWhereInput[]
+    OR?: CustomerOrderWhereInput[]
+    NOT?: CustomerOrderWhereInput | CustomerOrderWhereInput[]
+    customerId?: StringFilter<"CustomerOrder"> | string
+    purpose?: EnumPaymentPurposeFilter<"CustomerOrder"> | $Enums.PaymentPurpose
+    referenceId?: StringFilter<"CustomerOrder"> | string
+    amountPaise?: IntFilter<"CustomerOrder"> | number
+    currency?: StringFilter<"CustomerOrder"> | string
+    status?: EnumOrderStatusFilter<"CustomerOrder"> | $Enums.OrderStatus
+    createdAt?: DateTimeFilter<"CustomerOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerOrder"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    attempts?: CustomerPaymentAttemptListRelationFilter
+    refunds?: CustomerRefundListRelationFilter
+  }, "id" | "razorpayOrderId">
+
+  export type CustomerOrderOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    purpose?: SortOrder
+    referenceId?: SortOrder
+    amountPaise?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    razorpayOrderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CustomerOrderCountOrderByAggregateInput
+    _avg?: CustomerOrderAvgOrderByAggregateInput
+    _max?: CustomerOrderMaxOrderByAggregateInput
+    _min?: CustomerOrderMinOrderByAggregateInput
+    _sum?: CustomerOrderSumOrderByAggregateInput
+  }
+
+  export type CustomerOrderScalarWhereWithAggregatesInput = {
+    AND?: CustomerOrderScalarWhereWithAggregatesInput | CustomerOrderScalarWhereWithAggregatesInput[]
+    OR?: CustomerOrderScalarWhereWithAggregatesInput[]
+    NOT?: CustomerOrderScalarWhereWithAggregatesInput | CustomerOrderScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomerOrder"> | string
+    customerId?: StringWithAggregatesFilter<"CustomerOrder"> | string
+    purpose?: EnumPaymentPurposeWithAggregatesFilter<"CustomerOrder"> | $Enums.PaymentPurpose
+    referenceId?: StringWithAggregatesFilter<"CustomerOrder"> | string
+    amountPaise?: IntWithAggregatesFilter<"CustomerOrder"> | number
+    currency?: StringWithAggregatesFilter<"CustomerOrder"> | string
+    status?: EnumOrderStatusWithAggregatesFilter<"CustomerOrder"> | $Enums.OrderStatus
+    razorpayOrderId?: StringNullableWithAggregatesFilter<"CustomerOrder"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CustomerOrder"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomerOrder"> | Date | string
+  }
+
+  export type CustomerPaymentAttemptWhereInput = {
+    AND?: CustomerPaymentAttemptWhereInput | CustomerPaymentAttemptWhereInput[]
+    OR?: CustomerPaymentAttemptWhereInput[]
+    NOT?: CustomerPaymentAttemptWhereInput | CustomerPaymentAttemptWhereInput[]
+    id?: StringFilter<"CustomerPaymentAttempt"> | string
+    orderId?: StringFilter<"CustomerPaymentAttempt"> | string
+    razorpayPaymentId?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    razorpaySignature?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    method?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    status?: EnumPaymentAttemptStatusFilter<"CustomerPaymentAttempt"> | $Enums.PaymentAttemptStatus
+    failureReason?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    paidAt?: DateTimeNullableFilter<"CustomerPaymentAttempt"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerPaymentAttempt"> | Date | string
+    order?: XOR<CustomerOrderScalarRelationFilter, CustomerOrderWhereInput>
+  }
+
+  export type CustomerPaymentAttemptOrderByWithRelationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    razorpayPaymentId?: SortOrderInput | SortOrder
+    razorpaySignature?: SortOrderInput | SortOrder
+    method?: SortOrderInput | SortOrder
+    status?: SortOrder
+    failureReason?: SortOrderInput | SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    order?: CustomerOrderOrderByWithRelationInput
+  }
+
+  export type CustomerPaymentAttemptWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    razorpayPaymentId?: string
+    AND?: CustomerPaymentAttemptWhereInput | CustomerPaymentAttemptWhereInput[]
+    OR?: CustomerPaymentAttemptWhereInput[]
+    NOT?: CustomerPaymentAttemptWhereInput | CustomerPaymentAttemptWhereInput[]
+    orderId?: StringFilter<"CustomerPaymentAttempt"> | string
+    razorpaySignature?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    method?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    status?: EnumPaymentAttemptStatusFilter<"CustomerPaymentAttempt"> | $Enums.PaymentAttemptStatus
+    failureReason?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    paidAt?: DateTimeNullableFilter<"CustomerPaymentAttempt"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerPaymentAttempt"> | Date | string
+    order?: XOR<CustomerOrderScalarRelationFilter, CustomerOrderWhereInput>
+  }, "id" | "razorpayPaymentId">
+
+  export type CustomerPaymentAttemptOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    razorpayPaymentId?: SortOrderInput | SortOrder
+    razorpaySignature?: SortOrderInput | SortOrder
+    method?: SortOrderInput | SortOrder
+    status?: SortOrder
+    failureReason?: SortOrderInput | SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: CustomerPaymentAttemptCountOrderByAggregateInput
+    _max?: CustomerPaymentAttemptMaxOrderByAggregateInput
+    _min?: CustomerPaymentAttemptMinOrderByAggregateInput
+  }
+
+  export type CustomerPaymentAttemptScalarWhereWithAggregatesInput = {
+    AND?: CustomerPaymentAttemptScalarWhereWithAggregatesInput | CustomerPaymentAttemptScalarWhereWithAggregatesInput[]
+    OR?: CustomerPaymentAttemptScalarWhereWithAggregatesInput[]
+    NOT?: CustomerPaymentAttemptScalarWhereWithAggregatesInput | CustomerPaymentAttemptScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomerPaymentAttempt"> | string
+    orderId?: StringWithAggregatesFilter<"CustomerPaymentAttempt"> | string
+    razorpayPaymentId?: StringNullableWithAggregatesFilter<"CustomerPaymentAttempt"> | string | null
+    razorpaySignature?: StringNullableWithAggregatesFilter<"CustomerPaymentAttempt"> | string | null
+    method?: StringNullableWithAggregatesFilter<"CustomerPaymentAttempt"> | string | null
+    status?: EnumPaymentAttemptStatusWithAggregatesFilter<"CustomerPaymentAttempt"> | $Enums.PaymentAttemptStatus
+    failureReason?: StringNullableWithAggregatesFilter<"CustomerPaymentAttempt"> | string | null
+    paidAt?: DateTimeNullableWithAggregatesFilter<"CustomerPaymentAttempt"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CustomerPaymentAttempt"> | Date | string
+  }
+
+  export type CustomerRefundWhereInput = {
+    AND?: CustomerRefundWhereInput | CustomerRefundWhereInput[]
+    OR?: CustomerRefundWhereInput[]
+    NOT?: CustomerRefundWhereInput | CustomerRefundWhereInput[]
+    id?: StringFilter<"CustomerRefund"> | string
+    orderId?: StringFilter<"CustomerRefund"> | string
+    amountPaise?: IntFilter<"CustomerRefund"> | number
+    status?: EnumCustomerRefundStatusFilter<"CustomerRefund"> | $Enums.CustomerRefundStatus
+    razorpayRefundId?: StringNullableFilter<"CustomerRefund"> | string | null
+    reason?: StringNullableFilter<"CustomerRefund"> | string | null
+    processedAt?: DateTimeNullableFilter<"CustomerRefund"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerRefund"> | Date | string
+    order?: XOR<CustomerOrderScalarRelationFilter, CustomerOrderWhereInput>
+  }
+
+  export type CustomerRefundOrderByWithRelationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    razorpayRefundId?: SortOrderInput | SortOrder
+    reason?: SortOrderInput | SortOrder
+    processedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    order?: CustomerOrderOrderByWithRelationInput
+  }
+
+  export type CustomerRefundWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    razorpayRefundId?: string
+    AND?: CustomerRefundWhereInput | CustomerRefundWhereInput[]
+    OR?: CustomerRefundWhereInput[]
+    NOT?: CustomerRefundWhereInput | CustomerRefundWhereInput[]
+    orderId?: StringFilter<"CustomerRefund"> | string
+    amountPaise?: IntFilter<"CustomerRefund"> | number
+    status?: EnumCustomerRefundStatusFilter<"CustomerRefund"> | $Enums.CustomerRefundStatus
+    reason?: StringNullableFilter<"CustomerRefund"> | string | null
+    processedAt?: DateTimeNullableFilter<"CustomerRefund"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerRefund"> | Date | string
+    order?: XOR<CustomerOrderScalarRelationFilter, CustomerOrderWhereInput>
+  }, "id" | "razorpayRefundId">
+
+  export type CustomerRefundOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    razorpayRefundId?: SortOrderInput | SortOrder
+    reason?: SortOrderInput | SortOrder
+    processedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: CustomerRefundCountOrderByAggregateInput
+    _avg?: CustomerRefundAvgOrderByAggregateInput
+    _max?: CustomerRefundMaxOrderByAggregateInput
+    _min?: CustomerRefundMinOrderByAggregateInput
+    _sum?: CustomerRefundSumOrderByAggregateInput
+  }
+
+  export type CustomerRefundScalarWhereWithAggregatesInput = {
+    AND?: CustomerRefundScalarWhereWithAggregatesInput | CustomerRefundScalarWhereWithAggregatesInput[]
+    OR?: CustomerRefundScalarWhereWithAggregatesInput[]
+    NOT?: CustomerRefundScalarWhereWithAggregatesInput | CustomerRefundScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomerRefund"> | string
+    orderId?: StringWithAggregatesFilter<"CustomerRefund"> | string
+    amountPaise?: IntWithAggregatesFilter<"CustomerRefund"> | number
+    status?: EnumCustomerRefundStatusWithAggregatesFilter<"CustomerRefund"> | $Enums.CustomerRefundStatus
+    razorpayRefundId?: StringNullableWithAggregatesFilter<"CustomerRefund"> | string | null
+    reason?: StringNullableWithAggregatesFilter<"CustomerRefund"> | string | null
+    processedAt?: DateTimeNullableWithAggregatesFilter<"CustomerRefund"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"CustomerRefund"> | Date | string
+  }
+
+  export type WebhookEventWhereInput = {
+    AND?: WebhookEventWhereInput | WebhookEventWhereInput[]
+    OR?: WebhookEventWhereInput[]
+    NOT?: WebhookEventWhereInput | WebhookEventWhereInput[]
+    id?: StringFilter<"WebhookEvent"> | string
+    provider?: StringFilter<"WebhookEvent"> | string
+    eventType?: StringFilter<"WebhookEvent"> | string
+    dedupeKey?: StringFilter<"WebhookEvent"> | string
+    payload?: JsonFilter<"WebhookEvent">
+    signatureValid?: BoolFilter<"WebhookEvent"> | boolean
+    processedAt?: DateTimeNullableFilter<"WebhookEvent"> | Date | string | null
+    createdAt?: DateTimeFilter<"WebhookEvent"> | Date | string
+  }
+
+  export type WebhookEventOrderByWithRelationInput = {
+    id?: SortOrder
+    provider?: SortOrder
+    eventType?: SortOrder
+    dedupeKey?: SortOrder
+    payload?: SortOrder
+    signatureValid?: SortOrder
+    processedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WebhookEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    dedupeKey?: string
+    AND?: WebhookEventWhereInput | WebhookEventWhereInput[]
+    OR?: WebhookEventWhereInput[]
+    NOT?: WebhookEventWhereInput | WebhookEventWhereInput[]
+    provider?: StringFilter<"WebhookEvent"> | string
+    eventType?: StringFilter<"WebhookEvent"> | string
+    payload?: JsonFilter<"WebhookEvent">
+    signatureValid?: BoolFilter<"WebhookEvent"> | boolean
+    processedAt?: DateTimeNullableFilter<"WebhookEvent"> | Date | string | null
+    createdAt?: DateTimeFilter<"WebhookEvent"> | Date | string
+  }, "id" | "dedupeKey">
+
+  export type WebhookEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    provider?: SortOrder
+    eventType?: SortOrder
+    dedupeKey?: SortOrder
+    payload?: SortOrder
+    signatureValid?: SortOrder
+    processedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: WebhookEventCountOrderByAggregateInput
+    _max?: WebhookEventMaxOrderByAggregateInput
+    _min?: WebhookEventMinOrderByAggregateInput
+  }
+
+  export type WebhookEventScalarWhereWithAggregatesInput = {
+    AND?: WebhookEventScalarWhereWithAggregatesInput | WebhookEventScalarWhereWithAggregatesInput[]
+    OR?: WebhookEventScalarWhereWithAggregatesInput[]
+    NOT?: WebhookEventScalarWhereWithAggregatesInput | WebhookEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WebhookEvent"> | string
+    provider?: StringWithAggregatesFilter<"WebhookEvent"> | string
+    eventType?: StringWithAggregatesFilter<"WebhookEvent"> | string
+    dedupeKey?: StringWithAggregatesFilter<"WebhookEvent"> | string
+    payload?: JsonWithAggregatesFilter<"WebhookEvent">
+    signatureValid?: BoolWithAggregatesFilter<"WebhookEvent"> | boolean
+    processedAt?: DateTimeNullableWithAggregatesFilter<"WebhookEvent"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"WebhookEvent"> | Date | string
+  }
+
+  export type ParkingDealerWhereInput = {
+    AND?: ParkingDealerWhereInput | ParkingDealerWhereInput[]
+    OR?: ParkingDealerWhereInput[]
+    NOT?: ParkingDealerWhereInput | ParkingDealerWhereInput[]
+    id?: StringFilter<"ParkingDealer"> | string
+    ownerName?: StringFilter<"ParkingDealer"> | string
+    phoneNumber?: StringFilter<"ParkingDealer"> | string
+    email?: StringNullableFilter<"ParkingDealer"> | string | null
+    passwordHash?: StringFilter<"ParkingDealer"> | string
+    status?: EnumDealerStatusFilter<"ParkingDealer"> | $Enums.DealerStatus
+    createdAt?: DateTimeFilter<"ParkingDealer"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingDealer"> | Date | string
+    listings?: ParkingListingListRelationFilter
+  }
+
+  export type ParkingDealerOrderByWithRelationInput = {
+    id?: SortOrder
+    ownerName?: SortOrder
+    phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    listings?: ParkingListingOrderByRelationAggregateInput
+  }
+
+  export type ParkingDealerWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneNumber?: string
+    AND?: ParkingDealerWhereInput | ParkingDealerWhereInput[]
+    OR?: ParkingDealerWhereInput[]
+    NOT?: ParkingDealerWhereInput | ParkingDealerWhereInput[]
+    ownerName?: StringFilter<"ParkingDealer"> | string
+    email?: StringNullableFilter<"ParkingDealer"> | string | null
+    passwordHash?: StringFilter<"ParkingDealer"> | string
+    status?: EnumDealerStatusFilter<"ParkingDealer"> | $Enums.DealerStatus
+    createdAt?: DateTimeFilter<"ParkingDealer"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingDealer"> | Date | string
+    listings?: ParkingListingListRelationFilter
+  }, "id" | "phoneNumber">
+
+  export type ParkingDealerOrderByWithAggregationInput = {
+    id?: SortOrder
+    ownerName?: SortOrder
+    phoneNumber?: SortOrder
+    email?: SortOrderInput | SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ParkingDealerCountOrderByAggregateInput
+    _max?: ParkingDealerMaxOrderByAggregateInput
+    _min?: ParkingDealerMinOrderByAggregateInput
+  }
+
+  export type ParkingDealerScalarWhereWithAggregatesInput = {
+    AND?: ParkingDealerScalarWhereWithAggregatesInput | ParkingDealerScalarWhereWithAggregatesInput[]
+    OR?: ParkingDealerScalarWhereWithAggregatesInput[]
+    NOT?: ParkingDealerScalarWhereWithAggregatesInput | ParkingDealerScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingDealer"> | string
+    ownerName?: StringWithAggregatesFilter<"ParkingDealer"> | string
+    phoneNumber?: StringWithAggregatesFilter<"ParkingDealer"> | string
+    email?: StringNullableWithAggregatesFilter<"ParkingDealer"> | string | null
+    passwordHash?: StringWithAggregatesFilter<"ParkingDealer"> | string
+    status?: EnumDealerStatusWithAggregatesFilter<"ParkingDealer"> | $Enums.DealerStatus
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingDealer"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ParkingDealer"> | Date | string
+  }
+
+  export type ParkingListingWhereInput = {
+    AND?: ParkingListingWhereInput | ParkingListingWhereInput[]
+    OR?: ParkingListingWhereInput[]
+    NOT?: ParkingListingWhereInput | ParkingListingWhereInput[]
+    id?: StringFilter<"ParkingListing"> | string
+    dealerId?: StringFilter<"ParkingListing"> | string
+    name?: StringFilter<"ParkingListing"> | string
+    addressLine?: StringFilter<"ParkingListing"> | string
+    city?: StringFilter<"ParkingListing"> | string
+    latitude?: FloatFilter<"ParkingListing"> | number
+    longitude?: FloatFilter<"ParkingListing"> | number
+    fourWheelerCapacity?: IntFilter<"ParkingListing"> | number
+    twoWheelerCapacity?: IntFilter<"ParkingListing"> | number
+    hourlyRatePaise?: IntFilter<"ParkingListing"> | number
+    dailyRatePaise?: IntNullableFilter<"ParkingListing"> | number | null
+    photos?: StringNullableListFilter<"ParkingListing">
+    status?: EnumListingStatusFilter<"ParkingListing"> | $Enums.ListingStatus
+    createdAt?: DateTimeFilter<"ParkingListing"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingListing"> | Date | string
+    dealer?: XOR<ParkingDealerScalarRelationFilter, ParkingDealerWhereInput>
+    slotWindows?: ParkingSlotWindowListRelationFilter
+    bookings?: ParkingBookingListRelationFilter
+    waitlist?: ParkingWaitlistEntryListRelationFilter
+  }
+
+  export type ParkingListingOrderByWithRelationInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    addressLine?: SortOrder
+    city?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrderInput | SortOrder
+    photos?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    dealer?: ParkingDealerOrderByWithRelationInput
+    slotWindows?: ParkingSlotWindowOrderByRelationAggregateInput
+    bookings?: ParkingBookingOrderByRelationAggregateInput
+    waitlist?: ParkingWaitlistEntryOrderByRelationAggregateInput
+  }
+
+  export type ParkingListingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ParkingListingWhereInput | ParkingListingWhereInput[]
+    OR?: ParkingListingWhereInput[]
+    NOT?: ParkingListingWhereInput | ParkingListingWhereInput[]
+    dealerId?: StringFilter<"ParkingListing"> | string
+    name?: StringFilter<"ParkingListing"> | string
+    addressLine?: StringFilter<"ParkingListing"> | string
+    city?: StringFilter<"ParkingListing"> | string
+    latitude?: FloatFilter<"ParkingListing"> | number
+    longitude?: FloatFilter<"ParkingListing"> | number
+    fourWheelerCapacity?: IntFilter<"ParkingListing"> | number
+    twoWheelerCapacity?: IntFilter<"ParkingListing"> | number
+    hourlyRatePaise?: IntFilter<"ParkingListing"> | number
+    dailyRatePaise?: IntNullableFilter<"ParkingListing"> | number | null
+    photos?: StringNullableListFilter<"ParkingListing">
+    status?: EnumListingStatusFilter<"ParkingListing"> | $Enums.ListingStatus
+    createdAt?: DateTimeFilter<"ParkingListing"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingListing"> | Date | string
+    dealer?: XOR<ParkingDealerScalarRelationFilter, ParkingDealerWhereInput>
+    slotWindows?: ParkingSlotWindowListRelationFilter
+    bookings?: ParkingBookingListRelationFilter
+    waitlist?: ParkingWaitlistEntryListRelationFilter
+  }, "id">
+
+  export type ParkingListingOrderByWithAggregationInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    addressLine?: SortOrder
+    city?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrderInput | SortOrder
+    photos?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ParkingListingCountOrderByAggregateInput
+    _avg?: ParkingListingAvgOrderByAggregateInput
+    _max?: ParkingListingMaxOrderByAggregateInput
+    _min?: ParkingListingMinOrderByAggregateInput
+    _sum?: ParkingListingSumOrderByAggregateInput
+  }
+
+  export type ParkingListingScalarWhereWithAggregatesInput = {
+    AND?: ParkingListingScalarWhereWithAggregatesInput | ParkingListingScalarWhereWithAggregatesInput[]
+    OR?: ParkingListingScalarWhereWithAggregatesInput[]
+    NOT?: ParkingListingScalarWhereWithAggregatesInput | ParkingListingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingListing"> | string
+    dealerId?: StringWithAggregatesFilter<"ParkingListing"> | string
+    name?: StringWithAggregatesFilter<"ParkingListing"> | string
+    addressLine?: StringWithAggregatesFilter<"ParkingListing"> | string
+    city?: StringWithAggregatesFilter<"ParkingListing"> | string
+    latitude?: FloatWithAggregatesFilter<"ParkingListing"> | number
+    longitude?: FloatWithAggregatesFilter<"ParkingListing"> | number
+    fourWheelerCapacity?: IntWithAggregatesFilter<"ParkingListing"> | number
+    twoWheelerCapacity?: IntWithAggregatesFilter<"ParkingListing"> | number
+    hourlyRatePaise?: IntWithAggregatesFilter<"ParkingListing"> | number
+    dailyRatePaise?: IntNullableWithAggregatesFilter<"ParkingListing"> | number | null
+    photos?: StringNullableListFilter<"ParkingListing">
+    status?: EnumListingStatusWithAggregatesFilter<"ParkingListing"> | $Enums.ListingStatus
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingListing"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ParkingListing"> | Date | string
+  }
+
+  export type ParkingSlotWindowWhereInput = {
+    AND?: ParkingSlotWindowWhereInput | ParkingSlotWindowWhereInput[]
+    OR?: ParkingSlotWindowWhereInput[]
+    NOT?: ParkingSlotWindowWhereInput | ParkingSlotWindowWhereInput[]
+    id?: StringFilter<"ParkingSlotWindow"> | string
+    listingId?: StringFilter<"ParkingSlotWindow"> | string
+    date?: DateTimeFilter<"ParkingSlotWindow"> | Date | string
+    startHour?: IntFilter<"ParkingSlotWindow"> | number
+    endHour?: IntFilter<"ParkingSlotWindow"> | number
+    capacity?: IntFilter<"ParkingSlotWindow"> | number
+    booked?: IntFilter<"ParkingSlotWindow"> | number
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }
+
+  export type ParkingSlotWindowOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+    listing?: ParkingListingOrderByWithRelationInput
+  }
+
+  export type ParkingSlotWindowWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    listingId_date_startHour?: ParkingSlotWindowListingIdDateStartHourCompoundUniqueInput
+    AND?: ParkingSlotWindowWhereInput | ParkingSlotWindowWhereInput[]
+    OR?: ParkingSlotWindowWhereInput[]
+    NOT?: ParkingSlotWindowWhereInput | ParkingSlotWindowWhereInput[]
+    listingId?: StringFilter<"ParkingSlotWindow"> | string
+    date?: DateTimeFilter<"ParkingSlotWindow"> | Date | string
+    startHour?: IntFilter<"ParkingSlotWindow"> | number
+    endHour?: IntFilter<"ParkingSlotWindow"> | number
+    capacity?: IntFilter<"ParkingSlotWindow"> | number
+    booked?: IntFilter<"ParkingSlotWindow"> | number
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }, "id" | "listingId_date_startHour">
+
+  export type ParkingSlotWindowOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+    _count?: ParkingSlotWindowCountOrderByAggregateInput
+    _avg?: ParkingSlotWindowAvgOrderByAggregateInput
+    _max?: ParkingSlotWindowMaxOrderByAggregateInput
+    _min?: ParkingSlotWindowMinOrderByAggregateInput
+    _sum?: ParkingSlotWindowSumOrderByAggregateInput
+  }
+
+  export type ParkingSlotWindowScalarWhereWithAggregatesInput = {
+    AND?: ParkingSlotWindowScalarWhereWithAggregatesInput | ParkingSlotWindowScalarWhereWithAggregatesInput[]
+    OR?: ParkingSlotWindowScalarWhereWithAggregatesInput[]
+    NOT?: ParkingSlotWindowScalarWhereWithAggregatesInput | ParkingSlotWindowScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingSlotWindow"> | string
+    listingId?: StringWithAggregatesFilter<"ParkingSlotWindow"> | string
+    date?: DateTimeWithAggregatesFilter<"ParkingSlotWindow"> | Date | string
+    startHour?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+    endHour?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+    capacity?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+    booked?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+  }
+
+  export type ParkingBookingWhereInput = {
+    AND?: ParkingBookingWhereInput | ParkingBookingWhereInput[]
+    OR?: ParkingBookingWhereInput[]
+    NOT?: ParkingBookingWhereInput | ParkingBookingWhereInput[]
+    id?: StringFilter<"ParkingBooking"> | string
+    customerId?: StringFilter<"ParkingBooking"> | string
+    listingId?: StringFilter<"ParkingBooking"> | string
+    slotWindowId?: StringFilter<"ParkingBooking"> | string
+    vehicleId?: StringNullableFilter<"ParkingBooking"> | string | null
+    startTime?: DateTimeFilter<"ParkingBooking"> | Date | string
+    endTime?: DateTimeFilter<"ParkingBooking"> | Date | string
+    amountPaise?: IntFilter<"ParkingBooking"> | number
+    status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
+    orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }
+
+  export type ParkingBookingOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleId?: SortOrderInput | SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+    listing?: ParkingListingOrderByWithRelationInput
+  }
+
+  export type ParkingBookingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ParkingBookingWhereInput | ParkingBookingWhereInput[]
+    OR?: ParkingBookingWhereInput[]
+    NOT?: ParkingBookingWhereInput | ParkingBookingWhereInput[]
+    customerId?: StringFilter<"ParkingBooking"> | string
+    listingId?: StringFilter<"ParkingBooking"> | string
+    slotWindowId?: StringFilter<"ParkingBooking"> | string
+    vehicleId?: StringNullableFilter<"ParkingBooking"> | string | null
+    startTime?: DateTimeFilter<"ParkingBooking"> | Date | string
+    endTime?: DateTimeFilter<"ParkingBooking"> | Date | string
+    amountPaise?: IntFilter<"ParkingBooking"> | number
+    status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
+    orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }, "id">
+
+  export type ParkingBookingOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleId?: SortOrderInput | SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ParkingBookingCountOrderByAggregateInput
+    _avg?: ParkingBookingAvgOrderByAggregateInput
+    _max?: ParkingBookingMaxOrderByAggregateInput
+    _min?: ParkingBookingMinOrderByAggregateInput
+    _sum?: ParkingBookingSumOrderByAggregateInput
+  }
+
+  export type ParkingBookingScalarWhereWithAggregatesInput = {
+    AND?: ParkingBookingScalarWhereWithAggregatesInput | ParkingBookingScalarWhereWithAggregatesInput[]
+    OR?: ParkingBookingScalarWhereWithAggregatesInput[]
+    NOT?: ParkingBookingScalarWhereWithAggregatesInput | ParkingBookingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingBooking"> | string
+    customerId?: StringWithAggregatesFilter<"ParkingBooking"> | string
+    listingId?: StringWithAggregatesFilter<"ParkingBooking"> | string
+    slotWindowId?: StringWithAggregatesFilter<"ParkingBooking"> | string
+    vehicleId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
+    startTime?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
+    endTime?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
+    amountPaise?: IntWithAggregatesFilter<"ParkingBooking"> | number
+    status?: EnumBookingStatusWithAggregatesFilter<"ParkingBooking"> | $Enums.BookingStatus
+    orderId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
+  }
+
+  export type ParkingWaitlistEntryWhereInput = {
+    AND?: ParkingWaitlistEntryWhereInput | ParkingWaitlistEntryWhereInput[]
+    OR?: ParkingWaitlistEntryWhereInput[]
+    NOT?: ParkingWaitlistEntryWhereInput | ParkingWaitlistEntryWhereInput[]
+    id?: StringFilter<"ParkingWaitlistEntry"> | string
+    customerId?: StringFilter<"ParkingWaitlistEntry"> | string
+    listingId?: StringFilter<"ParkingWaitlistEntry"> | string
+    desiredDate?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
+    notified?: BoolFilter<"ParkingWaitlistEntry"> | boolean
+    createdAt?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }
+
+  export type ParkingWaitlistEntryOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    desiredDate?: SortOrder
+    notified?: SortOrder
+    createdAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+    listing?: ParkingListingOrderByWithRelationInput
+  }
+
+  export type ParkingWaitlistEntryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    listingId_customerId_desiredDate?: ParkingWaitlistEntryListingIdCustomerIdDesiredDateCompoundUniqueInput
+    AND?: ParkingWaitlistEntryWhereInput | ParkingWaitlistEntryWhereInput[]
+    OR?: ParkingWaitlistEntryWhereInput[]
+    NOT?: ParkingWaitlistEntryWhereInput | ParkingWaitlistEntryWhereInput[]
+    customerId?: StringFilter<"ParkingWaitlistEntry"> | string
+    listingId?: StringFilter<"ParkingWaitlistEntry"> | string
+    desiredDate?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
+    notified?: BoolFilter<"ParkingWaitlistEntry"> | boolean
+    createdAt?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }, "id" | "listingId_customerId_desiredDate">
+
+  export type ParkingWaitlistEntryOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    desiredDate?: SortOrder
+    notified?: SortOrder
+    createdAt?: SortOrder
+    _count?: ParkingWaitlistEntryCountOrderByAggregateInput
+    _max?: ParkingWaitlistEntryMaxOrderByAggregateInput
+    _min?: ParkingWaitlistEntryMinOrderByAggregateInput
+  }
+
+  export type ParkingWaitlistEntryScalarWhereWithAggregatesInput = {
+    AND?: ParkingWaitlistEntryScalarWhereWithAggregatesInput | ParkingWaitlistEntryScalarWhereWithAggregatesInput[]
+    OR?: ParkingWaitlistEntryScalarWhereWithAggregatesInput[]
+    NOT?: ParkingWaitlistEntryScalarWhereWithAggregatesInput | ParkingWaitlistEntryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingWaitlistEntry"> | string
+    customerId?: StringWithAggregatesFilter<"ParkingWaitlistEntry"> | string
+    listingId?: StringWithAggregatesFilter<"ParkingWaitlistEntry"> | string
+    desiredDate?: DateTimeWithAggregatesFilter<"ParkingWaitlistEntry"> | Date | string
+    notified?: BoolWithAggregatesFilter<"ParkingWaitlistEntry"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingWaitlistEntry"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -108556,6 +121024,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateInput = {
@@ -108583,6 +121054,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUpdateInput = {
@@ -108610,6 +121084,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateInput = {
@@ -108637,6 +121114,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateManyInput = {
@@ -116175,6 +128655,791 @@ export namespace Prisma {
     permissionsMask?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
+  export type CustomerOrderCreateInput = {
+    id?: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutOrdersInput
+    attempts?: CustomerPaymentAttemptCreateNestedManyWithoutOrderInput
+    refunds?: CustomerRefundCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attempts?: CustomerPaymentAttemptUncheckedCreateNestedManyWithoutOrderInput
+    refunds?: CustomerRefundUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutOrdersNestedInput
+    attempts?: CustomerPaymentAttemptUpdateManyWithoutOrderNestedInput
+    refunds?: CustomerRefundUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: CustomerPaymentAttemptUncheckedUpdateManyWithoutOrderNestedInput
+    refunds?: CustomerRefundUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderCreateManyInput = {
+    id?: string
+    customerId: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CustomerOrderUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerOrderUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPaymentAttemptCreateInput = {
+    id?: string
+    razorpayPaymentId?: string | null
+    razorpaySignature?: string | null
+    method?: string | null
+    status?: $Enums.PaymentAttemptStatus
+    failureReason?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    order: CustomerOrderCreateNestedOneWithoutAttemptsInput
+  }
+
+  export type CustomerPaymentAttemptUncheckedCreateInput = {
+    id?: string
+    orderId: string
+    razorpayPaymentId?: string | null
+    razorpaySignature?: string | null
+    method?: string | null
+    status?: $Enums.PaymentAttemptStatus
+    failureReason?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerPaymentAttemptUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: CustomerOrderUpdateOneRequiredWithoutAttemptsNestedInput
+  }
+
+  export type CustomerPaymentAttemptUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPaymentAttemptCreateManyInput = {
+    id?: string
+    orderId: string
+    razorpayPaymentId?: string | null
+    razorpaySignature?: string | null
+    method?: string | null
+    status?: $Enums.PaymentAttemptStatus
+    failureReason?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerPaymentAttemptUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPaymentAttemptUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerRefundCreateInput = {
+    id?: string
+    amountPaise: number
+    status?: $Enums.CustomerRefundStatus
+    razorpayRefundId?: string | null
+    reason?: string | null
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+    order: CustomerOrderCreateNestedOneWithoutRefundsInput
+  }
+
+  export type CustomerRefundUncheckedCreateInput = {
+    id?: string
+    orderId: string
+    amountPaise: number
+    status?: $Enums.CustomerRefundStatus
+    razorpayRefundId?: string | null
+    reason?: string | null
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerRefundUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: CustomerOrderUpdateOneRequiredWithoutRefundsNestedInput
+  }
+
+  export type CustomerRefundUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerRefundCreateManyInput = {
+    id?: string
+    orderId: string
+    amountPaise: number
+    status?: $Enums.CustomerRefundStatus
+    razorpayRefundId?: string | null
+    reason?: string | null
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerRefundUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerRefundUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WebhookEventCreateInput = {
+    id?: string
+    provider?: string
+    eventType: string
+    dedupeKey: string
+    payload: JsonNullValueInput | InputJsonValue
+    signatureValid: boolean
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type WebhookEventUncheckedCreateInput = {
+    id?: string
+    provider?: string
+    eventType: string
+    dedupeKey: string
+    payload: JsonNullValueInput | InputJsonValue
+    signatureValid: boolean
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type WebhookEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    signatureValid?: BoolFieldUpdateOperationsInput | boolean
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WebhookEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    signatureValid?: BoolFieldUpdateOperationsInput | boolean
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WebhookEventCreateManyInput = {
+    id?: string
+    provider?: string
+    eventType: string
+    dedupeKey: string
+    payload: JsonNullValueInput | InputJsonValue
+    signatureValid: boolean
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type WebhookEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    signatureValid?: BoolFieldUpdateOperationsInput | boolean
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WebhookEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    dedupeKey?: StringFieldUpdateOperationsInput | string
+    payload?: JsonNullValueInput | InputJsonValue
+    signatureValid?: BoolFieldUpdateOperationsInput | boolean
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingDealerCreateInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listings?: ParkingListingCreateNestedManyWithoutDealerInput
+  }
+
+  export type ParkingDealerUncheckedCreateInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listings?: ParkingListingUncheckedCreateNestedManyWithoutDealerInput
+  }
+
+  export type ParkingDealerUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listings?: ParkingListingUpdateManyWithoutDealerNestedInput
+  }
+
+  export type ParkingDealerUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listings?: ParkingListingUncheckedUpdateManyWithoutDealerNestedInput
+  }
+
+  export type ParkingDealerCreateManyInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingDealerUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingDealerUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingListingCreateInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutListingsInput
+    slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
+    slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingCreateManyInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingListingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingListingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSlotWindowCreateInput = {
+    id?: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+    listing: ParkingListingCreateNestedOneWithoutSlotWindowsInput
+  }
+
+  export type ParkingSlotWindowUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+  }
+
+  export type ParkingSlotWindowUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+    listing?: ParkingListingUpdateOneRequiredWithoutSlotWindowsNestedInput
+  }
+
+  export type ParkingSlotWindowUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingSlotWindowCreateManyInput = {
+    id?: string
+    listingId: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+  }
+
+  export type ParkingSlotWindowUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingSlotWindowUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingBookingCreateInput = {
+    id?: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutParkingBookingsInput
+    listing: ParkingListingCreateNestedOneWithoutBookingsInput
+  }
+
+  export type ParkingBookingUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    listingId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingBookingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
+    listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
+  }
+
+  export type ParkingBookingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingBookingCreateManyInput = {
+    id?: string
+    customerId: string
+    listingId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingBookingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingBookingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryCreateInput = {
+    id?: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWaitlistEntriesInput
+    listing: ParkingListingCreateNestedOneWithoutWaitlistInput
+  }
+
+  export type ParkingWaitlistEntryUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    listingId: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingWaitlistEntryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWaitlistEntriesNestedInput
+    listing?: ParkingListingUpdateOneRequiredWithoutWaitlistNestedInput
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryCreateManyInput = {
+    id?: string
+    customerId: string
+    listingId: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingWaitlistEntryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -116445,6 +129710,24 @@ export namespace Prisma {
     none?: PlannedTripWhereInput
   }
 
+  export type CustomerOrderListRelationFilter = {
+    every?: CustomerOrderWhereInput
+    some?: CustomerOrderWhereInput
+    none?: CustomerOrderWhereInput
+  }
+
+  export type ParkingBookingListRelationFilter = {
+    every?: ParkingBookingWhereInput
+    some?: ParkingBookingWhereInput
+    none?: ParkingBookingWhereInput
+  }
+
+  export type ParkingWaitlistEntryListRelationFilter = {
+    every?: ParkingWaitlistEntryWhereInput
+    some?: ParkingWaitlistEntryWhereInput
+    none?: ParkingWaitlistEntryWhereInput
+  }
+
   export type ChatSessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -116490,6 +129773,18 @@ export namespace Prisma {
   }
 
   export type PlannedTripOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomerOrderOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingBookingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingWaitlistEntryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -121663,6 +134958,574 @@ export namespace Prisma {
     _max?: NestedBigIntFilter<$PrismaModel>
   }
 
+  export type EnumPaymentPurposeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentPurpose | EnumPaymentPurposeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentPurposeFilter<$PrismaModel> | $Enums.PaymentPurpose
+  }
+
+  export type EnumOrderStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.OrderStatus | EnumOrderStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumOrderStatusFilter<$PrismaModel> | $Enums.OrderStatus
+  }
+
+  export type CustomerPaymentAttemptListRelationFilter = {
+    every?: CustomerPaymentAttemptWhereInput
+    some?: CustomerPaymentAttemptWhereInput
+    none?: CustomerPaymentAttemptWhereInput
+  }
+
+  export type CustomerRefundListRelationFilter = {
+    every?: CustomerRefundWhereInput
+    some?: CustomerRefundWhereInput
+    none?: CustomerRefundWhereInput
+  }
+
+  export type CustomerPaymentAttemptOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomerRefundOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomerOrderCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    purpose?: SortOrder
+    referenceId?: SortOrder
+    amountPaise?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    razorpayOrderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomerOrderAvgOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type CustomerOrderMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    purpose?: SortOrder
+    referenceId?: SortOrder
+    amountPaise?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    razorpayOrderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomerOrderMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    purpose?: SortOrder
+    referenceId?: SortOrder
+    amountPaise?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    razorpayOrderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CustomerOrderSumOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type EnumPaymentPurposeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentPurpose | EnumPaymentPurposeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentPurposeWithAggregatesFilter<$PrismaModel> | $Enums.PaymentPurpose
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentPurposeFilter<$PrismaModel>
+    _max?: NestedEnumPaymentPurposeFilter<$PrismaModel>
+  }
+
+  export type EnumOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.OrderStatus | EnumOrderStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumOrderStatusWithAggregatesFilter<$PrismaModel> | $Enums.OrderStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumOrderStatusFilter<$PrismaModel>
+    _max?: NestedEnumOrderStatusFilter<$PrismaModel>
+  }
+
+  export type EnumPaymentAttemptStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentAttemptStatus | EnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentAttemptStatusFilter<$PrismaModel> | $Enums.PaymentAttemptStatus
+  }
+
+  export type CustomerOrderScalarRelationFilter = {
+    is?: CustomerOrderWhereInput
+    isNot?: CustomerOrderWhereInput
+  }
+
+  export type CustomerPaymentAttemptCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    razorpayPaymentId?: SortOrder
+    razorpaySignature?: SortOrder
+    method?: SortOrder
+    status?: SortOrder
+    failureReason?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerPaymentAttemptMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    razorpayPaymentId?: SortOrder
+    razorpaySignature?: SortOrder
+    method?: SortOrder
+    status?: SortOrder
+    failureReason?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerPaymentAttemptMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    razorpayPaymentId?: SortOrder
+    razorpaySignature?: SortOrder
+    method?: SortOrder
+    status?: SortOrder
+    failureReason?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumPaymentAttemptStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentAttemptStatus | EnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentAttemptStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentAttemptStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentAttemptStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentAttemptStatusFilter<$PrismaModel>
+  }
+
+  export type EnumCustomerRefundStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CustomerRefundStatus | EnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCustomerRefundStatusFilter<$PrismaModel> | $Enums.CustomerRefundStatus
+  }
+
+  export type CustomerRefundCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    razorpayRefundId?: SortOrder
+    reason?: SortOrder
+    processedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerRefundAvgOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type CustomerRefundMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    razorpayRefundId?: SortOrder
+    reason?: SortOrder
+    processedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerRefundMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    razorpayRefundId?: SortOrder
+    reason?: SortOrder
+    processedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type CustomerRefundSumOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type EnumCustomerRefundStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CustomerRefundStatus | EnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCustomerRefundStatusWithAggregatesFilter<$PrismaModel> | $Enums.CustomerRefundStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCustomerRefundStatusFilter<$PrismaModel>
+    _max?: NestedEnumCustomerRefundStatusFilter<$PrismaModel>
+  }
+
+  export type WebhookEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    provider?: SortOrder
+    eventType?: SortOrder
+    dedupeKey?: SortOrder
+    payload?: SortOrder
+    signatureValid?: SortOrder
+    processedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WebhookEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    provider?: SortOrder
+    eventType?: SortOrder
+    dedupeKey?: SortOrder
+    signatureValid?: SortOrder
+    processedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WebhookEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    provider?: SortOrder
+    eventType?: SortOrder
+    dedupeKey?: SortOrder
+    signatureValid?: SortOrder
+    processedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumDealerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DealerStatus | EnumDealerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDealerStatusFilter<$PrismaModel> | $Enums.DealerStatus
+  }
+
+  export type ParkingListingListRelationFilter = {
+    every?: ParkingListingWhereInput
+    some?: ParkingListingWhereInput
+    none?: ParkingListingWhereInput
+  }
+
+  export type ParkingListingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingDealerCountOrderByAggregateInput = {
+    id?: SortOrder
+    ownerName?: SortOrder
+    phoneNumber?: SortOrder
+    email?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingDealerMaxOrderByAggregateInput = {
+    id?: SortOrder
+    ownerName?: SortOrder
+    phoneNumber?: SortOrder
+    email?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingDealerMinOrderByAggregateInput = {
+    id?: SortOrder
+    ownerName?: SortOrder
+    phoneNumber?: SortOrder
+    email?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumDealerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DealerStatus | EnumDealerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDealerStatusWithAggregatesFilter<$PrismaModel> | $Enums.DealerStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDealerStatusFilter<$PrismaModel>
+    _max?: NestedEnumDealerStatusFilter<$PrismaModel>
+  }
+
+  export type EnumListingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ListingStatus | EnumListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumListingStatusFilter<$PrismaModel> | $Enums.ListingStatus
+  }
+
+  export type ParkingDealerScalarRelationFilter = {
+    is?: ParkingDealerWhereInput
+    isNot?: ParkingDealerWhereInput
+  }
+
+  export type ParkingSlotWindowListRelationFilter = {
+    every?: ParkingSlotWindowWhereInput
+    some?: ParkingSlotWindowWhereInput
+    none?: ParkingSlotWindowWhereInput
+  }
+
+  export type ParkingSlotWindowOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingListingCountOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    addressLine?: SortOrder
+    city?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrder
+    photos?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingListingAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrder
+  }
+
+  export type ParkingListingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    addressLine?: SortOrder
+    city?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingListingMinOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    addressLine?: SortOrder
+    city?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingListingSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+    fourWheelerCapacity?: SortOrder
+    twoWheelerCapacity?: SortOrder
+    hourlyRatePaise?: SortOrder
+    dailyRatePaise?: SortOrder
+  }
+
+  export type EnumListingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ListingStatus | EnumListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumListingStatusWithAggregatesFilter<$PrismaModel> | $Enums.ListingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumListingStatusFilter<$PrismaModel>
+    _max?: NestedEnumListingStatusFilter<$PrismaModel>
+  }
+
+  export type ParkingListingScalarRelationFilter = {
+    is?: ParkingListingWhereInput
+    isNot?: ParkingListingWhereInput
+  }
+
+  export type ParkingSlotWindowListingIdDateStartHourCompoundUniqueInput = {
+    listingId: string
+    date: Date | string
+    startHour: number
+  }
+
+  export type ParkingSlotWindowCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+  }
+
+  export type ParkingSlotWindowAvgOrderByAggregateInput = {
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+  }
+
+  export type ParkingSlotWindowMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+  }
+
+  export type ParkingSlotWindowMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+  }
+
+  export type ParkingSlotWindowSumOrderByAggregateInput = {
+    startHour?: SortOrder
+    endHour?: SortOrder
+    capacity?: SortOrder
+    booked?: SortOrder
+  }
+
+  export type EnumBookingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BookingStatus | EnumBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBookingStatusFilter<$PrismaModel> | $Enums.BookingStatus
+  }
+
+  export type ParkingBookingCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleId?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingBookingAvgOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type ParkingBookingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleId?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingBookingMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleId?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
+    amountPaise?: SortOrder
+    status?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingBookingSumOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type EnumBookingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BookingStatus | EnumBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBookingStatusWithAggregatesFilter<$PrismaModel> | $Enums.BookingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBookingStatusFilter<$PrismaModel>
+    _max?: NestedEnumBookingStatusFilter<$PrismaModel>
+  }
+
+  export type ParkingWaitlistEntryListingIdCustomerIdDesiredDateCompoundUniqueInput = {
+    listingId: string
+    customerId: string
+    desiredDate: Date | string
+  }
+
+  export type ParkingWaitlistEntryCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    desiredDate?: SortOrder
+    notified?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingWaitlistEntryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    desiredDate?: SortOrder
+    notified?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingWaitlistEntryMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    listingId?: SortOrder
+    desiredDate?: SortOrder
+    notified?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -121792,6 +135655,27 @@ export namespace Prisma {
     connect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
   }
 
+  export type CustomerOrderCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<CustomerOrderCreateWithoutCustomerInput, CustomerOrderUncheckedCreateWithoutCustomerInput> | CustomerOrderCreateWithoutCustomerInput[] | CustomerOrderUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutCustomerInput | CustomerOrderCreateOrConnectWithoutCustomerInput[]
+    createMany?: CustomerOrderCreateManyCustomerInputEnvelope
+    connect?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+  }
+
+  export type ParkingBookingCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ParkingBookingCreateWithoutCustomerInput, ParkingBookingUncheckedCreateWithoutCustomerInput> | ParkingBookingCreateWithoutCustomerInput[] | ParkingBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutCustomerInput | ParkingBookingCreateOrConnectWithoutCustomerInput[]
+    createMany?: ParkingBookingCreateManyCustomerInputEnvelope
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+  }
+
+  export type ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutCustomerInput, ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput> | ParkingWaitlistEntryCreateWithoutCustomerInput[] | ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
+    createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutCustomerInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -121899,6 +135783,27 @@ export namespace Prisma {
     connectOrCreate?: PlannedTripCreateOrConnectWithoutCustomerInput | PlannedTripCreateOrConnectWithoutCustomerInput[]
     createMany?: PlannedTripCreateManyCustomerInputEnvelope
     connect?: PlannedTripWhereUniqueInput | PlannedTripWhereUniqueInput[]
+  }
+
+  export type CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<CustomerOrderCreateWithoutCustomerInput, CustomerOrderUncheckedCreateWithoutCustomerInput> | CustomerOrderCreateWithoutCustomerInput[] | CustomerOrderUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutCustomerInput | CustomerOrderCreateOrConnectWithoutCustomerInput[]
+    createMany?: CustomerOrderCreateManyCustomerInputEnvelope
+    connect?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+  }
+
+  export type ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ParkingBookingCreateWithoutCustomerInput, ParkingBookingUncheckedCreateWithoutCustomerInput> | ParkingBookingCreateWithoutCustomerInput[] | ParkingBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutCustomerInput | ParkingBookingCreateOrConnectWithoutCustomerInput[]
+    createMany?: ParkingBookingCreateManyCustomerInputEnvelope
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+  }
+
+  export type ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutCustomerInput, ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput> | ParkingWaitlistEntryCreateWithoutCustomerInput[] | ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
+    createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
   }
 
   export type ChatSessionUpdateManyWithoutCustomerNestedInput = {
@@ -122113,6 +136018,48 @@ export namespace Prisma {
     deleteMany?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
   }
 
+  export type CustomerOrderUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<CustomerOrderCreateWithoutCustomerInput, CustomerOrderUncheckedCreateWithoutCustomerInput> | CustomerOrderCreateWithoutCustomerInput[] | CustomerOrderUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutCustomerInput | CustomerOrderCreateOrConnectWithoutCustomerInput[]
+    upsert?: CustomerOrderUpsertWithWhereUniqueWithoutCustomerInput | CustomerOrderUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: CustomerOrderCreateManyCustomerInputEnvelope
+    set?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    disconnect?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    delete?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    connect?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    update?: CustomerOrderUpdateWithWhereUniqueWithoutCustomerInput | CustomerOrderUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: CustomerOrderUpdateManyWithWhereWithoutCustomerInput | CustomerOrderUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: CustomerOrderScalarWhereInput | CustomerOrderScalarWhereInput[]
+  }
+
+  export type ParkingBookingUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ParkingBookingCreateWithoutCustomerInput, ParkingBookingUncheckedCreateWithoutCustomerInput> | ParkingBookingCreateWithoutCustomerInput[] | ParkingBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutCustomerInput | ParkingBookingCreateOrConnectWithoutCustomerInput[]
+    upsert?: ParkingBookingUpsertWithWhereUniqueWithoutCustomerInput | ParkingBookingUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ParkingBookingCreateManyCustomerInputEnvelope
+    set?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    disconnect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    delete?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    update?: ParkingBookingUpdateWithWhereUniqueWithoutCustomerInput | ParkingBookingUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ParkingBookingUpdateManyWithWhereWithoutCustomerInput | ParkingBookingUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+  }
+
+  export type ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutCustomerInput, ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput> | ParkingWaitlistEntryCreateWithoutCustomerInput[] | ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
+    upsert?: ParkingWaitlistEntryUpsertWithWhereUniqueWithoutCustomerInput | ParkingWaitlistEntryUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
+    set?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    disconnect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    delete?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    update?: ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput | ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput | ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+  }
+
   export type ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -122323,6 +136270,48 @@ export namespace Prisma {
     update?: PlannedTripUpdateWithWhereUniqueWithoutCustomerInput | PlannedTripUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: PlannedTripUpdateManyWithWhereWithoutCustomerInput | PlannedTripUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: PlannedTripScalarWhereInput | PlannedTripScalarWhereInput[]
+  }
+
+  export type CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<CustomerOrderCreateWithoutCustomerInput, CustomerOrderUncheckedCreateWithoutCustomerInput> | CustomerOrderCreateWithoutCustomerInput[] | CustomerOrderUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutCustomerInput | CustomerOrderCreateOrConnectWithoutCustomerInput[]
+    upsert?: CustomerOrderUpsertWithWhereUniqueWithoutCustomerInput | CustomerOrderUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: CustomerOrderCreateManyCustomerInputEnvelope
+    set?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    disconnect?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    delete?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    connect?: CustomerOrderWhereUniqueInput | CustomerOrderWhereUniqueInput[]
+    update?: CustomerOrderUpdateWithWhereUniqueWithoutCustomerInput | CustomerOrderUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: CustomerOrderUpdateManyWithWhereWithoutCustomerInput | CustomerOrderUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: CustomerOrderScalarWhereInput | CustomerOrderScalarWhereInput[]
+  }
+
+  export type ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ParkingBookingCreateWithoutCustomerInput, ParkingBookingUncheckedCreateWithoutCustomerInput> | ParkingBookingCreateWithoutCustomerInput[] | ParkingBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutCustomerInput | ParkingBookingCreateOrConnectWithoutCustomerInput[]
+    upsert?: ParkingBookingUpsertWithWhereUniqueWithoutCustomerInput | ParkingBookingUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ParkingBookingCreateManyCustomerInputEnvelope
+    set?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    disconnect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    delete?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    update?: ParkingBookingUpdateWithWhereUniqueWithoutCustomerInput | ParkingBookingUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ParkingBookingUpdateManyWithWhereWithoutCustomerInput | ParkingBookingUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutCustomerInput, ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput> | ParkingWaitlistEntryCreateWithoutCustomerInput[] | ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
+    upsert?: ParkingWaitlistEntryUpsertWithWhereUniqueWithoutCustomerInput | ParkingWaitlistEntryUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
+    set?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    disconnect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    delete?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    update?: ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput | ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput | ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
   }
 
   export type CustomerCreateNestedOneWithoutDevicesInput = {
@@ -126339,6 +140328,421 @@ export namespace Prisma {
     deleteMany?: role_permissionsScalarWhereInput | role_permissionsScalarWhereInput[]
   }
 
+  export type CustomerCreateNestedOneWithoutOrdersInput = {
+    create?: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutOrdersInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerPaymentAttemptCreateNestedManyWithoutOrderInput = {
+    create?: XOR<CustomerPaymentAttemptCreateWithoutOrderInput, CustomerPaymentAttemptUncheckedCreateWithoutOrderInput> | CustomerPaymentAttemptCreateWithoutOrderInput[] | CustomerPaymentAttemptUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerPaymentAttemptCreateOrConnectWithoutOrderInput | CustomerPaymentAttemptCreateOrConnectWithoutOrderInput[]
+    createMany?: CustomerPaymentAttemptCreateManyOrderInputEnvelope
+    connect?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+  }
+
+  export type CustomerRefundCreateNestedManyWithoutOrderInput = {
+    create?: XOR<CustomerRefundCreateWithoutOrderInput, CustomerRefundUncheckedCreateWithoutOrderInput> | CustomerRefundCreateWithoutOrderInput[] | CustomerRefundUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerRefundCreateOrConnectWithoutOrderInput | CustomerRefundCreateOrConnectWithoutOrderInput[]
+    createMany?: CustomerRefundCreateManyOrderInputEnvelope
+    connect?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+  }
+
+  export type CustomerPaymentAttemptUncheckedCreateNestedManyWithoutOrderInput = {
+    create?: XOR<CustomerPaymentAttemptCreateWithoutOrderInput, CustomerPaymentAttemptUncheckedCreateWithoutOrderInput> | CustomerPaymentAttemptCreateWithoutOrderInput[] | CustomerPaymentAttemptUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerPaymentAttemptCreateOrConnectWithoutOrderInput | CustomerPaymentAttemptCreateOrConnectWithoutOrderInput[]
+    createMany?: CustomerPaymentAttemptCreateManyOrderInputEnvelope
+    connect?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+  }
+
+  export type CustomerRefundUncheckedCreateNestedManyWithoutOrderInput = {
+    create?: XOR<CustomerRefundCreateWithoutOrderInput, CustomerRefundUncheckedCreateWithoutOrderInput> | CustomerRefundCreateWithoutOrderInput[] | CustomerRefundUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerRefundCreateOrConnectWithoutOrderInput | CustomerRefundCreateOrConnectWithoutOrderInput[]
+    createMany?: CustomerRefundCreateManyOrderInputEnvelope
+    connect?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+  }
+
+  export type EnumPaymentPurposeFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentPurpose
+  }
+
+  export type EnumOrderStatusFieldUpdateOperationsInput = {
+    set?: $Enums.OrderStatus
+  }
+
+  export type CustomerUpdateOneRequiredWithoutOrdersNestedInput = {
+    create?: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutOrdersInput
+    upsert?: CustomerUpsertWithoutOrdersInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutOrdersInput, CustomerUpdateWithoutOrdersInput>, CustomerUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type CustomerPaymentAttemptUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<CustomerPaymentAttemptCreateWithoutOrderInput, CustomerPaymentAttemptUncheckedCreateWithoutOrderInput> | CustomerPaymentAttemptCreateWithoutOrderInput[] | CustomerPaymentAttemptUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerPaymentAttemptCreateOrConnectWithoutOrderInput | CustomerPaymentAttemptCreateOrConnectWithoutOrderInput[]
+    upsert?: CustomerPaymentAttemptUpsertWithWhereUniqueWithoutOrderInput | CustomerPaymentAttemptUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: CustomerPaymentAttemptCreateManyOrderInputEnvelope
+    set?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    disconnect?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    delete?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    connect?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    update?: CustomerPaymentAttemptUpdateWithWhereUniqueWithoutOrderInput | CustomerPaymentAttemptUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: CustomerPaymentAttemptUpdateManyWithWhereWithoutOrderInput | CustomerPaymentAttemptUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: CustomerPaymentAttemptScalarWhereInput | CustomerPaymentAttemptScalarWhereInput[]
+  }
+
+  export type CustomerRefundUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<CustomerRefundCreateWithoutOrderInput, CustomerRefundUncheckedCreateWithoutOrderInput> | CustomerRefundCreateWithoutOrderInput[] | CustomerRefundUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerRefundCreateOrConnectWithoutOrderInput | CustomerRefundCreateOrConnectWithoutOrderInput[]
+    upsert?: CustomerRefundUpsertWithWhereUniqueWithoutOrderInput | CustomerRefundUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: CustomerRefundCreateManyOrderInputEnvelope
+    set?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    disconnect?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    delete?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    connect?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    update?: CustomerRefundUpdateWithWhereUniqueWithoutOrderInput | CustomerRefundUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: CustomerRefundUpdateManyWithWhereWithoutOrderInput | CustomerRefundUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: CustomerRefundScalarWhereInput | CustomerRefundScalarWhereInput[]
+  }
+
+  export type CustomerPaymentAttemptUncheckedUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<CustomerPaymentAttemptCreateWithoutOrderInput, CustomerPaymentAttemptUncheckedCreateWithoutOrderInput> | CustomerPaymentAttemptCreateWithoutOrderInput[] | CustomerPaymentAttemptUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerPaymentAttemptCreateOrConnectWithoutOrderInput | CustomerPaymentAttemptCreateOrConnectWithoutOrderInput[]
+    upsert?: CustomerPaymentAttemptUpsertWithWhereUniqueWithoutOrderInput | CustomerPaymentAttemptUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: CustomerPaymentAttemptCreateManyOrderInputEnvelope
+    set?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    disconnect?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    delete?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    connect?: CustomerPaymentAttemptWhereUniqueInput | CustomerPaymentAttemptWhereUniqueInput[]
+    update?: CustomerPaymentAttemptUpdateWithWhereUniqueWithoutOrderInput | CustomerPaymentAttemptUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: CustomerPaymentAttemptUpdateManyWithWhereWithoutOrderInput | CustomerPaymentAttemptUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: CustomerPaymentAttemptScalarWhereInput | CustomerPaymentAttemptScalarWhereInput[]
+  }
+
+  export type CustomerRefundUncheckedUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<CustomerRefundCreateWithoutOrderInput, CustomerRefundUncheckedCreateWithoutOrderInput> | CustomerRefundCreateWithoutOrderInput[] | CustomerRefundUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: CustomerRefundCreateOrConnectWithoutOrderInput | CustomerRefundCreateOrConnectWithoutOrderInput[]
+    upsert?: CustomerRefundUpsertWithWhereUniqueWithoutOrderInput | CustomerRefundUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: CustomerRefundCreateManyOrderInputEnvelope
+    set?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    disconnect?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    delete?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    connect?: CustomerRefundWhereUniqueInput | CustomerRefundWhereUniqueInput[]
+    update?: CustomerRefundUpdateWithWhereUniqueWithoutOrderInput | CustomerRefundUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: CustomerRefundUpdateManyWithWhereWithoutOrderInput | CustomerRefundUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: CustomerRefundScalarWhereInput | CustomerRefundScalarWhereInput[]
+  }
+
+  export type CustomerOrderCreateNestedOneWithoutAttemptsInput = {
+    create?: XOR<CustomerOrderCreateWithoutAttemptsInput, CustomerOrderUncheckedCreateWithoutAttemptsInput>
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutAttemptsInput
+    connect?: CustomerOrderWhereUniqueInput
+  }
+
+  export type EnumPaymentAttemptStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentAttemptStatus
+  }
+
+  export type CustomerOrderUpdateOneRequiredWithoutAttemptsNestedInput = {
+    create?: XOR<CustomerOrderCreateWithoutAttemptsInput, CustomerOrderUncheckedCreateWithoutAttemptsInput>
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutAttemptsInput
+    upsert?: CustomerOrderUpsertWithoutAttemptsInput
+    connect?: CustomerOrderWhereUniqueInput
+    update?: XOR<XOR<CustomerOrderUpdateToOneWithWhereWithoutAttemptsInput, CustomerOrderUpdateWithoutAttemptsInput>, CustomerOrderUncheckedUpdateWithoutAttemptsInput>
+  }
+
+  export type CustomerOrderCreateNestedOneWithoutRefundsInput = {
+    create?: XOR<CustomerOrderCreateWithoutRefundsInput, CustomerOrderUncheckedCreateWithoutRefundsInput>
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutRefundsInput
+    connect?: CustomerOrderWhereUniqueInput
+  }
+
+  export type EnumCustomerRefundStatusFieldUpdateOperationsInput = {
+    set?: $Enums.CustomerRefundStatus
+  }
+
+  export type CustomerOrderUpdateOneRequiredWithoutRefundsNestedInput = {
+    create?: XOR<CustomerOrderCreateWithoutRefundsInput, CustomerOrderUncheckedCreateWithoutRefundsInput>
+    connectOrCreate?: CustomerOrderCreateOrConnectWithoutRefundsInput
+    upsert?: CustomerOrderUpsertWithoutRefundsInput
+    connect?: CustomerOrderWhereUniqueInput
+    update?: XOR<XOR<CustomerOrderUpdateToOneWithWhereWithoutRefundsInput, CustomerOrderUpdateWithoutRefundsInput>, CustomerOrderUncheckedUpdateWithoutRefundsInput>
+  }
+
+  export type ParkingListingCreateNestedManyWithoutDealerInput = {
+    create?: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput> | ParkingListingCreateWithoutDealerInput[] | ParkingListingUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutDealerInput | ParkingListingCreateOrConnectWithoutDealerInput[]
+    createMany?: ParkingListingCreateManyDealerInputEnvelope
+    connect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+  }
+
+  export type ParkingListingUncheckedCreateNestedManyWithoutDealerInput = {
+    create?: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput> | ParkingListingCreateWithoutDealerInput[] | ParkingListingUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutDealerInput | ParkingListingCreateOrConnectWithoutDealerInput[]
+    createMany?: ParkingListingCreateManyDealerInputEnvelope
+    connect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+  }
+
+  export type EnumDealerStatusFieldUpdateOperationsInput = {
+    set?: $Enums.DealerStatus
+  }
+
+  export type ParkingListingUpdateManyWithoutDealerNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput> | ParkingListingCreateWithoutDealerInput[] | ParkingListingUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutDealerInput | ParkingListingCreateOrConnectWithoutDealerInput[]
+    upsert?: ParkingListingUpsertWithWhereUniqueWithoutDealerInput | ParkingListingUpsertWithWhereUniqueWithoutDealerInput[]
+    createMany?: ParkingListingCreateManyDealerInputEnvelope
+    set?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    disconnect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    delete?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    connect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    update?: ParkingListingUpdateWithWhereUniqueWithoutDealerInput | ParkingListingUpdateWithWhereUniqueWithoutDealerInput[]
+    updateMany?: ParkingListingUpdateManyWithWhereWithoutDealerInput | ParkingListingUpdateManyWithWhereWithoutDealerInput[]
+    deleteMany?: ParkingListingScalarWhereInput | ParkingListingScalarWhereInput[]
+  }
+
+  export type ParkingListingUncheckedUpdateManyWithoutDealerNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput> | ParkingListingCreateWithoutDealerInput[] | ParkingListingUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutDealerInput | ParkingListingCreateOrConnectWithoutDealerInput[]
+    upsert?: ParkingListingUpsertWithWhereUniqueWithoutDealerInput | ParkingListingUpsertWithWhereUniqueWithoutDealerInput[]
+    createMany?: ParkingListingCreateManyDealerInputEnvelope
+    set?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    disconnect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    delete?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    connect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+    update?: ParkingListingUpdateWithWhereUniqueWithoutDealerInput | ParkingListingUpdateWithWhereUniqueWithoutDealerInput[]
+    updateMany?: ParkingListingUpdateManyWithWhereWithoutDealerInput | ParkingListingUpdateManyWithWhereWithoutDealerInput[]
+    deleteMany?: ParkingListingScalarWhereInput | ParkingListingScalarWhereInput[]
+  }
+
+  export type ParkingListingCreatephotosInput = {
+    set: string[]
+  }
+
+  export type ParkingDealerCreateNestedOneWithoutListingsInput = {
+    create?: XOR<ParkingDealerCreateWithoutListingsInput, ParkingDealerUncheckedCreateWithoutListingsInput>
+    connectOrCreate?: ParkingDealerCreateOrConnectWithoutListingsInput
+    connect?: ParkingDealerWhereUniqueInput
+  }
+
+  export type ParkingSlotWindowCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput> | ParkingSlotWindowCreateWithoutListingInput[] | ParkingSlotWindowUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutListingInput | ParkingSlotWindowCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingSlotWindowCreateManyListingInputEnvelope
+    connect?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+  }
+
+  export type ParkingBookingCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingBookingCreateWithoutListingInput, ParkingBookingUncheckedCreateWithoutListingInput> | ParkingBookingCreateWithoutListingInput[] | ParkingBookingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutListingInput | ParkingBookingCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingBookingCreateManyListingInputEnvelope
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+  }
+
+  export type ParkingWaitlistEntryCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutListingInput, ParkingWaitlistEntryUncheckedCreateWithoutListingInput> | ParkingWaitlistEntryCreateWithoutListingInput[] | ParkingWaitlistEntryUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutListingInput | ParkingWaitlistEntryCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingWaitlistEntryCreateManyListingInputEnvelope
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
+  export type ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput> | ParkingSlotWindowCreateWithoutListingInput[] | ParkingSlotWindowUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutListingInput | ParkingSlotWindowCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingSlotWindowCreateManyListingInputEnvelope
+    connect?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+  }
+
+  export type ParkingBookingUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingBookingCreateWithoutListingInput, ParkingBookingUncheckedCreateWithoutListingInput> | ParkingBookingCreateWithoutListingInput[] | ParkingBookingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutListingInput | ParkingBookingCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingBookingCreateManyListingInputEnvelope
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+  }
+
+  export type ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutListingInput, ParkingWaitlistEntryUncheckedCreateWithoutListingInput> | ParkingWaitlistEntryCreateWithoutListingInput[] | ParkingWaitlistEntryUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutListingInput | ParkingWaitlistEntryCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingWaitlistEntryCreateManyListingInputEnvelope
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
+  export type ParkingListingUpdatephotosInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type EnumListingStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ListingStatus
+  }
+
+  export type ParkingDealerUpdateOneRequiredWithoutListingsNestedInput = {
+    create?: XOR<ParkingDealerCreateWithoutListingsInput, ParkingDealerUncheckedCreateWithoutListingsInput>
+    connectOrCreate?: ParkingDealerCreateOrConnectWithoutListingsInput
+    upsert?: ParkingDealerUpsertWithoutListingsInput
+    connect?: ParkingDealerWhereUniqueInput
+    update?: XOR<XOR<ParkingDealerUpdateToOneWithWhereWithoutListingsInput, ParkingDealerUpdateWithoutListingsInput>, ParkingDealerUncheckedUpdateWithoutListingsInput>
+  }
+
+  export type ParkingSlotWindowUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput> | ParkingSlotWindowCreateWithoutListingInput[] | ParkingSlotWindowUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutListingInput | ParkingSlotWindowCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingSlotWindowUpsertWithWhereUniqueWithoutListingInput | ParkingSlotWindowUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingSlotWindowCreateManyListingInputEnvelope
+    set?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    disconnect?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    delete?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    connect?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    update?: ParkingSlotWindowUpdateWithWhereUniqueWithoutListingInput | ParkingSlotWindowUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingSlotWindowUpdateManyWithWhereWithoutListingInput | ParkingSlotWindowUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingSlotWindowScalarWhereInput | ParkingSlotWindowScalarWhereInput[]
+  }
+
+  export type ParkingBookingUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingBookingCreateWithoutListingInput, ParkingBookingUncheckedCreateWithoutListingInput> | ParkingBookingCreateWithoutListingInput[] | ParkingBookingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutListingInput | ParkingBookingCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingBookingUpsertWithWhereUniqueWithoutListingInput | ParkingBookingUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingBookingCreateManyListingInputEnvelope
+    set?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    disconnect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    delete?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    update?: ParkingBookingUpdateWithWhereUniqueWithoutListingInput | ParkingBookingUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingBookingUpdateManyWithWhereWithoutListingInput | ParkingBookingUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+  }
+
+  export type ParkingWaitlistEntryUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutListingInput, ParkingWaitlistEntryUncheckedCreateWithoutListingInput> | ParkingWaitlistEntryCreateWithoutListingInput[] | ParkingWaitlistEntryUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutListingInput | ParkingWaitlistEntryCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingWaitlistEntryUpsertWithWhereUniqueWithoutListingInput | ParkingWaitlistEntryUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingWaitlistEntryCreateManyListingInputEnvelope
+    set?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    disconnect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    delete?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    update?: ParkingWaitlistEntryUpdateWithWhereUniqueWithoutListingInput | ParkingWaitlistEntryUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingWaitlistEntryUpdateManyWithWhereWithoutListingInput | ParkingWaitlistEntryUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+  }
+
+  export type ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput> | ParkingSlotWindowCreateWithoutListingInput[] | ParkingSlotWindowUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutListingInput | ParkingSlotWindowCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingSlotWindowUpsertWithWhereUniqueWithoutListingInput | ParkingSlotWindowUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingSlotWindowCreateManyListingInputEnvelope
+    set?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    disconnect?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    delete?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    connect?: ParkingSlotWindowWhereUniqueInput | ParkingSlotWindowWhereUniqueInput[]
+    update?: ParkingSlotWindowUpdateWithWhereUniqueWithoutListingInput | ParkingSlotWindowUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingSlotWindowUpdateManyWithWhereWithoutListingInput | ParkingSlotWindowUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingSlotWindowScalarWhereInput | ParkingSlotWindowScalarWhereInput[]
+  }
+
+  export type ParkingBookingUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingBookingCreateWithoutListingInput, ParkingBookingUncheckedCreateWithoutListingInput> | ParkingBookingCreateWithoutListingInput[] | ParkingBookingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutListingInput | ParkingBookingCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingBookingUpsertWithWhereUniqueWithoutListingInput | ParkingBookingUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingBookingCreateManyListingInputEnvelope
+    set?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    disconnect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    delete?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    update?: ParkingBookingUpdateWithWhereUniqueWithoutListingInput | ParkingBookingUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingBookingUpdateManyWithWhereWithoutListingInput | ParkingBookingUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingWaitlistEntryCreateWithoutListingInput, ParkingWaitlistEntryUncheckedCreateWithoutListingInput> | ParkingWaitlistEntryCreateWithoutListingInput[] | ParkingWaitlistEntryUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutListingInput | ParkingWaitlistEntryCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingWaitlistEntryUpsertWithWhereUniqueWithoutListingInput | ParkingWaitlistEntryUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingWaitlistEntryCreateManyListingInputEnvelope
+    set?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    disconnect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    delete?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+    update?: ParkingWaitlistEntryUpdateWithWhereUniqueWithoutListingInput | ParkingWaitlistEntryUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingWaitlistEntryUpdateManyWithWhereWithoutListingInput | ParkingWaitlistEntryUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+  }
+
+  export type ParkingListingCreateNestedOneWithoutSlotWindowsInput = {
+    create?: XOR<ParkingListingCreateWithoutSlotWindowsInput, ParkingListingUncheckedCreateWithoutSlotWindowsInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutSlotWindowsInput
+    connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type ParkingListingUpdateOneRequiredWithoutSlotWindowsNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutSlotWindowsInput, ParkingListingUncheckedCreateWithoutSlotWindowsInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutSlotWindowsInput
+    upsert?: ParkingListingUpsertWithoutSlotWindowsInput
+    connect?: ParkingListingWhereUniqueInput
+    update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutSlotWindowsInput, ParkingListingUpdateWithoutSlotWindowsInput>, ParkingListingUncheckedUpdateWithoutSlotWindowsInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutParkingBookingsInput = {
+    create?: XOR<CustomerCreateWithoutParkingBookingsInput, CustomerUncheckedCreateWithoutParkingBookingsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutParkingBookingsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type ParkingListingCreateNestedOneWithoutBookingsInput = {
+    create?: XOR<ParkingListingCreateWithoutBookingsInput, ParkingListingUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutBookingsInput
+    connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type EnumBookingStatusFieldUpdateOperationsInput = {
+    set?: $Enums.BookingStatus
+  }
+
+  export type CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput = {
+    create?: XOR<CustomerCreateWithoutParkingBookingsInput, CustomerUncheckedCreateWithoutParkingBookingsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutParkingBookingsInput
+    upsert?: CustomerUpsertWithoutParkingBookingsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutParkingBookingsInput, CustomerUpdateWithoutParkingBookingsInput>, CustomerUncheckedUpdateWithoutParkingBookingsInput>
+  }
+
+  export type ParkingListingUpdateOneRequiredWithoutBookingsNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutBookingsInput, ParkingListingUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutBookingsInput
+    upsert?: ParkingListingUpsertWithoutBookingsInput
+    connect?: ParkingListingWhereUniqueInput
+    update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutBookingsInput, ParkingListingUpdateWithoutBookingsInput>, ParkingListingUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutWaitlistEntriesInput = {
+    create?: XOR<CustomerCreateWithoutWaitlistEntriesInput, CustomerUncheckedCreateWithoutWaitlistEntriesInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutWaitlistEntriesInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type ParkingListingCreateNestedOneWithoutWaitlistInput = {
+    create?: XOR<ParkingListingCreateWithoutWaitlistInput, ParkingListingUncheckedCreateWithoutWaitlistInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutWaitlistInput
+    connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutWaitlistEntriesNestedInput = {
+    create?: XOR<CustomerCreateWithoutWaitlistEntriesInput, CustomerUncheckedCreateWithoutWaitlistEntriesInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutWaitlistEntriesInput
+    upsert?: CustomerUpsertWithoutWaitlistEntriesInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutWaitlistEntriesInput, CustomerUpdateWithoutWaitlistEntriesInput>, CustomerUncheckedUpdateWithoutWaitlistEntriesInput>
+  }
+
+  export type ParkingListingUpdateOneRequiredWithoutWaitlistNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutWaitlistInput, ParkingListingUncheckedCreateWithoutWaitlistInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutWaitlistInput
+    upsert?: ParkingListingUpsertWithoutWaitlistInput
+    connect?: ParkingListingWhereUniqueInput
+    update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutWaitlistInput, ParkingListingUpdateWithoutWaitlistInput>, ParkingListingUncheckedUpdateWithoutWaitlistInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -127512,6 +141916,125 @@ export namespace Prisma {
     _max?: NestedBigIntFilter<$PrismaModel>
   }
 
+  export type NestedEnumPaymentPurposeFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentPurpose | EnumPaymentPurposeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentPurposeFilter<$PrismaModel> | $Enums.PaymentPurpose
+  }
+
+  export type NestedEnumOrderStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.OrderStatus | EnumOrderStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumOrderStatusFilter<$PrismaModel> | $Enums.OrderStatus
+  }
+
+  export type NestedEnumPaymentPurposeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentPurpose | EnumPaymentPurposeFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentPurpose[] | ListEnumPaymentPurposeFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentPurposeWithAggregatesFilter<$PrismaModel> | $Enums.PaymentPurpose
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentPurposeFilter<$PrismaModel>
+    _max?: NestedEnumPaymentPurposeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.OrderStatus | EnumOrderStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumOrderStatusWithAggregatesFilter<$PrismaModel> | $Enums.OrderStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumOrderStatusFilter<$PrismaModel>
+    _max?: NestedEnumOrderStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumPaymentAttemptStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentAttemptStatus | EnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentAttemptStatusFilter<$PrismaModel> | $Enums.PaymentAttemptStatus
+  }
+
+  export type NestedEnumPaymentAttemptStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentAttemptStatus | EnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentAttemptStatus[] | ListEnumPaymentAttemptStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentAttemptStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentAttemptStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentAttemptStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentAttemptStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumCustomerRefundStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.CustomerRefundStatus | EnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCustomerRefundStatusFilter<$PrismaModel> | $Enums.CustomerRefundStatus
+  }
+
+  export type NestedEnumCustomerRefundStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CustomerRefundStatus | EnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CustomerRefundStatus[] | ListEnumCustomerRefundStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumCustomerRefundStatusWithAggregatesFilter<$PrismaModel> | $Enums.CustomerRefundStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCustomerRefundStatusFilter<$PrismaModel>
+    _max?: NestedEnumCustomerRefundStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDealerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DealerStatus | EnumDealerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDealerStatusFilter<$PrismaModel> | $Enums.DealerStatus
+  }
+
+  export type NestedEnumDealerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DealerStatus | EnumDealerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DealerStatus[] | ListEnumDealerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDealerStatusWithAggregatesFilter<$PrismaModel> | $Enums.DealerStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDealerStatusFilter<$PrismaModel>
+    _max?: NestedEnumDealerStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumListingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ListingStatus | EnumListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumListingStatusFilter<$PrismaModel> | $Enums.ListingStatus
+  }
+
+  export type NestedEnumListingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ListingStatus | EnumListingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumListingStatusWithAggregatesFilter<$PrismaModel> | $Enums.ListingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumListingStatusFilter<$PrismaModel>
+    _max?: NestedEnumListingStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumBookingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BookingStatus | EnumBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBookingStatusFilter<$PrismaModel> | $Enums.BookingStatus
+  }
+
+  export type NestedEnumBookingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BookingStatus | EnumBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBookingStatusWithAggregatesFilter<$PrismaModel> | $Enums.BookingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBookingStatusFilter<$PrismaModel>
+    _max?: NestedEnumBookingStatusFilter<$PrismaModel>
+  }
+
   export type ChatSessionCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
@@ -128155,6 +142678,108 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CustomerOrderCreateWithoutCustomerInput = {
+    id?: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attempts?: CustomerPaymentAttemptCreateNestedManyWithoutOrderInput
+    refunds?: CustomerRefundCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attempts?: CustomerPaymentAttemptUncheckedCreateNestedManyWithoutOrderInput
+    refunds?: CustomerRefundUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderCreateOrConnectWithoutCustomerInput = {
+    where: CustomerOrderWhereUniqueInput
+    create: XOR<CustomerOrderCreateWithoutCustomerInput, CustomerOrderUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type CustomerOrderCreateManyCustomerInputEnvelope = {
+    data: CustomerOrderCreateManyCustomerInput | CustomerOrderCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingBookingCreateWithoutCustomerInput = {
+    id?: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listing: ParkingListingCreateNestedOneWithoutBookingsInput
+  }
+
+  export type ParkingBookingUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingBookingCreateOrConnectWithoutCustomerInput = {
+    where: ParkingBookingWhereUniqueInput
+    create: XOR<ParkingBookingCreateWithoutCustomerInput, ParkingBookingUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ParkingBookingCreateManyCustomerInputEnvelope = {
+    data: ParkingBookingCreateManyCustomerInput | ParkingBookingCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingWaitlistEntryCreateWithoutCustomerInput = {
+    id?: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+    listing: ParkingListingCreateNestedOneWithoutWaitlistInput
+  }
+
+  export type ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    listingId: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput = {
+    where: ParkingWaitlistEntryWhereUniqueInput
+    create: XOR<ParkingWaitlistEntryCreateWithoutCustomerInput, ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ParkingWaitlistEntryCreateManyCustomerInputEnvelope = {
+    data: ParkingWaitlistEntryCreateManyCustomerInput | ParkingWaitlistEntryCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ChatSessionUpsertWithWhereUniqueWithoutCustomerInput = {
     where: ChatSessionWhereUniqueInput
     update: XOR<ChatSessionUpdateWithoutCustomerInput, ChatSessionUncheckedUpdateWithoutCustomerInput>
@@ -128701,6 +143326,100 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"PlannedTrip"> | Date | string
   }
 
+  export type CustomerOrderUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: CustomerOrderWhereUniqueInput
+    update: XOR<CustomerOrderUpdateWithoutCustomerInput, CustomerOrderUncheckedUpdateWithoutCustomerInput>
+    create: XOR<CustomerOrderCreateWithoutCustomerInput, CustomerOrderUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type CustomerOrderUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: CustomerOrderWhereUniqueInput
+    data: XOR<CustomerOrderUpdateWithoutCustomerInput, CustomerOrderUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type CustomerOrderUpdateManyWithWhereWithoutCustomerInput = {
+    where: CustomerOrderScalarWhereInput
+    data: XOR<CustomerOrderUpdateManyMutationInput, CustomerOrderUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type CustomerOrderScalarWhereInput = {
+    AND?: CustomerOrderScalarWhereInput | CustomerOrderScalarWhereInput[]
+    OR?: CustomerOrderScalarWhereInput[]
+    NOT?: CustomerOrderScalarWhereInput | CustomerOrderScalarWhereInput[]
+    id?: StringFilter<"CustomerOrder"> | string
+    customerId?: StringFilter<"CustomerOrder"> | string
+    purpose?: EnumPaymentPurposeFilter<"CustomerOrder"> | $Enums.PaymentPurpose
+    referenceId?: StringFilter<"CustomerOrder"> | string
+    amountPaise?: IntFilter<"CustomerOrder"> | number
+    currency?: StringFilter<"CustomerOrder"> | string
+    status?: EnumOrderStatusFilter<"CustomerOrder"> | $Enums.OrderStatus
+    razorpayOrderId?: StringNullableFilter<"CustomerOrder"> | string | null
+    createdAt?: DateTimeFilter<"CustomerOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomerOrder"> | Date | string
+  }
+
+  export type ParkingBookingUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: ParkingBookingWhereUniqueInput
+    update: XOR<ParkingBookingUpdateWithoutCustomerInput, ParkingBookingUncheckedUpdateWithoutCustomerInput>
+    create: XOR<ParkingBookingCreateWithoutCustomerInput, ParkingBookingUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ParkingBookingUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: ParkingBookingWhereUniqueInput
+    data: XOR<ParkingBookingUpdateWithoutCustomerInput, ParkingBookingUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type ParkingBookingUpdateManyWithWhereWithoutCustomerInput = {
+    where: ParkingBookingScalarWhereInput
+    data: XOR<ParkingBookingUpdateManyMutationInput, ParkingBookingUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type ParkingBookingScalarWhereInput = {
+    AND?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+    OR?: ParkingBookingScalarWhereInput[]
+    NOT?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+    id?: StringFilter<"ParkingBooking"> | string
+    customerId?: StringFilter<"ParkingBooking"> | string
+    listingId?: StringFilter<"ParkingBooking"> | string
+    slotWindowId?: StringFilter<"ParkingBooking"> | string
+    vehicleId?: StringNullableFilter<"ParkingBooking"> | string | null
+    startTime?: DateTimeFilter<"ParkingBooking"> | Date | string
+    endTime?: DateTimeFilter<"ParkingBooking"> | Date | string
+    amountPaise?: IntFilter<"ParkingBooking"> | number
+    status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
+    orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
+  }
+
+  export type ParkingWaitlistEntryUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: ParkingWaitlistEntryWhereUniqueInput
+    update: XOR<ParkingWaitlistEntryUpdateWithoutCustomerInput, ParkingWaitlistEntryUncheckedUpdateWithoutCustomerInput>
+    create: XOR<ParkingWaitlistEntryCreateWithoutCustomerInput, ParkingWaitlistEntryUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: ParkingWaitlistEntryWhereUniqueInput
+    data: XOR<ParkingWaitlistEntryUpdateWithoutCustomerInput, ParkingWaitlistEntryUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput = {
+    where: ParkingWaitlistEntryScalarWhereInput
+    data: XOR<ParkingWaitlistEntryUpdateManyMutationInput, ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type ParkingWaitlistEntryScalarWhereInput = {
+    AND?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+    OR?: ParkingWaitlistEntryScalarWhereInput[]
+    NOT?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+    id?: StringFilter<"ParkingWaitlistEntry"> | string
+    customerId?: StringFilter<"ParkingWaitlistEntry"> | string
+    listingId?: StringFilter<"ParkingWaitlistEntry"> | string
+    desiredDate?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
+    notified?: BoolFilter<"ParkingWaitlistEntry"> | boolean
+    createdAt?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
+  }
+
   export type CustomerCreateWithoutDevicesInput = {
     id?: string
     phoneNumber: string
@@ -128725,6 +143444,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDevicesInput = {
@@ -128751,6 +143473,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDevicesInput = {
@@ -128793,6 +143518,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDevicesInput = {
@@ -128819,6 +143547,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutDocumentsInput = {
@@ -128845,6 +143576,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDocumentsInput = {
@@ -128871,6 +143605,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDocumentsInput = {
@@ -129000,6 +143737,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDocumentsInput = {
@@ -129026,6 +143766,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutDocumentsInput = {
@@ -129145,6 +143888,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDrivingLicenseInput = {
@@ -129171,6 +143917,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDrivingLicenseInput = {
@@ -129213,6 +143962,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDrivingLicenseInput = {
@@ -129239,6 +143991,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutFastagInput = {
@@ -129265,6 +144020,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutFastagInput = {
@@ -129291,6 +144049,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutFastagInput = {
@@ -129333,6 +144094,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutFastagInput = {
@@ -129359,6 +144123,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutDigilockerInput = {
@@ -129385,6 +144152,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDigilockerInput = {
@@ -129411,6 +144181,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDigilockerInput = {
@@ -129453,6 +144226,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDigilockerInput = {
@@ -129479,6 +144255,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChallanCreateWithoutVehicleInput = {
@@ -129581,6 +144360,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutVehiclesInput = {
@@ -129607,6 +144389,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutVehiclesInput = {
@@ -129958,6 +144743,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutVehiclesInput = {
@@ -129984,6 +144772,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type DrivingTripUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -130701,6 +145492,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
@@ -130727,6 +145521,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
@@ -130856,6 +145653,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
@@ -130882,6 +145682,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutAccessListInput = {
@@ -131181,6 +145984,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutNotificationsInput = {
@@ -131207,6 +146013,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutNotificationsInput = {
@@ -131249,6 +146058,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutNotificationsInput = {
@@ -131275,6 +146087,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChatMessageCreateWithoutSessionInput = {
@@ -131327,6 +146142,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutChatsInput = {
@@ -131353,6 +146171,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutChatsInput = {
@@ -131423,6 +146244,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutChatsInput = {
@@ -131449,6 +146273,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ChatSessionCreateWithoutMessagesInput = {
@@ -131531,6 +146358,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutExpensesInput = {
@@ -131557,6 +146387,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutExpensesInput = {
@@ -131588,6 +146421,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutDriverExpensesInput = {
@@ -131614,6 +146450,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutDriverExpensesInput = {
@@ -131743,6 +146582,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutExpensesInput = {
@@ -131769,6 +146611,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUpsertWithoutDriverExpensesInput = {
@@ -131806,6 +146651,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDriverExpensesInput = {
@@ -131832,6 +146680,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutExpensesInput = {
@@ -131951,6 +146802,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutBudgetsInput = {
@@ -131977,6 +146831,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutBudgetsInput = {
@@ -132019,6 +146876,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutBudgetsInput = {
@@ -132045,6 +146905,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type ServicePartCreateWithoutServiceRecordInput = {
@@ -132825,6 +147688,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutPlannedTripsInput = {
@@ -132851,6 +147717,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutPlannedTripsInput = {
@@ -132893,6 +147762,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutPlannedTripsInput = {
@@ -132919,6 +147791,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type DrivingTripCreateWithoutEventsInput = {
@@ -133041,6 +147916,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSosRequestsInput = {
@@ -133067,6 +147945,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSosRequestsInput = {
@@ -133109,6 +147990,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSosRequestsInput = {
@@ -133135,6 +148019,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutEmergencyContactsInput = {
@@ -133161,6 +148048,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutEmergencyContactsInput = {
@@ -133187,6 +148077,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutEmergencyContactsInput = {
@@ -133229,6 +148122,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutEmergencyContactsInput = {
@@ -133255,6 +148151,9 @@ export namespace Prisma {
     supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerCreateWithoutSupportTicketsInput = {
@@ -133281,6 +148180,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerUncheckedCreateWithoutSupportTicketsInput = {
@@ -133307,6 +148209,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
     sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
   }
 
   export type CustomerCreateOrConnectWithoutSupportTicketsInput = {
@@ -133375,6 +148280,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSupportTicketsInput = {
@@ -133401,6 +148309,9 @@ export namespace Prisma {
     sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
     sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
   }
 
   export type TicketMessageUpsertWithWhereUniqueWithoutTicketInput = {
@@ -144861,6 +159772,1257 @@ export namespace Prisma {
     admins?: adminsUncheckedUpdateManyWithoutDepartmentsNestedInput
   }
 
+  export type CustomerCreateWithoutOrdersInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutOrdersInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutOrdersInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
+  }
+
+  export type CustomerPaymentAttemptCreateWithoutOrderInput = {
+    id?: string
+    razorpayPaymentId?: string | null
+    razorpaySignature?: string | null
+    method?: string | null
+    status?: $Enums.PaymentAttemptStatus
+    failureReason?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerPaymentAttemptUncheckedCreateWithoutOrderInput = {
+    id?: string
+    razorpayPaymentId?: string | null
+    razorpaySignature?: string | null
+    method?: string | null
+    status?: $Enums.PaymentAttemptStatus
+    failureReason?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerPaymentAttemptCreateOrConnectWithoutOrderInput = {
+    where: CustomerPaymentAttemptWhereUniqueInput
+    create: XOR<CustomerPaymentAttemptCreateWithoutOrderInput, CustomerPaymentAttemptUncheckedCreateWithoutOrderInput>
+  }
+
+  export type CustomerPaymentAttemptCreateManyOrderInputEnvelope = {
+    data: CustomerPaymentAttemptCreateManyOrderInput | CustomerPaymentAttemptCreateManyOrderInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CustomerRefundCreateWithoutOrderInput = {
+    id?: string
+    amountPaise: number
+    status?: $Enums.CustomerRefundStatus
+    razorpayRefundId?: string | null
+    reason?: string | null
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerRefundUncheckedCreateWithoutOrderInput = {
+    id?: string
+    amountPaise: number
+    status?: $Enums.CustomerRefundStatus
+    razorpayRefundId?: string | null
+    reason?: string | null
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerRefundCreateOrConnectWithoutOrderInput = {
+    where: CustomerRefundWhereUniqueInput
+    create: XOR<CustomerRefundCreateWithoutOrderInput, CustomerRefundUncheckedCreateWithoutOrderInput>
+  }
+
+  export type CustomerRefundCreateManyOrderInputEnvelope = {
+    data: CustomerRefundCreateManyOrderInput | CustomerRefundCreateManyOrderInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CustomerUpsertWithoutOrdersInput = {
+    update: XOR<CustomerUpdateWithoutOrdersInput, CustomerUncheckedUpdateWithoutOrdersInput>
+    create: XOR<CustomerCreateWithoutOrdersInput, CustomerUncheckedCreateWithoutOrdersInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutOrdersInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutOrdersInput, CustomerUncheckedUpdateWithoutOrdersInput>
+  }
+
+  export type CustomerUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutOrdersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerPaymentAttemptUpsertWithWhereUniqueWithoutOrderInput = {
+    where: CustomerPaymentAttemptWhereUniqueInput
+    update: XOR<CustomerPaymentAttemptUpdateWithoutOrderInput, CustomerPaymentAttemptUncheckedUpdateWithoutOrderInput>
+    create: XOR<CustomerPaymentAttemptCreateWithoutOrderInput, CustomerPaymentAttemptUncheckedCreateWithoutOrderInput>
+  }
+
+  export type CustomerPaymentAttemptUpdateWithWhereUniqueWithoutOrderInput = {
+    where: CustomerPaymentAttemptWhereUniqueInput
+    data: XOR<CustomerPaymentAttemptUpdateWithoutOrderInput, CustomerPaymentAttemptUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type CustomerPaymentAttemptUpdateManyWithWhereWithoutOrderInput = {
+    where: CustomerPaymentAttemptScalarWhereInput
+    data: XOR<CustomerPaymentAttemptUpdateManyMutationInput, CustomerPaymentAttemptUncheckedUpdateManyWithoutOrderInput>
+  }
+
+  export type CustomerPaymentAttemptScalarWhereInput = {
+    AND?: CustomerPaymentAttemptScalarWhereInput | CustomerPaymentAttemptScalarWhereInput[]
+    OR?: CustomerPaymentAttemptScalarWhereInput[]
+    NOT?: CustomerPaymentAttemptScalarWhereInput | CustomerPaymentAttemptScalarWhereInput[]
+    id?: StringFilter<"CustomerPaymentAttempt"> | string
+    orderId?: StringFilter<"CustomerPaymentAttempt"> | string
+    razorpayPaymentId?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    razorpaySignature?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    method?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    status?: EnumPaymentAttemptStatusFilter<"CustomerPaymentAttempt"> | $Enums.PaymentAttemptStatus
+    failureReason?: StringNullableFilter<"CustomerPaymentAttempt"> | string | null
+    paidAt?: DateTimeNullableFilter<"CustomerPaymentAttempt"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerPaymentAttempt"> | Date | string
+  }
+
+  export type CustomerRefundUpsertWithWhereUniqueWithoutOrderInput = {
+    where: CustomerRefundWhereUniqueInput
+    update: XOR<CustomerRefundUpdateWithoutOrderInput, CustomerRefundUncheckedUpdateWithoutOrderInput>
+    create: XOR<CustomerRefundCreateWithoutOrderInput, CustomerRefundUncheckedCreateWithoutOrderInput>
+  }
+
+  export type CustomerRefundUpdateWithWhereUniqueWithoutOrderInput = {
+    where: CustomerRefundWhereUniqueInput
+    data: XOR<CustomerRefundUpdateWithoutOrderInput, CustomerRefundUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type CustomerRefundUpdateManyWithWhereWithoutOrderInput = {
+    where: CustomerRefundScalarWhereInput
+    data: XOR<CustomerRefundUpdateManyMutationInput, CustomerRefundUncheckedUpdateManyWithoutOrderInput>
+  }
+
+  export type CustomerRefundScalarWhereInput = {
+    AND?: CustomerRefundScalarWhereInput | CustomerRefundScalarWhereInput[]
+    OR?: CustomerRefundScalarWhereInput[]
+    NOT?: CustomerRefundScalarWhereInput | CustomerRefundScalarWhereInput[]
+    id?: StringFilter<"CustomerRefund"> | string
+    orderId?: StringFilter<"CustomerRefund"> | string
+    amountPaise?: IntFilter<"CustomerRefund"> | number
+    status?: EnumCustomerRefundStatusFilter<"CustomerRefund"> | $Enums.CustomerRefundStatus
+    razorpayRefundId?: StringNullableFilter<"CustomerRefund"> | string | null
+    reason?: StringNullableFilter<"CustomerRefund"> | string | null
+    processedAt?: DateTimeNullableFilter<"CustomerRefund"> | Date | string | null
+    createdAt?: DateTimeFilter<"CustomerRefund"> | Date | string
+  }
+
+  export type CustomerOrderCreateWithoutAttemptsInput = {
+    id?: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutOrdersInput
+    refunds?: CustomerRefundCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderUncheckedCreateWithoutAttemptsInput = {
+    id?: string
+    customerId: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    refunds?: CustomerRefundUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderCreateOrConnectWithoutAttemptsInput = {
+    where: CustomerOrderWhereUniqueInput
+    create: XOR<CustomerOrderCreateWithoutAttemptsInput, CustomerOrderUncheckedCreateWithoutAttemptsInput>
+  }
+
+  export type CustomerOrderUpsertWithoutAttemptsInput = {
+    update: XOR<CustomerOrderUpdateWithoutAttemptsInput, CustomerOrderUncheckedUpdateWithoutAttemptsInput>
+    create: XOR<CustomerOrderCreateWithoutAttemptsInput, CustomerOrderUncheckedCreateWithoutAttemptsInput>
+    where?: CustomerOrderWhereInput
+  }
+
+  export type CustomerOrderUpdateToOneWithWhereWithoutAttemptsInput = {
+    where?: CustomerOrderWhereInput
+    data: XOR<CustomerOrderUpdateWithoutAttemptsInput, CustomerOrderUncheckedUpdateWithoutAttemptsInput>
+  }
+
+  export type CustomerOrderUpdateWithoutAttemptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutOrdersNestedInput
+    refunds?: CustomerRefundUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderUncheckedUpdateWithoutAttemptsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    refunds?: CustomerRefundUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderCreateWithoutRefundsInput = {
+    id?: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutOrdersInput
+    attempts?: CustomerPaymentAttemptCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderUncheckedCreateWithoutRefundsInput = {
+    id?: string
+    customerId: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    attempts?: CustomerPaymentAttemptUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type CustomerOrderCreateOrConnectWithoutRefundsInput = {
+    where: CustomerOrderWhereUniqueInput
+    create: XOR<CustomerOrderCreateWithoutRefundsInput, CustomerOrderUncheckedCreateWithoutRefundsInput>
+  }
+
+  export type CustomerOrderUpsertWithoutRefundsInput = {
+    update: XOR<CustomerOrderUpdateWithoutRefundsInput, CustomerOrderUncheckedUpdateWithoutRefundsInput>
+    create: XOR<CustomerOrderCreateWithoutRefundsInput, CustomerOrderUncheckedCreateWithoutRefundsInput>
+    where?: CustomerOrderWhereInput
+  }
+
+  export type CustomerOrderUpdateToOneWithWhereWithoutRefundsInput = {
+    where?: CustomerOrderWhereInput
+    data: XOR<CustomerOrderUpdateWithoutRefundsInput, CustomerOrderUncheckedUpdateWithoutRefundsInput>
+  }
+
+  export type CustomerOrderUpdateWithoutRefundsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutOrdersNestedInput
+    attempts?: CustomerPaymentAttemptUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderUncheckedUpdateWithoutRefundsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: CustomerPaymentAttemptUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type ParkingListingCreateWithoutDealerInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateWithoutDealerInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingCreateOrConnectWithoutDealerInput = {
+    where: ParkingListingWhereUniqueInput
+    create: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput>
+  }
+
+  export type ParkingListingCreateManyDealerInputEnvelope = {
+    data: ParkingListingCreateManyDealerInput | ParkingListingCreateManyDealerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingListingUpsertWithWhereUniqueWithoutDealerInput = {
+    where: ParkingListingWhereUniqueInput
+    update: XOR<ParkingListingUpdateWithoutDealerInput, ParkingListingUncheckedUpdateWithoutDealerInput>
+    create: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput>
+  }
+
+  export type ParkingListingUpdateWithWhereUniqueWithoutDealerInput = {
+    where: ParkingListingWhereUniqueInput
+    data: XOR<ParkingListingUpdateWithoutDealerInput, ParkingListingUncheckedUpdateWithoutDealerInput>
+  }
+
+  export type ParkingListingUpdateManyWithWhereWithoutDealerInput = {
+    where: ParkingListingScalarWhereInput
+    data: XOR<ParkingListingUpdateManyMutationInput, ParkingListingUncheckedUpdateManyWithoutDealerInput>
+  }
+
+  export type ParkingListingScalarWhereInput = {
+    AND?: ParkingListingScalarWhereInput | ParkingListingScalarWhereInput[]
+    OR?: ParkingListingScalarWhereInput[]
+    NOT?: ParkingListingScalarWhereInput | ParkingListingScalarWhereInput[]
+    id?: StringFilter<"ParkingListing"> | string
+    dealerId?: StringFilter<"ParkingListing"> | string
+    name?: StringFilter<"ParkingListing"> | string
+    addressLine?: StringFilter<"ParkingListing"> | string
+    city?: StringFilter<"ParkingListing"> | string
+    latitude?: FloatFilter<"ParkingListing"> | number
+    longitude?: FloatFilter<"ParkingListing"> | number
+    fourWheelerCapacity?: IntFilter<"ParkingListing"> | number
+    twoWheelerCapacity?: IntFilter<"ParkingListing"> | number
+    hourlyRatePaise?: IntFilter<"ParkingListing"> | number
+    dailyRatePaise?: IntNullableFilter<"ParkingListing"> | number | null
+    photos?: StringNullableListFilter<"ParkingListing">
+    status?: EnumListingStatusFilter<"ParkingListing"> | $Enums.ListingStatus
+    createdAt?: DateTimeFilter<"ParkingListing"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingListing"> | Date | string
+  }
+
+  export type ParkingDealerCreateWithoutListingsInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingDealerUncheckedCreateWithoutListingsInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingDealerCreateOrConnectWithoutListingsInput = {
+    where: ParkingDealerWhereUniqueInput
+    create: XOR<ParkingDealerCreateWithoutListingsInput, ParkingDealerUncheckedCreateWithoutListingsInput>
+  }
+
+  export type ParkingSlotWindowCreateWithoutListingInput = {
+    id?: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+  }
+
+  export type ParkingSlotWindowUncheckedCreateWithoutListingInput = {
+    id?: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+  }
+
+  export type ParkingSlotWindowCreateOrConnectWithoutListingInput = {
+    where: ParkingSlotWindowWhereUniqueInput
+    create: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingSlotWindowCreateManyListingInputEnvelope = {
+    data: ParkingSlotWindowCreateManyListingInput | ParkingSlotWindowCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingBookingCreateWithoutListingInput = {
+    id?: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutParkingBookingsInput
+  }
+
+  export type ParkingBookingUncheckedCreateWithoutListingInput = {
+    id?: string
+    customerId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingBookingCreateOrConnectWithoutListingInput = {
+    where: ParkingBookingWhereUniqueInput
+    create: XOR<ParkingBookingCreateWithoutListingInput, ParkingBookingUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingBookingCreateManyListingInputEnvelope = {
+    data: ParkingBookingCreateManyListingInput | ParkingBookingCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingWaitlistEntryCreateWithoutListingInput = {
+    id?: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWaitlistEntriesInput
+  }
+
+  export type ParkingWaitlistEntryUncheckedCreateWithoutListingInput = {
+    id?: string
+    customerId: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingWaitlistEntryCreateOrConnectWithoutListingInput = {
+    where: ParkingWaitlistEntryWhereUniqueInput
+    create: XOR<ParkingWaitlistEntryCreateWithoutListingInput, ParkingWaitlistEntryUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingWaitlistEntryCreateManyListingInputEnvelope = {
+    data: ParkingWaitlistEntryCreateManyListingInput | ParkingWaitlistEntryCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingDealerUpsertWithoutListingsInput = {
+    update: XOR<ParkingDealerUpdateWithoutListingsInput, ParkingDealerUncheckedUpdateWithoutListingsInput>
+    create: XOR<ParkingDealerCreateWithoutListingsInput, ParkingDealerUncheckedCreateWithoutListingsInput>
+    where?: ParkingDealerWhereInput
+  }
+
+  export type ParkingDealerUpdateToOneWithWhereWithoutListingsInput = {
+    where?: ParkingDealerWhereInput
+    data: XOR<ParkingDealerUpdateWithoutListingsInput, ParkingDealerUncheckedUpdateWithoutListingsInput>
+  }
+
+  export type ParkingDealerUpdateWithoutListingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingDealerUncheckedUpdateWithoutListingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSlotWindowUpsertWithWhereUniqueWithoutListingInput = {
+    where: ParkingSlotWindowWhereUniqueInput
+    update: XOR<ParkingSlotWindowUpdateWithoutListingInput, ParkingSlotWindowUncheckedUpdateWithoutListingInput>
+    create: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingSlotWindowUpdateWithWhereUniqueWithoutListingInput = {
+    where: ParkingSlotWindowWhereUniqueInput
+    data: XOR<ParkingSlotWindowUpdateWithoutListingInput, ParkingSlotWindowUncheckedUpdateWithoutListingInput>
+  }
+
+  export type ParkingSlotWindowUpdateManyWithWhereWithoutListingInput = {
+    where: ParkingSlotWindowScalarWhereInput
+    data: XOR<ParkingSlotWindowUpdateManyMutationInput, ParkingSlotWindowUncheckedUpdateManyWithoutListingInput>
+  }
+
+  export type ParkingSlotWindowScalarWhereInput = {
+    AND?: ParkingSlotWindowScalarWhereInput | ParkingSlotWindowScalarWhereInput[]
+    OR?: ParkingSlotWindowScalarWhereInput[]
+    NOT?: ParkingSlotWindowScalarWhereInput | ParkingSlotWindowScalarWhereInput[]
+    id?: StringFilter<"ParkingSlotWindow"> | string
+    listingId?: StringFilter<"ParkingSlotWindow"> | string
+    date?: DateTimeFilter<"ParkingSlotWindow"> | Date | string
+    startHour?: IntFilter<"ParkingSlotWindow"> | number
+    endHour?: IntFilter<"ParkingSlotWindow"> | number
+    capacity?: IntFilter<"ParkingSlotWindow"> | number
+    booked?: IntFilter<"ParkingSlotWindow"> | number
+  }
+
+  export type ParkingBookingUpsertWithWhereUniqueWithoutListingInput = {
+    where: ParkingBookingWhereUniqueInput
+    update: XOR<ParkingBookingUpdateWithoutListingInput, ParkingBookingUncheckedUpdateWithoutListingInput>
+    create: XOR<ParkingBookingCreateWithoutListingInput, ParkingBookingUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingBookingUpdateWithWhereUniqueWithoutListingInput = {
+    where: ParkingBookingWhereUniqueInput
+    data: XOR<ParkingBookingUpdateWithoutListingInput, ParkingBookingUncheckedUpdateWithoutListingInput>
+  }
+
+  export type ParkingBookingUpdateManyWithWhereWithoutListingInput = {
+    where: ParkingBookingScalarWhereInput
+    data: XOR<ParkingBookingUpdateManyMutationInput, ParkingBookingUncheckedUpdateManyWithoutListingInput>
+  }
+
+  export type ParkingWaitlistEntryUpsertWithWhereUniqueWithoutListingInput = {
+    where: ParkingWaitlistEntryWhereUniqueInput
+    update: XOR<ParkingWaitlistEntryUpdateWithoutListingInput, ParkingWaitlistEntryUncheckedUpdateWithoutListingInput>
+    create: XOR<ParkingWaitlistEntryCreateWithoutListingInput, ParkingWaitlistEntryUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingWaitlistEntryUpdateWithWhereUniqueWithoutListingInput = {
+    where: ParkingWaitlistEntryWhereUniqueInput
+    data: XOR<ParkingWaitlistEntryUpdateWithoutListingInput, ParkingWaitlistEntryUncheckedUpdateWithoutListingInput>
+  }
+
+  export type ParkingWaitlistEntryUpdateManyWithWhereWithoutListingInput = {
+    where: ParkingWaitlistEntryScalarWhereInput
+    data: XOR<ParkingWaitlistEntryUpdateManyMutationInput, ParkingWaitlistEntryUncheckedUpdateManyWithoutListingInput>
+  }
+
+  export type ParkingListingCreateWithoutSlotWindowsInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutListingsInput
+    bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateWithoutSlotWindowsInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingCreateOrConnectWithoutSlotWindowsInput = {
+    where: ParkingListingWhereUniqueInput
+    create: XOR<ParkingListingCreateWithoutSlotWindowsInput, ParkingListingUncheckedCreateWithoutSlotWindowsInput>
+  }
+
+  export type ParkingListingUpsertWithoutSlotWindowsInput = {
+    update: XOR<ParkingListingUpdateWithoutSlotWindowsInput, ParkingListingUncheckedUpdateWithoutSlotWindowsInput>
+    create: XOR<ParkingListingCreateWithoutSlotWindowsInput, ParkingListingUncheckedCreateWithoutSlotWindowsInput>
+    where?: ParkingListingWhereInput
+  }
+
+  export type ParkingListingUpdateToOneWithWhereWithoutSlotWindowsInput = {
+    where?: ParkingListingWhereInput
+    data: XOR<ParkingListingUpdateWithoutSlotWindowsInput, ParkingListingUncheckedUpdateWithoutSlotWindowsInput>
+  }
+
+  export type ParkingListingUpdateWithoutSlotWindowsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateWithoutSlotWindowsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type CustomerCreateWithoutParkingBookingsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutParkingBookingsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutParkingBookingsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutParkingBookingsInput, CustomerUncheckedCreateWithoutParkingBookingsInput>
+  }
+
+  export type ParkingListingCreateWithoutBookingsInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutListingsInput
+    slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateWithoutBookingsInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingCreateOrConnectWithoutBookingsInput = {
+    where: ParkingListingWhereUniqueInput
+    create: XOR<ParkingListingCreateWithoutBookingsInput, ParkingListingUncheckedCreateWithoutBookingsInput>
+  }
+
+  export type CustomerUpsertWithoutParkingBookingsInput = {
+    update: XOR<CustomerUpdateWithoutParkingBookingsInput, CustomerUncheckedUpdateWithoutParkingBookingsInput>
+    create: XOR<CustomerCreateWithoutParkingBookingsInput, CustomerUncheckedCreateWithoutParkingBookingsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutParkingBookingsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutParkingBookingsInput, CustomerUncheckedUpdateWithoutParkingBookingsInput>
+  }
+
+  export type CustomerUpdateWithoutParkingBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutParkingBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type ParkingListingUpsertWithoutBookingsInput = {
+    update: XOR<ParkingListingUpdateWithoutBookingsInput, ParkingListingUncheckedUpdateWithoutBookingsInput>
+    create: XOR<ParkingListingCreateWithoutBookingsInput, ParkingListingUncheckedCreateWithoutBookingsInput>
+    where?: ParkingListingWhereInput
+  }
+
+  export type ParkingListingUpdateToOneWithWhereWithoutBookingsInput = {
+    where?: ParkingListingWhereInput
+    data: XOR<ParkingListingUpdateWithoutBookingsInput, ParkingListingUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type ParkingListingUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
+    slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type CustomerCreateWithoutWaitlistEntriesInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutWaitlistEntriesInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutWaitlistEntriesInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutWaitlistEntriesInput, CustomerUncheckedCreateWithoutWaitlistEntriesInput>
+  }
+
+  export type ParkingListingCreateWithoutWaitlistInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutListingsInput
+    slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateWithoutWaitlistInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingCreateOrConnectWithoutWaitlistInput = {
+    where: ParkingListingWhereUniqueInput
+    create: XOR<ParkingListingCreateWithoutWaitlistInput, ParkingListingUncheckedCreateWithoutWaitlistInput>
+  }
+
+  export type CustomerUpsertWithoutWaitlistEntriesInput = {
+    update: XOR<CustomerUpdateWithoutWaitlistEntriesInput, CustomerUncheckedUpdateWithoutWaitlistEntriesInput>
+    create: XOR<CustomerCreateWithoutWaitlistEntriesInput, CustomerUncheckedCreateWithoutWaitlistEntriesInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutWaitlistEntriesInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutWaitlistEntriesInput, CustomerUncheckedUpdateWithoutWaitlistEntriesInput>
+  }
+
+  export type CustomerUpdateWithoutWaitlistEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutWaitlistEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type ParkingListingUpsertWithoutWaitlistInput = {
+    update: XOR<ParkingListingUpdateWithoutWaitlistInput, ParkingListingUncheckedUpdateWithoutWaitlistInput>
+    create: XOR<ParkingListingCreateWithoutWaitlistInput, ParkingListingUncheckedCreateWithoutWaitlistInput>
+    where?: ParkingListingWhereInput
+  }
+
+  export type ParkingListingUpdateToOneWithWhereWithoutWaitlistInput = {
+    where?: ParkingListingWhereInput
+    data: XOR<ParkingListingUpdateWithoutWaitlistInput, ParkingListingUncheckedUpdateWithoutWaitlistInput>
+  }
+
+  export type ParkingListingUpdateWithoutWaitlistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
+    slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateWithoutWaitlistInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+  }
+
   export type ChatSessionCreateManyCustomerInput = {
     id?: string
     title?: string | null
@@ -145053,6 +161215,40 @@ export namespace Prisma {
     planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type CustomerOrderCreateManyCustomerInput = {
+    id?: string
+    purpose: $Enums.PaymentPurpose
+    referenceId: string
+    amountPaise: number
+    currency?: string
+    status?: $Enums.OrderStatus
+    razorpayOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingBookingCreateManyCustomerInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingWaitlistEntryCreateManyCustomerInput = {
+    id?: string
+    listingId: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
   }
 
   export type ChatSessionUpdateWithoutCustomerInput = {
@@ -145657,6 +161853,112 @@ export namespace Prisma {
     planning?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerOrderUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: CustomerPaymentAttemptUpdateManyWithoutOrderNestedInput
+    refunds?: CustomerRefundUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    attempts?: CustomerPaymentAttemptUncheckedUpdateManyWithoutOrderNestedInput
+    refunds?: CustomerRefundUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type CustomerOrderUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    purpose?: EnumPaymentPurposeFieldUpdateOperationsInput | $Enums.PaymentPurpose
+    referenceId?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    razorpayOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingBookingUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
+  }
+
+  export type ParkingBookingUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingBookingUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: ParkingListingUpdateOneRequiredWithoutWaitlistNestedInput
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ChallanCreateManyVehicleInput = {
@@ -149360,6 +165662,288 @@ export namespace Prisma {
   export type role_permissionsUncheckedUpdateManyWithoutRolesInput = {
     id?: StringFieldUpdateOperationsInput | string
     permissionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPaymentAttemptCreateManyOrderInput = {
+    id?: string
+    razorpayPaymentId?: string | null
+    razorpaySignature?: string | null
+    method?: string | null
+    status?: $Enums.PaymentAttemptStatus
+    failureReason?: string | null
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerRefundCreateManyOrderInput = {
+    id?: string
+    amountPaise: number
+    status?: $Enums.CustomerRefundStatus
+    razorpayRefundId?: string | null
+    reason?: string | null
+    processedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type CustomerPaymentAttemptUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPaymentAttemptUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerPaymentAttemptUncheckedUpdateManyWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    razorpayPaymentId?: NullableStringFieldUpdateOperationsInput | string | null
+    razorpaySignature?: NullableStringFieldUpdateOperationsInput | string | null
+    method?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumPaymentAttemptStatusFieldUpdateOperationsInput | $Enums.PaymentAttemptStatus
+    failureReason?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerRefundUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerRefundUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CustomerRefundUncheckedUpdateManyWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumCustomerRefundStatusFieldUpdateOperationsInput | $Enums.CustomerRefundStatus
+    razorpayRefundId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    processedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingListingCreateManyDealerInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingListingUpdateWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateManyWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSlotWindowCreateManyListingInput = {
+    id?: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+  }
+
+  export type ParkingBookingCreateManyListingInput = {
+    id?: string
+    customerId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingWaitlistEntryCreateManyListingInput = {
+    id?: string
+    customerId: string
+    desiredDate: Date | string
+    notified?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingSlotWindowUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingSlotWindowUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingSlotWindowUncheckedUpdateManyWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingBookingUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
+  }
+
+  export type ParkingBookingUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingBookingUncheckedUpdateManyWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWaitlistEntriesNestedInput
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWaitlistEntryUncheckedUpdateManyWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    notified?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

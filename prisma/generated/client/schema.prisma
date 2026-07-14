@@ -42,14 +42,14 @@ enum AdminRole {
 }
 
 model Customer {
-  id                String                @id @default(cuid())
-  phoneNumber       String                @unique
+  id                String                 @id @default(cuid())
+  phoneNumber       String                 @unique
   email             String?
   fullName          String?
   profilePic        String?
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
-  googleId          String?               @unique
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  googleId          String?                @unique
   chats             ChatSession[]
   devices           CustomerDevice[]
   documents         VehicleDocument[]
@@ -57,7 +57,7 @@ model Customer {
   digilocker        DigiLockerConnection?
   emergencyContacts EmergencyContact[]
   expenses          Expense[]
-  driverExpenses    Expense[]             @relation("DriverExpenses")
+  driverExpenses    Expense[]              @relation("DriverExpenses")
   drivingLicense    DrivingLicense?
   fastag            FastagDocument?
   budgets           ExpenseBudget[]
@@ -66,6 +66,9 @@ model Customer {
   supportTickets    SupportTicket[]
   sharedVehicles    VehicleAccess[]
   plannedTrips      PlannedTrip[]
+  orders            CustomerOrder[]
+  parkingBookings   ParkingBooking[]
+  waitlistEntries   ParkingWaitlistEntry[]
 
   @@schema("customer")
 }
@@ -2103,4 +2106,228 @@ enum VehicleStatus {
   RETURNED
 
   @@schema("public")
+}
+
+// Customer Payments (Phase 1 #2) — generic order/payment/refund gateway.
+// `purpose` + `referenceId` keep this decoupled from what it's paying for,
+// so Accessories/Rental checkout can reuse it later without changes here.
+model CustomerOrder {
+  id              String                   @id @default(cuid())
+  customerId      String
+  purpose         PaymentPurpose
+  referenceId     String
+  amountPaise     Int
+  currency        String                   @default("INR")
+  status          OrderStatus              @default(CREATED)
+  razorpayOrderId String?                  @unique
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  customer        Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  attempts        CustomerPaymentAttempt[]
+  refunds         CustomerRefund[]
+
+  @@index([customerId])
+  @@index([referenceId])
+  @@schema("customer")
+}
+
+model CustomerPaymentAttempt {
+  id                String               @id @default(cuid())
+  orderId           String
+  razorpayPaymentId String?              @unique
+  razorpaySignature String?
+  method            String?
+  status            PaymentAttemptStatus @default(INITIATED)
+  failureReason     String?
+  paidAt            DateTime?
+  createdAt         DateTime             @default(now())
+  order             CustomerOrder        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@schema("customer")
+}
+
+model CustomerRefund {
+  id               String               @id @default(cuid())
+  orderId          String
+  amountPaise      Int
+  status           CustomerRefundStatus @default(INITIATED)
+  razorpayRefundId String?              @unique
+  reason           String?
+  processedAt      DateTime?
+  createdAt        DateTime             @default(now())
+  order            CustomerOrder        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@schema("customer")
+}
+
+/// Idempotency + audit log for inbound Razorpay webhook events.
+/// `dedupeKey` = "<event>:<razorpay payment/refund entity id>" — Razorpay
+/// redelivers events, so this is what actually prevents double-processing.
+model WebhookEvent {
+  id             String    @id @default(cuid())
+  provider       String    @default("razorpay")
+  eventType      String
+  dedupeKey      String    @unique
+  payload        Json
+  signatureValid Boolean
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([eventType])
+  @@schema("customer")
+}
+
+enum PaymentPurpose {
+  PARKING_BOOKING
+
+  @@schema("customer")
+}
+
+enum OrderStatus {
+  CREATED
+  ATTEMPTED
+  PAID
+  FAILED
+  CANCELLED
+
+  @@schema("customer")
+}
+
+enum PaymentAttemptStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+
+  @@schema("customer")
+}
+
+enum CustomerRefundStatus {
+  INITIATED
+  PROCESSED
+  FAILED
+
+  @@schema("customer")
+}
+
+// Parking — Locate + Booking (Phase 1 #1). Names avoid the existing
+// public-schema `ParkingSlot`/`Site` models (unrelated B2B valet product).
+model ParkingDealer {
+  id           String           @id @default(cuid())
+  ownerName    String
+  phoneNumber  String           @unique
+  email        String?
+  passwordHash String
+  status       DealerStatus     @default(PENDING_VERIFICATION)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  listings     ParkingListing[]
+
+  @@schema("customer")
+}
+
+model ParkingListing {
+  id                  String                 @id @default(cuid())
+  dealerId            String
+  name                String
+  addressLine         String
+  city                String
+  latitude            Float
+  longitude           Float
+  fourWheelerCapacity Int                    @default(0)
+  twoWheelerCapacity  Int                    @default(0)
+  hourlyRatePaise     Int
+  dailyRatePaise      Int?
+  photos              String[]
+  status              ListingStatus          @default(ACTIVE)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  dealer              ParkingDealer          @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  slotWindows         ParkingSlotWindow[]
+  bookings            ParkingBooking[]
+  waitlist            ParkingWaitlistEntry[]
+
+  @@index([dealerId])
+  @@index([latitude, longitude])
+  @@schema("customer")
+}
+
+/// Declared capacity for one hour-block on one date — not a physical bay.
+model ParkingSlotWindow {
+  id        String         @id @default(cuid())
+  listingId String
+  date      DateTime       @db.Date
+  startHour Int
+  endHour   Int
+  capacity  Int
+  booked    Int            @default(0)
+  listing   ParkingListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date, startHour])
+  @@index([listingId, date])
+  @@schema("customer")
+}
+
+model ParkingBooking {
+  id           String         @id @default(cuid())
+  customerId   String
+  listingId    String
+  slotWindowId String // which ParkingSlotWindow capacity was reserved from
+  vehicleId    String?
+  startTime    DateTime
+  endTime      DateTime
+  amountPaise  Int
+  status       BookingStatus  @default(PENDING_PAYMENT)
+  orderId      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  customer     Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  listing      ParkingListing @relation(fields: [listingId], references: [id])
+
+  @@index([customerId])
+  @@index([listingId, startTime])
+  @@index([status, createdAt])
+  @@schema("customer")
+}
+
+model ParkingWaitlistEntry {
+  id          String         @id @default(cuid())
+  customerId  String
+  listingId   String
+  desiredDate DateTime       @db.Date
+  notified    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  customer    Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  listing     ParkingListing @relation(fields: [listingId], references: [id])
+
+  @@unique([listingId, customerId, desiredDate])
+  @@index([listingId, desiredDate])
+  @@schema("customer")
+}
+
+enum DealerStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  SUSPENDED
+
+  @@schema("customer")
+}
+
+enum ListingStatus {
+  ACTIVE
+  PAUSED
+  REMOVED
+
+  @@schema("customer")
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+
+  @@schema("customer")
 }

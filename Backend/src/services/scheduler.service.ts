@@ -109,6 +109,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Proactive AI Check (0 8 * * *)");
 
+    // E. Release abandoned parking booking holds (Every 5 min)
+    await queues.maintenance.add(
+      "release-abandoned-parking-bookings",
+      {},
+      {
+        repeat: { pattern: "*/5 * * * *" },
+        jobId: "release-abandoned-parking-bookings-job",
+      },
+    );
+    logger.info("Scheduled: Release Abandoned Parking Bookings (*/5 * * * *)");
+
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },
 

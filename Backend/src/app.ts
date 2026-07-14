@@ -43,7 +43,17 @@ const corsOptions: cors.CorsOptions = {
 };
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: "10mb" }));
+app.use(
+  express.json({
+    limit: "10mb",
+    // Stash the exact signed bytes for Razorpay webhook signature verification
+    // (modules/payments/razorpay.webhook.controller.ts) — cheaper than a
+    // second raw-body parser scoped to just that one route.
+    verify: (req, _res, buf) => {
+      (req as Request & { rawBody?: Buffer }).rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(compression());
 

@@ -16,7 +16,8 @@ Grounded in the actual current state of the codebase (verified by direct investi
 
 ### In scope
 - Customer searches parking **near a destination** (not just current GPS) and sees dealer-listed spots with real hourly/daily pricing.
-- Customer books a time window, pays via Razorpay in-app, gets a confirmation.
+- Customer books a time window, pays via Razorpay 
+in-app, gets a confirmation.
 - Sold-out listings surface at the top of results with a "Notify me" waitlist action instead of disappearing.
 - Customer cancels a booking within policy and is refunded automatically.
 - A dealer (parking-lot operator) can list a lot, set capacity/pricing, and see their bookings.
