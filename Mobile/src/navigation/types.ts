@@ -53,6 +53,11 @@ export type RootStackParamList = {
   ChatConversation: { conversationId: string };
   GuestConversation: { conversationId: string };
   MyVehicleQrCode: { vehicleId?: string; registrationNumber?: string } | undefined;
+
+  CommunityFeed: { communityId?: string; communityName?: string } | undefined;
+  CommunitiesDiscover: undefined;
+  PostComposer: { communityId?: string } | undefined;
+  PostDetail: { postId: string };
 };
 
 export type MainTabParamList = {

@@ -56,6 +56,10 @@ import ScanQrScreen from '../screens/Messaging/ScanQrScreen';
 import ChatScreen from '../screens/Messaging/ChatScreen';
 import MyQrCodeScreen from '../screens/Messaging/MyQrCodeScreen';
 import GuestConversationScreen from '../screens/Messaging/GuestConversationScreen';
+import CommunityFeedScreen from '../screens/Community/CommunityFeedScreen';
+import CommunitiesDiscoverScreen from '../screens/Community/CommunitiesDiscoverScreen';
+import PostComposerScreen from '../screens/Community/PostComposerScreen';
+import PostDetailScreen from '../screens/Community/PostDetailScreen';
 import { store } from '../store';
 import { withErrorBoundary } from '../components/withErrorBoundary';
 
@@ -233,6 +237,10 @@ export function RootNavigator() {
       <Stack.Screen name="ChatConversation" component={ChatScreen} />
       <Stack.Screen name="MyVehicleQrCode" component={MyQrCodeScreen} />
       <Stack.Screen name="GuestConversation" component={GuestConversationScreen} />
+      <Stack.Screen name="CommunityFeed" component={CommunityFeedScreen} />
+      <Stack.Screen name="CommunitiesDiscover" component={CommunitiesDiscoverScreen} />
+      <Stack.Screen name="PostComposer" component={PostComposerScreen} />
+      <Stack.Screen name="PostDetail" component={PostDetailScreen} />
     </Stack.Navigator>
     <ErrorBoundary
       level="widget"

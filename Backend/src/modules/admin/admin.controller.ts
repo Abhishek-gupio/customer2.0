@@ -11,6 +11,7 @@ import { adminLoginSchema } from "./admin.validators";
 import { AppError } from "../../utils/AppError";
 import { adminPermissionsService } from "../../services/admin-permissions.service";
 import { messagingService } from "../messaging/messaging.service";
+import { communityService } from "../community/community.service";
 
 
 function parseBody<T>(
@@ -409,6 +410,29 @@ export const adminController = {
   messagingAnalytics: asyncHandler(async (req: Request, res: Response) => {
     if (!req.admin) throw AppError.unauthorized();
     const analytics = await messagingService.adminAnalytics();
+    success(res, analytics);
+  }),
+
+  // ── Community platform moderation ──────────────────────────────
+
+  listCommunityReports: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { status } = req.query as { status?: string };
+    const reports = await communityService.adminListReports(status);
+    success(res, reports);
+  }),
+
+  resolveCommunityReport: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { status } = req.body as { status?: "REVIEWED" | "DISMISSED" | "ACTIONED" };
+    if (!status) throw AppError.badRequest("status is required");
+    const report = await communityService.adminResolveReport(req.params.id as string, status);
+    success(res, report);
+  }),
+
+  communityAnalytics: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const analytics = await communityService.adminAnalytics();
     success(res, analytics);
   }),
 };

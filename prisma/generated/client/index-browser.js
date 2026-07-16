@@ -1398,6 +1398,103 @@ exports.Prisma.GuestMessageEntryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.CommunityScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  name: 'name',
+  type: 'type',
+  localKind: 'localKind',
+  description: 'description',
+  iconUrl: 'iconUrl',
+  bannerUrl: 'bannerUrl',
+  memberCount: 'memberCount',
+  postCount: 'postCount',
+  isOfficial: 'isOfficial',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CommunityMembershipScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  customerId: 'customerId',
+  role: 'role',
+  joinedAt: 'joinedAt'
+};
+
+exports.Prisma.HashtagScalarFieldEnum = {
+  id: 'id',
+  tag: 'tag',
+  postCount: 'postCount'
+};
+
+exports.Prisma.PostScalarFieldEnum = {
+  id: 'id',
+  authorId: 'authorId',
+  communityId: 'communityId',
+  vehicleId: 'vehicleId',
+  type: 'type',
+  text: 'text',
+  mediaUrls: 'mediaUrls',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  pollOptions: 'pollOptions',
+  isPinned: 'isPinned',
+  status: 'status',
+  commentCount: 'commentCount',
+  reactionCount: 'reactionCount',
+  shareCount: 'shareCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PostHashtagScalarFieldEnum = {
+  postId: 'postId',
+  hashtagId: 'hashtagId'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  authorId: 'authorId',
+  parentId: 'parentId',
+  text: 'text',
+  imageUrl: 'imageUrl',
+  isPinned: 'isPinned',
+  isAcceptedAnswer: 'isAcceptedAnswer',
+  reactionCount: 'reactionCount',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ReactionScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  postId: 'postId',
+  commentId: 'commentId',
+  emoji: 'emoji',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FollowScalarFieldEnum = {
+  id: 'id',
+  followerId: 'followerId',
+  followingId: 'followingId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ContentReportScalarFieldEnum = {
+  id: 'id',
+  reporterId: 'reporterId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reason: 'reason',
+  status: 'status',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1887,6 +1984,47 @@ exports.GuestMessageSender = exports.$Enums.GuestMessageSender = {
   OWNER: 'OWNER'
 };
 
+exports.CommunityType = exports.$Enums.CommunityType = {
+  TOPIC: 'TOPIC',
+  LOCAL: 'LOCAL'
+};
+
+exports.LocalCommunityKind = exports.$Enums.LocalCommunityKind = {
+  CITY: 'CITY',
+  DISTRICT: 'DISTRICT',
+  COLLEGE: 'COLLEGE',
+  COMPANY: 'COMPANY',
+  APARTMENT: 'APARTMENT',
+  HIGHWAY: 'HIGHWAY',
+  PARKING_AREA: 'PARKING_AREA'
+};
+
+exports.CommunityRole = exports.$Enums.CommunityRole = {
+  MEMBER: 'MEMBER',
+  MODERATOR: 'MODERATOR',
+  ADMIN: 'ADMIN'
+};
+
+exports.PostType = exports.$Enums.PostType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  POLL: 'POLL',
+  QUESTION: 'QUESTION',
+  LOCATION: 'LOCATION'
+};
+
+exports.PostStatus = exports.$Enums.PostStatus = {
+  PUBLISHED: 'PUBLISHED',
+  REMOVED: 'REMOVED',
+  SHADOW_HIDDEN: 'SHADOW_HIDDEN'
+};
+
+exports.ContentReportTarget = exports.$Enums.ContentReportTarget = {
+  POST: 'POST',
+  COMMENT: 'COMMENT'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   AdminUser: 'AdminUser',
@@ -1979,7 +2117,16 @@ exports.Prisma.ModelName = {
   BlockedContact: 'BlockedContact',
   ConversationReport: 'ConversationReport',
   GuestConversation: 'GuestConversation',
-  GuestMessageEntry: 'GuestMessageEntry'
+  GuestMessageEntry: 'GuestMessageEntry',
+  Community: 'Community',
+  CommunityMembership: 'CommunityMembership',
+  Hashtag: 'Hashtag',
+  Post: 'Post',
+  PostHashtag: 'PostHashtag',
+  Comment: 'Comment',
+  Reaction: 'Reaction',
+  Follow: 'Follow',
+  ContentReport: 'ContentReport'
 };
 
 /**

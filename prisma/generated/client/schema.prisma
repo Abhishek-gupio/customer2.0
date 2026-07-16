@@ -76,6 +76,13 @@ model Customer {
   conversationsAsOwner    Conversation[]         @relation("ConversationAsOwner")
   blockedContacts         BlockedContact[]       @relation("BlockedContactAsOwner")
   guestConversations      GuestConversation[]
+  communityMemberships    CommunityMembership[]
+  posts                   Post[]
+  comments                Comment[]
+  reactions               Reaction[]
+  followerEdges           Follow[]               @relation("FollowerEdge")
+  followingEdges          Follow[]               @relation("FollowingEdge")
+  contentReportsFiled     ContentReport[]        @relation("ContentReportReporter")
 
   @@schema("customer")
 }
@@ -2552,6 +2559,237 @@ enum GuestConversationStatus {
 enum GuestMessageSender {
   GUEST
   OWNER
+
+  @@schema("customer")
+}
+
+// ---------------------------------------------------------------------------
+// Community Platform — Phase A (core). See docs/gupio-community-platform-plan.md.
+// Phases B-D (clubs/events, reviews/roadside-help, reputation) are deliberately
+// not modeled yet; Marketplace is parked indefinitely per that plan's §9.
+// ---------------------------------------------------------------------------
+
+model Community {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  type        CommunityType
+  localKind   LocalCommunityKind?
+  description String?
+  iconUrl     String?
+  bannerUrl   String?
+  memberCount Int                 @default(0)
+  postCount   Int                 @default(0)
+  isOfficial  Boolean             @default(false)
+  createdBy   String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  members CommunityMembership[]
+  posts   Post[]
+
+  @@index([type])
+  @@index([localKind])
+  @@schema("customer")
+}
+
+model CommunityMembership {
+  id          String        @id @default(cuid())
+  communityId String
+  customerId  String
+  role        CommunityRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  customer  Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, customerId])
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model Hashtag {
+  id        String @id @default(cuid())
+  tag       String @unique
+  postCount Int    @default(0)
+
+  posts PostHashtag[]
+
+  @@schema("customer")
+}
+
+model Post {
+  id            String     @id @default(cuid())
+  authorId      String
+  communityId   String?
+  vehicleId     String?
+  type          PostType
+  text          String?
+  mediaUrls     String[]   @default([])
+  latitude      Float?
+  longitude     Float?
+  pollOptions   Json?
+  isPinned      Boolean    @default(false)
+  status        PostStatus @default(PUBLISHED)
+  commentCount  Int        @default(0)
+  reactionCount Int        @default(0)
+  shareCount    Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  author    Customer      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community Community?    @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  reactions Reaction[]
+  hashtags  PostHashtag[]
+
+  @@index([communityId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([vehicleId])
+  @@index([status])
+  @@schema("customer")
+}
+
+model PostHashtag {
+  postId    String
+  hashtagId String
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, hashtagId])
+  @@schema("customer")
+}
+
+/// Nesting is flattened to one parentId self-relation rather than a
+/// materialized path — see docs/gupio-community-platform-plan.md §4.
+model Comment {
+  id               String     @id @default(cuid())
+  postId           String
+  authorId         String
+  parentId         String?
+  text             String?
+  imageUrl         String?
+  isPinned         Boolean    @default(false)
+  isAcceptedAnswer Boolean    @default(false)
+  reactionCount    Int        @default(0)
+  status           PostStatus @default(PUBLISHED)
+  createdAt        DateTime   @default(now())
+
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    Customer   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("CommentReplies")
+  reactions Reaction[]
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+  @@schema("customer")
+}
+
+/// One row per (customer, target, emoji) — covers post AND comment reactions
+/// via nullable targets rather than two near-identical tables.
+model Reaction {
+  id         String   @id @default(cuid())
+  customerId String
+  postId     String?
+  commentId  String?
+  emoji      String
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  post     Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment  Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, postId, commentId])
+  @@index([postId])
+  @@index([commentId])
+  @@schema("customer")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  Customer @relation("FollowerEdge", fields: [followerId], references: [id], onDelete: Cascade)
+  following Customer @relation("FollowingEdge", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@schema("customer")
+}
+
+/// Mirrors ConversationReport's shape, generalized to any content type.
+/// Reuses ReportStatus (already defined above for Vehicle Messaging) rather
+/// than introducing a second near-identical enum.
+model ContentReport {
+  id         String              @id @default(cuid())
+  reporterId String
+  targetType ContentReportTarget
+  targetId   String
+  reason     String
+  status     ReportStatus        @default(PENDING)
+  createdAt  DateTime            @default(now())
+  resolvedAt DateTime?
+
+  reporter Customer @relation("ContentReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId])
+  @@index([status])
+  @@schema("customer")
+}
+
+enum CommunityType {
+  TOPIC
+  LOCAL
+
+  @@schema("customer")
+}
+
+enum LocalCommunityKind {
+  CITY
+  DISTRICT
+  COLLEGE
+  COMPANY
+  APARTMENT
+  HIGHWAY
+  PARKING_AREA
+
+  @@schema("customer")
+}
+
+enum CommunityRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+
+  @@schema("customer")
+}
+
+enum PostType {
+  TEXT
+  IMAGE
+  VIDEO
+  POLL
+  QUESTION
+  LOCATION
+
+  @@schema("customer")
+}
+
+enum PostStatus {
+  PUBLISHED
+  REMOVED
+  SHADOW_HIDDEN
+
+  @@schema("customer")
+}
+
+enum ContentReportTarget {
+  POST
+  COMMENT
 
   @@schema("customer")
 }

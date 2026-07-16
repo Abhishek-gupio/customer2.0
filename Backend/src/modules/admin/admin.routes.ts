@@ -58,5 +58,10 @@ router.post("/messaging/customers/:id/suspend", requireAdminRole(["SUPER_ADMIN",
 router.post("/messaging/customers/:id/unsuspend", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.unsuspendCustomer);
 router.get("/messaging/analytics", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.messagingAnalytics);
 
+// Community platform moderation
+router.get("/community/reports", requireAdminRole(["SUPER_ADMIN", "ADMIN", "SUPPORT"]), adminController.listCommunityReports);
+router.patch("/community/reports/:id", requireAdminRole(["SUPER_ADMIN", "ADMIN", "SUPPORT"]), adminController.resolveCommunityReport);
+router.get("/community/analytics", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.communityAnalytics);
+
 
 export const adminRoutes = router;

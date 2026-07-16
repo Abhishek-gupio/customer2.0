@@ -252,6 +252,13 @@ export const adminApi = {
   unsuspendMessagingCustomer: (id: string) =>
     api<{ id: string; isSuspended: boolean }>(`/v1/admin/messaging/customers/${id}/unsuspend`, { method: 'POST' }),
   getMessagingAnalytics: () => api<MessagingAnalytics>('/v1/admin/messaging/analytics'),
+
+  // Community platform moderation
+  listCommunityReports: (status?: string) =>
+    api<CommunityReport[]>(`/v1/admin/community/reports${status ? `?status=${status}` : ''}`),
+  resolveCommunityReport: (id: string, status: 'REVIEWED' | 'DISMISSED' | 'ACTIONED') =>
+    api<CommunityReport>(`/v1/admin/community/reports/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  getCommunityAnalytics: () => api<CommunityAnalytics>('/v1/admin/community/analytics'),
 };
 
 
@@ -591,6 +598,25 @@ export interface MessagingAnalytics {
   dailyActiveConversations: number;
   avgOwnerResponseTimeMinutes: number | null;
   mostReportedConversationIds: { conversationId: string; reportCount: number }[];
+}
+
+export interface CommunityReport {
+  id: string;
+  reporterId: string;
+  targetType: 'POST' | 'COMMENT';
+  targetId: string;
+  reason: string;
+  status: 'PENDING' | 'REVIEWED' | 'DISMISSED' | 'ACTIONED';
+  createdAt: string;
+  resolvedAt: string | null;
+  reporter?: { id: string; fullName: string | null; phoneNumber: string };
+}
+
+export interface CommunityAnalytics {
+  totalCommunities: number;
+  totalPosts: number;
+  totalComments: number;
+  pendingReports: number;
 }
 
 

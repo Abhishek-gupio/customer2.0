@@ -25,6 +25,7 @@ import { paymentsRoutes } from "./modules/payments/payments.routes";
 import { parkingRoutes } from "./modules/parking/parking.routes";
 import { messagingRoutes } from "./modules/messaging/messaging.routes";
 import { guestPublicRoutes } from "./modules/messaging/guest-public.routes";
+import { communityRoutes } from "./modules/community/community.routes";
 
 const router = Router();
 
@@ -88,5 +89,6 @@ router.use("/v1/payments", paymentsRoutes);
 router.use("/v1/parking", parkingRoutes);
 router.use("/v1/messaging", messagingRoutes);
 router.use("/v1/public/vehicle-qr", guestPublicRoutes);
+router.use("/v1/community", communityRoutes);
 
 export const apiRoutes = router;
