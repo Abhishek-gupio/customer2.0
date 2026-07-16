@@ -147,7 +147,10 @@ exports.Prisma.CustomerScalarFieldEnum = {
   profilePic: 'profilePic',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  googleId: 'googleId'
+  googleId: 'googleId',
+  isSuspended: 'isSuspended',
+  suspendedReason: 'suspendedReason',
+  suspendedAt: 'suspendedAt'
 };
 
 exports.Prisma.CustomerDeviceScalarFieldEnum = {
@@ -1309,6 +1312,92 @@ exports.Prisma.ParkingWaitlistEntryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.VehicleQrTokenScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  token: 'token',
+  createdAt: 'createdAt',
+  rotatedAt: 'rotatedAt'
+};
+
+exports.Prisma.ConversationScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  customerId: 'customerId',
+  ownerId: 'ownerId',
+  category: 'category',
+  priority: 'priority',
+  status: 'status',
+  lastMessage: 'lastMessage',
+  lastMessageAt: 'lastMessageAt',
+  lastSenderId: 'lastSenderId',
+  unreadCountOwner: 'unreadCountOwner',
+  unreadCountCustomer: 'unreadCountCustomer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderId: 'senderId',
+  receiverId: 'receiverId',
+  type: 'type',
+  text: 'text',
+  imageUrls: 'imageUrls',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  quickReplyKey: 'quickReplyKey',
+  reaction: 'reaction',
+  metadata: 'metadata',
+  isRead: 'isRead',
+  deliveredAt: 'deliveredAt',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BlockedContactScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  blockedId: 'blockedId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ConversationReportScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  reporterId: 'reporterId',
+  reportedId: 'reportedId',
+  reason: 'reason',
+  status: 'status',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+};
+
+exports.Prisma.GuestConversationScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  ownerId: 'ownerId',
+  guestToken: 'guestToken',
+  guestName: 'guestName',
+  guestContact: 'guestContact',
+  lastMessage: 'lastMessage',
+  lastMessageAt: 'lastMessageAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GuestMessageEntryScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  sender: 'sender',
+  text: 'text',
+  imageUrls: 'imageUrls',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1750,6 +1839,54 @@ exports.BookingStatus = exports.$Enums.BookingStatus = {
   NO_SHOW: 'NO_SHOW'
 };
 
+exports.ConversationCategory = exports.$Enums.ConversationCategory = {
+  PARKING: 'PARKING',
+  EMERGENCY: 'EMERGENCY',
+  DAMAGE: 'DAMAGE',
+  LOST_ITEM: 'LOST_ITEM',
+  SECURITY: 'SECURITY',
+  GENERAL: 'GENERAL'
+};
+
+exports.MessagePriority = exports.$Enums.MessagePriority = {
+  NORMAL: 'NORMAL',
+  URGENT: 'URGENT',
+  EMERGENCY: 'EMERGENCY'
+};
+
+exports.ConversationStatus = exports.$Enums.ConversationStatus = {
+  OPEN: 'OPEN',
+  WAITING_FOR_OWNER: 'WAITING_FOR_OWNER',
+  WAITING_FOR_CUSTOMER: 'WAITING_FOR_CUSTOMER',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.MessageType = exports.$Enums.MessageType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  LOCATION: 'LOCATION',
+  SYSTEM: 'SYSTEM'
+};
+
+exports.ReportStatus = exports.$Enums.ReportStatus = {
+  PENDING: 'PENDING',
+  REVIEWED: 'REVIEWED',
+  DISMISSED: 'DISMISSED',
+  ACTIONED: 'ACTIONED'
+};
+
+exports.GuestConversationStatus = exports.$Enums.GuestConversationStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.GuestMessageSender = exports.$Enums.GuestMessageSender = {
+  GUEST: 'GUEST',
+  OWNER: 'OWNER'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   AdminUser: 'AdminUser',
@@ -1835,7 +1972,14 @@ exports.Prisma.ModelName = {
   ParkingListing: 'ParkingListing',
   ParkingSlotWindow: 'ParkingSlotWindow',
   ParkingBooking: 'ParkingBooking',
-  ParkingWaitlistEntry: 'ParkingWaitlistEntry'
+  ParkingWaitlistEntry: 'ParkingWaitlistEntry',
+  VehicleQrToken: 'VehicleQrToken',
+  Conversation: 'Conversation',
+  Message: 'Message',
+  BlockedContact: 'BlockedContact',
+  ConversationReport: 'ConversationReport',
+  GuestConversation: 'GuestConversation',
+  GuestMessageEntry: 'GuestMessageEntry'
 };
 
 /**

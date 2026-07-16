@@ -12,6 +12,7 @@ import {
   Shield,
   ParkingSquare,
   Receipt,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { useAuth } from '../context/AuthContext';
@@ -32,6 +33,7 @@ const navItems = [
   { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red' },
   { to: '/parking-dealers', label: 'Parking Dealers', icon: ParkingSquare, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
   { to: '/payments-ops', label: 'Payments', icon: Receipt, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'emerald' },
+  { to: '/messaging', label: 'Vehicle Messaging', icon: MessageSquare, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'violet' },
   { to: '/manage-admins', label: 'Admins', icon: Shield, roles: ['SUPER_ADMIN'], color: 'white' },
 ];
 

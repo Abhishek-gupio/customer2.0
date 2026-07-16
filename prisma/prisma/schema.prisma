@@ -69,6 +69,13 @@ model Customer {
   orders            CustomerOrder[]
   parkingBookings   ParkingBooking[]
   waitlistEntries   ParkingWaitlistEntry[]
+  isSuspended       Boolean                @default(false)
+  suspendedReason   String?
+  suspendedAt       DateTime?
+  conversationsAsCustomer Conversation[]   @relation("ConversationAsCustomer")
+  conversationsAsOwner    Conversation[]   @relation("ConversationAsOwner")
+  blockedContacts         BlockedContact[] @relation("BlockedContactAsOwner")
+  guestConversations      GuestConversation[]
 
   @@schema("customer")
 }
@@ -204,6 +211,9 @@ model CustomerVehicle {
   telematicsDevice   TelematicsDevice?
   accessList         VehicleAccess[]
   healthScore        VehicleHealthScore?
+  qrToken            VehicleQrToken?
+  conversations      Conversation[]
+  guestConversations GuestConversation[]
 
   @@index([customerId])
   @@schema("customer")
@@ -2331,6 +2341,219 @@ enum BookingStatus {
   CANCELLED
   COMPLETED
   NO_SHOW
+
+  @@schema("customer")
+}
+
+// Vehicle QR Communication Platform — human-to-human messaging between a
+// vehicle owner and whoever scans the vehicle's QR code. Deliberately
+// separate from ChatSession/ChatMessage (the AI assistant) above.
+
+/// Opaque, rotatable token encoded in the printed QR sticker — never the raw
+/// vehicleId, so a compromised/public sticker can be invalidated without
+/// re-registering the vehicle.
+model VehicleQrToken {
+  id        String   @id @default(cuid())
+  vehicleId String   @unique
+  token     String   @unique
+  createdAt DateTime @default(now())
+  rotatedAt DateTime @default(now())
+  vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+/// One conversation per (vehicle, customer) pair — scanning again or messaging
+/// again about the same vehicle continues the same thread rather than forking.
+model Conversation {
+  id                  String               @id @default(cuid())
+  vehicleId           String
+  customerId          String               // the person who scanned the QR and messaged in
+  ownerId             String               // snapshot of CustomerVehicle.customerId at creation time
+  category            ConversationCategory @default(GENERAL)
+  priority            MessagePriority      @default(NORMAL)
+  status              ConversationStatus   @default(OPEN)
+  lastMessage         String?
+  lastMessageAt       DateTime?
+  lastSenderId        String?
+  unreadCountOwner    Int                  @default(0)
+  unreadCountCustomer Int                  @default(0)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  vehicle  CustomerVehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  customer Customer             @relation("ConversationAsCustomer", fields: [customerId], references: [id], onDelete: Cascade)
+  owner    Customer             @relation("ConversationAsOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  messages Message[]
+  reports  ConversationReport[]
+
+  @@unique([vehicleId, customerId])
+  @@index([customerId, updatedAt])
+  @@index([ownerId, updatedAt])
+  @@index([status])
+  @@schema("customer")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  type           MessageType @default(TEXT)
+  text           String?
+  imageUrls      String[]    @default([])
+  latitude       Float?
+  longitude      Float?
+  quickReplyKey  String?               // which canned quick-reply this was, if any
+  reaction       String?               // single emoji, simple v1 (not a per-user reactions table)
+  /// Escape hatch for FUTURE message types (voice/video/doc duration, transcript, etc.)
+  /// without another migration — see MessageType doc-comment below.
+  metadata       Json?
+  isRead         Boolean     @default(false)
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@schema("customer")
+}
+
+/// Owner-initiated block of a specific customer, persistent across every
+/// vehicle that owner has — not scoped to one Conversation.
+model BlockedContact {
+  id        String   @id @default(cuid())
+  ownerId   String
+  blockedId String
+  reason    String?
+  createdAt DateTime @default(now())
+  owner     Customer @relation("BlockedContactAsOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, blockedId])
+  @@index([blockedId])
+  @@schema("customer")
+}
+
+/// Either party can report the other; admin reviews via the Admin panel.
+model ConversationReport {
+  id             String       @id @default(cuid())
+  conversationId String
+  reporterId     String
+  reportedId     String
+  reason         String
+  status         ReportStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  resolvedAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([status])
+  @@schema("customer")
+}
+
+enum ConversationCategory {
+  PARKING
+  EMERGENCY
+  DAMAGE
+  LOST_ITEM
+  SECURITY
+  GENERAL
+
+  @@schema("customer")
+}
+
+enum MessagePriority {
+  NORMAL
+  URGENT
+  EMERGENCY
+
+  @@schema("customer")
+}
+
+enum ConversationStatus {
+  OPEN
+  WAITING_FOR_OWNER
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+
+  @@schema("customer")
+}
+
+/// v1 ships TEXT/IMAGE/LOCATION/SYSTEM. VOICE/VIDEO/DOCUMENT slot in later as
+/// additional enum values — Message.metadata (Json) already carries whatever
+/// extra shape each new type needs, so adding one is additive, not a rewrite.
+enum MessageType {
+  TEXT
+  IMAGE
+  LOCATION
+  SYSTEM
+
+  @@schema("customer")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  ACTIONED
+
+  @@schema("customer")
+}
+
+// Anonymous web fallback for someone who scans a vehicle's QR without the
+// Gupio app installed. Deliberately a separate model from Conversation/Message
+// — a guest has no Customer row, only a client-held opaque `guestToken` that
+// lets their browser revisit the same thread. Owner replies from the Mobile
+// app; the two model families are merged into one inbox at the service layer.
+model GuestConversation {
+  id            String                  @id @default(cuid())
+  vehicleId     String
+  ownerId       String
+  guestToken    String                  @unique
+  guestName     String?
+  guestContact  String?                 // optional phone/email, for the owner's reference only
+  lastMessage   String?
+  lastMessageAt DateTime?
+  status        GuestConversationStatus @default(OPEN)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  vehicle CustomerVehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  owner   Customer            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  entries GuestMessageEntry[]
+
+  @@index([ownerId, updatedAt])
+  @@schema("customer")
+}
+
+model GuestMessageEntry {
+  id             String             @id @default(cuid())
+  conversationId String
+  sender         GuestMessageSender
+  text           String?
+  imageUrls      String[]           @default([])
+  createdAt      DateTime           @default(now())
+
+  conversation GuestConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@schema("customer")
+}
+
+enum GuestConversationStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+
+  @@schema("customer")
+}
+
+enum GuestMessageSender {
+  GUEST
+  OWNER
 
   @@schema("customer")
 }

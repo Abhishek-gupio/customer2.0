@@ -47,6 +47,12 @@ export type RootStackParamList = {
 
   TripPlannerInsights: undefined;
   DIYGuides: undefined;
+
+  VehicleInbox: undefined;
+  ScanQr: undefined;
+  ChatConversation: { conversationId: string };
+  GuestConversation: { conversationId: string };
+  MyVehicleQrCode: { vehicleId?: string; registrationNumber?: string } | undefined;
 };
 
 export type MainTabParamList = {

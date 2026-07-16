@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>Message the vehicle owner — Gupio</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #141414;
+    --border: #2a2a2a;
+    --text: #ffffff;
+    --muted: #8a8a8a;
+    --accent: #FFBF00;
+    --accent-text: #111111;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  .wrap { width: 100%; max-width: 440px; }
+  .brand { text-align: center; margin-bottom: 20px; color: var(--muted); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .vehicle-row { display: flex; align-items: center; gap: 14px; }
+  .vehicle-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: rgba(255,191,0,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+  }
+  .vehicle-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
+  .reg { font-size: 20px; font-weight: 800; margin: 0; }
+  .makeModel { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  p.hint { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0 0 18px; }
+  label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
+  .field { margin-bottom: 14px; }
+  input[type="text"], textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  textarea { min-height: 90px; }
+  input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  input[type="file"] { color: var(--muted); font-size: 13px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%; padding: 14px; border-radius: 14px; border: none;
+    font-size: 15px; font-weight: 800; cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-primary:disabled { opacity: 0.5; cursor: default; }
+  .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
+  .privacy { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,0.03); border: 1px dashed var(--border); border-radius: 14px; padding: 12px 14px; margin-top: 16px; }
+  .privacy p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+  .error { color: var(--danger); font-size: 13px; margin-top: 10px; }
+  .thread { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; max-height: 50vh; overflow-y: auto; }
+  .bubble { max-width: 82%; padding: 10px 14px; border-radius: 14px; font-size: 14.5px; line-height: 1.4; }
+  .bubble.guest { align-self: flex-end; background: var(--accent); color: var(--accent-text); border-bottom-right-radius: 4px; }
+  .bubble.owner { align-self: flex-start; background: rgba(255,255,255,0.06); border-bottom-left-radius: 4px; }
+  .bubble img { max-width: 100%; border-radius: 10px; margin-top: 6px; display: block; }
+  .status-pill { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.06); color: var(--muted); margin-bottom: 14px; }
+  .center { text-align: center; padding: 40px 0; color: var(--muted); }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">Gupio · Vehicle Message</div>
+
+    <div id="loading" class="card center">Loading vehicle details…</div>
+
+    <div id="notFound" class="card center hidden">
+      This QR code isn't linked to a vehicle, or the link has expired.
+    </div>
+
+    <div id="content" class="hidden">
+      <div class="card">
+        <div class="vehicle-row">
+          <div class="vehicle-icon" id="vehicleIcon">🚗</div>
+          <div>
+            <p class="reg" id="reg"></p>
+            <p class="makeModel" id="makeModel"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="formCard">
+        <h1>Message the vehicle owner</h1>
+        <p class="hint">Your message goes straight to the owner's Gupio app. Neither of you sees the other's phone number.</p>
+
+        <div class="field">
+          <label for="guestName">Your name (optional)</label>
+          <input type="text" id="guestName" placeholder="So the owner knows who's messaging" />
+        </div>
+        <div class="field">
+          <label for="guestContact">Your phone or email (optional)</label>
+          <input type="text" id="guestContact" placeholder="Only if you want the owner to be able to reach you outside the app" />
+        </div>
+        <div class="field">
+          <label for="text">Message</label>
+          <textarea id="text" placeholder="e.g. Your headlights are on, or your car is blocking me…"></textarea>
+        </div>
+        <div class="field">
+          <label for="photos">Photo (optional, up to 5)</label>
+          <input type="file" id="photos" accept="image/*" multiple />
+        </div>
+
+        <button class="btn btn-primary" id="sendBtn">Send Message</button>
+        <div class="error hidden" id="formError"></div>
+
+        <div class="privacy">
+          <span>🔒</span>
+          <p>Your contact details are shared with the owner only if you choose to enter them above. Gupio never shows either party's phone number to the other.</p>
+        </div>
+      </div>
+
+      <div class="card hidden" id="threadCard">
+        <span class="status-pill" id="statusPill"></span>
+        <div class="thread" id="thread"></div>
+        <div class="field">
+          <textarea id="followUpText" placeholder="Send another message…" style="min-height:60px"></textarea>
+        </div>
+        <button class="btn btn-primary" id="followUpBtn">Send</button>
+        <button class="btn btn-secondary" id="refreshBtn">Refresh</button>
+        <div class="error hidden" id="threadError"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var pathParts = window.location.pathname.split('/').filter(Boolean);
+  var token = pathParts[pathParts.length - 1];
+  var storageKey = 'gupio_guest_token_' + token;
+
+  var el = {
+    loading: document.getElementById('loading'),
+    notFound: document.getElementById('notFound'),
+    content: document.getElementById('content'),
+    vehicleIcon: document.getElementById('vehicleIcon'),
+    reg: document.getElementById('reg'),
+    makeModel: document.getElementById('makeModel'),
+    formCard: document.getElementById('formCard'),
+    guestName: document.getElementById('guestName'),
+    guestContact: document.getElementById('guestContact'),
+    text: document.getElementById('text'),
+    photos: document.getElementById('photos'),
+    sendBtn: document.getElementById('sendBtn'),
+    formError: document.getElementById('formError'),
+    threadCard: document.getElementById('threadCard'),
+    statusPill: document.getElementById('statusPill'),
+    thread: document.getElementById('thread'),
+    followUpText: document.getElementById('followUpText'),
+    followUpBtn: document.getElementById('followUpBtn'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    threadError: document.getElementById('threadError'),
+  };
+
+  function showError(node, message) {
+    node.textContent = message;
+    node.classList.remove('hidden');
+  }
+  function clearError(node) {
+    node.classList.add('hidden');
+  }
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  async function loadVehicle() {
+    try {
+      var res = await fetch('/api/v1/public/vehicle-qr/vehicle/' + encodeURIComponent(token));
+      var json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json?.error?.message || 'Not found');
+      var vehicle = json.data;
+      el.reg.textContent = vehicle.registrationNumber;
+      el.makeModel.textContent = [vehicle.make, vehicle.model].filter(Boolean).join(' ') || 'Vehicle';
+      if (vehicle.imageUrl) {
+        el.vehicleIcon.innerHTML = '<img src="' + vehicle.imageUrl + '" alt="" />';
+      }
+      el.loading.classList.add('hidden');
+      el.content.classList.remove('hidden');
+
+      var existingGuestToken = localStorage.getItem(storageKey);
+      if (existingGuestToken) {
+        await loadThread(existingGuestToken);
+      }
+    } catch (e) {
+      el.loading.classList.add('hidden');
+      el.notFound.classList.remove('hidden');
+    }
+  }
+
+  function renderThread(conversation) {
+    el.formCard.classList.add('hidden');
+    el.threadCard.classList.remove('hidden');
+    el.statusPill.textContent = conversation.status.replace(/_/g, ' ');
+    el.thread.innerHTML = '';
+    (conversation.entries || []).forEach(function (entry) {
+      var bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (entry.sender === 'OWNER' ? 'owner' : 'guest');
+      var html = '';
+      if (entry.text) html += escapeHtml(entry.text);
+      (entry.imageUrls || []).forEach(function (url) {
+        html += '<img src="' + url + '" alt="photo" />';
+      });
+      bubble.innerHTML = html;
+      el.thread.appendChild(bubble);
+    });
+    el.thread.scrollTop = el.thread.scrollHeight;
+  }
+
+  async function loadThread(guestToken) {
+    var res = await fetch('/api/v1/public/vehicle-qr/conversations/' + encodeURIComponent(guestToken));
+    var json = await res.json();
+    if (!res.ok || !json.success) {
+      localStorage.removeItem(storageKey);
+      return;
+    }
+    renderThread(json.data);
+  }
+
+  async function sendInitialMessage() {
+    clearError(el.formError);
+    var text = el.text.value.trim();
+    var files = el.photos.files;
+    if (!text && (!files || files.length === 0)) {
+      showError(el.formError, 'Write a message or attach a photo.');
+      return;
+    }
+    if (files && files.length > 5) {
+      showError(el.formError, 'Maximum 5 photos.');
+      return;
+    }
+    el.sendBtn.disabled = true;
+    el.sendBtn.textContent = 'Sending…';
+    try {
+      var formData = new FormData();
+      if (el.guestName.value.trim()) formData.append('guestName', el.guestName.value.trim());
+      if (el.guestContact.value.trim()) formData.append('guestContact', el.guestContact.value.trim());
+      if (text) formData.append('text', text);
+      for (var i = 0; i < (files ? files.length : 0); i++) formData.append('photos', files[i]);
+
+      var res = await fetch('/api/v1/public/vehicle-qr/vehicle/' + encodeURIComponent(token) + '/messages', {
+        method: 'POST',
+        body: formData,
+      });
+      var json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json?.error?.message || 'Could not send message');
+
+      localStorage.setItem(storageKey, json.data.guestToken);
+      await loadThread(json.data.guestToken);
+    } catch (e) {
+      showError(el.formError, e.message || 'Could not send message. Please try again.');
+    } finally {
+      el.sendBtn.disabled = false;
+      el.sendBtn.textContent = 'Send Message';
+    }
+  }
+
+  async function sendFollowUp() {
+    clearError(el.threadError);
+    var text = el.followUpText.value.trim();
+    if (!text) return;
+    var guestToken = localStorage.getItem(storageKey);
+    if (!guestToken) return;
+    el.followUpBtn.disabled = true;
+    try {
+      var formData = new FormData();
+      formData.append('guestToken', guestToken);
+      formData.append('text', text);
+      var res = await fetch('/api/v1/public/vehicle-qr/vehicle/' + encodeURIComponent(token) + '/messages', {
+        method: 'POST',
+        body: formData,
+      });
+      var json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json?.error?.message || 'Could not send message');
+      el.followUpText.value = '';
+      await loadThread(guestToken);
+    } catch (e) {
+      showError(el.threadError, e.message || 'Could not send message.');
+    } finally {
+      el.followUpBtn.disabled = false;
+    }
+  }
+
+  el.sendBtn.addEventListener('click', sendInitialMessage);
+  el.followUpBtn.addEventListener('click', sendFollowUp);
+  el.refreshBtn.addEventListener('click', function () {
+    var guestToken = localStorage.getItem(storageKey);
+    if (guestToken) loadThread(guestToken);
+  });
+
+  loadVehicle();
+})();
+</script>
+</body>
+</html>

@@ -41,7 +41,8 @@ type ServiceId =
   | 'TripExpense'
   | 'DLVerification'
   | 'Fastag'
-  | 'DIYMode';
+  | 'DIYMode'
+  | 'VehicleMessages';
 
 type ServiceItem = {
   id: ServiceId;
@@ -65,10 +66,11 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
   { id: 'Fastag', name: 'Fastag', icon: 'tag', iconSet: 'fa' },
   { id: 'DIYMode', name: 'DIY Mode', icon: 'tools', iconSet: 'fa' },
+  { id: 'VehicleMessages', name: 'Vehicle Messages', icon: 'qrcode', iconSet: 'mc' },
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode', 'VehicleMessages'], color: '#ef4444' }, // Red
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
@@ -206,6 +208,9 @@ export default function ServicesHub() {
         break;
       case 'Parking':
         navigation.navigate('ParkingSearch');
+        break;
+      case 'VehicleMessages':
+        navigation.navigate('VehicleInbox');
         break;
       case 'CheckChallan':
         navigation.navigate('CheckChallan');

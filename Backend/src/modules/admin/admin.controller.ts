@@ -10,6 +10,7 @@ import { adminDashboardService } from "./admin-dashboard.service";
 import { adminLoginSchema } from "./admin.validators";
 import { AppError } from "../../utils/AppError";
 import { adminPermissionsService } from "../../services/admin-permissions.service";
+import { messagingService } from "../messaging/messaging.service";
 
 
 function parseBody<T>(
@@ -356,6 +357,59 @@ export const adminController = {
 
     const data = await adminDashboardService.toggleAdminStatus(adminId);
     success(res, data, 200);
+  }),
+
+  // ── Vehicle QR messaging moderation ──────────────────────────────
+
+  listMessagingReports: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { status } = req.query as { status?: string };
+    const reports = await messagingService.adminListReports(status);
+    success(res, reports);
+  }),
+
+  resolveMessagingReport: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { status } = req.body as { status?: "REVIEWED" | "DISMISSED" | "ACTIONED" };
+    if (!status) throw AppError.badRequest("status is required");
+    const report = await messagingService.adminResolveReport(req.params.id as string, status);
+    success(res, report);
+  }),
+
+  listConversations: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { page, limit } = req.query as { page?: string; limit?: string };
+    const data = await messagingService.adminListConversations({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
+    success(res, data);
+  }),
+
+  deleteConversation: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    await messagingService.adminDeleteConversation(req.params.id as string);
+    success(res, { ok: true });
+  }),
+
+  suspendCustomer: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const { reason } = req.body as { reason?: string };
+    if (!reason) throw AppError.badRequest("reason is required");
+    const customer = await messagingService.adminSuspendCustomer(req.params.id as string, reason);
+    success(res, customer);
+  }),
+
+  unsuspendCustomer: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const customer = await messagingService.adminUnsuspendCustomer(req.params.id as string);
+    success(res, customer);
+  }),
+
+  messagingAnalytics: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.admin) throw AppError.unauthorized();
+    const analytics = await messagingService.adminAnalytics();
+    success(res, analytics);
   }),
 };
 

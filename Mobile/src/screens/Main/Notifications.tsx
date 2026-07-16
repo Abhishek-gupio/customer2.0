@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { io, Socket } from 'socket.io-client';
 import { api } from '../../services/api';
 import { FlashList } from '@shopify/flash-list';
 const FlashListAny = FlashList as any;
 import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
+import { connectAndJoin } from '../../services/realtime/socketClient';
 
 interface AppNotification {
     id: string;
@@ -17,9 +17,6 @@ interface AppNotification {
     createdAt: string;
 }
 
-import { SOCKET_BASE_URL } from '../../config';
-
-const SOCKET_URL = SOCKET_BASE_URL;
 const NOTIFICATIONS_CACHE_KEY = 'cache:notifications:list';
 const NOTIFICATIONS_CACHE_TTL_MS = 3 * 60 * 1000;
 
@@ -40,31 +37,22 @@ export const NotificationsScreen = () => {
         // 1. Fetch historical inbox correctly mapped from Postgres REST API
         fetchNotifications();
 
-        // 2. Connect to custom WebSocket for real-time Postgres inserts
-        const socket: Socket = io(SOCKET_URL, {
-            // Allow fallback to long-polling if websocket transport fails.
-            // This avoids "reconnecting..." loops caused by websocket-only connectivity issues.
-            transports: ['websocket', 'polling'],
-            reconnectionAttempts: 10,
-            reconnectionDelay: 2000,
-            timeout: 20000,
-        });
+        // 2. Shared, authenticated socket connection for real-time Postgres inserts
+        const socket = connectAndJoin(user.id);
 
-        socket.on('connect', () => {
-            console.log("Connected to Real-time Notifications Socket");
-            socket.emit('join', user.id);
-        });
-
-        socket.on('connect_error', (err: any) => {
+        const onConnectError = (err: any) => {
             console.warn("Notifications socket connect_error:", err?.message || err);
-        });
-
-        socket.on('new_notification', (newNotif: AppNotification) => {
+        };
+        const onNewNotification = (newNotif: AppNotification) => {
             setNotifications(prev => [newNotif, ...prev]);
-        });
+        };
+
+        socket.on('connect_error', onConnectError);
+        socket.on('new_notification', onNewNotification);
 
         return () => {
-            socket.disconnect();
+            socket.off('connect_error', onConnectError);
+            socket.off('new_notification', onNewNotification);
         };
     }, [user?.id]);
 

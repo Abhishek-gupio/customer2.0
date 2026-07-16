@@ -440,6 +440,45 @@ export type ParkingBooking = $Result.DefaultSelection<Prisma.$ParkingBookingPayl
  * 
  */
 export type ParkingWaitlistEntry = $Result.DefaultSelection<Prisma.$ParkingWaitlistEntryPayload>
+/**
+ * Model VehicleQrToken
+ * Opaque, rotatable token encoded in the printed QR sticker — never the raw
+ * vehicleId, so a compromised/public sticker can be invalidated without
+ * re-registering the vehicle.
+ */
+export type VehicleQrToken = $Result.DefaultSelection<Prisma.$VehicleQrTokenPayload>
+/**
+ * Model Conversation
+ * One conversation per (vehicle, customer) pair — scanning again or messaging
+ * again about the same vehicle continues the same thread rather than forking.
+ */
+export type Conversation = $Result.DefaultSelection<Prisma.$ConversationPayload>
+/**
+ * Model Message
+ * 
+ */
+export type Message = $Result.DefaultSelection<Prisma.$MessagePayload>
+/**
+ * Model BlockedContact
+ * Owner-initiated block of a specific customer, persistent across every
+ * vehicle that owner has — not scoped to one Conversation.
+ */
+export type BlockedContact = $Result.DefaultSelection<Prisma.$BlockedContactPayload>
+/**
+ * Model ConversationReport
+ * Either party can report the other; admin reviews via the Admin panel.
+ */
+export type ConversationReport = $Result.DefaultSelection<Prisma.$ConversationReportPayload>
+/**
+ * Model GuestConversation
+ * 
+ */
+export type GuestConversation = $Result.DefaultSelection<Prisma.$GuestConversationPayload>
+/**
+ * Model GuestMessageEntry
+ * 
+ */
+export type GuestMessageEntry = $Result.DefaultSelection<Prisma.$GuestMessageEntryPayload>
 
 /**
  * Enums
@@ -1062,6 +1101,75 @@ export const BookingStatus: {
 
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus]
 
+
+export const ConversationCategory: {
+  PARKING: 'PARKING',
+  EMERGENCY: 'EMERGENCY',
+  DAMAGE: 'DAMAGE',
+  LOST_ITEM: 'LOST_ITEM',
+  SECURITY: 'SECURITY',
+  GENERAL: 'GENERAL'
+};
+
+export type ConversationCategory = (typeof ConversationCategory)[keyof typeof ConversationCategory]
+
+
+export const MessagePriority: {
+  NORMAL: 'NORMAL',
+  URGENT: 'URGENT',
+  EMERGENCY: 'EMERGENCY'
+};
+
+export type MessagePriority = (typeof MessagePriority)[keyof typeof MessagePriority]
+
+
+export const ConversationStatus: {
+  OPEN: 'OPEN',
+  WAITING_FOR_OWNER: 'WAITING_FOR_OWNER',
+  WAITING_FOR_CUSTOMER: 'WAITING_FOR_CUSTOMER',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+export type ConversationStatus = (typeof ConversationStatus)[keyof typeof ConversationStatus]
+
+
+export const MessageType: {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  LOCATION: 'LOCATION',
+  SYSTEM: 'SYSTEM'
+};
+
+export type MessageType = (typeof MessageType)[keyof typeof MessageType]
+
+
+export const ReportStatus: {
+  PENDING: 'PENDING',
+  REVIEWED: 'REVIEWED',
+  DISMISSED: 'DISMISSED',
+  ACTIONED: 'ACTIONED'
+};
+
+export type ReportStatus = (typeof ReportStatus)[keyof typeof ReportStatus]
+
+
+export const GuestConversationStatus: {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+export type GuestConversationStatus = (typeof GuestConversationStatus)[keyof typeof GuestConversationStatus]
+
+
+export const GuestMessageSender: {
+  GUEST: 'GUEST',
+  OWNER: 'OWNER'
+};
+
+export type GuestMessageSender = (typeof GuestMessageSender)[keyof typeof GuestMessageSender]
+
 }
 
 export type AdminRole = $Enums.AdminRole
@@ -1307,6 +1415,34 @@ export const ListingStatus: typeof $Enums.ListingStatus
 export type BookingStatus = $Enums.BookingStatus
 
 export const BookingStatus: typeof $Enums.BookingStatus
+
+export type ConversationCategory = $Enums.ConversationCategory
+
+export const ConversationCategory: typeof $Enums.ConversationCategory
+
+export type MessagePriority = $Enums.MessagePriority
+
+export const MessagePriority: typeof $Enums.MessagePriority
+
+export type ConversationStatus = $Enums.ConversationStatus
+
+export const ConversationStatus: typeof $Enums.ConversationStatus
+
+export type MessageType = $Enums.MessageType
+
+export const MessageType: typeof $Enums.MessageType
+
+export type ReportStatus = $Enums.ReportStatus
+
+export const ReportStatus: typeof $Enums.ReportStatus
+
+export type GuestConversationStatus = $Enums.GuestConversationStatus
+
+export const GuestConversationStatus: typeof $Enums.GuestConversationStatus
+
+export type GuestMessageSender = $Enums.GuestMessageSender
+
+export const GuestMessageSender: typeof $Enums.GuestMessageSender
 
 /**
  * ##  Prisma Client ʲˢ
@@ -2278,6 +2414,76 @@ export class PrismaClient<
     * ```
     */
   get parkingWaitlistEntry(): Prisma.ParkingWaitlistEntryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.vehicleQrToken`: Exposes CRUD operations for the **VehicleQrToken** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more VehicleQrTokens
+    * const vehicleQrTokens = await prisma.vehicleQrToken.findMany()
+    * ```
+    */
+  get vehicleQrToken(): Prisma.VehicleQrTokenDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.conversation`: Exposes CRUD operations for the **Conversation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Conversations
+    * const conversations = await prisma.conversation.findMany()
+    * ```
+    */
+  get conversation(): Prisma.ConversationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.message`: Exposes CRUD operations for the **Message** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Messages
+    * const messages = await prisma.message.findMany()
+    * ```
+    */
+  get message(): Prisma.MessageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.blockedContact`: Exposes CRUD operations for the **BlockedContact** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BlockedContacts
+    * const blockedContacts = await prisma.blockedContact.findMany()
+    * ```
+    */
+  get blockedContact(): Prisma.BlockedContactDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.conversationReport`: Exposes CRUD operations for the **ConversationReport** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ConversationReports
+    * const conversationReports = await prisma.conversationReport.findMany()
+    * ```
+    */
+  get conversationReport(): Prisma.ConversationReportDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.guestConversation`: Exposes CRUD operations for the **GuestConversation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GuestConversations
+    * const guestConversations = await prisma.guestConversation.findMany()
+    * ```
+    */
+  get guestConversation(): Prisma.GuestConversationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.guestMessageEntry`: Exposes CRUD operations for the **GuestMessageEntry** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GuestMessageEntries
+    * const guestMessageEntries = await prisma.guestMessageEntry.findMany()
+    * ```
+    */
+  get guestMessageEntry(): Prisma.GuestMessageEntryDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -2796,7 +3002,14 @@ export namespace Prisma {
     ParkingListing: 'ParkingListing',
     ParkingSlotWindow: 'ParkingSlotWindow',
     ParkingBooking: 'ParkingBooking',
-    ParkingWaitlistEntry: 'ParkingWaitlistEntry'
+    ParkingWaitlistEntry: 'ParkingWaitlistEntry',
+    VehicleQrToken: 'VehicleQrToken',
+    Conversation: 'Conversation',
+    Message: 'Message',
+    BlockedContact: 'BlockedContact',
+    ConversationReport: 'ConversationReport',
+    GuestConversation: 'GuestConversation',
+    GuestMessageEntry: 'GuestMessageEntry'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -2812,7 +3025,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingListing" | "parkingSlotWindow" | "parkingBooking" | "parkingWaitlistEntry"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingListing" | "parkingSlotWindow" | "parkingBooking" | "parkingWaitlistEntry" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -9106,6 +9319,524 @@ export namespace Prisma {
           }
         }
       }
+      VehicleQrToken: {
+        payload: Prisma.$VehicleQrTokenPayload<ExtArgs>
+        fields: Prisma.VehicleQrTokenFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.VehicleQrTokenFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.VehicleQrTokenFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>
+          }
+          findFirst: {
+            args: Prisma.VehicleQrTokenFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.VehicleQrTokenFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>
+          }
+          findMany: {
+            args: Prisma.VehicleQrTokenFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>[]
+          }
+          create: {
+            args: Prisma.VehicleQrTokenCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>
+          }
+          createMany: {
+            args: Prisma.VehicleQrTokenCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.VehicleQrTokenCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>[]
+          }
+          delete: {
+            args: Prisma.VehicleQrTokenDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>
+          }
+          update: {
+            args: Prisma.VehicleQrTokenUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>
+          }
+          deleteMany: {
+            args: Prisma.VehicleQrTokenDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.VehicleQrTokenUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.VehicleQrTokenUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>[]
+          }
+          upsert: {
+            args: Prisma.VehicleQrTokenUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$VehicleQrTokenPayload>
+          }
+          aggregate: {
+            args: Prisma.VehicleQrTokenAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateVehicleQrToken>
+          }
+          groupBy: {
+            args: Prisma.VehicleQrTokenGroupByArgs<ExtArgs>
+            result: $Utils.Optional<VehicleQrTokenGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.VehicleQrTokenCountArgs<ExtArgs>
+            result: $Utils.Optional<VehicleQrTokenCountAggregateOutputType> | number
+          }
+        }
+      }
+      Conversation: {
+        payload: Prisma.$ConversationPayload<ExtArgs>
+        fields: Prisma.ConversationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConversationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConversationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>
+          }
+          findFirst: {
+            args: Prisma.ConversationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConversationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>
+          }
+          findMany: {
+            args: Prisma.ConversationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>[]
+          }
+          create: {
+            args: Prisma.ConversationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>
+          }
+          createMany: {
+            args: Prisma.ConversationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConversationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>[]
+          }
+          delete: {
+            args: Prisma.ConversationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>
+          }
+          update: {
+            args: Prisma.ConversationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>
+          }
+          deleteMany: {
+            args: Prisma.ConversationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConversationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ConversationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>[]
+          }
+          upsert: {
+            args: Prisma.ConversationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationPayload>
+          }
+          aggregate: {
+            args: Prisma.ConversationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConversation>
+          }
+          groupBy: {
+            args: Prisma.ConversationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConversationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConversationCountArgs<ExtArgs>
+            result: $Utils.Optional<ConversationCountAggregateOutputType> | number
+          }
+        }
+      }
+      Message: {
+        payload: Prisma.$MessagePayload<ExtArgs>
+        fields: Prisma.MessageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MessageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MessageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>
+          }
+          findFirst: {
+            args: Prisma.MessageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MessageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>
+          }
+          findMany: {
+            args: Prisma.MessageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>[]
+          }
+          create: {
+            args: Prisma.MessageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>
+          }
+          createMany: {
+            args: Prisma.MessageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MessageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>[]
+          }
+          delete: {
+            args: Prisma.MessageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>
+          }
+          update: {
+            args: Prisma.MessageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>
+          }
+          deleteMany: {
+            args: Prisma.MessageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MessageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MessageUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>[]
+          }
+          upsert: {
+            args: Prisma.MessageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MessagePayload>
+          }
+          aggregate: {
+            args: Prisma.MessageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMessage>
+          }
+          groupBy: {
+            args: Prisma.MessageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MessageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MessageCountArgs<ExtArgs>
+            result: $Utils.Optional<MessageCountAggregateOutputType> | number
+          }
+        }
+      }
+      BlockedContact: {
+        payload: Prisma.$BlockedContactPayload<ExtArgs>
+        fields: Prisma.BlockedContactFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BlockedContactFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BlockedContactFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>
+          }
+          findFirst: {
+            args: Prisma.BlockedContactFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BlockedContactFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>
+          }
+          findMany: {
+            args: Prisma.BlockedContactFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>[]
+          }
+          create: {
+            args: Prisma.BlockedContactCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>
+          }
+          createMany: {
+            args: Prisma.BlockedContactCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BlockedContactCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>[]
+          }
+          delete: {
+            args: Prisma.BlockedContactDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>
+          }
+          update: {
+            args: Prisma.BlockedContactUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>
+          }
+          deleteMany: {
+            args: Prisma.BlockedContactDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BlockedContactUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BlockedContactUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>[]
+          }
+          upsert: {
+            args: Prisma.BlockedContactUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BlockedContactPayload>
+          }
+          aggregate: {
+            args: Prisma.BlockedContactAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBlockedContact>
+          }
+          groupBy: {
+            args: Prisma.BlockedContactGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BlockedContactGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BlockedContactCountArgs<ExtArgs>
+            result: $Utils.Optional<BlockedContactCountAggregateOutputType> | number
+          }
+        }
+      }
+      ConversationReport: {
+        payload: Prisma.$ConversationReportPayload<ExtArgs>
+        fields: Prisma.ConversationReportFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ConversationReportFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ConversationReportFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>
+          }
+          findFirst: {
+            args: Prisma.ConversationReportFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ConversationReportFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>
+          }
+          findMany: {
+            args: Prisma.ConversationReportFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>[]
+          }
+          create: {
+            args: Prisma.ConversationReportCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>
+          }
+          createMany: {
+            args: Prisma.ConversationReportCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ConversationReportCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>[]
+          }
+          delete: {
+            args: Prisma.ConversationReportDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>
+          }
+          update: {
+            args: Prisma.ConversationReportUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>
+          }
+          deleteMany: {
+            args: Prisma.ConversationReportDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ConversationReportUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ConversationReportUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>[]
+          }
+          upsert: {
+            args: Prisma.ConversationReportUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ConversationReportPayload>
+          }
+          aggregate: {
+            args: Prisma.ConversationReportAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateConversationReport>
+          }
+          groupBy: {
+            args: Prisma.ConversationReportGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ConversationReportGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ConversationReportCountArgs<ExtArgs>
+            result: $Utils.Optional<ConversationReportCountAggregateOutputType> | number
+          }
+        }
+      }
+      GuestConversation: {
+        payload: Prisma.$GuestConversationPayload<ExtArgs>
+        fields: Prisma.GuestConversationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GuestConversationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GuestConversationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>
+          }
+          findFirst: {
+            args: Prisma.GuestConversationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GuestConversationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>
+          }
+          findMany: {
+            args: Prisma.GuestConversationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>[]
+          }
+          create: {
+            args: Prisma.GuestConversationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>
+          }
+          createMany: {
+            args: Prisma.GuestConversationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GuestConversationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>[]
+          }
+          delete: {
+            args: Prisma.GuestConversationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>
+          }
+          update: {
+            args: Prisma.GuestConversationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>
+          }
+          deleteMany: {
+            args: Prisma.GuestConversationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GuestConversationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GuestConversationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>[]
+          }
+          upsert: {
+            args: Prisma.GuestConversationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestConversationPayload>
+          }
+          aggregate: {
+            args: Prisma.GuestConversationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGuestConversation>
+          }
+          groupBy: {
+            args: Prisma.GuestConversationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GuestConversationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GuestConversationCountArgs<ExtArgs>
+            result: $Utils.Optional<GuestConversationCountAggregateOutputType> | number
+          }
+        }
+      }
+      GuestMessageEntry: {
+        payload: Prisma.$GuestMessageEntryPayload<ExtArgs>
+        fields: Prisma.GuestMessageEntryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GuestMessageEntryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GuestMessageEntryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>
+          }
+          findFirst: {
+            args: Prisma.GuestMessageEntryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GuestMessageEntryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>
+          }
+          findMany: {
+            args: Prisma.GuestMessageEntryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>[]
+          }
+          create: {
+            args: Prisma.GuestMessageEntryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>
+          }
+          createMany: {
+            args: Prisma.GuestMessageEntryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GuestMessageEntryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>[]
+          }
+          delete: {
+            args: Prisma.GuestMessageEntryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>
+          }
+          update: {
+            args: Prisma.GuestMessageEntryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>
+          }
+          deleteMany: {
+            args: Prisma.GuestMessageEntryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GuestMessageEntryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GuestMessageEntryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>[]
+          }
+          upsert: {
+            args: Prisma.GuestMessageEntryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GuestMessageEntryPayload>
+          }
+          aggregate: {
+            args: Prisma.GuestMessageEntryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGuestMessageEntry>
+          }
+          groupBy: {
+            args: Prisma.GuestMessageEntryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GuestMessageEntryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GuestMessageEntryCountArgs<ExtArgs>
+            result: $Utils.Optional<GuestMessageEntryCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -9299,6 +10030,13 @@ export namespace Prisma {
     parkingSlotWindow?: ParkingSlotWindowOmit
     parkingBooking?: ParkingBookingOmit
     parkingWaitlistEntry?: ParkingWaitlistEntryOmit
+    vehicleQrToken?: VehicleQrTokenOmit
+    conversation?: ConversationOmit
+    message?: MessageOmit
+    blockedContact?: BlockedContactOmit
+    conversationReport?: ConversationReportOmit
+    guestConversation?: GuestConversationOmit
+    guestMessageEntry?: GuestMessageEntryOmit
   }
 
   /* Types for Logging */
@@ -9395,6 +10133,10 @@ export namespace Prisma {
     orders: number
     parkingBookings: number
     waitlistEntries: number
+    conversationsAsCustomer: number
+    conversationsAsOwner: number
+    blockedContacts: number
+    guestConversations: number
   }
 
   export type CustomerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9414,6 +10156,10 @@ export namespace Prisma {
     orders?: boolean | CustomerCountOutputTypeCountOrdersArgs
     parkingBookings?: boolean | CustomerCountOutputTypeCountParkingBookingsArgs
     waitlistEntries?: boolean | CustomerCountOutputTypeCountWaitlistEntriesArgs
+    conversationsAsCustomer?: boolean | CustomerCountOutputTypeCountConversationsAsCustomerArgs
+    conversationsAsOwner?: boolean | CustomerCountOutputTypeCountConversationsAsOwnerArgs
+    blockedContacts?: boolean | CustomerCountOutputTypeCountBlockedContactsArgs
+    guestConversations?: boolean | CustomerCountOutputTypeCountGuestConversationsArgs
   }
 
   // Custom InputTypes
@@ -9539,6 +10285,34 @@ export namespace Prisma {
     where?: ParkingWaitlistEntryWhereInput
   }
 
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountConversationsAsCustomerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConversationWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountConversationsAsOwnerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConversationWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountBlockedContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BlockedContactWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountGuestConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuestConversationWhereInput
+  }
+
 
   /**
    * Count Type CustomerVehicleCountOutputType
@@ -9552,6 +10326,8 @@ export namespace Prisma {
     odometerLogs: number
     serviceRecords: number
     accessList: number
+    conversations: number
+    guestConversations: number
   }
 
   export type CustomerVehicleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9562,6 +10338,8 @@ export namespace Prisma {
     odometerLogs?: boolean | CustomerVehicleCountOutputTypeCountOdometerLogsArgs
     serviceRecords?: boolean | CustomerVehicleCountOutputTypeCountServiceRecordsArgs
     accessList?: boolean | CustomerVehicleCountOutputTypeCountAccessListArgs
+    conversations?: boolean | CustomerVehicleCountOutputTypeCountConversationsArgs
+    guestConversations?: boolean | CustomerVehicleCountOutputTypeCountGuestConversationsArgs
   }
 
   // Custom InputTypes
@@ -9622,6 +10400,20 @@ export namespace Prisma {
    */
   export type CustomerVehicleCountOutputTypeCountAccessListArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: VehicleAccessWhereInput
+  }
+
+  /**
+   * CustomerVehicleCountOutputType without action
+   */
+  export type CustomerVehicleCountOutputTypeCountConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConversationWhereInput
+  }
+
+  /**
+   * CustomerVehicleCountOutputType without action
+   */
+  export type CustomerVehicleCountOutputTypeCountGuestConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuestConversationWhereInput
   }
 
 
@@ -10606,6 +11398,77 @@ export namespace Prisma {
    */
   export type ParkingListingCountOutputTypeCountWaitlistArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ParkingWaitlistEntryWhereInput
+  }
+
+
+  /**
+   * Count Type ConversationCountOutputType
+   */
+
+  export type ConversationCountOutputType = {
+    messages: number
+    reports: number
+  }
+
+  export type ConversationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    messages?: boolean | ConversationCountOutputTypeCountMessagesArgs
+    reports?: boolean | ConversationCountOutputTypeCountReportsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ConversationCountOutputType without action
+   */
+  export type ConversationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationCountOutputType
+     */
+    select?: ConversationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ConversationCountOutputType without action
+   */
+  export type ConversationCountOutputTypeCountMessagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MessageWhereInput
+  }
+
+  /**
+   * ConversationCountOutputType without action
+   */
+  export type ConversationCountOutputTypeCountReportsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConversationReportWhereInput
+  }
+
+
+  /**
+   * Count Type GuestConversationCountOutputType
+   */
+
+  export type GuestConversationCountOutputType = {
+    entries: number
+  }
+
+  export type GuestConversationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    entries?: boolean | GuestConversationCountOutputTypeCountEntriesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * GuestConversationCountOutputType without action
+   */
+  export type GuestConversationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversationCountOutputType
+     */
+    select?: GuestConversationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * GuestConversationCountOutputType without action
+   */
+  export type GuestConversationCountOutputTypeCountEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuestMessageEntryWhereInput
   }
 
 
@@ -12671,6 +13534,9 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     googleId: string | null
+    isSuspended: boolean | null
+    suspendedReason: string | null
+    suspendedAt: Date | null
   }
 
   export type CustomerMaxAggregateOutputType = {
@@ -12682,6 +13548,9 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     googleId: string | null
+    isSuspended: boolean | null
+    suspendedReason: string | null
+    suspendedAt: Date | null
   }
 
   export type CustomerCountAggregateOutputType = {
@@ -12693,6 +13562,9 @@ export namespace Prisma {
     createdAt: number
     updatedAt: number
     googleId: number
+    isSuspended: number
+    suspendedReason: number
+    suspendedAt: number
     _all: number
   }
 
@@ -12706,6 +13578,9 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     googleId?: true
+    isSuspended?: true
+    suspendedReason?: true
+    suspendedAt?: true
   }
 
   export type CustomerMaxAggregateInputType = {
@@ -12717,6 +13592,9 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     googleId?: true
+    isSuspended?: true
+    suspendedReason?: true
+    suspendedAt?: true
   }
 
   export type CustomerCountAggregateInputType = {
@@ -12728,6 +13606,9 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     googleId?: true
+    isSuspended?: true
+    suspendedReason?: true
+    suspendedAt?: true
     _all?: true
   }
 
@@ -12812,6 +13693,9 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     googleId: string | null
+    isSuspended: boolean
+    suspendedReason: string | null
+    suspendedAt: Date | null
     _count: CustomerCountAggregateOutputType | null
     _min: CustomerMinAggregateOutputType | null
     _max: CustomerMaxAggregateOutputType | null
@@ -12840,6 +13724,9 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     googleId?: boolean
+    isSuspended?: boolean
+    suspendedReason?: boolean
+    suspendedAt?: boolean
     chats?: boolean | Customer$chatsArgs<ExtArgs>
     devices?: boolean | Customer$devicesArgs<ExtArgs>
     documents?: boolean | Customer$documentsArgs<ExtArgs>
@@ -12859,6 +13746,10 @@ export namespace Prisma {
     orders?: boolean | Customer$ordersArgs<ExtArgs>
     parkingBookings?: boolean | Customer$parkingBookingsArgs<ExtArgs>
     waitlistEntries?: boolean | Customer$waitlistEntriesArgs<ExtArgs>
+    conversationsAsCustomer?: boolean | Customer$conversationsAsCustomerArgs<ExtArgs>
+    conversationsAsOwner?: boolean | Customer$conversationsAsOwnerArgs<ExtArgs>
+    blockedContacts?: boolean | Customer$blockedContactsArgs<ExtArgs>
+    guestConversations?: boolean | Customer$guestConversationsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customer"]>
 
@@ -12871,6 +13762,9 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     googleId?: boolean
+    isSuspended?: boolean
+    suspendedReason?: boolean
+    suspendedAt?: boolean
   }, ExtArgs["result"]["customer"]>
 
   export type CustomerSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -12882,6 +13776,9 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     googleId?: boolean
+    isSuspended?: boolean
+    suspendedReason?: boolean
+    suspendedAt?: boolean
   }, ExtArgs["result"]["customer"]>
 
   export type CustomerSelectScalar = {
@@ -12893,9 +13790,12 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     googleId?: boolean
+    isSuspended?: boolean
+    suspendedReason?: boolean
+    suspendedAt?: boolean
   }
 
-  export type CustomerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phoneNumber" | "email" | "fullName" | "profilePic" | "createdAt" | "updatedAt" | "googleId", ExtArgs["result"]["customer"]>
+  export type CustomerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "phoneNumber" | "email" | "fullName" | "profilePic" | "createdAt" | "updatedAt" | "googleId" | "isSuspended" | "suspendedReason" | "suspendedAt", ExtArgs["result"]["customer"]>
   export type CustomerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     chats?: boolean | Customer$chatsArgs<ExtArgs>
     devices?: boolean | Customer$devicesArgs<ExtArgs>
@@ -12916,6 +13816,10 @@ export namespace Prisma {
     orders?: boolean | Customer$ordersArgs<ExtArgs>
     parkingBookings?: boolean | Customer$parkingBookingsArgs<ExtArgs>
     waitlistEntries?: boolean | Customer$waitlistEntriesArgs<ExtArgs>
+    conversationsAsCustomer?: boolean | Customer$conversationsAsCustomerArgs<ExtArgs>
+    conversationsAsOwner?: boolean | Customer$conversationsAsOwnerArgs<ExtArgs>
+    blockedContacts?: boolean | Customer$blockedContactsArgs<ExtArgs>
+    guestConversations?: boolean | Customer$guestConversationsArgs<ExtArgs>
     _count?: boolean | CustomerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -12943,6 +13847,10 @@ export namespace Prisma {
       orders: Prisma.$CustomerOrderPayload<ExtArgs>[]
       parkingBookings: Prisma.$ParkingBookingPayload<ExtArgs>[]
       waitlistEntries: Prisma.$ParkingWaitlistEntryPayload<ExtArgs>[]
+      conversationsAsCustomer: Prisma.$ConversationPayload<ExtArgs>[]
+      conversationsAsOwner: Prisma.$ConversationPayload<ExtArgs>[]
+      blockedContacts: Prisma.$BlockedContactPayload<ExtArgs>[]
+      guestConversations: Prisma.$GuestConversationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -12953,6 +13861,9 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       googleId: string | null
+      isSuspended: boolean
+      suspendedReason: string | null
+      suspendedAt: Date | null
     }, ExtArgs["result"]["customer"]>
     composites: {}
   }
@@ -13366,6 +14277,10 @@ export namespace Prisma {
     orders<T extends Customer$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Customer$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     parkingBookings<T extends Customer$parkingBookingsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$parkingBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     waitlistEntries<T extends Customer$waitlistEntriesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$waitlistEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    conversationsAsCustomer<T extends Customer$conversationsAsCustomerArgs<ExtArgs> = {}>(args?: Subset<T, Customer$conversationsAsCustomerArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    conversationsAsOwner<T extends Customer$conversationsAsOwnerArgs<ExtArgs> = {}>(args?: Subset<T, Customer$conversationsAsOwnerArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    blockedContacts<T extends Customer$blockedContactsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$blockedContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    guestConversations<T extends Customer$guestConversationsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$guestConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -13403,6 +14318,9 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Customer", 'DateTime'>
     readonly updatedAt: FieldRef<"Customer", 'DateTime'>
     readonly googleId: FieldRef<"Customer", 'String'>
+    readonly isSuspended: FieldRef<"Customer", 'Boolean'>
+    readonly suspendedReason: FieldRef<"Customer", 'String'>
+    readonly suspendedAt: FieldRef<"Customer", 'DateTime'>
   }
     
 
@@ -14234,6 +15152,102 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.conversationsAsCustomer
+   */
+  export type Customer$conversationsAsCustomerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    where?: ConversationWhereInput
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    cursor?: ConversationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.conversationsAsOwner
+   */
+  export type Customer$conversationsAsOwnerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    where?: ConversationWhereInput
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    cursor?: ConversationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.blockedContacts
+   */
+  export type Customer$blockedContactsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    where?: BlockedContactWhereInput
+    orderBy?: BlockedContactOrderByWithRelationInput | BlockedContactOrderByWithRelationInput[]
+    cursor?: BlockedContactWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BlockedContactScalarFieldEnum | BlockedContactScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.guestConversations
+   */
+  export type Customer$guestConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    where?: GuestConversationWhereInput
+    orderBy?: GuestConversationOrderByWithRelationInput | GuestConversationOrderByWithRelationInput[]
+    cursor?: GuestConversationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuestConversationScalarFieldEnum | GuestConversationScalarFieldEnum[]
   }
 
   /**
@@ -20413,6 +21427,9 @@ export namespace Prisma {
     telematicsDevice?: boolean | CustomerVehicle$telematicsDeviceArgs<ExtArgs>
     accessList?: boolean | CustomerVehicle$accessListArgs<ExtArgs>
     healthScore?: boolean | CustomerVehicle$healthScoreArgs<ExtArgs>
+    qrToken?: boolean | CustomerVehicle$qrTokenArgs<ExtArgs>
+    conversations?: boolean | CustomerVehicle$conversationsArgs<ExtArgs>
+    guestConversations?: boolean | CustomerVehicle$guestConversationsArgs<ExtArgs>
     _count?: boolean | CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["customerVehicle"]>
 
@@ -20529,6 +21546,9 @@ export namespace Prisma {
     telematicsDevice?: boolean | CustomerVehicle$telematicsDeviceArgs<ExtArgs>
     accessList?: boolean | CustomerVehicle$accessListArgs<ExtArgs>
     healthScore?: boolean | CustomerVehicle$healthScoreArgs<ExtArgs>
+    qrToken?: boolean | CustomerVehicle$qrTokenArgs<ExtArgs>
+    conversations?: boolean | CustomerVehicle$conversationsArgs<ExtArgs>
+    guestConversations?: boolean | CustomerVehicle$guestConversationsArgs<ExtArgs>
     _count?: boolean | CustomerVehicleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CustomerVehicleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -20551,6 +21571,9 @@ export namespace Prisma {
       telematicsDevice: Prisma.$TelematicsDevicePayload<ExtArgs> | null
       accessList: Prisma.$VehicleAccessPayload<ExtArgs>[]
       healthScore: Prisma.$VehicleHealthScorePayload<ExtArgs> | null
+      qrToken: Prisma.$VehicleQrTokenPayload<ExtArgs> | null
+      conversations: Prisma.$ConversationPayload<ExtArgs>[]
+      guestConversations: Prisma.$GuestConversationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -20987,6 +22010,9 @@ export namespace Prisma {
     telematicsDevice<T extends CustomerVehicle$telematicsDeviceArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$telematicsDeviceArgs<ExtArgs>>): Prisma__TelematicsDeviceClient<$Result.GetResult<Prisma.$TelematicsDevicePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     accessList<T extends CustomerVehicle$accessListArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$accessListArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     healthScore<T extends CustomerVehicle$healthScoreArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$healthScoreArgs<ExtArgs>>): Prisma__VehicleHealthScoreClient<$Result.GetResult<Prisma.$VehicleHealthScorePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    qrToken<T extends CustomerVehicle$qrTokenArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$qrTokenArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    conversations<T extends CustomerVehicle$conversationsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    guestConversations<T extends CustomerVehicle$guestConversationsArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicle$guestConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -21650,6 +22676,73 @@ export namespace Prisma {
      */
     include?: VehicleHealthScoreInclude<ExtArgs> | null
     where?: VehicleHealthScoreWhereInput
+  }
+
+  /**
+   * CustomerVehicle.qrToken
+   */
+  export type CustomerVehicle$qrTokenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    where?: VehicleQrTokenWhereInput
+  }
+
+  /**
+   * CustomerVehicle.conversations
+   */
+  export type CustomerVehicle$conversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    where?: ConversationWhereInput
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    cursor?: ConversationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * CustomerVehicle.guestConversations
+   */
+  export type CustomerVehicle$guestConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    where?: GuestConversationWhereInput
+    orderBy?: GuestConversationOrderByWithRelationInput | GuestConversationOrderByWithRelationInput[]
+    cursor?: GuestConversationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuestConversationScalarFieldEnum | GuestConversationScalarFieldEnum[]
   }
 
   /**
@@ -110893,6 +111986,8017 @@ export namespace Prisma {
 
 
   /**
+   * Model VehicleQrToken
+   */
+
+  export type AggregateVehicleQrToken = {
+    _count: VehicleQrTokenCountAggregateOutputType | null
+    _min: VehicleQrTokenMinAggregateOutputType | null
+    _max: VehicleQrTokenMaxAggregateOutputType | null
+  }
+
+  export type VehicleQrTokenMinAggregateOutputType = {
+    id: string | null
+    vehicleId: string | null
+    token: string | null
+    createdAt: Date | null
+    rotatedAt: Date | null
+  }
+
+  export type VehicleQrTokenMaxAggregateOutputType = {
+    id: string | null
+    vehicleId: string | null
+    token: string | null
+    createdAt: Date | null
+    rotatedAt: Date | null
+  }
+
+  export type VehicleQrTokenCountAggregateOutputType = {
+    id: number
+    vehicleId: number
+    token: number
+    createdAt: number
+    rotatedAt: number
+    _all: number
+  }
+
+
+  export type VehicleQrTokenMinAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    token?: true
+    createdAt?: true
+    rotatedAt?: true
+  }
+
+  export type VehicleQrTokenMaxAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    token?: true
+    createdAt?: true
+    rotatedAt?: true
+  }
+
+  export type VehicleQrTokenCountAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    token?: true
+    createdAt?: true
+    rotatedAt?: true
+    _all?: true
+  }
+
+  export type VehicleQrTokenAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VehicleQrToken to aggregate.
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleQrTokens to fetch.
+     */
+    orderBy?: VehicleQrTokenOrderByWithRelationInput | VehicleQrTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: VehicleQrTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleQrTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleQrTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned VehicleQrTokens
+    **/
+    _count?: true | VehicleQrTokenCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: VehicleQrTokenMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: VehicleQrTokenMaxAggregateInputType
+  }
+
+  export type GetVehicleQrTokenAggregateType<T extends VehicleQrTokenAggregateArgs> = {
+        [P in keyof T & keyof AggregateVehicleQrToken]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateVehicleQrToken[P]>
+      : GetScalarType<T[P], AggregateVehicleQrToken[P]>
+  }
+
+
+
+
+  export type VehicleQrTokenGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: VehicleQrTokenWhereInput
+    orderBy?: VehicleQrTokenOrderByWithAggregationInput | VehicleQrTokenOrderByWithAggregationInput[]
+    by: VehicleQrTokenScalarFieldEnum[] | VehicleQrTokenScalarFieldEnum
+    having?: VehicleQrTokenScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: VehicleQrTokenCountAggregateInputType | true
+    _min?: VehicleQrTokenMinAggregateInputType
+    _max?: VehicleQrTokenMaxAggregateInputType
+  }
+
+  export type VehicleQrTokenGroupByOutputType = {
+    id: string
+    vehicleId: string
+    token: string
+    createdAt: Date
+    rotatedAt: Date
+    _count: VehicleQrTokenCountAggregateOutputType | null
+    _min: VehicleQrTokenMinAggregateOutputType | null
+    _max: VehicleQrTokenMaxAggregateOutputType | null
+  }
+
+  type GetVehicleQrTokenGroupByPayload<T extends VehicleQrTokenGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<VehicleQrTokenGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof VehicleQrTokenGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], VehicleQrTokenGroupByOutputType[P]>
+            : GetScalarType<T[P], VehicleQrTokenGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type VehicleQrTokenSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    token?: boolean
+    createdAt?: boolean
+    rotatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleQrToken"]>
+
+  export type VehicleQrTokenSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    token?: boolean
+    createdAt?: boolean
+    rotatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleQrToken"]>
+
+  export type VehicleQrTokenSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    token?: boolean
+    createdAt?: boolean
+    rotatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["vehicleQrToken"]>
+
+  export type VehicleQrTokenSelectScalar = {
+    id?: boolean
+    vehicleId?: boolean
+    token?: boolean
+    createdAt?: boolean
+    rotatedAt?: boolean
+  }
+
+  export type VehicleQrTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "token" | "createdAt" | "rotatedAt", ExtArgs["result"]["vehicleQrToken"]>
+  export type VehicleQrTokenInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
+  export type VehicleQrTokenIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
+  export type VehicleQrTokenIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+  }
+
+  export type $VehicleQrTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "VehicleQrToken"
+    objects: {
+      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      vehicleId: string
+      token: string
+      createdAt: Date
+      rotatedAt: Date
+    }, ExtArgs["result"]["vehicleQrToken"]>
+    composites: {}
+  }
+
+  type VehicleQrTokenGetPayload<S extends boolean | null | undefined | VehicleQrTokenDefaultArgs> = $Result.GetResult<Prisma.$VehicleQrTokenPayload, S>
+
+  type VehicleQrTokenCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<VehicleQrTokenFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: VehicleQrTokenCountAggregateInputType | true
+    }
+
+  export interface VehicleQrTokenDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['VehicleQrToken'], meta: { name: 'VehicleQrToken' } }
+    /**
+     * Find zero or one VehicleQrToken that matches the filter.
+     * @param {VehicleQrTokenFindUniqueArgs} args - Arguments to find a VehicleQrToken
+     * @example
+     * // Get one VehicleQrToken
+     * const vehicleQrToken = await prisma.vehicleQrToken.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends VehicleQrTokenFindUniqueArgs>(args: SelectSubset<T, VehicleQrTokenFindUniqueArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one VehicleQrToken that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {VehicleQrTokenFindUniqueOrThrowArgs} args - Arguments to find a VehicleQrToken
+     * @example
+     * // Get one VehicleQrToken
+     * const vehicleQrToken = await prisma.vehicleQrToken.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends VehicleQrTokenFindUniqueOrThrowArgs>(args: SelectSubset<T, VehicleQrTokenFindUniqueOrThrowArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VehicleQrToken that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenFindFirstArgs} args - Arguments to find a VehicleQrToken
+     * @example
+     * // Get one VehicleQrToken
+     * const vehicleQrToken = await prisma.vehicleQrToken.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends VehicleQrTokenFindFirstArgs>(args?: SelectSubset<T, VehicleQrTokenFindFirstArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first VehicleQrToken that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenFindFirstOrThrowArgs} args - Arguments to find a VehicleQrToken
+     * @example
+     * // Get one VehicleQrToken
+     * const vehicleQrToken = await prisma.vehicleQrToken.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends VehicleQrTokenFindFirstOrThrowArgs>(args?: SelectSubset<T, VehicleQrTokenFindFirstOrThrowArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more VehicleQrTokens that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all VehicleQrTokens
+     * const vehicleQrTokens = await prisma.vehicleQrToken.findMany()
+     * 
+     * // Get first 10 VehicleQrTokens
+     * const vehicleQrTokens = await prisma.vehicleQrToken.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const vehicleQrTokenWithIdOnly = await prisma.vehicleQrToken.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends VehicleQrTokenFindManyArgs>(args?: SelectSubset<T, VehicleQrTokenFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a VehicleQrToken.
+     * @param {VehicleQrTokenCreateArgs} args - Arguments to create a VehicleQrToken.
+     * @example
+     * // Create one VehicleQrToken
+     * const VehicleQrToken = await prisma.vehicleQrToken.create({
+     *   data: {
+     *     // ... data to create a VehicleQrToken
+     *   }
+     * })
+     * 
+     */
+    create<T extends VehicleQrTokenCreateArgs>(args: SelectSubset<T, VehicleQrTokenCreateArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many VehicleQrTokens.
+     * @param {VehicleQrTokenCreateManyArgs} args - Arguments to create many VehicleQrTokens.
+     * @example
+     * // Create many VehicleQrTokens
+     * const vehicleQrToken = await prisma.vehicleQrToken.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends VehicleQrTokenCreateManyArgs>(args?: SelectSubset<T, VehicleQrTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many VehicleQrTokens and returns the data saved in the database.
+     * @param {VehicleQrTokenCreateManyAndReturnArgs} args - Arguments to create many VehicleQrTokens.
+     * @example
+     * // Create many VehicleQrTokens
+     * const vehicleQrToken = await prisma.vehicleQrToken.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many VehicleQrTokens and only return the `id`
+     * const vehicleQrTokenWithIdOnly = await prisma.vehicleQrToken.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends VehicleQrTokenCreateManyAndReturnArgs>(args?: SelectSubset<T, VehicleQrTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a VehicleQrToken.
+     * @param {VehicleQrTokenDeleteArgs} args - Arguments to delete one VehicleQrToken.
+     * @example
+     * // Delete one VehicleQrToken
+     * const VehicleQrToken = await prisma.vehicleQrToken.delete({
+     *   where: {
+     *     // ... filter to delete one VehicleQrToken
+     *   }
+     * })
+     * 
+     */
+    delete<T extends VehicleQrTokenDeleteArgs>(args: SelectSubset<T, VehicleQrTokenDeleteArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one VehicleQrToken.
+     * @param {VehicleQrTokenUpdateArgs} args - Arguments to update one VehicleQrToken.
+     * @example
+     * // Update one VehicleQrToken
+     * const vehicleQrToken = await prisma.vehicleQrToken.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends VehicleQrTokenUpdateArgs>(args: SelectSubset<T, VehicleQrTokenUpdateArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more VehicleQrTokens.
+     * @param {VehicleQrTokenDeleteManyArgs} args - Arguments to filter VehicleQrTokens to delete.
+     * @example
+     * // Delete a few VehicleQrTokens
+     * const { count } = await prisma.vehicleQrToken.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends VehicleQrTokenDeleteManyArgs>(args?: SelectSubset<T, VehicleQrTokenDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VehicleQrTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many VehicleQrTokens
+     * const vehicleQrToken = await prisma.vehicleQrToken.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends VehicleQrTokenUpdateManyArgs>(args: SelectSubset<T, VehicleQrTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more VehicleQrTokens and returns the data updated in the database.
+     * @param {VehicleQrTokenUpdateManyAndReturnArgs} args - Arguments to update many VehicleQrTokens.
+     * @example
+     * // Update many VehicleQrTokens
+     * const vehicleQrToken = await prisma.vehicleQrToken.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more VehicleQrTokens and only return the `id`
+     * const vehicleQrTokenWithIdOnly = await prisma.vehicleQrToken.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends VehicleQrTokenUpdateManyAndReturnArgs>(args: SelectSubset<T, VehicleQrTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one VehicleQrToken.
+     * @param {VehicleQrTokenUpsertArgs} args - Arguments to update or create a VehicleQrToken.
+     * @example
+     * // Update or create a VehicleQrToken
+     * const vehicleQrToken = await prisma.vehicleQrToken.upsert({
+     *   create: {
+     *     // ... data to create a VehicleQrToken
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the VehicleQrToken we want to update
+     *   }
+     * })
+     */
+    upsert<T extends VehicleQrTokenUpsertArgs>(args: SelectSubset<T, VehicleQrTokenUpsertArgs<ExtArgs>>): Prisma__VehicleQrTokenClient<$Result.GetResult<Prisma.$VehicleQrTokenPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of VehicleQrTokens.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenCountArgs} args - Arguments to filter VehicleQrTokens to count.
+     * @example
+     * // Count the number of VehicleQrTokens
+     * const count = await prisma.vehicleQrToken.count({
+     *   where: {
+     *     // ... the filter for the VehicleQrTokens we want to count
+     *   }
+     * })
+    **/
+    count<T extends VehicleQrTokenCountArgs>(
+      args?: Subset<T, VehicleQrTokenCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], VehicleQrTokenCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a VehicleQrToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends VehicleQrTokenAggregateArgs>(args: Subset<T, VehicleQrTokenAggregateArgs>): Prisma.PrismaPromise<GetVehicleQrTokenAggregateType<T>>
+
+    /**
+     * Group by VehicleQrToken.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {VehicleQrTokenGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends VehicleQrTokenGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: VehicleQrTokenGroupByArgs['orderBy'] }
+        : { orderBy?: VehicleQrTokenGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, VehicleQrTokenGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetVehicleQrTokenGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the VehicleQrToken model
+   */
+  readonly fields: VehicleQrTokenFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for VehicleQrToken.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__VehicleQrTokenClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    vehicle<T extends CustomerVehicleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicleDefaultArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the VehicleQrToken model
+   */
+  interface VehicleQrTokenFieldRefs {
+    readonly id: FieldRef<"VehicleQrToken", 'String'>
+    readonly vehicleId: FieldRef<"VehicleQrToken", 'String'>
+    readonly token: FieldRef<"VehicleQrToken", 'String'>
+    readonly createdAt: FieldRef<"VehicleQrToken", 'DateTime'>
+    readonly rotatedAt: FieldRef<"VehicleQrToken", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * VehicleQrToken findUnique
+   */
+  export type VehicleQrTokenFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleQrToken to fetch.
+     */
+    where: VehicleQrTokenWhereUniqueInput
+  }
+
+  /**
+   * VehicleQrToken findUniqueOrThrow
+   */
+  export type VehicleQrTokenFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleQrToken to fetch.
+     */
+    where: VehicleQrTokenWhereUniqueInput
+  }
+
+  /**
+   * VehicleQrToken findFirst
+   */
+  export type VehicleQrTokenFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleQrToken to fetch.
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleQrTokens to fetch.
+     */
+    orderBy?: VehicleQrTokenOrderByWithRelationInput | VehicleQrTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VehicleQrTokens.
+     */
+    cursor?: VehicleQrTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleQrTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleQrTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleQrTokens.
+     */
+    distinct?: VehicleQrTokenScalarFieldEnum | VehicleQrTokenScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleQrToken findFirstOrThrow
+   */
+  export type VehicleQrTokenFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleQrToken to fetch.
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleQrTokens to fetch.
+     */
+    orderBy?: VehicleQrTokenOrderByWithRelationInput | VehicleQrTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for VehicleQrTokens.
+     */
+    cursor?: VehicleQrTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleQrTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleQrTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleQrTokens.
+     */
+    distinct?: VehicleQrTokenScalarFieldEnum | VehicleQrTokenScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleQrToken findMany
+   */
+  export type VehicleQrTokenFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * Filter, which VehicleQrTokens to fetch.
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of VehicleQrTokens to fetch.
+     */
+    orderBy?: VehicleQrTokenOrderByWithRelationInput | VehicleQrTokenOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing VehicleQrTokens.
+     */
+    cursor?: VehicleQrTokenWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` VehicleQrTokens from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` VehicleQrTokens.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of VehicleQrTokens.
+     */
+    distinct?: VehicleQrTokenScalarFieldEnum | VehicleQrTokenScalarFieldEnum[]
+  }
+
+  /**
+   * VehicleQrToken create
+   */
+  export type VehicleQrTokenCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to create a VehicleQrToken.
+     */
+    data: XOR<VehicleQrTokenCreateInput, VehicleQrTokenUncheckedCreateInput>
+  }
+
+  /**
+   * VehicleQrToken createMany
+   */
+  export type VehicleQrTokenCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many VehicleQrTokens.
+     */
+    data: VehicleQrTokenCreateManyInput | VehicleQrTokenCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * VehicleQrToken createManyAndReturn
+   */
+  export type VehicleQrTokenCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * The data used to create many VehicleQrTokens.
+     */
+    data: VehicleQrTokenCreateManyInput | VehicleQrTokenCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VehicleQrToken update
+   */
+  export type VehicleQrTokenUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * The data needed to update a VehicleQrToken.
+     */
+    data: XOR<VehicleQrTokenUpdateInput, VehicleQrTokenUncheckedUpdateInput>
+    /**
+     * Choose, which VehicleQrToken to update.
+     */
+    where: VehicleQrTokenWhereUniqueInput
+  }
+
+  /**
+   * VehicleQrToken updateMany
+   */
+  export type VehicleQrTokenUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update VehicleQrTokens.
+     */
+    data: XOR<VehicleQrTokenUpdateManyMutationInput, VehicleQrTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which VehicleQrTokens to update
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * Limit how many VehicleQrTokens to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleQrToken updateManyAndReturn
+   */
+  export type VehicleQrTokenUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * The data used to update VehicleQrTokens.
+     */
+    data: XOR<VehicleQrTokenUpdateManyMutationInput, VehicleQrTokenUncheckedUpdateManyInput>
+    /**
+     * Filter which VehicleQrTokens to update
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * Limit how many VehicleQrTokens to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * VehicleQrToken upsert
+   */
+  export type VehicleQrTokenUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * The filter to search for the VehicleQrToken to update in case it exists.
+     */
+    where: VehicleQrTokenWhereUniqueInput
+    /**
+     * In case the VehicleQrToken found by the `where` argument doesn't exist, create a new VehicleQrToken with this data.
+     */
+    create: XOR<VehicleQrTokenCreateInput, VehicleQrTokenUncheckedCreateInput>
+    /**
+     * In case the VehicleQrToken was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<VehicleQrTokenUpdateInput, VehicleQrTokenUncheckedUpdateInput>
+  }
+
+  /**
+   * VehicleQrToken delete
+   */
+  export type VehicleQrTokenDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+    /**
+     * Filter which VehicleQrToken to delete.
+     */
+    where: VehicleQrTokenWhereUniqueInput
+  }
+
+  /**
+   * VehicleQrToken deleteMany
+   */
+  export type VehicleQrTokenDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which VehicleQrTokens to delete
+     */
+    where?: VehicleQrTokenWhereInput
+    /**
+     * Limit how many VehicleQrTokens to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * VehicleQrToken without action
+   */
+  export type VehicleQrTokenDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the VehicleQrToken
+     */
+    select?: VehicleQrTokenSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the VehicleQrToken
+     */
+    omit?: VehicleQrTokenOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: VehicleQrTokenInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Conversation
+   */
+
+  export type AggregateConversation = {
+    _count: ConversationCountAggregateOutputType | null
+    _avg: ConversationAvgAggregateOutputType | null
+    _sum: ConversationSumAggregateOutputType | null
+    _min: ConversationMinAggregateOutputType | null
+    _max: ConversationMaxAggregateOutputType | null
+  }
+
+  export type ConversationAvgAggregateOutputType = {
+    unreadCountOwner: number | null
+    unreadCountCustomer: number | null
+  }
+
+  export type ConversationSumAggregateOutputType = {
+    unreadCountOwner: number | null
+    unreadCountCustomer: number | null
+  }
+
+  export type ConversationMinAggregateOutputType = {
+    id: string | null
+    vehicleId: string | null
+    customerId: string | null
+    ownerId: string | null
+    category: $Enums.ConversationCategory | null
+    priority: $Enums.MessagePriority | null
+    status: $Enums.ConversationStatus | null
+    lastMessage: string | null
+    lastMessageAt: Date | null
+    lastSenderId: string | null
+    unreadCountOwner: number | null
+    unreadCountCustomer: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ConversationMaxAggregateOutputType = {
+    id: string | null
+    vehicleId: string | null
+    customerId: string | null
+    ownerId: string | null
+    category: $Enums.ConversationCategory | null
+    priority: $Enums.MessagePriority | null
+    status: $Enums.ConversationStatus | null
+    lastMessage: string | null
+    lastMessageAt: Date | null
+    lastSenderId: string | null
+    unreadCountOwner: number | null
+    unreadCountCustomer: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ConversationCountAggregateOutputType = {
+    id: number
+    vehicleId: number
+    customerId: number
+    ownerId: number
+    category: number
+    priority: number
+    status: number
+    lastMessage: number
+    lastMessageAt: number
+    lastSenderId: number
+    unreadCountOwner: number
+    unreadCountCustomer: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ConversationAvgAggregateInputType = {
+    unreadCountOwner?: true
+    unreadCountCustomer?: true
+  }
+
+  export type ConversationSumAggregateInputType = {
+    unreadCountOwner?: true
+    unreadCountCustomer?: true
+  }
+
+  export type ConversationMinAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    customerId?: true
+    ownerId?: true
+    category?: true
+    priority?: true
+    status?: true
+    lastMessage?: true
+    lastMessageAt?: true
+    lastSenderId?: true
+    unreadCountOwner?: true
+    unreadCountCustomer?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ConversationMaxAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    customerId?: true
+    ownerId?: true
+    category?: true
+    priority?: true
+    status?: true
+    lastMessage?: true
+    lastMessageAt?: true
+    lastSenderId?: true
+    unreadCountOwner?: true
+    unreadCountCustomer?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ConversationCountAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    customerId?: true
+    ownerId?: true
+    category?: true
+    priority?: true
+    status?: true
+    lastMessage?: true
+    lastMessageAt?: true
+    lastSenderId?: true
+    unreadCountOwner?: true
+    unreadCountCustomer?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ConversationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Conversation to aggregate.
+     */
+    where?: ConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Conversations to fetch.
+     */
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Conversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Conversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Conversations
+    **/
+    _count?: true | ConversationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ConversationAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ConversationSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConversationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConversationMaxAggregateInputType
+  }
+
+  export type GetConversationAggregateType<T extends ConversationAggregateArgs> = {
+        [P in keyof T & keyof AggregateConversation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConversation[P]>
+      : GetScalarType<T[P], AggregateConversation[P]>
+  }
+
+
+
+
+  export type ConversationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConversationWhereInput
+    orderBy?: ConversationOrderByWithAggregationInput | ConversationOrderByWithAggregationInput[]
+    by: ConversationScalarFieldEnum[] | ConversationScalarFieldEnum
+    having?: ConversationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConversationCountAggregateInputType | true
+    _avg?: ConversationAvgAggregateInputType
+    _sum?: ConversationSumAggregateInputType
+    _min?: ConversationMinAggregateInputType
+    _max?: ConversationMaxAggregateInputType
+  }
+
+  export type ConversationGroupByOutputType = {
+    id: string
+    vehicleId: string
+    customerId: string
+    ownerId: string
+    category: $Enums.ConversationCategory
+    priority: $Enums.MessagePriority
+    status: $Enums.ConversationStatus
+    lastMessage: string | null
+    lastMessageAt: Date | null
+    lastSenderId: string | null
+    unreadCountOwner: number
+    unreadCountCustomer: number
+    createdAt: Date
+    updatedAt: Date
+    _count: ConversationCountAggregateOutputType | null
+    _avg: ConversationAvgAggregateOutputType | null
+    _sum: ConversationSumAggregateOutputType | null
+    _min: ConversationMinAggregateOutputType | null
+    _max: ConversationMaxAggregateOutputType | null
+  }
+
+  type GetConversationGroupByPayload<T extends ConversationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConversationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConversationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConversationGroupByOutputType[P]>
+            : GetScalarType<T[P], ConversationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConversationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    customerId?: boolean
+    ownerId?: boolean
+    category?: boolean
+    priority?: boolean
+    status?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    lastSenderId?: boolean
+    unreadCountOwner?: boolean
+    unreadCountCustomer?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+    messages?: boolean | Conversation$messagesArgs<ExtArgs>
+    reports?: boolean | Conversation$reportsArgs<ExtArgs>
+    _count?: boolean | ConversationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["conversation"]>
+
+  export type ConversationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    customerId?: boolean
+    ownerId?: boolean
+    category?: boolean
+    priority?: boolean
+    status?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    lastSenderId?: boolean
+    unreadCountOwner?: boolean
+    unreadCountCustomer?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["conversation"]>
+
+  export type ConversationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    customerId?: boolean
+    ownerId?: boolean
+    category?: boolean
+    priority?: boolean
+    status?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    lastSenderId?: boolean
+    unreadCountOwner?: boolean
+    unreadCountCustomer?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["conversation"]>
+
+  export type ConversationSelectScalar = {
+    id?: boolean
+    vehicleId?: boolean
+    customerId?: boolean
+    ownerId?: boolean
+    category?: boolean
+    priority?: boolean
+    status?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    lastSenderId?: boolean
+    unreadCountOwner?: boolean
+    unreadCountCustomer?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ConversationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "customerId" | "ownerId" | "category" | "priority" | "status" | "lastMessage" | "lastMessageAt" | "lastSenderId" | "unreadCountOwner" | "unreadCountCustomer" | "createdAt" | "updatedAt", ExtArgs["result"]["conversation"]>
+  export type ConversationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+    messages?: boolean | Conversation$messagesArgs<ExtArgs>
+    reports?: boolean | Conversation$reportsArgs<ExtArgs>
+    _count?: boolean | ConversationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ConversationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type ConversationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $ConversationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Conversation"
+    objects: {
+      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      owner: Prisma.$CustomerPayload<ExtArgs>
+      messages: Prisma.$MessagePayload<ExtArgs>[]
+      reports: Prisma.$ConversationReportPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      vehicleId: string
+      customerId: string
+      ownerId: string
+      category: $Enums.ConversationCategory
+      priority: $Enums.MessagePriority
+      status: $Enums.ConversationStatus
+      lastMessage: string | null
+      lastMessageAt: Date | null
+      lastSenderId: string | null
+      unreadCountOwner: number
+      unreadCountCustomer: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["conversation"]>
+    composites: {}
+  }
+
+  type ConversationGetPayload<S extends boolean | null | undefined | ConversationDefaultArgs> = $Result.GetResult<Prisma.$ConversationPayload, S>
+
+  type ConversationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ConversationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ConversationCountAggregateInputType | true
+    }
+
+  export interface ConversationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Conversation'], meta: { name: 'Conversation' } }
+    /**
+     * Find zero or one Conversation that matches the filter.
+     * @param {ConversationFindUniqueArgs} args - Arguments to find a Conversation
+     * @example
+     * // Get one Conversation
+     * const conversation = await prisma.conversation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConversationFindUniqueArgs>(args: SelectSubset<T, ConversationFindUniqueArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Conversation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ConversationFindUniqueOrThrowArgs} args - Arguments to find a Conversation
+     * @example
+     * // Get one Conversation
+     * const conversation = await prisma.conversation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConversationFindUniqueOrThrowArgs>(args: SelectSubset<T, ConversationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Conversation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationFindFirstArgs} args - Arguments to find a Conversation
+     * @example
+     * // Get one Conversation
+     * const conversation = await prisma.conversation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConversationFindFirstArgs>(args?: SelectSubset<T, ConversationFindFirstArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Conversation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationFindFirstOrThrowArgs} args - Arguments to find a Conversation
+     * @example
+     * // Get one Conversation
+     * const conversation = await prisma.conversation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConversationFindFirstOrThrowArgs>(args?: SelectSubset<T, ConversationFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Conversations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Conversations
+     * const conversations = await prisma.conversation.findMany()
+     * 
+     * // Get first 10 Conversations
+     * const conversations = await prisma.conversation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const conversationWithIdOnly = await prisma.conversation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConversationFindManyArgs>(args?: SelectSubset<T, ConversationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Conversation.
+     * @param {ConversationCreateArgs} args - Arguments to create a Conversation.
+     * @example
+     * // Create one Conversation
+     * const Conversation = await prisma.conversation.create({
+     *   data: {
+     *     // ... data to create a Conversation
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConversationCreateArgs>(args: SelectSubset<T, ConversationCreateArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Conversations.
+     * @param {ConversationCreateManyArgs} args - Arguments to create many Conversations.
+     * @example
+     * // Create many Conversations
+     * const conversation = await prisma.conversation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConversationCreateManyArgs>(args?: SelectSubset<T, ConversationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Conversations and returns the data saved in the database.
+     * @param {ConversationCreateManyAndReturnArgs} args - Arguments to create many Conversations.
+     * @example
+     * // Create many Conversations
+     * const conversation = await prisma.conversation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Conversations and only return the `id`
+     * const conversationWithIdOnly = await prisma.conversation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConversationCreateManyAndReturnArgs>(args?: SelectSubset<T, ConversationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Conversation.
+     * @param {ConversationDeleteArgs} args - Arguments to delete one Conversation.
+     * @example
+     * // Delete one Conversation
+     * const Conversation = await prisma.conversation.delete({
+     *   where: {
+     *     // ... filter to delete one Conversation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConversationDeleteArgs>(args: SelectSubset<T, ConversationDeleteArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Conversation.
+     * @param {ConversationUpdateArgs} args - Arguments to update one Conversation.
+     * @example
+     * // Update one Conversation
+     * const conversation = await prisma.conversation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConversationUpdateArgs>(args: SelectSubset<T, ConversationUpdateArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Conversations.
+     * @param {ConversationDeleteManyArgs} args - Arguments to filter Conversations to delete.
+     * @example
+     * // Delete a few Conversations
+     * const { count } = await prisma.conversation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConversationDeleteManyArgs>(args?: SelectSubset<T, ConversationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Conversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Conversations
+     * const conversation = await prisma.conversation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConversationUpdateManyArgs>(args: SelectSubset<T, ConversationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Conversations and returns the data updated in the database.
+     * @param {ConversationUpdateManyAndReturnArgs} args - Arguments to update many Conversations.
+     * @example
+     * // Update many Conversations
+     * const conversation = await prisma.conversation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Conversations and only return the `id`
+     * const conversationWithIdOnly = await prisma.conversation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ConversationUpdateManyAndReturnArgs>(args: SelectSubset<T, ConversationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Conversation.
+     * @param {ConversationUpsertArgs} args - Arguments to update or create a Conversation.
+     * @example
+     * // Update or create a Conversation
+     * const conversation = await prisma.conversation.upsert({
+     *   create: {
+     *     // ... data to create a Conversation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Conversation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConversationUpsertArgs>(args: SelectSubset<T, ConversationUpsertArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Conversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationCountArgs} args - Arguments to filter Conversations to count.
+     * @example
+     * // Count the number of Conversations
+     * const count = await prisma.conversation.count({
+     *   where: {
+     *     // ... the filter for the Conversations we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConversationCountArgs>(
+      args?: Subset<T, ConversationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConversationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Conversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConversationAggregateArgs>(args: Subset<T, ConversationAggregateArgs>): Prisma.PrismaPromise<GetConversationAggregateType<T>>
+
+    /**
+     * Group by Conversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConversationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConversationGroupByArgs['orderBy'] }
+        : { orderBy?: ConversationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConversationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConversationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Conversation model
+   */
+  readonly fields: ConversationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Conversation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConversationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    vehicle<T extends CustomerVehicleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicleDefaultArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    owner<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    messages<T extends Conversation$messagesArgs<ExtArgs> = {}>(args?: Subset<T, Conversation$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    reports<T extends Conversation$reportsArgs<ExtArgs> = {}>(args?: Subset<T, Conversation$reportsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Conversation model
+   */
+  interface ConversationFieldRefs {
+    readonly id: FieldRef<"Conversation", 'String'>
+    readonly vehicleId: FieldRef<"Conversation", 'String'>
+    readonly customerId: FieldRef<"Conversation", 'String'>
+    readonly ownerId: FieldRef<"Conversation", 'String'>
+    readonly category: FieldRef<"Conversation", 'ConversationCategory'>
+    readonly priority: FieldRef<"Conversation", 'MessagePriority'>
+    readonly status: FieldRef<"Conversation", 'ConversationStatus'>
+    readonly lastMessage: FieldRef<"Conversation", 'String'>
+    readonly lastMessageAt: FieldRef<"Conversation", 'DateTime'>
+    readonly lastSenderId: FieldRef<"Conversation", 'String'>
+    readonly unreadCountOwner: FieldRef<"Conversation", 'Int'>
+    readonly unreadCountCustomer: FieldRef<"Conversation", 'Int'>
+    readonly createdAt: FieldRef<"Conversation", 'DateTime'>
+    readonly updatedAt: FieldRef<"Conversation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Conversation findUnique
+   */
+  export type ConversationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which Conversation to fetch.
+     */
+    where: ConversationWhereUniqueInput
+  }
+
+  /**
+   * Conversation findUniqueOrThrow
+   */
+  export type ConversationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which Conversation to fetch.
+     */
+    where: ConversationWhereUniqueInput
+  }
+
+  /**
+   * Conversation findFirst
+   */
+  export type ConversationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which Conversation to fetch.
+     */
+    where?: ConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Conversations to fetch.
+     */
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Conversations.
+     */
+    cursor?: ConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Conversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Conversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Conversations.
+     */
+    distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * Conversation findFirstOrThrow
+   */
+  export type ConversationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which Conversation to fetch.
+     */
+    where?: ConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Conversations to fetch.
+     */
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Conversations.
+     */
+    cursor?: ConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Conversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Conversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Conversations.
+     */
+    distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * Conversation findMany
+   */
+  export type ConversationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which Conversations to fetch.
+     */
+    where?: ConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Conversations to fetch.
+     */
+    orderBy?: ConversationOrderByWithRelationInput | ConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Conversations.
+     */
+    cursor?: ConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Conversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Conversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Conversations.
+     */
+    distinct?: ConversationScalarFieldEnum | ConversationScalarFieldEnum[]
+  }
+
+  /**
+   * Conversation create
+   */
+  export type ConversationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Conversation.
+     */
+    data: XOR<ConversationCreateInput, ConversationUncheckedCreateInput>
+  }
+
+  /**
+   * Conversation createMany
+   */
+  export type ConversationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Conversations.
+     */
+    data: ConversationCreateManyInput | ConversationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Conversation createManyAndReturn
+   */
+  export type ConversationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * The data used to create many Conversations.
+     */
+    data: ConversationCreateManyInput | ConversationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Conversation update
+   */
+  export type ConversationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Conversation.
+     */
+    data: XOR<ConversationUpdateInput, ConversationUncheckedUpdateInput>
+    /**
+     * Choose, which Conversation to update.
+     */
+    where: ConversationWhereUniqueInput
+  }
+
+  /**
+   * Conversation updateMany
+   */
+  export type ConversationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Conversations.
+     */
+    data: XOR<ConversationUpdateManyMutationInput, ConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which Conversations to update
+     */
+    where?: ConversationWhereInput
+    /**
+     * Limit how many Conversations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Conversation updateManyAndReturn
+   */
+  export type ConversationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * The data used to update Conversations.
+     */
+    data: XOR<ConversationUpdateManyMutationInput, ConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which Conversations to update
+     */
+    where?: ConversationWhereInput
+    /**
+     * Limit how many Conversations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Conversation upsert
+   */
+  export type ConversationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Conversation to update in case it exists.
+     */
+    where: ConversationWhereUniqueInput
+    /**
+     * In case the Conversation found by the `where` argument doesn't exist, create a new Conversation with this data.
+     */
+    create: XOR<ConversationCreateInput, ConversationUncheckedCreateInput>
+    /**
+     * In case the Conversation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConversationUpdateInput, ConversationUncheckedUpdateInput>
+  }
+
+  /**
+   * Conversation delete
+   */
+  export type ConversationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+    /**
+     * Filter which Conversation to delete.
+     */
+    where: ConversationWhereUniqueInput
+  }
+
+  /**
+   * Conversation deleteMany
+   */
+  export type ConversationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Conversations to delete
+     */
+    where?: ConversationWhereInput
+    /**
+     * Limit how many Conversations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Conversation.messages
+   */
+  export type Conversation$messagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    where?: MessageWhereInput
+    orderBy?: MessageOrderByWithRelationInput | MessageOrderByWithRelationInput[]
+    cursor?: MessageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MessageScalarFieldEnum | MessageScalarFieldEnum[]
+  }
+
+  /**
+   * Conversation.reports
+   */
+  export type Conversation$reportsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    where?: ConversationReportWhereInput
+    orderBy?: ConversationReportOrderByWithRelationInput | ConversationReportOrderByWithRelationInput[]
+    cursor?: ConversationReportWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ConversationReportScalarFieldEnum | ConversationReportScalarFieldEnum[]
+  }
+
+  /**
+   * Conversation without action
+   */
+  export type ConversationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Conversation
+     */
+    select?: ConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Conversation
+     */
+    omit?: ConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Message
+   */
+
+  export type AggregateMessage = {
+    _count: MessageCountAggregateOutputType | null
+    _avg: MessageAvgAggregateOutputType | null
+    _sum: MessageSumAggregateOutputType | null
+    _min: MessageMinAggregateOutputType | null
+    _max: MessageMaxAggregateOutputType | null
+  }
+
+  export type MessageAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type MessageSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type MessageMinAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    senderId: string | null
+    receiverId: string | null
+    type: $Enums.MessageType | null
+    text: string | null
+    latitude: number | null
+    longitude: number | null
+    quickReplyKey: string | null
+    reaction: string | null
+    isRead: boolean | null
+    deliveredAt: Date | null
+    readAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MessageMaxAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    senderId: string | null
+    receiverId: string | null
+    type: $Enums.MessageType | null
+    text: string | null
+    latitude: number | null
+    longitude: number | null
+    quickReplyKey: string | null
+    reaction: string | null
+    isRead: boolean | null
+    deliveredAt: Date | null
+    readAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type MessageCountAggregateOutputType = {
+    id: number
+    conversationId: number
+    senderId: number
+    receiverId: number
+    type: number
+    text: number
+    imageUrls: number
+    latitude: number
+    longitude: number
+    quickReplyKey: number
+    reaction: number
+    metadata: number
+    isRead: number
+    deliveredAt: number
+    readAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MessageAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type MessageSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type MessageMinAggregateInputType = {
+    id?: true
+    conversationId?: true
+    senderId?: true
+    receiverId?: true
+    type?: true
+    text?: true
+    latitude?: true
+    longitude?: true
+    quickReplyKey?: true
+    reaction?: true
+    isRead?: true
+    deliveredAt?: true
+    readAt?: true
+    createdAt?: true
+  }
+
+  export type MessageMaxAggregateInputType = {
+    id?: true
+    conversationId?: true
+    senderId?: true
+    receiverId?: true
+    type?: true
+    text?: true
+    latitude?: true
+    longitude?: true
+    quickReplyKey?: true
+    reaction?: true
+    isRead?: true
+    deliveredAt?: true
+    readAt?: true
+    createdAt?: true
+  }
+
+  export type MessageCountAggregateInputType = {
+    id?: true
+    conversationId?: true
+    senderId?: true
+    receiverId?: true
+    type?: true
+    text?: true
+    imageUrls?: true
+    latitude?: true
+    longitude?: true
+    quickReplyKey?: true
+    reaction?: true
+    metadata?: true
+    isRead?: true
+    deliveredAt?: true
+    readAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MessageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Message to aggregate.
+     */
+    where?: MessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Messages to fetch.
+     */
+    orderBy?: MessageOrderByWithRelationInput | MessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Messages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Messages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Messages
+    **/
+    _count?: true | MessageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MessageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MessageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MessageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MessageMaxAggregateInputType
+  }
+
+  export type GetMessageAggregateType<T extends MessageAggregateArgs> = {
+        [P in keyof T & keyof AggregateMessage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMessage[P]>
+      : GetScalarType<T[P], AggregateMessage[P]>
+  }
+
+
+
+
+  export type MessageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MessageWhereInput
+    orderBy?: MessageOrderByWithAggregationInput | MessageOrderByWithAggregationInput[]
+    by: MessageScalarFieldEnum[] | MessageScalarFieldEnum
+    having?: MessageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MessageCountAggregateInputType | true
+    _avg?: MessageAvgAggregateInputType
+    _sum?: MessageSumAggregateInputType
+    _min?: MessageMinAggregateInputType
+    _max?: MessageMaxAggregateInputType
+  }
+
+  export type MessageGroupByOutputType = {
+    id: string
+    conversationId: string
+    senderId: string
+    receiverId: string
+    type: $Enums.MessageType
+    text: string | null
+    imageUrls: string[]
+    latitude: number | null
+    longitude: number | null
+    quickReplyKey: string | null
+    reaction: string | null
+    metadata: JsonValue | null
+    isRead: boolean
+    deliveredAt: Date | null
+    readAt: Date | null
+    createdAt: Date
+    _count: MessageCountAggregateOutputType | null
+    _avg: MessageAvgAggregateOutputType | null
+    _sum: MessageSumAggregateOutputType | null
+    _min: MessageMinAggregateOutputType | null
+    _max: MessageMaxAggregateOutputType | null
+  }
+
+  type GetMessageGroupByPayload<T extends MessageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MessageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MessageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MessageGroupByOutputType[P]>
+            : GetScalarType<T[P], MessageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MessageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    type?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    quickReplyKey?: boolean
+    reaction?: boolean
+    metadata?: boolean
+    isRead?: boolean
+    deliveredAt?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["message"]>
+
+  export type MessageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    type?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    quickReplyKey?: boolean
+    reaction?: boolean
+    metadata?: boolean
+    isRead?: boolean
+    deliveredAt?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["message"]>
+
+  export type MessageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    type?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    quickReplyKey?: boolean
+    reaction?: boolean
+    metadata?: boolean
+    isRead?: boolean
+    deliveredAt?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["message"]>
+
+  export type MessageSelectScalar = {
+    id?: boolean
+    conversationId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    type?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    quickReplyKey?: boolean
+    reaction?: boolean
+    metadata?: boolean
+    isRead?: boolean
+    deliveredAt?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type MessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "senderId" | "receiverId" | "type" | "text" | "imageUrls" | "latitude" | "longitude" | "quickReplyKey" | "reaction" | "metadata" | "isRead" | "deliveredAt" | "readAt" | "createdAt", ExtArgs["result"]["message"]>
+  export type MessageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }
+  export type MessageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }
+  export type MessageIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }
+
+  export type $MessagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Message"
+    objects: {
+      conversation: Prisma.$ConversationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      conversationId: string
+      senderId: string
+      receiverId: string
+      type: $Enums.MessageType
+      text: string | null
+      imageUrls: string[]
+      latitude: number | null
+      longitude: number | null
+      quickReplyKey: string | null
+      reaction: string | null
+      /**
+       * Escape hatch for FUTURE message types (voice/video/doc duration, transcript, etc.)
+       * without another migration — see MessageType doc-comment below.
+       */
+      metadata: Prisma.JsonValue | null
+      isRead: boolean
+      deliveredAt: Date | null
+      readAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["message"]>
+    composites: {}
+  }
+
+  type MessageGetPayload<S extends boolean | null | undefined | MessageDefaultArgs> = $Result.GetResult<Prisma.$MessagePayload, S>
+
+  type MessageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MessageFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MessageCountAggregateInputType | true
+    }
+
+  export interface MessageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Message'], meta: { name: 'Message' } }
+    /**
+     * Find zero or one Message that matches the filter.
+     * @param {MessageFindUniqueArgs} args - Arguments to find a Message
+     * @example
+     * // Get one Message
+     * const message = await prisma.message.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MessageFindUniqueArgs>(args: SelectSubset<T, MessageFindUniqueArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Message that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MessageFindUniqueOrThrowArgs} args - Arguments to find a Message
+     * @example
+     * // Get one Message
+     * const message = await prisma.message.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MessageFindUniqueOrThrowArgs>(args: SelectSubset<T, MessageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Message that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageFindFirstArgs} args - Arguments to find a Message
+     * @example
+     * // Get one Message
+     * const message = await prisma.message.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MessageFindFirstArgs>(args?: SelectSubset<T, MessageFindFirstArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Message that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageFindFirstOrThrowArgs} args - Arguments to find a Message
+     * @example
+     * // Get one Message
+     * const message = await prisma.message.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MessageFindFirstOrThrowArgs>(args?: SelectSubset<T, MessageFindFirstOrThrowArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Messages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Messages
+     * const messages = await prisma.message.findMany()
+     * 
+     * // Get first 10 Messages
+     * const messages = await prisma.message.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const messageWithIdOnly = await prisma.message.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MessageFindManyArgs>(args?: SelectSubset<T, MessageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Message.
+     * @param {MessageCreateArgs} args - Arguments to create a Message.
+     * @example
+     * // Create one Message
+     * const Message = await prisma.message.create({
+     *   data: {
+     *     // ... data to create a Message
+     *   }
+     * })
+     * 
+     */
+    create<T extends MessageCreateArgs>(args: SelectSubset<T, MessageCreateArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Messages.
+     * @param {MessageCreateManyArgs} args - Arguments to create many Messages.
+     * @example
+     * // Create many Messages
+     * const message = await prisma.message.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MessageCreateManyArgs>(args?: SelectSubset<T, MessageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Messages and returns the data saved in the database.
+     * @param {MessageCreateManyAndReturnArgs} args - Arguments to create many Messages.
+     * @example
+     * // Create many Messages
+     * const message = await prisma.message.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Messages and only return the `id`
+     * const messageWithIdOnly = await prisma.message.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MessageCreateManyAndReturnArgs>(args?: SelectSubset<T, MessageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Message.
+     * @param {MessageDeleteArgs} args - Arguments to delete one Message.
+     * @example
+     * // Delete one Message
+     * const Message = await prisma.message.delete({
+     *   where: {
+     *     // ... filter to delete one Message
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MessageDeleteArgs>(args: SelectSubset<T, MessageDeleteArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Message.
+     * @param {MessageUpdateArgs} args - Arguments to update one Message.
+     * @example
+     * // Update one Message
+     * const message = await prisma.message.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MessageUpdateArgs>(args: SelectSubset<T, MessageUpdateArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Messages.
+     * @param {MessageDeleteManyArgs} args - Arguments to filter Messages to delete.
+     * @example
+     * // Delete a few Messages
+     * const { count } = await prisma.message.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MessageDeleteManyArgs>(args?: SelectSubset<T, MessageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Messages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Messages
+     * const message = await prisma.message.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MessageUpdateManyArgs>(args: SelectSubset<T, MessageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Messages and returns the data updated in the database.
+     * @param {MessageUpdateManyAndReturnArgs} args - Arguments to update many Messages.
+     * @example
+     * // Update many Messages
+     * const message = await prisma.message.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Messages and only return the `id`
+     * const messageWithIdOnly = await prisma.message.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MessageUpdateManyAndReturnArgs>(args: SelectSubset<T, MessageUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Message.
+     * @param {MessageUpsertArgs} args - Arguments to update or create a Message.
+     * @example
+     * // Update or create a Message
+     * const message = await prisma.message.upsert({
+     *   create: {
+     *     // ... data to create a Message
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Message we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MessageUpsertArgs>(args: SelectSubset<T, MessageUpsertArgs<ExtArgs>>): Prisma__MessageClient<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Messages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageCountArgs} args - Arguments to filter Messages to count.
+     * @example
+     * // Count the number of Messages
+     * const count = await prisma.message.count({
+     *   where: {
+     *     // ... the filter for the Messages we want to count
+     *   }
+     * })
+    **/
+    count<T extends MessageCountArgs>(
+      args?: Subset<T, MessageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MessageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Message.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MessageAggregateArgs>(args: Subset<T, MessageAggregateArgs>): Prisma.PrismaPromise<GetMessageAggregateType<T>>
+
+    /**
+     * Group by Message.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MessageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MessageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MessageGroupByArgs['orderBy'] }
+        : { orderBy?: MessageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MessageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMessageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Message model
+   */
+  readonly fields: MessageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Message.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MessageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    conversation<T extends ConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConversationDefaultArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Message model
+   */
+  interface MessageFieldRefs {
+    readonly id: FieldRef<"Message", 'String'>
+    readonly conversationId: FieldRef<"Message", 'String'>
+    readonly senderId: FieldRef<"Message", 'String'>
+    readonly receiverId: FieldRef<"Message", 'String'>
+    readonly type: FieldRef<"Message", 'MessageType'>
+    readonly text: FieldRef<"Message", 'String'>
+    readonly imageUrls: FieldRef<"Message", 'String[]'>
+    readonly latitude: FieldRef<"Message", 'Float'>
+    readonly longitude: FieldRef<"Message", 'Float'>
+    readonly quickReplyKey: FieldRef<"Message", 'String'>
+    readonly reaction: FieldRef<"Message", 'String'>
+    readonly metadata: FieldRef<"Message", 'Json'>
+    readonly isRead: FieldRef<"Message", 'Boolean'>
+    readonly deliveredAt: FieldRef<"Message", 'DateTime'>
+    readonly readAt: FieldRef<"Message", 'DateTime'>
+    readonly createdAt: FieldRef<"Message", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Message findUnique
+   */
+  export type MessageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * Filter, which Message to fetch.
+     */
+    where: MessageWhereUniqueInput
+  }
+
+  /**
+   * Message findUniqueOrThrow
+   */
+  export type MessageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * Filter, which Message to fetch.
+     */
+    where: MessageWhereUniqueInput
+  }
+
+  /**
+   * Message findFirst
+   */
+  export type MessageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * Filter, which Message to fetch.
+     */
+    where?: MessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Messages to fetch.
+     */
+    orderBy?: MessageOrderByWithRelationInput | MessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Messages.
+     */
+    cursor?: MessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Messages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Messages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Messages.
+     */
+    distinct?: MessageScalarFieldEnum | MessageScalarFieldEnum[]
+  }
+
+  /**
+   * Message findFirstOrThrow
+   */
+  export type MessageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * Filter, which Message to fetch.
+     */
+    where?: MessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Messages to fetch.
+     */
+    orderBy?: MessageOrderByWithRelationInput | MessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Messages.
+     */
+    cursor?: MessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Messages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Messages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Messages.
+     */
+    distinct?: MessageScalarFieldEnum | MessageScalarFieldEnum[]
+  }
+
+  /**
+   * Message findMany
+   */
+  export type MessageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * Filter, which Messages to fetch.
+     */
+    where?: MessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Messages to fetch.
+     */
+    orderBy?: MessageOrderByWithRelationInput | MessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Messages.
+     */
+    cursor?: MessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Messages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Messages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Messages.
+     */
+    distinct?: MessageScalarFieldEnum | MessageScalarFieldEnum[]
+  }
+
+  /**
+   * Message create
+   */
+  export type MessageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Message.
+     */
+    data: XOR<MessageCreateInput, MessageUncheckedCreateInput>
+  }
+
+  /**
+   * Message createMany
+   */
+  export type MessageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Messages.
+     */
+    data: MessageCreateManyInput | MessageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Message createManyAndReturn
+   */
+  export type MessageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * The data used to create many Messages.
+     */
+    data: MessageCreateManyInput | MessageCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Message update
+   */
+  export type MessageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Message.
+     */
+    data: XOR<MessageUpdateInput, MessageUncheckedUpdateInput>
+    /**
+     * Choose, which Message to update.
+     */
+    where: MessageWhereUniqueInput
+  }
+
+  /**
+   * Message updateMany
+   */
+  export type MessageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Messages.
+     */
+    data: XOR<MessageUpdateManyMutationInput, MessageUncheckedUpdateManyInput>
+    /**
+     * Filter which Messages to update
+     */
+    where?: MessageWhereInput
+    /**
+     * Limit how many Messages to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Message updateManyAndReturn
+   */
+  export type MessageUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * The data used to update Messages.
+     */
+    data: XOR<MessageUpdateManyMutationInput, MessageUncheckedUpdateManyInput>
+    /**
+     * Filter which Messages to update
+     */
+    where?: MessageWhereInput
+    /**
+     * Limit how many Messages to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Message upsert
+   */
+  export type MessageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Message to update in case it exists.
+     */
+    where: MessageWhereUniqueInput
+    /**
+     * In case the Message found by the `where` argument doesn't exist, create a new Message with this data.
+     */
+    create: XOR<MessageCreateInput, MessageUncheckedCreateInput>
+    /**
+     * In case the Message was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MessageUpdateInput, MessageUncheckedUpdateInput>
+  }
+
+  /**
+   * Message delete
+   */
+  export type MessageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+    /**
+     * Filter which Message to delete.
+     */
+    where: MessageWhereUniqueInput
+  }
+
+  /**
+   * Message deleteMany
+   */
+  export type MessageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Messages to delete
+     */
+    where?: MessageWhereInput
+    /**
+     * Limit how many Messages to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Message without action
+   */
+  export type MessageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Message
+     */
+    select?: MessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Message
+     */
+    omit?: MessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MessageInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BlockedContact
+   */
+
+  export type AggregateBlockedContact = {
+    _count: BlockedContactCountAggregateOutputType | null
+    _min: BlockedContactMinAggregateOutputType | null
+    _max: BlockedContactMaxAggregateOutputType | null
+  }
+
+  export type BlockedContactMinAggregateOutputType = {
+    id: string | null
+    ownerId: string | null
+    blockedId: string | null
+    reason: string | null
+    createdAt: Date | null
+  }
+
+  export type BlockedContactMaxAggregateOutputType = {
+    id: string | null
+    ownerId: string | null
+    blockedId: string | null
+    reason: string | null
+    createdAt: Date | null
+  }
+
+  export type BlockedContactCountAggregateOutputType = {
+    id: number
+    ownerId: number
+    blockedId: number
+    reason: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type BlockedContactMinAggregateInputType = {
+    id?: true
+    ownerId?: true
+    blockedId?: true
+    reason?: true
+    createdAt?: true
+  }
+
+  export type BlockedContactMaxAggregateInputType = {
+    id?: true
+    ownerId?: true
+    blockedId?: true
+    reason?: true
+    createdAt?: true
+  }
+
+  export type BlockedContactCountAggregateInputType = {
+    id?: true
+    ownerId?: true
+    blockedId?: true
+    reason?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type BlockedContactAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BlockedContact to aggregate.
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BlockedContacts to fetch.
+     */
+    orderBy?: BlockedContactOrderByWithRelationInput | BlockedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BlockedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BlockedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BlockedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BlockedContacts
+    **/
+    _count?: true | BlockedContactCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BlockedContactMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BlockedContactMaxAggregateInputType
+  }
+
+  export type GetBlockedContactAggregateType<T extends BlockedContactAggregateArgs> = {
+        [P in keyof T & keyof AggregateBlockedContact]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBlockedContact[P]>
+      : GetScalarType<T[P], AggregateBlockedContact[P]>
+  }
+
+
+
+
+  export type BlockedContactGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BlockedContactWhereInput
+    orderBy?: BlockedContactOrderByWithAggregationInput | BlockedContactOrderByWithAggregationInput[]
+    by: BlockedContactScalarFieldEnum[] | BlockedContactScalarFieldEnum
+    having?: BlockedContactScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BlockedContactCountAggregateInputType | true
+    _min?: BlockedContactMinAggregateInputType
+    _max?: BlockedContactMaxAggregateInputType
+  }
+
+  export type BlockedContactGroupByOutputType = {
+    id: string
+    ownerId: string
+    blockedId: string
+    reason: string | null
+    createdAt: Date
+    _count: BlockedContactCountAggregateOutputType | null
+    _min: BlockedContactMinAggregateOutputType | null
+    _max: BlockedContactMaxAggregateOutputType | null
+  }
+
+  type GetBlockedContactGroupByPayload<T extends BlockedContactGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BlockedContactGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BlockedContactGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BlockedContactGroupByOutputType[P]>
+            : GetScalarType<T[P], BlockedContactGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BlockedContactSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerId?: boolean
+    blockedId?: boolean
+    reason?: boolean
+    createdAt?: boolean
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["blockedContact"]>
+
+  export type BlockedContactSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerId?: boolean
+    blockedId?: boolean
+    reason?: boolean
+    createdAt?: boolean
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["blockedContact"]>
+
+  export type BlockedContactSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ownerId?: boolean
+    blockedId?: boolean
+    reason?: boolean
+    createdAt?: boolean
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["blockedContact"]>
+
+  export type BlockedContactSelectScalar = {
+    id?: boolean
+    ownerId?: boolean
+    blockedId?: boolean
+    reason?: boolean
+    createdAt?: boolean
+  }
+
+  export type BlockedContactOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ownerId" | "blockedId" | "reason" | "createdAt", ExtArgs["result"]["blockedContact"]>
+  export type BlockedContactInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type BlockedContactIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type BlockedContactIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $BlockedContactPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BlockedContact"
+    objects: {
+      owner: Prisma.$CustomerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      ownerId: string
+      blockedId: string
+      reason: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["blockedContact"]>
+    composites: {}
+  }
+
+  type BlockedContactGetPayload<S extends boolean | null | undefined | BlockedContactDefaultArgs> = $Result.GetResult<Prisma.$BlockedContactPayload, S>
+
+  type BlockedContactCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BlockedContactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BlockedContactCountAggregateInputType | true
+    }
+
+  export interface BlockedContactDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BlockedContact'], meta: { name: 'BlockedContact' } }
+    /**
+     * Find zero or one BlockedContact that matches the filter.
+     * @param {BlockedContactFindUniqueArgs} args - Arguments to find a BlockedContact
+     * @example
+     * // Get one BlockedContact
+     * const blockedContact = await prisma.blockedContact.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BlockedContactFindUniqueArgs>(args: SelectSubset<T, BlockedContactFindUniqueArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BlockedContact that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BlockedContactFindUniqueOrThrowArgs} args - Arguments to find a BlockedContact
+     * @example
+     * // Get one BlockedContact
+     * const blockedContact = await prisma.blockedContact.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BlockedContactFindUniqueOrThrowArgs>(args: SelectSubset<T, BlockedContactFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BlockedContact that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactFindFirstArgs} args - Arguments to find a BlockedContact
+     * @example
+     * // Get one BlockedContact
+     * const blockedContact = await prisma.blockedContact.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BlockedContactFindFirstArgs>(args?: SelectSubset<T, BlockedContactFindFirstArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BlockedContact that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactFindFirstOrThrowArgs} args - Arguments to find a BlockedContact
+     * @example
+     * // Get one BlockedContact
+     * const blockedContact = await prisma.blockedContact.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BlockedContactFindFirstOrThrowArgs>(args?: SelectSubset<T, BlockedContactFindFirstOrThrowArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BlockedContacts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BlockedContacts
+     * const blockedContacts = await prisma.blockedContact.findMany()
+     * 
+     * // Get first 10 BlockedContacts
+     * const blockedContacts = await prisma.blockedContact.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const blockedContactWithIdOnly = await prisma.blockedContact.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BlockedContactFindManyArgs>(args?: SelectSubset<T, BlockedContactFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BlockedContact.
+     * @param {BlockedContactCreateArgs} args - Arguments to create a BlockedContact.
+     * @example
+     * // Create one BlockedContact
+     * const BlockedContact = await prisma.blockedContact.create({
+     *   data: {
+     *     // ... data to create a BlockedContact
+     *   }
+     * })
+     * 
+     */
+    create<T extends BlockedContactCreateArgs>(args: SelectSubset<T, BlockedContactCreateArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BlockedContacts.
+     * @param {BlockedContactCreateManyArgs} args - Arguments to create many BlockedContacts.
+     * @example
+     * // Create many BlockedContacts
+     * const blockedContact = await prisma.blockedContact.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BlockedContactCreateManyArgs>(args?: SelectSubset<T, BlockedContactCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BlockedContacts and returns the data saved in the database.
+     * @param {BlockedContactCreateManyAndReturnArgs} args - Arguments to create many BlockedContacts.
+     * @example
+     * // Create many BlockedContacts
+     * const blockedContact = await prisma.blockedContact.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BlockedContacts and only return the `id`
+     * const blockedContactWithIdOnly = await prisma.blockedContact.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BlockedContactCreateManyAndReturnArgs>(args?: SelectSubset<T, BlockedContactCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BlockedContact.
+     * @param {BlockedContactDeleteArgs} args - Arguments to delete one BlockedContact.
+     * @example
+     * // Delete one BlockedContact
+     * const BlockedContact = await prisma.blockedContact.delete({
+     *   where: {
+     *     // ... filter to delete one BlockedContact
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BlockedContactDeleteArgs>(args: SelectSubset<T, BlockedContactDeleteArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BlockedContact.
+     * @param {BlockedContactUpdateArgs} args - Arguments to update one BlockedContact.
+     * @example
+     * // Update one BlockedContact
+     * const blockedContact = await prisma.blockedContact.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BlockedContactUpdateArgs>(args: SelectSubset<T, BlockedContactUpdateArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BlockedContacts.
+     * @param {BlockedContactDeleteManyArgs} args - Arguments to filter BlockedContacts to delete.
+     * @example
+     * // Delete a few BlockedContacts
+     * const { count } = await prisma.blockedContact.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BlockedContactDeleteManyArgs>(args?: SelectSubset<T, BlockedContactDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BlockedContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BlockedContacts
+     * const blockedContact = await prisma.blockedContact.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BlockedContactUpdateManyArgs>(args: SelectSubset<T, BlockedContactUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BlockedContacts and returns the data updated in the database.
+     * @param {BlockedContactUpdateManyAndReturnArgs} args - Arguments to update many BlockedContacts.
+     * @example
+     * // Update many BlockedContacts
+     * const blockedContact = await prisma.blockedContact.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BlockedContacts and only return the `id`
+     * const blockedContactWithIdOnly = await prisma.blockedContact.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BlockedContactUpdateManyAndReturnArgs>(args: SelectSubset<T, BlockedContactUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BlockedContact.
+     * @param {BlockedContactUpsertArgs} args - Arguments to update or create a BlockedContact.
+     * @example
+     * // Update or create a BlockedContact
+     * const blockedContact = await prisma.blockedContact.upsert({
+     *   create: {
+     *     // ... data to create a BlockedContact
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BlockedContact we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BlockedContactUpsertArgs>(args: SelectSubset<T, BlockedContactUpsertArgs<ExtArgs>>): Prisma__BlockedContactClient<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BlockedContacts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactCountArgs} args - Arguments to filter BlockedContacts to count.
+     * @example
+     * // Count the number of BlockedContacts
+     * const count = await prisma.blockedContact.count({
+     *   where: {
+     *     // ... the filter for the BlockedContacts we want to count
+     *   }
+     * })
+    **/
+    count<T extends BlockedContactCountArgs>(
+      args?: Subset<T, BlockedContactCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BlockedContactCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BlockedContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BlockedContactAggregateArgs>(args: Subset<T, BlockedContactAggregateArgs>): Prisma.PrismaPromise<GetBlockedContactAggregateType<T>>
+
+    /**
+     * Group by BlockedContact.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BlockedContactGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BlockedContactGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BlockedContactGroupByArgs['orderBy'] }
+        : { orderBy?: BlockedContactGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BlockedContactGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBlockedContactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BlockedContact model
+   */
+  readonly fields: BlockedContactFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BlockedContact.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BlockedContactClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    owner<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BlockedContact model
+   */
+  interface BlockedContactFieldRefs {
+    readonly id: FieldRef<"BlockedContact", 'String'>
+    readonly ownerId: FieldRef<"BlockedContact", 'String'>
+    readonly blockedId: FieldRef<"BlockedContact", 'String'>
+    readonly reason: FieldRef<"BlockedContact", 'String'>
+    readonly createdAt: FieldRef<"BlockedContact", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BlockedContact findUnique
+   */
+  export type BlockedContactFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which BlockedContact to fetch.
+     */
+    where: BlockedContactWhereUniqueInput
+  }
+
+  /**
+   * BlockedContact findUniqueOrThrow
+   */
+  export type BlockedContactFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which BlockedContact to fetch.
+     */
+    where: BlockedContactWhereUniqueInput
+  }
+
+  /**
+   * BlockedContact findFirst
+   */
+  export type BlockedContactFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which BlockedContact to fetch.
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BlockedContacts to fetch.
+     */
+    orderBy?: BlockedContactOrderByWithRelationInput | BlockedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BlockedContacts.
+     */
+    cursor?: BlockedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BlockedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BlockedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BlockedContacts.
+     */
+    distinct?: BlockedContactScalarFieldEnum | BlockedContactScalarFieldEnum[]
+  }
+
+  /**
+   * BlockedContact findFirstOrThrow
+   */
+  export type BlockedContactFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which BlockedContact to fetch.
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BlockedContacts to fetch.
+     */
+    orderBy?: BlockedContactOrderByWithRelationInput | BlockedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BlockedContacts.
+     */
+    cursor?: BlockedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BlockedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BlockedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BlockedContacts.
+     */
+    distinct?: BlockedContactScalarFieldEnum | BlockedContactScalarFieldEnum[]
+  }
+
+  /**
+   * BlockedContact findMany
+   */
+  export type BlockedContactFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * Filter, which BlockedContacts to fetch.
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BlockedContacts to fetch.
+     */
+    orderBy?: BlockedContactOrderByWithRelationInput | BlockedContactOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BlockedContacts.
+     */
+    cursor?: BlockedContactWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BlockedContacts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BlockedContacts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BlockedContacts.
+     */
+    distinct?: BlockedContactScalarFieldEnum | BlockedContactScalarFieldEnum[]
+  }
+
+  /**
+   * BlockedContact create
+   */
+  export type BlockedContactCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BlockedContact.
+     */
+    data: XOR<BlockedContactCreateInput, BlockedContactUncheckedCreateInput>
+  }
+
+  /**
+   * BlockedContact createMany
+   */
+  export type BlockedContactCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BlockedContacts.
+     */
+    data: BlockedContactCreateManyInput | BlockedContactCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BlockedContact createManyAndReturn
+   */
+  export type BlockedContactCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * The data used to create many BlockedContacts.
+     */
+    data: BlockedContactCreateManyInput | BlockedContactCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BlockedContact update
+   */
+  export type BlockedContactUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BlockedContact.
+     */
+    data: XOR<BlockedContactUpdateInput, BlockedContactUncheckedUpdateInput>
+    /**
+     * Choose, which BlockedContact to update.
+     */
+    where: BlockedContactWhereUniqueInput
+  }
+
+  /**
+   * BlockedContact updateMany
+   */
+  export type BlockedContactUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BlockedContacts.
+     */
+    data: XOR<BlockedContactUpdateManyMutationInput, BlockedContactUncheckedUpdateManyInput>
+    /**
+     * Filter which BlockedContacts to update
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * Limit how many BlockedContacts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BlockedContact updateManyAndReturn
+   */
+  export type BlockedContactUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * The data used to update BlockedContacts.
+     */
+    data: XOR<BlockedContactUpdateManyMutationInput, BlockedContactUncheckedUpdateManyInput>
+    /**
+     * Filter which BlockedContacts to update
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * Limit how many BlockedContacts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BlockedContact upsert
+   */
+  export type BlockedContactUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BlockedContact to update in case it exists.
+     */
+    where: BlockedContactWhereUniqueInput
+    /**
+     * In case the BlockedContact found by the `where` argument doesn't exist, create a new BlockedContact with this data.
+     */
+    create: XOR<BlockedContactCreateInput, BlockedContactUncheckedCreateInput>
+    /**
+     * In case the BlockedContact was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BlockedContactUpdateInput, BlockedContactUncheckedUpdateInput>
+  }
+
+  /**
+   * BlockedContact delete
+   */
+  export type BlockedContactDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+    /**
+     * Filter which BlockedContact to delete.
+     */
+    where: BlockedContactWhereUniqueInput
+  }
+
+  /**
+   * BlockedContact deleteMany
+   */
+  export type BlockedContactDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BlockedContacts to delete
+     */
+    where?: BlockedContactWhereInput
+    /**
+     * Limit how many BlockedContacts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BlockedContact without action
+   */
+  export type BlockedContactDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BlockedContact
+     */
+    select?: BlockedContactSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BlockedContact
+     */
+    omit?: BlockedContactOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BlockedContactInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ConversationReport
+   */
+
+  export type AggregateConversationReport = {
+    _count: ConversationReportCountAggregateOutputType | null
+    _min: ConversationReportMinAggregateOutputType | null
+    _max: ConversationReportMaxAggregateOutputType | null
+  }
+
+  export type ConversationReportMinAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    reporterId: string | null
+    reportedId: string | null
+    reason: string | null
+    status: $Enums.ReportStatus | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type ConversationReportMaxAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    reporterId: string | null
+    reportedId: string | null
+    reason: string | null
+    status: $Enums.ReportStatus | null
+    createdAt: Date | null
+    resolvedAt: Date | null
+  }
+
+  export type ConversationReportCountAggregateOutputType = {
+    id: number
+    conversationId: number
+    reporterId: number
+    reportedId: number
+    reason: number
+    status: number
+    createdAt: number
+    resolvedAt: number
+    _all: number
+  }
+
+
+  export type ConversationReportMinAggregateInputType = {
+    id?: true
+    conversationId?: true
+    reporterId?: true
+    reportedId?: true
+    reason?: true
+    status?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type ConversationReportMaxAggregateInputType = {
+    id?: true
+    conversationId?: true
+    reporterId?: true
+    reportedId?: true
+    reason?: true
+    status?: true
+    createdAt?: true
+    resolvedAt?: true
+  }
+
+  export type ConversationReportCountAggregateInputType = {
+    id?: true
+    conversationId?: true
+    reporterId?: true
+    reportedId?: true
+    reason?: true
+    status?: true
+    createdAt?: true
+    resolvedAt?: true
+    _all?: true
+  }
+
+  export type ConversationReportAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConversationReport to aggregate.
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConversationReports to fetch.
+     */
+    orderBy?: ConversationReportOrderByWithRelationInput | ConversationReportOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ConversationReportWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConversationReports from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConversationReports.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ConversationReports
+    **/
+    _count?: true | ConversationReportCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ConversationReportMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ConversationReportMaxAggregateInputType
+  }
+
+  export type GetConversationReportAggregateType<T extends ConversationReportAggregateArgs> = {
+        [P in keyof T & keyof AggregateConversationReport]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateConversationReport[P]>
+      : GetScalarType<T[P], AggregateConversationReport[P]>
+  }
+
+
+
+
+  export type ConversationReportGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ConversationReportWhereInput
+    orderBy?: ConversationReportOrderByWithAggregationInput | ConversationReportOrderByWithAggregationInput[]
+    by: ConversationReportScalarFieldEnum[] | ConversationReportScalarFieldEnum
+    having?: ConversationReportScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ConversationReportCountAggregateInputType | true
+    _min?: ConversationReportMinAggregateInputType
+    _max?: ConversationReportMaxAggregateInputType
+  }
+
+  export type ConversationReportGroupByOutputType = {
+    id: string
+    conversationId: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status: $Enums.ReportStatus
+    createdAt: Date
+    resolvedAt: Date | null
+    _count: ConversationReportCountAggregateOutputType | null
+    _min: ConversationReportMinAggregateOutputType | null
+    _max: ConversationReportMaxAggregateOutputType | null
+  }
+
+  type GetConversationReportGroupByPayload<T extends ConversationReportGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ConversationReportGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ConversationReportGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ConversationReportGroupByOutputType[P]>
+            : GetScalarType<T[P], ConversationReportGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ConversationReportSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    reporterId?: boolean
+    reportedId?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["conversationReport"]>
+
+  export type ConversationReportSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    reporterId?: boolean
+    reportedId?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["conversationReport"]>
+
+  export type ConversationReportSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    reporterId?: boolean
+    reportedId?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["conversationReport"]>
+
+  export type ConversationReportSelectScalar = {
+    id?: boolean
+    conversationId?: boolean
+    reporterId?: boolean
+    reportedId?: boolean
+    reason?: boolean
+    status?: boolean
+    createdAt?: boolean
+    resolvedAt?: boolean
+  }
+
+  export type ConversationReportOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "reporterId" | "reportedId" | "reason" | "status" | "createdAt" | "resolvedAt", ExtArgs["result"]["conversationReport"]>
+  export type ConversationReportInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }
+  export type ConversationReportIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }
+  export type ConversationReportIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | ConversationDefaultArgs<ExtArgs>
+  }
+
+  export type $ConversationReportPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ConversationReport"
+    objects: {
+      conversation: Prisma.$ConversationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      conversationId: string
+      reporterId: string
+      reportedId: string
+      reason: string
+      status: $Enums.ReportStatus
+      createdAt: Date
+      resolvedAt: Date | null
+    }, ExtArgs["result"]["conversationReport"]>
+    composites: {}
+  }
+
+  type ConversationReportGetPayload<S extends boolean | null | undefined | ConversationReportDefaultArgs> = $Result.GetResult<Prisma.$ConversationReportPayload, S>
+
+  type ConversationReportCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ConversationReportFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ConversationReportCountAggregateInputType | true
+    }
+
+  export interface ConversationReportDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ConversationReport'], meta: { name: 'ConversationReport' } }
+    /**
+     * Find zero or one ConversationReport that matches the filter.
+     * @param {ConversationReportFindUniqueArgs} args - Arguments to find a ConversationReport
+     * @example
+     * // Get one ConversationReport
+     * const conversationReport = await prisma.conversationReport.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ConversationReportFindUniqueArgs>(args: SelectSubset<T, ConversationReportFindUniqueArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ConversationReport that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ConversationReportFindUniqueOrThrowArgs} args - Arguments to find a ConversationReport
+     * @example
+     * // Get one ConversationReport
+     * const conversationReport = await prisma.conversationReport.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ConversationReportFindUniqueOrThrowArgs>(args: SelectSubset<T, ConversationReportFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ConversationReport that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportFindFirstArgs} args - Arguments to find a ConversationReport
+     * @example
+     * // Get one ConversationReport
+     * const conversationReport = await prisma.conversationReport.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ConversationReportFindFirstArgs>(args?: SelectSubset<T, ConversationReportFindFirstArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ConversationReport that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportFindFirstOrThrowArgs} args - Arguments to find a ConversationReport
+     * @example
+     * // Get one ConversationReport
+     * const conversationReport = await prisma.conversationReport.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ConversationReportFindFirstOrThrowArgs>(args?: SelectSubset<T, ConversationReportFindFirstOrThrowArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ConversationReports that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ConversationReports
+     * const conversationReports = await prisma.conversationReport.findMany()
+     * 
+     * // Get first 10 ConversationReports
+     * const conversationReports = await prisma.conversationReport.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const conversationReportWithIdOnly = await prisma.conversationReport.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ConversationReportFindManyArgs>(args?: SelectSubset<T, ConversationReportFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ConversationReport.
+     * @param {ConversationReportCreateArgs} args - Arguments to create a ConversationReport.
+     * @example
+     * // Create one ConversationReport
+     * const ConversationReport = await prisma.conversationReport.create({
+     *   data: {
+     *     // ... data to create a ConversationReport
+     *   }
+     * })
+     * 
+     */
+    create<T extends ConversationReportCreateArgs>(args: SelectSubset<T, ConversationReportCreateArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ConversationReports.
+     * @param {ConversationReportCreateManyArgs} args - Arguments to create many ConversationReports.
+     * @example
+     * // Create many ConversationReports
+     * const conversationReport = await prisma.conversationReport.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ConversationReportCreateManyArgs>(args?: SelectSubset<T, ConversationReportCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ConversationReports and returns the data saved in the database.
+     * @param {ConversationReportCreateManyAndReturnArgs} args - Arguments to create many ConversationReports.
+     * @example
+     * // Create many ConversationReports
+     * const conversationReport = await prisma.conversationReport.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ConversationReports and only return the `id`
+     * const conversationReportWithIdOnly = await prisma.conversationReport.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ConversationReportCreateManyAndReturnArgs>(args?: SelectSubset<T, ConversationReportCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ConversationReport.
+     * @param {ConversationReportDeleteArgs} args - Arguments to delete one ConversationReport.
+     * @example
+     * // Delete one ConversationReport
+     * const ConversationReport = await prisma.conversationReport.delete({
+     *   where: {
+     *     // ... filter to delete one ConversationReport
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ConversationReportDeleteArgs>(args: SelectSubset<T, ConversationReportDeleteArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ConversationReport.
+     * @param {ConversationReportUpdateArgs} args - Arguments to update one ConversationReport.
+     * @example
+     * // Update one ConversationReport
+     * const conversationReport = await prisma.conversationReport.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ConversationReportUpdateArgs>(args: SelectSubset<T, ConversationReportUpdateArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ConversationReports.
+     * @param {ConversationReportDeleteManyArgs} args - Arguments to filter ConversationReports to delete.
+     * @example
+     * // Delete a few ConversationReports
+     * const { count } = await prisma.conversationReport.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ConversationReportDeleteManyArgs>(args?: SelectSubset<T, ConversationReportDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConversationReports.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ConversationReports
+     * const conversationReport = await prisma.conversationReport.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ConversationReportUpdateManyArgs>(args: SelectSubset<T, ConversationReportUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ConversationReports and returns the data updated in the database.
+     * @param {ConversationReportUpdateManyAndReturnArgs} args - Arguments to update many ConversationReports.
+     * @example
+     * // Update many ConversationReports
+     * const conversationReport = await prisma.conversationReport.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ConversationReports and only return the `id`
+     * const conversationReportWithIdOnly = await prisma.conversationReport.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ConversationReportUpdateManyAndReturnArgs>(args: SelectSubset<T, ConversationReportUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ConversationReport.
+     * @param {ConversationReportUpsertArgs} args - Arguments to update or create a ConversationReport.
+     * @example
+     * // Update or create a ConversationReport
+     * const conversationReport = await prisma.conversationReport.upsert({
+     *   create: {
+     *     // ... data to create a ConversationReport
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ConversationReport we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ConversationReportUpsertArgs>(args: SelectSubset<T, ConversationReportUpsertArgs<ExtArgs>>): Prisma__ConversationReportClient<$Result.GetResult<Prisma.$ConversationReportPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ConversationReports.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportCountArgs} args - Arguments to filter ConversationReports to count.
+     * @example
+     * // Count the number of ConversationReports
+     * const count = await prisma.conversationReport.count({
+     *   where: {
+     *     // ... the filter for the ConversationReports we want to count
+     *   }
+     * })
+    **/
+    count<T extends ConversationReportCountArgs>(
+      args?: Subset<T, ConversationReportCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ConversationReportCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ConversationReport.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ConversationReportAggregateArgs>(args: Subset<T, ConversationReportAggregateArgs>): Prisma.PrismaPromise<GetConversationReportAggregateType<T>>
+
+    /**
+     * Group by ConversationReport.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ConversationReportGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ConversationReportGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ConversationReportGroupByArgs['orderBy'] }
+        : { orderBy?: ConversationReportGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ConversationReportGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetConversationReportGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ConversationReport model
+   */
+  readonly fields: ConversationReportFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ConversationReport.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ConversationReportClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    conversation<T extends ConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConversationDefaultArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ConversationReport model
+   */
+  interface ConversationReportFieldRefs {
+    readonly id: FieldRef<"ConversationReport", 'String'>
+    readonly conversationId: FieldRef<"ConversationReport", 'String'>
+    readonly reporterId: FieldRef<"ConversationReport", 'String'>
+    readonly reportedId: FieldRef<"ConversationReport", 'String'>
+    readonly reason: FieldRef<"ConversationReport", 'String'>
+    readonly status: FieldRef<"ConversationReport", 'ReportStatus'>
+    readonly createdAt: FieldRef<"ConversationReport", 'DateTime'>
+    readonly resolvedAt: FieldRef<"ConversationReport", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ConversationReport findUnique
+   */
+  export type ConversationReportFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * Filter, which ConversationReport to fetch.
+     */
+    where: ConversationReportWhereUniqueInput
+  }
+
+  /**
+   * ConversationReport findUniqueOrThrow
+   */
+  export type ConversationReportFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * Filter, which ConversationReport to fetch.
+     */
+    where: ConversationReportWhereUniqueInput
+  }
+
+  /**
+   * ConversationReport findFirst
+   */
+  export type ConversationReportFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * Filter, which ConversationReport to fetch.
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConversationReports to fetch.
+     */
+    orderBy?: ConversationReportOrderByWithRelationInput | ConversationReportOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConversationReports.
+     */
+    cursor?: ConversationReportWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConversationReports from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConversationReports.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConversationReports.
+     */
+    distinct?: ConversationReportScalarFieldEnum | ConversationReportScalarFieldEnum[]
+  }
+
+  /**
+   * ConversationReport findFirstOrThrow
+   */
+  export type ConversationReportFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * Filter, which ConversationReport to fetch.
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConversationReports to fetch.
+     */
+    orderBy?: ConversationReportOrderByWithRelationInput | ConversationReportOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ConversationReports.
+     */
+    cursor?: ConversationReportWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConversationReports from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConversationReports.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConversationReports.
+     */
+    distinct?: ConversationReportScalarFieldEnum | ConversationReportScalarFieldEnum[]
+  }
+
+  /**
+   * ConversationReport findMany
+   */
+  export type ConversationReportFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * Filter, which ConversationReports to fetch.
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ConversationReports to fetch.
+     */
+    orderBy?: ConversationReportOrderByWithRelationInput | ConversationReportOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ConversationReports.
+     */
+    cursor?: ConversationReportWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ConversationReports from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ConversationReports.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ConversationReports.
+     */
+    distinct?: ConversationReportScalarFieldEnum | ConversationReportScalarFieldEnum[]
+  }
+
+  /**
+   * ConversationReport create
+   */
+  export type ConversationReportCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ConversationReport.
+     */
+    data: XOR<ConversationReportCreateInput, ConversationReportUncheckedCreateInput>
+  }
+
+  /**
+   * ConversationReport createMany
+   */
+  export type ConversationReportCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ConversationReports.
+     */
+    data: ConversationReportCreateManyInput | ConversationReportCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ConversationReport createManyAndReturn
+   */
+  export type ConversationReportCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * The data used to create many ConversationReports.
+     */
+    data: ConversationReportCreateManyInput | ConversationReportCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConversationReport update
+   */
+  export type ConversationReportUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ConversationReport.
+     */
+    data: XOR<ConversationReportUpdateInput, ConversationReportUncheckedUpdateInput>
+    /**
+     * Choose, which ConversationReport to update.
+     */
+    where: ConversationReportWhereUniqueInput
+  }
+
+  /**
+   * ConversationReport updateMany
+   */
+  export type ConversationReportUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ConversationReports.
+     */
+    data: XOR<ConversationReportUpdateManyMutationInput, ConversationReportUncheckedUpdateManyInput>
+    /**
+     * Filter which ConversationReports to update
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * Limit how many ConversationReports to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConversationReport updateManyAndReturn
+   */
+  export type ConversationReportUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * The data used to update ConversationReports.
+     */
+    data: XOR<ConversationReportUpdateManyMutationInput, ConversationReportUncheckedUpdateManyInput>
+    /**
+     * Filter which ConversationReports to update
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * Limit how many ConversationReports to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ConversationReport upsert
+   */
+  export type ConversationReportUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ConversationReport to update in case it exists.
+     */
+    where: ConversationReportWhereUniqueInput
+    /**
+     * In case the ConversationReport found by the `where` argument doesn't exist, create a new ConversationReport with this data.
+     */
+    create: XOR<ConversationReportCreateInput, ConversationReportUncheckedCreateInput>
+    /**
+     * In case the ConversationReport was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ConversationReportUpdateInput, ConversationReportUncheckedUpdateInput>
+  }
+
+  /**
+   * ConversationReport delete
+   */
+  export type ConversationReportDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+    /**
+     * Filter which ConversationReport to delete.
+     */
+    where: ConversationReportWhereUniqueInput
+  }
+
+  /**
+   * ConversationReport deleteMany
+   */
+  export type ConversationReportDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ConversationReports to delete
+     */
+    where?: ConversationReportWhereInput
+    /**
+     * Limit how many ConversationReports to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ConversationReport without action
+   */
+  export type ConversationReportDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ConversationReport
+     */
+    select?: ConversationReportSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ConversationReport
+     */
+    omit?: ConversationReportOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ConversationReportInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GuestConversation
+   */
+
+  export type AggregateGuestConversation = {
+    _count: GuestConversationCountAggregateOutputType | null
+    _min: GuestConversationMinAggregateOutputType | null
+    _max: GuestConversationMaxAggregateOutputType | null
+  }
+
+  export type GuestConversationMinAggregateOutputType = {
+    id: string | null
+    vehicleId: string | null
+    ownerId: string | null
+    guestToken: string | null
+    guestName: string | null
+    guestContact: string | null
+    lastMessage: string | null
+    lastMessageAt: Date | null
+    status: $Enums.GuestConversationStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GuestConversationMaxAggregateOutputType = {
+    id: string | null
+    vehicleId: string | null
+    ownerId: string | null
+    guestToken: string | null
+    guestName: string | null
+    guestContact: string | null
+    lastMessage: string | null
+    lastMessageAt: Date | null
+    status: $Enums.GuestConversationStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GuestConversationCountAggregateOutputType = {
+    id: number
+    vehicleId: number
+    ownerId: number
+    guestToken: number
+    guestName: number
+    guestContact: number
+    lastMessage: number
+    lastMessageAt: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GuestConversationMinAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    ownerId?: true
+    guestToken?: true
+    guestName?: true
+    guestContact?: true
+    lastMessage?: true
+    lastMessageAt?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GuestConversationMaxAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    ownerId?: true
+    guestToken?: true
+    guestName?: true
+    guestContact?: true
+    lastMessage?: true
+    lastMessageAt?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GuestConversationCountAggregateInputType = {
+    id?: true
+    vehicleId?: true
+    ownerId?: true
+    guestToken?: true
+    guestName?: true
+    guestContact?: true
+    lastMessage?: true
+    lastMessageAt?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GuestConversationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuestConversation to aggregate.
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestConversations to fetch.
+     */
+    orderBy?: GuestConversationOrderByWithRelationInput | GuestConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GuestConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GuestConversations
+    **/
+    _count?: true | GuestConversationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GuestConversationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GuestConversationMaxAggregateInputType
+  }
+
+  export type GetGuestConversationAggregateType<T extends GuestConversationAggregateArgs> = {
+        [P in keyof T & keyof AggregateGuestConversation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGuestConversation[P]>
+      : GetScalarType<T[P], AggregateGuestConversation[P]>
+  }
+
+
+
+
+  export type GuestConversationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuestConversationWhereInput
+    orderBy?: GuestConversationOrderByWithAggregationInput | GuestConversationOrderByWithAggregationInput[]
+    by: GuestConversationScalarFieldEnum[] | GuestConversationScalarFieldEnum
+    having?: GuestConversationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GuestConversationCountAggregateInputType | true
+    _min?: GuestConversationMinAggregateInputType
+    _max?: GuestConversationMaxAggregateInputType
+  }
+
+  export type GuestConversationGroupByOutputType = {
+    id: string
+    vehicleId: string
+    ownerId: string
+    guestToken: string
+    guestName: string | null
+    guestContact: string | null
+    lastMessage: string | null
+    lastMessageAt: Date | null
+    status: $Enums.GuestConversationStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: GuestConversationCountAggregateOutputType | null
+    _min: GuestConversationMinAggregateOutputType | null
+    _max: GuestConversationMaxAggregateOutputType | null
+  }
+
+  type GetGuestConversationGroupByPayload<T extends GuestConversationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GuestConversationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GuestConversationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GuestConversationGroupByOutputType[P]>
+            : GetScalarType<T[P], GuestConversationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GuestConversationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    ownerId?: boolean
+    guestToken?: boolean
+    guestName?: boolean
+    guestContact?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+    entries?: boolean | GuestConversation$entriesArgs<ExtArgs>
+    _count?: boolean | GuestConversationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guestConversation"]>
+
+  export type GuestConversationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    ownerId?: boolean
+    guestToken?: boolean
+    guestName?: boolean
+    guestContact?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guestConversation"]>
+
+  export type GuestConversationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    vehicleId?: boolean
+    ownerId?: boolean
+    guestToken?: boolean
+    guestName?: boolean
+    guestContact?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guestConversation"]>
+
+  export type GuestConversationSelectScalar = {
+    id?: boolean
+    vehicleId?: boolean
+    ownerId?: boolean
+    guestToken?: boolean
+    guestName?: boolean
+    guestContact?: boolean
+    lastMessage?: boolean
+    lastMessageAt?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type GuestConversationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "vehicleId" | "ownerId" | "guestToken" | "guestName" | "guestContact" | "lastMessage" | "lastMessageAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["guestConversation"]>
+  export type GuestConversationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+    entries?: boolean | GuestConversation$entriesArgs<ExtArgs>
+    _count?: boolean | GuestConversationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type GuestConversationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+  export type GuestConversationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    vehicle?: boolean | CustomerVehicleDefaultArgs<ExtArgs>
+    owner?: boolean | CustomerDefaultArgs<ExtArgs>
+  }
+
+  export type $GuestConversationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GuestConversation"
+    objects: {
+      vehicle: Prisma.$CustomerVehiclePayload<ExtArgs>
+      owner: Prisma.$CustomerPayload<ExtArgs>
+      entries: Prisma.$GuestMessageEntryPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      vehicleId: string
+      ownerId: string
+      guestToken: string
+      guestName: string | null
+      guestContact: string | null
+      lastMessage: string | null
+      lastMessageAt: Date | null
+      status: $Enums.GuestConversationStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["guestConversation"]>
+    composites: {}
+  }
+
+  type GuestConversationGetPayload<S extends boolean | null | undefined | GuestConversationDefaultArgs> = $Result.GetResult<Prisma.$GuestConversationPayload, S>
+
+  type GuestConversationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GuestConversationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GuestConversationCountAggregateInputType | true
+    }
+
+  export interface GuestConversationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GuestConversation'], meta: { name: 'GuestConversation' } }
+    /**
+     * Find zero or one GuestConversation that matches the filter.
+     * @param {GuestConversationFindUniqueArgs} args - Arguments to find a GuestConversation
+     * @example
+     * // Get one GuestConversation
+     * const guestConversation = await prisma.guestConversation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GuestConversationFindUniqueArgs>(args: SelectSubset<T, GuestConversationFindUniqueArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GuestConversation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GuestConversationFindUniqueOrThrowArgs} args - Arguments to find a GuestConversation
+     * @example
+     * // Get one GuestConversation
+     * const guestConversation = await prisma.guestConversation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GuestConversationFindUniqueOrThrowArgs>(args: SelectSubset<T, GuestConversationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuestConversation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationFindFirstArgs} args - Arguments to find a GuestConversation
+     * @example
+     * // Get one GuestConversation
+     * const guestConversation = await prisma.guestConversation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GuestConversationFindFirstArgs>(args?: SelectSubset<T, GuestConversationFindFirstArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuestConversation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationFindFirstOrThrowArgs} args - Arguments to find a GuestConversation
+     * @example
+     * // Get one GuestConversation
+     * const guestConversation = await prisma.guestConversation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GuestConversationFindFirstOrThrowArgs>(args?: SelectSubset<T, GuestConversationFindFirstOrThrowArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GuestConversations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GuestConversations
+     * const guestConversations = await prisma.guestConversation.findMany()
+     * 
+     * // Get first 10 GuestConversations
+     * const guestConversations = await prisma.guestConversation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const guestConversationWithIdOnly = await prisma.guestConversation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GuestConversationFindManyArgs>(args?: SelectSubset<T, GuestConversationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GuestConversation.
+     * @param {GuestConversationCreateArgs} args - Arguments to create a GuestConversation.
+     * @example
+     * // Create one GuestConversation
+     * const GuestConversation = await prisma.guestConversation.create({
+     *   data: {
+     *     // ... data to create a GuestConversation
+     *   }
+     * })
+     * 
+     */
+    create<T extends GuestConversationCreateArgs>(args: SelectSubset<T, GuestConversationCreateArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GuestConversations.
+     * @param {GuestConversationCreateManyArgs} args - Arguments to create many GuestConversations.
+     * @example
+     * // Create many GuestConversations
+     * const guestConversation = await prisma.guestConversation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GuestConversationCreateManyArgs>(args?: SelectSubset<T, GuestConversationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GuestConversations and returns the data saved in the database.
+     * @param {GuestConversationCreateManyAndReturnArgs} args - Arguments to create many GuestConversations.
+     * @example
+     * // Create many GuestConversations
+     * const guestConversation = await prisma.guestConversation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GuestConversations and only return the `id`
+     * const guestConversationWithIdOnly = await prisma.guestConversation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GuestConversationCreateManyAndReturnArgs>(args?: SelectSubset<T, GuestConversationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GuestConversation.
+     * @param {GuestConversationDeleteArgs} args - Arguments to delete one GuestConversation.
+     * @example
+     * // Delete one GuestConversation
+     * const GuestConversation = await prisma.guestConversation.delete({
+     *   where: {
+     *     // ... filter to delete one GuestConversation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GuestConversationDeleteArgs>(args: SelectSubset<T, GuestConversationDeleteArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GuestConversation.
+     * @param {GuestConversationUpdateArgs} args - Arguments to update one GuestConversation.
+     * @example
+     * // Update one GuestConversation
+     * const guestConversation = await prisma.guestConversation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GuestConversationUpdateArgs>(args: SelectSubset<T, GuestConversationUpdateArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GuestConversations.
+     * @param {GuestConversationDeleteManyArgs} args - Arguments to filter GuestConversations to delete.
+     * @example
+     * // Delete a few GuestConversations
+     * const { count } = await prisma.guestConversation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GuestConversationDeleteManyArgs>(args?: SelectSubset<T, GuestConversationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuestConversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GuestConversations
+     * const guestConversation = await prisma.guestConversation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GuestConversationUpdateManyArgs>(args: SelectSubset<T, GuestConversationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuestConversations and returns the data updated in the database.
+     * @param {GuestConversationUpdateManyAndReturnArgs} args - Arguments to update many GuestConversations.
+     * @example
+     * // Update many GuestConversations
+     * const guestConversation = await prisma.guestConversation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GuestConversations and only return the `id`
+     * const guestConversationWithIdOnly = await prisma.guestConversation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GuestConversationUpdateManyAndReturnArgs>(args: SelectSubset<T, GuestConversationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GuestConversation.
+     * @param {GuestConversationUpsertArgs} args - Arguments to update or create a GuestConversation.
+     * @example
+     * // Update or create a GuestConversation
+     * const guestConversation = await prisma.guestConversation.upsert({
+     *   create: {
+     *     // ... data to create a GuestConversation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GuestConversation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GuestConversationUpsertArgs>(args: SelectSubset<T, GuestConversationUpsertArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GuestConversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationCountArgs} args - Arguments to filter GuestConversations to count.
+     * @example
+     * // Count the number of GuestConversations
+     * const count = await prisma.guestConversation.count({
+     *   where: {
+     *     // ... the filter for the GuestConversations we want to count
+     *   }
+     * })
+    **/
+    count<T extends GuestConversationCountArgs>(
+      args?: Subset<T, GuestConversationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GuestConversationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GuestConversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GuestConversationAggregateArgs>(args: Subset<T, GuestConversationAggregateArgs>): Prisma.PrismaPromise<GetGuestConversationAggregateType<T>>
+
+    /**
+     * Group by GuestConversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestConversationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GuestConversationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GuestConversationGroupByArgs['orderBy'] }
+        : { orderBy?: GuestConversationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GuestConversationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGuestConversationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GuestConversation model
+   */
+  readonly fields: GuestConversationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GuestConversation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GuestConversationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    vehicle<T extends CustomerVehicleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerVehicleDefaultArgs<ExtArgs>>): Prisma__CustomerVehicleClient<$Result.GetResult<Prisma.$CustomerVehiclePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    owner<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    entries<T extends GuestConversation$entriesArgs<ExtArgs> = {}>(args?: Subset<T, GuestConversation$entriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GuestConversation model
+   */
+  interface GuestConversationFieldRefs {
+    readonly id: FieldRef<"GuestConversation", 'String'>
+    readonly vehicleId: FieldRef<"GuestConversation", 'String'>
+    readonly ownerId: FieldRef<"GuestConversation", 'String'>
+    readonly guestToken: FieldRef<"GuestConversation", 'String'>
+    readonly guestName: FieldRef<"GuestConversation", 'String'>
+    readonly guestContact: FieldRef<"GuestConversation", 'String'>
+    readonly lastMessage: FieldRef<"GuestConversation", 'String'>
+    readonly lastMessageAt: FieldRef<"GuestConversation", 'DateTime'>
+    readonly status: FieldRef<"GuestConversation", 'GuestConversationStatus'>
+    readonly createdAt: FieldRef<"GuestConversation", 'DateTime'>
+    readonly updatedAt: FieldRef<"GuestConversation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GuestConversation findUnique
+   */
+  export type GuestConversationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestConversation to fetch.
+     */
+    where: GuestConversationWhereUniqueInput
+  }
+
+  /**
+   * GuestConversation findUniqueOrThrow
+   */
+  export type GuestConversationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestConversation to fetch.
+     */
+    where: GuestConversationWhereUniqueInput
+  }
+
+  /**
+   * GuestConversation findFirst
+   */
+  export type GuestConversationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestConversation to fetch.
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestConversations to fetch.
+     */
+    orderBy?: GuestConversationOrderByWithRelationInput | GuestConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuestConversations.
+     */
+    cursor?: GuestConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuestConversations.
+     */
+    distinct?: GuestConversationScalarFieldEnum | GuestConversationScalarFieldEnum[]
+  }
+
+  /**
+   * GuestConversation findFirstOrThrow
+   */
+  export type GuestConversationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestConversation to fetch.
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestConversations to fetch.
+     */
+    orderBy?: GuestConversationOrderByWithRelationInput | GuestConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuestConversations.
+     */
+    cursor?: GuestConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuestConversations.
+     */
+    distinct?: GuestConversationScalarFieldEnum | GuestConversationScalarFieldEnum[]
+  }
+
+  /**
+   * GuestConversation findMany
+   */
+  export type GuestConversationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestConversations to fetch.
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestConversations to fetch.
+     */
+    orderBy?: GuestConversationOrderByWithRelationInput | GuestConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GuestConversations.
+     */
+    cursor?: GuestConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuestConversations.
+     */
+    distinct?: GuestConversationScalarFieldEnum | GuestConversationScalarFieldEnum[]
+  }
+
+  /**
+   * GuestConversation create
+   */
+  export type GuestConversationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GuestConversation.
+     */
+    data: XOR<GuestConversationCreateInput, GuestConversationUncheckedCreateInput>
+  }
+
+  /**
+   * GuestConversation createMany
+   */
+  export type GuestConversationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GuestConversations.
+     */
+    data: GuestConversationCreateManyInput | GuestConversationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GuestConversation createManyAndReturn
+   */
+  export type GuestConversationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * The data used to create many GuestConversations.
+     */
+    data: GuestConversationCreateManyInput | GuestConversationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuestConversation update
+   */
+  export type GuestConversationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GuestConversation.
+     */
+    data: XOR<GuestConversationUpdateInput, GuestConversationUncheckedUpdateInput>
+    /**
+     * Choose, which GuestConversation to update.
+     */
+    where: GuestConversationWhereUniqueInput
+  }
+
+  /**
+   * GuestConversation updateMany
+   */
+  export type GuestConversationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GuestConversations.
+     */
+    data: XOR<GuestConversationUpdateManyMutationInput, GuestConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which GuestConversations to update
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * Limit how many GuestConversations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuestConversation updateManyAndReturn
+   */
+  export type GuestConversationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * The data used to update GuestConversations.
+     */
+    data: XOR<GuestConversationUpdateManyMutationInput, GuestConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which GuestConversations to update
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * Limit how many GuestConversations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuestConversation upsert
+   */
+  export type GuestConversationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GuestConversation to update in case it exists.
+     */
+    where: GuestConversationWhereUniqueInput
+    /**
+     * In case the GuestConversation found by the `where` argument doesn't exist, create a new GuestConversation with this data.
+     */
+    create: XOR<GuestConversationCreateInput, GuestConversationUncheckedCreateInput>
+    /**
+     * In case the GuestConversation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GuestConversationUpdateInput, GuestConversationUncheckedUpdateInput>
+  }
+
+  /**
+   * GuestConversation delete
+   */
+  export type GuestConversationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+    /**
+     * Filter which GuestConversation to delete.
+     */
+    where: GuestConversationWhereUniqueInput
+  }
+
+  /**
+   * GuestConversation deleteMany
+   */
+  export type GuestConversationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuestConversations to delete
+     */
+    where?: GuestConversationWhereInput
+    /**
+     * Limit how many GuestConversations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuestConversation.entries
+   */
+  export type GuestConversation$entriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    where?: GuestMessageEntryWhereInput
+    orderBy?: GuestMessageEntryOrderByWithRelationInput | GuestMessageEntryOrderByWithRelationInput[]
+    cursor?: GuestMessageEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GuestMessageEntryScalarFieldEnum | GuestMessageEntryScalarFieldEnum[]
+  }
+
+  /**
+   * GuestConversation without action
+   */
+  export type GuestConversationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestConversation
+     */
+    select?: GuestConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestConversation
+     */
+    omit?: GuestConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestConversationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model GuestMessageEntry
+   */
+
+  export type AggregateGuestMessageEntry = {
+    _count: GuestMessageEntryCountAggregateOutputType | null
+    _min: GuestMessageEntryMinAggregateOutputType | null
+    _max: GuestMessageEntryMaxAggregateOutputType | null
+  }
+
+  export type GuestMessageEntryMinAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    sender: $Enums.GuestMessageSender | null
+    text: string | null
+    createdAt: Date | null
+  }
+
+  export type GuestMessageEntryMaxAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    sender: $Enums.GuestMessageSender | null
+    text: string | null
+    createdAt: Date | null
+  }
+
+  export type GuestMessageEntryCountAggregateOutputType = {
+    id: number
+    conversationId: number
+    sender: number
+    text: number
+    imageUrls: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type GuestMessageEntryMinAggregateInputType = {
+    id?: true
+    conversationId?: true
+    sender?: true
+    text?: true
+    createdAt?: true
+  }
+
+  export type GuestMessageEntryMaxAggregateInputType = {
+    id?: true
+    conversationId?: true
+    sender?: true
+    text?: true
+    createdAt?: true
+  }
+
+  export type GuestMessageEntryCountAggregateInputType = {
+    id?: true
+    conversationId?: true
+    sender?: true
+    text?: true
+    imageUrls?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type GuestMessageEntryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuestMessageEntry to aggregate.
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestMessageEntries to fetch.
+     */
+    orderBy?: GuestMessageEntryOrderByWithRelationInput | GuestMessageEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GuestMessageEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestMessageEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestMessageEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GuestMessageEntries
+    **/
+    _count?: true | GuestMessageEntryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GuestMessageEntryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GuestMessageEntryMaxAggregateInputType
+  }
+
+  export type GetGuestMessageEntryAggregateType<T extends GuestMessageEntryAggregateArgs> = {
+        [P in keyof T & keyof AggregateGuestMessageEntry]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGuestMessageEntry[P]>
+      : GetScalarType<T[P], AggregateGuestMessageEntry[P]>
+  }
+
+
+
+
+  export type GuestMessageEntryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GuestMessageEntryWhereInput
+    orderBy?: GuestMessageEntryOrderByWithAggregationInput | GuestMessageEntryOrderByWithAggregationInput[]
+    by: GuestMessageEntryScalarFieldEnum[] | GuestMessageEntryScalarFieldEnum
+    having?: GuestMessageEntryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GuestMessageEntryCountAggregateInputType | true
+    _min?: GuestMessageEntryMinAggregateInputType
+    _max?: GuestMessageEntryMaxAggregateInputType
+  }
+
+  export type GuestMessageEntryGroupByOutputType = {
+    id: string
+    conversationId: string
+    sender: $Enums.GuestMessageSender
+    text: string | null
+    imageUrls: string[]
+    createdAt: Date
+    _count: GuestMessageEntryCountAggregateOutputType | null
+    _min: GuestMessageEntryMinAggregateOutputType | null
+    _max: GuestMessageEntryMaxAggregateOutputType | null
+  }
+
+  type GetGuestMessageEntryGroupByPayload<T extends GuestMessageEntryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GuestMessageEntryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GuestMessageEntryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GuestMessageEntryGroupByOutputType[P]>
+            : GetScalarType<T[P], GuestMessageEntryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GuestMessageEntrySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    sender?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    createdAt?: boolean
+    conversation?: boolean | GuestConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guestMessageEntry"]>
+
+  export type GuestMessageEntrySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    sender?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    createdAt?: boolean
+    conversation?: boolean | GuestConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guestMessageEntry"]>
+
+  export type GuestMessageEntrySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    sender?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    createdAt?: boolean
+    conversation?: boolean | GuestConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["guestMessageEntry"]>
+
+  export type GuestMessageEntrySelectScalar = {
+    id?: boolean
+    conversationId?: boolean
+    sender?: boolean
+    text?: boolean
+    imageUrls?: boolean
+    createdAt?: boolean
+  }
+
+  export type GuestMessageEntryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "sender" | "text" | "imageUrls" | "createdAt", ExtArgs["result"]["guestMessageEntry"]>
+  export type GuestMessageEntryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | GuestConversationDefaultArgs<ExtArgs>
+  }
+  export type GuestMessageEntryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | GuestConversationDefaultArgs<ExtArgs>
+  }
+  export type GuestMessageEntryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | GuestConversationDefaultArgs<ExtArgs>
+  }
+
+  export type $GuestMessageEntryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GuestMessageEntry"
+    objects: {
+      conversation: Prisma.$GuestConversationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      conversationId: string
+      sender: $Enums.GuestMessageSender
+      text: string | null
+      imageUrls: string[]
+      createdAt: Date
+    }, ExtArgs["result"]["guestMessageEntry"]>
+    composites: {}
+  }
+
+  type GuestMessageEntryGetPayload<S extends boolean | null | undefined | GuestMessageEntryDefaultArgs> = $Result.GetResult<Prisma.$GuestMessageEntryPayload, S>
+
+  type GuestMessageEntryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GuestMessageEntryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GuestMessageEntryCountAggregateInputType | true
+    }
+
+  export interface GuestMessageEntryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GuestMessageEntry'], meta: { name: 'GuestMessageEntry' } }
+    /**
+     * Find zero or one GuestMessageEntry that matches the filter.
+     * @param {GuestMessageEntryFindUniqueArgs} args - Arguments to find a GuestMessageEntry
+     * @example
+     * // Get one GuestMessageEntry
+     * const guestMessageEntry = await prisma.guestMessageEntry.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GuestMessageEntryFindUniqueArgs>(args: SelectSubset<T, GuestMessageEntryFindUniqueArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GuestMessageEntry that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GuestMessageEntryFindUniqueOrThrowArgs} args - Arguments to find a GuestMessageEntry
+     * @example
+     * // Get one GuestMessageEntry
+     * const guestMessageEntry = await prisma.guestMessageEntry.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GuestMessageEntryFindUniqueOrThrowArgs>(args: SelectSubset<T, GuestMessageEntryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuestMessageEntry that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryFindFirstArgs} args - Arguments to find a GuestMessageEntry
+     * @example
+     * // Get one GuestMessageEntry
+     * const guestMessageEntry = await prisma.guestMessageEntry.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GuestMessageEntryFindFirstArgs>(args?: SelectSubset<T, GuestMessageEntryFindFirstArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GuestMessageEntry that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryFindFirstOrThrowArgs} args - Arguments to find a GuestMessageEntry
+     * @example
+     * // Get one GuestMessageEntry
+     * const guestMessageEntry = await prisma.guestMessageEntry.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GuestMessageEntryFindFirstOrThrowArgs>(args?: SelectSubset<T, GuestMessageEntryFindFirstOrThrowArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GuestMessageEntries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GuestMessageEntries
+     * const guestMessageEntries = await prisma.guestMessageEntry.findMany()
+     * 
+     * // Get first 10 GuestMessageEntries
+     * const guestMessageEntries = await prisma.guestMessageEntry.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const guestMessageEntryWithIdOnly = await prisma.guestMessageEntry.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GuestMessageEntryFindManyArgs>(args?: SelectSubset<T, GuestMessageEntryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GuestMessageEntry.
+     * @param {GuestMessageEntryCreateArgs} args - Arguments to create a GuestMessageEntry.
+     * @example
+     * // Create one GuestMessageEntry
+     * const GuestMessageEntry = await prisma.guestMessageEntry.create({
+     *   data: {
+     *     // ... data to create a GuestMessageEntry
+     *   }
+     * })
+     * 
+     */
+    create<T extends GuestMessageEntryCreateArgs>(args: SelectSubset<T, GuestMessageEntryCreateArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GuestMessageEntries.
+     * @param {GuestMessageEntryCreateManyArgs} args - Arguments to create many GuestMessageEntries.
+     * @example
+     * // Create many GuestMessageEntries
+     * const guestMessageEntry = await prisma.guestMessageEntry.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GuestMessageEntryCreateManyArgs>(args?: SelectSubset<T, GuestMessageEntryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GuestMessageEntries and returns the data saved in the database.
+     * @param {GuestMessageEntryCreateManyAndReturnArgs} args - Arguments to create many GuestMessageEntries.
+     * @example
+     * // Create many GuestMessageEntries
+     * const guestMessageEntry = await prisma.guestMessageEntry.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GuestMessageEntries and only return the `id`
+     * const guestMessageEntryWithIdOnly = await prisma.guestMessageEntry.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GuestMessageEntryCreateManyAndReturnArgs>(args?: SelectSubset<T, GuestMessageEntryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GuestMessageEntry.
+     * @param {GuestMessageEntryDeleteArgs} args - Arguments to delete one GuestMessageEntry.
+     * @example
+     * // Delete one GuestMessageEntry
+     * const GuestMessageEntry = await prisma.guestMessageEntry.delete({
+     *   where: {
+     *     // ... filter to delete one GuestMessageEntry
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GuestMessageEntryDeleteArgs>(args: SelectSubset<T, GuestMessageEntryDeleteArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GuestMessageEntry.
+     * @param {GuestMessageEntryUpdateArgs} args - Arguments to update one GuestMessageEntry.
+     * @example
+     * // Update one GuestMessageEntry
+     * const guestMessageEntry = await prisma.guestMessageEntry.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GuestMessageEntryUpdateArgs>(args: SelectSubset<T, GuestMessageEntryUpdateArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GuestMessageEntries.
+     * @param {GuestMessageEntryDeleteManyArgs} args - Arguments to filter GuestMessageEntries to delete.
+     * @example
+     * // Delete a few GuestMessageEntries
+     * const { count } = await prisma.guestMessageEntry.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GuestMessageEntryDeleteManyArgs>(args?: SelectSubset<T, GuestMessageEntryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuestMessageEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GuestMessageEntries
+     * const guestMessageEntry = await prisma.guestMessageEntry.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GuestMessageEntryUpdateManyArgs>(args: SelectSubset<T, GuestMessageEntryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GuestMessageEntries and returns the data updated in the database.
+     * @param {GuestMessageEntryUpdateManyAndReturnArgs} args - Arguments to update many GuestMessageEntries.
+     * @example
+     * // Update many GuestMessageEntries
+     * const guestMessageEntry = await prisma.guestMessageEntry.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GuestMessageEntries and only return the `id`
+     * const guestMessageEntryWithIdOnly = await prisma.guestMessageEntry.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GuestMessageEntryUpdateManyAndReturnArgs>(args: SelectSubset<T, GuestMessageEntryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GuestMessageEntry.
+     * @param {GuestMessageEntryUpsertArgs} args - Arguments to update or create a GuestMessageEntry.
+     * @example
+     * // Update or create a GuestMessageEntry
+     * const guestMessageEntry = await prisma.guestMessageEntry.upsert({
+     *   create: {
+     *     // ... data to create a GuestMessageEntry
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GuestMessageEntry we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GuestMessageEntryUpsertArgs>(args: SelectSubset<T, GuestMessageEntryUpsertArgs<ExtArgs>>): Prisma__GuestMessageEntryClient<$Result.GetResult<Prisma.$GuestMessageEntryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GuestMessageEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryCountArgs} args - Arguments to filter GuestMessageEntries to count.
+     * @example
+     * // Count the number of GuestMessageEntries
+     * const count = await prisma.guestMessageEntry.count({
+     *   where: {
+     *     // ... the filter for the GuestMessageEntries we want to count
+     *   }
+     * })
+    **/
+    count<T extends GuestMessageEntryCountArgs>(
+      args?: Subset<T, GuestMessageEntryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GuestMessageEntryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GuestMessageEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GuestMessageEntryAggregateArgs>(args: Subset<T, GuestMessageEntryAggregateArgs>): Prisma.PrismaPromise<GetGuestMessageEntryAggregateType<T>>
+
+    /**
+     * Group by GuestMessageEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GuestMessageEntryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GuestMessageEntryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GuestMessageEntryGroupByArgs['orderBy'] }
+        : { orderBy?: GuestMessageEntryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GuestMessageEntryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGuestMessageEntryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GuestMessageEntry model
+   */
+  readonly fields: GuestMessageEntryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GuestMessageEntry.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GuestMessageEntryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    conversation<T extends GuestConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GuestConversationDefaultArgs<ExtArgs>>): Prisma__GuestConversationClient<$Result.GetResult<Prisma.$GuestConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GuestMessageEntry model
+   */
+  interface GuestMessageEntryFieldRefs {
+    readonly id: FieldRef<"GuestMessageEntry", 'String'>
+    readonly conversationId: FieldRef<"GuestMessageEntry", 'String'>
+    readonly sender: FieldRef<"GuestMessageEntry", 'GuestMessageSender'>
+    readonly text: FieldRef<"GuestMessageEntry", 'String'>
+    readonly imageUrls: FieldRef<"GuestMessageEntry", 'String[]'>
+    readonly createdAt: FieldRef<"GuestMessageEntry", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GuestMessageEntry findUnique
+   */
+  export type GuestMessageEntryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestMessageEntry to fetch.
+     */
+    where: GuestMessageEntryWhereUniqueInput
+  }
+
+  /**
+   * GuestMessageEntry findUniqueOrThrow
+   */
+  export type GuestMessageEntryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestMessageEntry to fetch.
+     */
+    where: GuestMessageEntryWhereUniqueInput
+  }
+
+  /**
+   * GuestMessageEntry findFirst
+   */
+  export type GuestMessageEntryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestMessageEntry to fetch.
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestMessageEntries to fetch.
+     */
+    orderBy?: GuestMessageEntryOrderByWithRelationInput | GuestMessageEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuestMessageEntries.
+     */
+    cursor?: GuestMessageEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestMessageEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestMessageEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuestMessageEntries.
+     */
+    distinct?: GuestMessageEntryScalarFieldEnum | GuestMessageEntryScalarFieldEnum[]
+  }
+
+  /**
+   * GuestMessageEntry findFirstOrThrow
+   */
+  export type GuestMessageEntryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestMessageEntry to fetch.
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestMessageEntries to fetch.
+     */
+    orderBy?: GuestMessageEntryOrderByWithRelationInput | GuestMessageEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GuestMessageEntries.
+     */
+    cursor?: GuestMessageEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestMessageEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestMessageEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuestMessageEntries.
+     */
+    distinct?: GuestMessageEntryScalarFieldEnum | GuestMessageEntryScalarFieldEnum[]
+  }
+
+  /**
+   * GuestMessageEntry findMany
+   */
+  export type GuestMessageEntryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which GuestMessageEntries to fetch.
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GuestMessageEntries to fetch.
+     */
+    orderBy?: GuestMessageEntryOrderByWithRelationInput | GuestMessageEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GuestMessageEntries.
+     */
+    cursor?: GuestMessageEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GuestMessageEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GuestMessageEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GuestMessageEntries.
+     */
+    distinct?: GuestMessageEntryScalarFieldEnum | GuestMessageEntryScalarFieldEnum[]
+  }
+
+  /**
+   * GuestMessageEntry create
+   */
+  export type GuestMessageEntryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GuestMessageEntry.
+     */
+    data: XOR<GuestMessageEntryCreateInput, GuestMessageEntryUncheckedCreateInput>
+  }
+
+  /**
+   * GuestMessageEntry createMany
+   */
+  export type GuestMessageEntryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GuestMessageEntries.
+     */
+    data: GuestMessageEntryCreateManyInput | GuestMessageEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GuestMessageEntry createManyAndReturn
+   */
+  export type GuestMessageEntryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * The data used to create many GuestMessageEntries.
+     */
+    data: GuestMessageEntryCreateManyInput | GuestMessageEntryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuestMessageEntry update
+   */
+  export type GuestMessageEntryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GuestMessageEntry.
+     */
+    data: XOR<GuestMessageEntryUpdateInput, GuestMessageEntryUncheckedUpdateInput>
+    /**
+     * Choose, which GuestMessageEntry to update.
+     */
+    where: GuestMessageEntryWhereUniqueInput
+  }
+
+  /**
+   * GuestMessageEntry updateMany
+   */
+  export type GuestMessageEntryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GuestMessageEntries.
+     */
+    data: XOR<GuestMessageEntryUpdateManyMutationInput, GuestMessageEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which GuestMessageEntries to update
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * Limit how many GuestMessageEntries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuestMessageEntry updateManyAndReturn
+   */
+  export type GuestMessageEntryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * The data used to update GuestMessageEntries.
+     */
+    data: XOR<GuestMessageEntryUpdateManyMutationInput, GuestMessageEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which GuestMessageEntries to update
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * Limit how many GuestMessageEntries to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GuestMessageEntry upsert
+   */
+  export type GuestMessageEntryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GuestMessageEntry to update in case it exists.
+     */
+    where: GuestMessageEntryWhereUniqueInput
+    /**
+     * In case the GuestMessageEntry found by the `where` argument doesn't exist, create a new GuestMessageEntry with this data.
+     */
+    create: XOR<GuestMessageEntryCreateInput, GuestMessageEntryUncheckedCreateInput>
+    /**
+     * In case the GuestMessageEntry was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GuestMessageEntryUpdateInput, GuestMessageEntryUncheckedUpdateInput>
+  }
+
+  /**
+   * GuestMessageEntry delete
+   */
+  export type GuestMessageEntryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+    /**
+     * Filter which GuestMessageEntry to delete.
+     */
+    where: GuestMessageEntryWhereUniqueInput
+  }
+
+  /**
+   * GuestMessageEntry deleteMany
+   */
+  export type GuestMessageEntryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GuestMessageEntries to delete
+     */
+    where?: GuestMessageEntryWhereInput
+    /**
+     * Limit how many GuestMessageEntries to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GuestMessageEntry without action
+   */
+  export type GuestMessageEntryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GuestMessageEntry
+     */
+    select?: GuestMessageEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GuestMessageEntry
+     */
+    omit?: GuestMessageEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GuestMessageEntryInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -110939,7 +120043,10 @@ export namespace Prisma {
     profilePic: 'profilePic',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    googleId: 'googleId'
+    googleId: 'googleId',
+    isSuspended: 'isSuspended',
+    suspendedReason: 'suspendedReason',
+    suspendedAt: 'suspendedAt'
   };
 
   export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
@@ -112350,6 +121457,113 @@ export namespace Prisma {
   export type ParkingWaitlistEntryScalarFieldEnum = (typeof ParkingWaitlistEntryScalarFieldEnum)[keyof typeof ParkingWaitlistEntryScalarFieldEnum]
 
 
+  export const VehicleQrTokenScalarFieldEnum: {
+    id: 'id',
+    vehicleId: 'vehicleId',
+    token: 'token',
+    createdAt: 'createdAt',
+    rotatedAt: 'rotatedAt'
+  };
+
+  export type VehicleQrTokenScalarFieldEnum = (typeof VehicleQrTokenScalarFieldEnum)[keyof typeof VehicleQrTokenScalarFieldEnum]
+
+
+  export const ConversationScalarFieldEnum: {
+    id: 'id',
+    vehicleId: 'vehicleId',
+    customerId: 'customerId',
+    ownerId: 'ownerId',
+    category: 'category',
+    priority: 'priority',
+    status: 'status',
+    lastMessage: 'lastMessage',
+    lastMessageAt: 'lastMessageAt',
+    lastSenderId: 'lastSenderId',
+    unreadCountOwner: 'unreadCountOwner',
+    unreadCountCustomer: 'unreadCountCustomer',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum]
+
+
+  export const MessageScalarFieldEnum: {
+    id: 'id',
+    conversationId: 'conversationId',
+    senderId: 'senderId',
+    receiverId: 'receiverId',
+    type: 'type',
+    text: 'text',
+    imageUrls: 'imageUrls',
+    latitude: 'latitude',
+    longitude: 'longitude',
+    quickReplyKey: 'quickReplyKey',
+    reaction: 'reaction',
+    metadata: 'metadata',
+    isRead: 'isRead',
+    deliveredAt: 'deliveredAt',
+    readAt: 'readAt',
+    createdAt: 'createdAt'
+  };
+
+  export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+  export const BlockedContactScalarFieldEnum: {
+    id: 'id',
+    ownerId: 'ownerId',
+    blockedId: 'blockedId',
+    reason: 'reason',
+    createdAt: 'createdAt'
+  };
+
+  export type BlockedContactScalarFieldEnum = (typeof BlockedContactScalarFieldEnum)[keyof typeof BlockedContactScalarFieldEnum]
+
+
+  export const ConversationReportScalarFieldEnum: {
+    id: 'id',
+    conversationId: 'conversationId',
+    reporterId: 'reporterId',
+    reportedId: 'reportedId',
+    reason: 'reason',
+    status: 'status',
+    createdAt: 'createdAt',
+    resolvedAt: 'resolvedAt'
+  };
+
+  export type ConversationReportScalarFieldEnum = (typeof ConversationReportScalarFieldEnum)[keyof typeof ConversationReportScalarFieldEnum]
+
+
+  export const GuestConversationScalarFieldEnum: {
+    id: 'id',
+    vehicleId: 'vehicleId',
+    ownerId: 'ownerId',
+    guestToken: 'guestToken',
+    guestName: 'guestName',
+    guestContact: 'guestContact',
+    lastMessage: 'lastMessage',
+    lastMessageAt: 'lastMessageAt',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GuestConversationScalarFieldEnum = (typeof GuestConversationScalarFieldEnum)[keyof typeof GuestConversationScalarFieldEnum]
+
+
+  export const GuestMessageEntryScalarFieldEnum: {
+    id: 'id',
+    conversationId: 'conversationId',
+    sender: 'sender',
+    text: 'text',
+    imageUrls: 'imageUrls',
+    createdAt: 'createdAt'
+  };
+
+  export type GuestMessageEntryScalarFieldEnum = (typeof GuestMessageEntryScalarFieldEnum)[keyof typeof GuestMessageEntryScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -113304,6 +122518,104 @@ export namespace Prisma {
    */
   export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'ConversationCategory'
+   */
+  export type EnumConversationCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationCategory'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConversationCategory[]'
+   */
+  export type ListEnumConversationCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationCategory[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MessagePriority'
+   */
+  export type EnumMessagePriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessagePriority'>
+    
+
+
+  /**
+   * Reference to a field of type 'MessagePriority[]'
+   */
+  export type ListEnumMessagePriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessagePriority[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConversationStatus'
+   */
+  export type EnumConversationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ConversationStatus[]'
+   */
+  export type ListEnumConversationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'MessageType'
+   */
+  export type EnumMessageTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageType'>
+    
+
+
+  /**
+   * Reference to a field of type 'MessageType[]'
+   */
+  export type ListEnumMessageTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MessageType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ReportStatus'
+   */
+  export type EnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'ReportStatus[]'
+   */
+  export type ListEnumReportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReportStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'GuestConversationStatus'
+   */
+  export type EnumGuestConversationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuestConversationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'GuestConversationStatus[]'
+   */
+  export type ListEnumGuestConversationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuestConversationStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'GuestMessageSender'
+   */
+  export type EnumGuestMessageSenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuestMessageSender'>
+    
+
+
+  /**
+   * Reference to a field of type 'GuestMessageSender[]'
+   */
+  export type ListEnumGuestMessageSenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuestMessageSender[]'>
+    
   /**
    * Deep Input Types
    */
@@ -113440,6 +122752,9 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Customer"> | Date | string
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
     googleId?: StringNullableFilter<"Customer"> | string | null
+    isSuspended?: BoolFilter<"Customer"> | boolean
+    suspendedReason?: StringNullableFilter<"Customer"> | string | null
+    suspendedAt?: DateTimeNullableFilter<"Customer"> | Date | string | null
     chats?: ChatSessionListRelationFilter
     devices?: CustomerDeviceListRelationFilter
     documents?: VehicleDocumentListRelationFilter
@@ -113459,6 +122774,10 @@ export namespace Prisma {
     orders?: CustomerOrderListRelationFilter
     parkingBookings?: ParkingBookingListRelationFilter
     waitlistEntries?: ParkingWaitlistEntryListRelationFilter
+    conversationsAsCustomer?: ConversationListRelationFilter
+    conversationsAsOwner?: ConversationListRelationFilter
+    blockedContacts?: BlockedContactListRelationFilter
+    guestConversations?: GuestConversationListRelationFilter
   }
 
   export type CustomerOrderByWithRelationInput = {
@@ -113470,6 +122789,9 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     googleId?: SortOrderInput | SortOrder
+    isSuspended?: SortOrder
+    suspendedReason?: SortOrderInput | SortOrder
+    suspendedAt?: SortOrderInput | SortOrder
     chats?: ChatSessionOrderByRelationAggregateInput
     devices?: CustomerDeviceOrderByRelationAggregateInput
     documents?: VehicleDocumentOrderByRelationAggregateInput
@@ -113489,6 +122811,10 @@ export namespace Prisma {
     orders?: CustomerOrderOrderByRelationAggregateInput
     parkingBookings?: ParkingBookingOrderByRelationAggregateInput
     waitlistEntries?: ParkingWaitlistEntryOrderByRelationAggregateInput
+    conversationsAsCustomer?: ConversationOrderByRelationAggregateInput
+    conversationsAsOwner?: ConversationOrderByRelationAggregateInput
+    blockedContacts?: BlockedContactOrderByRelationAggregateInput
+    guestConversations?: GuestConversationOrderByRelationAggregateInput
   }
 
   export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -113503,6 +122829,9 @@ export namespace Prisma {
     profilePic?: StringNullableFilter<"Customer"> | string | null
     createdAt?: DateTimeFilter<"Customer"> | Date | string
     updatedAt?: DateTimeFilter<"Customer"> | Date | string
+    isSuspended?: BoolFilter<"Customer"> | boolean
+    suspendedReason?: StringNullableFilter<"Customer"> | string | null
+    suspendedAt?: DateTimeNullableFilter<"Customer"> | Date | string | null
     chats?: ChatSessionListRelationFilter
     devices?: CustomerDeviceListRelationFilter
     documents?: VehicleDocumentListRelationFilter
@@ -113522,6 +122851,10 @@ export namespace Prisma {
     orders?: CustomerOrderListRelationFilter
     parkingBookings?: ParkingBookingListRelationFilter
     waitlistEntries?: ParkingWaitlistEntryListRelationFilter
+    conversationsAsCustomer?: ConversationListRelationFilter
+    conversationsAsOwner?: ConversationListRelationFilter
+    blockedContacts?: BlockedContactListRelationFilter
+    guestConversations?: GuestConversationListRelationFilter
   }, "id" | "phoneNumber" | "googleId">
 
   export type CustomerOrderByWithAggregationInput = {
@@ -113533,6 +122866,9 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     googleId?: SortOrderInput | SortOrder
+    isSuspended?: SortOrder
+    suspendedReason?: SortOrderInput | SortOrder
+    suspendedAt?: SortOrderInput | SortOrder
     _count?: CustomerCountOrderByAggregateInput
     _max?: CustomerMaxOrderByAggregateInput
     _min?: CustomerMinOrderByAggregateInput
@@ -113550,6 +122886,9 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Customer"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Customer"> | Date | string
     googleId?: StringNullableWithAggregatesFilter<"Customer"> | string | null
+    isSuspended?: BoolWithAggregatesFilter<"Customer"> | boolean
+    suspendedReason?: StringNullableWithAggregatesFilter<"Customer"> | string | null
+    suspendedAt?: DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
   }
 
   export type CustomerDeviceWhereInput = {
@@ -114034,6 +123373,9 @@ export namespace Prisma {
     telematicsDevice?: XOR<TelematicsDeviceNullableScalarRelationFilter, TelematicsDeviceWhereInput> | null
     accessList?: VehicleAccessListRelationFilter
     healthScore?: XOR<VehicleHealthScoreNullableScalarRelationFilter, VehicleHealthScoreWhereInput> | null
+    qrToken?: XOR<VehicleQrTokenNullableScalarRelationFilter, VehicleQrTokenWhereInput> | null
+    conversations?: ConversationListRelationFilter
+    guestConversations?: GuestConversationListRelationFilter
   }
 
   export type CustomerVehicleOrderByWithRelationInput = {
@@ -114077,6 +123419,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceOrderByWithRelationInput
     accessList?: VehicleAccessOrderByRelationAggregateInput
     healthScore?: VehicleHealthScoreOrderByWithRelationInput
+    qrToken?: VehicleQrTokenOrderByWithRelationInput
+    conversations?: ConversationOrderByRelationAggregateInput
+    guestConversations?: GuestConversationOrderByRelationAggregateInput
   }
 
   export type CustomerVehicleWhereUniqueInput = Prisma.AtLeast<{
@@ -114123,6 +123468,9 @@ export namespace Prisma {
     telematicsDevice?: XOR<TelematicsDeviceNullableScalarRelationFilter, TelematicsDeviceWhereInput> | null
     accessList?: VehicleAccessListRelationFilter
     healthScore?: XOR<VehicleHealthScoreNullableScalarRelationFilter, VehicleHealthScoreWhereInput> | null
+    qrToken?: XOR<VehicleQrTokenNullableScalarRelationFilter, VehicleQrTokenWhereInput> | null
+    conversations?: ConversationListRelationFilter
+    guestConversations?: GuestConversationListRelationFilter
   }, "id" | "registrationNumber">
 
   export type CustomerVehicleOrderByWithAggregationInput = {
@@ -120885,6 +130233,565 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"ParkingWaitlistEntry"> | Date | string
   }
 
+  export type VehicleQrTokenWhereInput = {
+    AND?: VehicleQrTokenWhereInput | VehicleQrTokenWhereInput[]
+    OR?: VehicleQrTokenWhereInput[]
+    NOT?: VehicleQrTokenWhereInput | VehicleQrTokenWhereInput[]
+    id?: StringFilter<"VehicleQrToken"> | string
+    vehicleId?: StringFilter<"VehicleQrToken"> | string
+    token?: StringFilter<"VehicleQrToken"> | string
+    createdAt?: DateTimeFilter<"VehicleQrToken"> | Date | string
+    rotatedAt?: DateTimeFilter<"VehicleQrToken"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+  }
+
+  export type VehicleQrTokenOrderByWithRelationInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    rotatedAt?: SortOrder
+    vehicle?: CustomerVehicleOrderByWithRelationInput
+  }
+
+  export type VehicleQrTokenWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    vehicleId?: string
+    token?: string
+    AND?: VehicleQrTokenWhereInput | VehicleQrTokenWhereInput[]
+    OR?: VehicleQrTokenWhereInput[]
+    NOT?: VehicleQrTokenWhereInput | VehicleQrTokenWhereInput[]
+    createdAt?: DateTimeFilter<"VehicleQrToken"> | Date | string
+    rotatedAt?: DateTimeFilter<"VehicleQrToken"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+  }, "id" | "vehicleId" | "token">
+
+  export type VehicleQrTokenOrderByWithAggregationInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    rotatedAt?: SortOrder
+    _count?: VehicleQrTokenCountOrderByAggregateInput
+    _max?: VehicleQrTokenMaxOrderByAggregateInput
+    _min?: VehicleQrTokenMinOrderByAggregateInput
+  }
+
+  export type VehicleQrTokenScalarWhereWithAggregatesInput = {
+    AND?: VehicleQrTokenScalarWhereWithAggregatesInput | VehicleQrTokenScalarWhereWithAggregatesInput[]
+    OR?: VehicleQrTokenScalarWhereWithAggregatesInput[]
+    NOT?: VehicleQrTokenScalarWhereWithAggregatesInput | VehicleQrTokenScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"VehicleQrToken"> | string
+    vehicleId?: StringWithAggregatesFilter<"VehicleQrToken"> | string
+    token?: StringWithAggregatesFilter<"VehicleQrToken"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"VehicleQrToken"> | Date | string
+    rotatedAt?: DateTimeWithAggregatesFilter<"VehicleQrToken"> | Date | string
+  }
+
+  export type ConversationWhereInput = {
+    AND?: ConversationWhereInput | ConversationWhereInput[]
+    OR?: ConversationWhereInput[]
+    NOT?: ConversationWhereInput | ConversationWhereInput[]
+    id?: StringFilter<"Conversation"> | string
+    vehicleId?: StringFilter<"Conversation"> | string
+    customerId?: StringFilter<"Conversation"> | string
+    ownerId?: StringFilter<"Conversation"> | string
+    category?: EnumConversationCategoryFilter<"Conversation"> | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFilter<"Conversation"> | $Enums.MessagePriority
+    status?: EnumConversationStatusFilter<"Conversation"> | $Enums.ConversationStatus
+    lastMessage?: StringNullableFilter<"Conversation"> | string | null
+    lastMessageAt?: DateTimeNullableFilter<"Conversation"> | Date | string | null
+    lastSenderId?: StringNullableFilter<"Conversation"> | string | null
+    unreadCountOwner?: IntFilter<"Conversation"> | number
+    unreadCountCustomer?: IntFilter<"Conversation"> | number
+    createdAt?: DateTimeFilter<"Conversation"> | Date | string
+    updatedAt?: DateTimeFilter<"Conversation"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    owner?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    messages?: MessageListRelationFilter
+    reports?: ConversationReportListRelationFilter
+  }
+
+  export type ConversationOrderByWithRelationInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    customerId?: SortOrder
+    ownerId?: SortOrder
+    category?: SortOrder
+    priority?: SortOrder
+    status?: SortOrder
+    lastMessage?: SortOrderInput | SortOrder
+    lastMessageAt?: SortOrderInput | SortOrder
+    lastSenderId?: SortOrderInput | SortOrder
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    vehicle?: CustomerVehicleOrderByWithRelationInput
+    customer?: CustomerOrderByWithRelationInput
+    owner?: CustomerOrderByWithRelationInput
+    messages?: MessageOrderByRelationAggregateInput
+    reports?: ConversationReportOrderByRelationAggregateInput
+  }
+
+  export type ConversationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    vehicleId_customerId?: ConversationVehicleIdCustomerIdCompoundUniqueInput
+    AND?: ConversationWhereInput | ConversationWhereInput[]
+    OR?: ConversationWhereInput[]
+    NOT?: ConversationWhereInput | ConversationWhereInput[]
+    vehicleId?: StringFilter<"Conversation"> | string
+    customerId?: StringFilter<"Conversation"> | string
+    ownerId?: StringFilter<"Conversation"> | string
+    category?: EnumConversationCategoryFilter<"Conversation"> | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFilter<"Conversation"> | $Enums.MessagePriority
+    status?: EnumConversationStatusFilter<"Conversation"> | $Enums.ConversationStatus
+    lastMessage?: StringNullableFilter<"Conversation"> | string | null
+    lastMessageAt?: DateTimeNullableFilter<"Conversation"> | Date | string | null
+    lastSenderId?: StringNullableFilter<"Conversation"> | string | null
+    unreadCountOwner?: IntFilter<"Conversation"> | number
+    unreadCountCustomer?: IntFilter<"Conversation"> | number
+    createdAt?: DateTimeFilter<"Conversation"> | Date | string
+    updatedAt?: DateTimeFilter<"Conversation"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    owner?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    messages?: MessageListRelationFilter
+    reports?: ConversationReportListRelationFilter
+  }, "id" | "vehicleId_customerId">
+
+  export type ConversationOrderByWithAggregationInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    customerId?: SortOrder
+    ownerId?: SortOrder
+    category?: SortOrder
+    priority?: SortOrder
+    status?: SortOrder
+    lastMessage?: SortOrderInput | SortOrder
+    lastMessageAt?: SortOrderInput | SortOrder
+    lastSenderId?: SortOrderInput | SortOrder
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ConversationCountOrderByAggregateInput
+    _avg?: ConversationAvgOrderByAggregateInput
+    _max?: ConversationMaxOrderByAggregateInput
+    _min?: ConversationMinOrderByAggregateInput
+    _sum?: ConversationSumOrderByAggregateInput
+  }
+
+  export type ConversationScalarWhereWithAggregatesInput = {
+    AND?: ConversationScalarWhereWithAggregatesInput | ConversationScalarWhereWithAggregatesInput[]
+    OR?: ConversationScalarWhereWithAggregatesInput[]
+    NOT?: ConversationScalarWhereWithAggregatesInput | ConversationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Conversation"> | string
+    vehicleId?: StringWithAggregatesFilter<"Conversation"> | string
+    customerId?: StringWithAggregatesFilter<"Conversation"> | string
+    ownerId?: StringWithAggregatesFilter<"Conversation"> | string
+    category?: EnumConversationCategoryWithAggregatesFilter<"Conversation"> | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityWithAggregatesFilter<"Conversation"> | $Enums.MessagePriority
+    status?: EnumConversationStatusWithAggregatesFilter<"Conversation"> | $Enums.ConversationStatus
+    lastMessage?: StringNullableWithAggregatesFilter<"Conversation"> | string | null
+    lastMessageAt?: DateTimeNullableWithAggregatesFilter<"Conversation"> | Date | string | null
+    lastSenderId?: StringNullableWithAggregatesFilter<"Conversation"> | string | null
+    unreadCountOwner?: IntWithAggregatesFilter<"Conversation"> | number
+    unreadCountCustomer?: IntWithAggregatesFilter<"Conversation"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"Conversation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Conversation"> | Date | string
+  }
+
+  export type MessageWhereInput = {
+    AND?: MessageWhereInput | MessageWhereInput[]
+    OR?: MessageWhereInput[]
+    NOT?: MessageWhereInput | MessageWhereInput[]
+    id?: StringFilter<"Message"> | string
+    conversationId?: StringFilter<"Message"> | string
+    senderId?: StringFilter<"Message"> | string
+    receiverId?: StringFilter<"Message"> | string
+    type?: EnumMessageTypeFilter<"Message"> | $Enums.MessageType
+    text?: StringNullableFilter<"Message"> | string | null
+    imageUrls?: StringNullableListFilter<"Message">
+    latitude?: FloatNullableFilter<"Message"> | number | null
+    longitude?: FloatNullableFilter<"Message"> | number | null
+    quickReplyKey?: StringNullableFilter<"Message"> | string | null
+    reaction?: StringNullableFilter<"Message"> | string | null
+    metadata?: JsonNullableFilter<"Message">
+    isRead?: BoolFilter<"Message"> | boolean
+    deliveredAt?: DateTimeNullableFilter<"Message"> | Date | string | null
+    readAt?: DateTimeNullableFilter<"Message"> | Date | string | null
+    createdAt?: DateTimeFilter<"Message"> | Date | string
+    conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
+  }
+
+  export type MessageOrderByWithRelationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    type?: SortOrder
+    text?: SortOrderInput | SortOrder
+    imageUrls?: SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
+    quickReplyKey?: SortOrderInput | SortOrder
+    reaction?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    isRead?: SortOrder
+    deliveredAt?: SortOrderInput | SortOrder
+    readAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    conversation?: ConversationOrderByWithRelationInput
+  }
+
+  export type MessageWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MessageWhereInput | MessageWhereInput[]
+    OR?: MessageWhereInput[]
+    NOT?: MessageWhereInput | MessageWhereInput[]
+    conversationId?: StringFilter<"Message"> | string
+    senderId?: StringFilter<"Message"> | string
+    receiverId?: StringFilter<"Message"> | string
+    type?: EnumMessageTypeFilter<"Message"> | $Enums.MessageType
+    text?: StringNullableFilter<"Message"> | string | null
+    imageUrls?: StringNullableListFilter<"Message">
+    latitude?: FloatNullableFilter<"Message"> | number | null
+    longitude?: FloatNullableFilter<"Message"> | number | null
+    quickReplyKey?: StringNullableFilter<"Message"> | string | null
+    reaction?: StringNullableFilter<"Message"> | string | null
+    metadata?: JsonNullableFilter<"Message">
+    isRead?: BoolFilter<"Message"> | boolean
+    deliveredAt?: DateTimeNullableFilter<"Message"> | Date | string | null
+    readAt?: DateTimeNullableFilter<"Message"> | Date | string | null
+    createdAt?: DateTimeFilter<"Message"> | Date | string
+    conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
+  }, "id">
+
+  export type MessageOrderByWithAggregationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    type?: SortOrder
+    text?: SortOrderInput | SortOrder
+    imageUrls?: SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
+    quickReplyKey?: SortOrderInput | SortOrder
+    reaction?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    isRead?: SortOrder
+    deliveredAt?: SortOrderInput | SortOrder
+    readAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: MessageCountOrderByAggregateInput
+    _avg?: MessageAvgOrderByAggregateInput
+    _max?: MessageMaxOrderByAggregateInput
+    _min?: MessageMinOrderByAggregateInput
+    _sum?: MessageSumOrderByAggregateInput
+  }
+
+  export type MessageScalarWhereWithAggregatesInput = {
+    AND?: MessageScalarWhereWithAggregatesInput | MessageScalarWhereWithAggregatesInput[]
+    OR?: MessageScalarWhereWithAggregatesInput[]
+    NOT?: MessageScalarWhereWithAggregatesInput | MessageScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Message"> | string
+    conversationId?: StringWithAggregatesFilter<"Message"> | string
+    senderId?: StringWithAggregatesFilter<"Message"> | string
+    receiverId?: StringWithAggregatesFilter<"Message"> | string
+    type?: EnumMessageTypeWithAggregatesFilter<"Message"> | $Enums.MessageType
+    text?: StringNullableWithAggregatesFilter<"Message"> | string | null
+    imageUrls?: StringNullableListFilter<"Message">
+    latitude?: FloatNullableWithAggregatesFilter<"Message"> | number | null
+    longitude?: FloatNullableWithAggregatesFilter<"Message"> | number | null
+    quickReplyKey?: StringNullableWithAggregatesFilter<"Message"> | string | null
+    reaction?: StringNullableWithAggregatesFilter<"Message"> | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"Message">
+    isRead?: BoolWithAggregatesFilter<"Message"> | boolean
+    deliveredAt?: DateTimeNullableWithAggregatesFilter<"Message"> | Date | string | null
+    readAt?: DateTimeNullableWithAggregatesFilter<"Message"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Message"> | Date | string
+  }
+
+  export type BlockedContactWhereInput = {
+    AND?: BlockedContactWhereInput | BlockedContactWhereInput[]
+    OR?: BlockedContactWhereInput[]
+    NOT?: BlockedContactWhereInput | BlockedContactWhereInput[]
+    id?: StringFilter<"BlockedContact"> | string
+    ownerId?: StringFilter<"BlockedContact"> | string
+    blockedId?: StringFilter<"BlockedContact"> | string
+    reason?: StringNullableFilter<"BlockedContact"> | string | null
+    createdAt?: DateTimeFilter<"BlockedContact"> | Date | string
+    owner?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }
+
+  export type BlockedContactOrderByWithRelationInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    blockedId?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    owner?: CustomerOrderByWithRelationInput
+  }
+
+  export type BlockedContactWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    ownerId_blockedId?: BlockedContactOwnerIdBlockedIdCompoundUniqueInput
+    AND?: BlockedContactWhereInput | BlockedContactWhereInput[]
+    OR?: BlockedContactWhereInput[]
+    NOT?: BlockedContactWhereInput | BlockedContactWhereInput[]
+    ownerId?: StringFilter<"BlockedContact"> | string
+    blockedId?: StringFilter<"BlockedContact"> | string
+    reason?: StringNullableFilter<"BlockedContact"> | string | null
+    createdAt?: DateTimeFilter<"BlockedContact"> | Date | string
+    owner?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+  }, "id" | "ownerId_blockedId">
+
+  export type BlockedContactOrderByWithAggregationInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    blockedId?: SortOrder
+    reason?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: BlockedContactCountOrderByAggregateInput
+    _max?: BlockedContactMaxOrderByAggregateInput
+    _min?: BlockedContactMinOrderByAggregateInput
+  }
+
+  export type BlockedContactScalarWhereWithAggregatesInput = {
+    AND?: BlockedContactScalarWhereWithAggregatesInput | BlockedContactScalarWhereWithAggregatesInput[]
+    OR?: BlockedContactScalarWhereWithAggregatesInput[]
+    NOT?: BlockedContactScalarWhereWithAggregatesInput | BlockedContactScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BlockedContact"> | string
+    ownerId?: StringWithAggregatesFilter<"BlockedContact"> | string
+    blockedId?: StringWithAggregatesFilter<"BlockedContact"> | string
+    reason?: StringNullableWithAggregatesFilter<"BlockedContact"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BlockedContact"> | Date | string
+  }
+
+  export type ConversationReportWhereInput = {
+    AND?: ConversationReportWhereInput | ConversationReportWhereInput[]
+    OR?: ConversationReportWhereInput[]
+    NOT?: ConversationReportWhereInput | ConversationReportWhereInput[]
+    id?: StringFilter<"ConversationReport"> | string
+    conversationId?: StringFilter<"ConversationReport"> | string
+    reporterId?: StringFilter<"ConversationReport"> | string
+    reportedId?: StringFilter<"ConversationReport"> | string
+    reason?: StringFilter<"ConversationReport"> | string
+    status?: EnumReportStatusFilter<"ConversationReport"> | $Enums.ReportStatus
+    createdAt?: DateTimeFilter<"ConversationReport"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"ConversationReport"> | Date | string | null
+    conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
+  }
+
+  export type ConversationReportOrderByWithRelationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    reporterId?: SortOrder
+    reportedId?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    conversation?: ConversationOrderByWithRelationInput
+  }
+
+  export type ConversationReportWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ConversationReportWhereInput | ConversationReportWhereInput[]
+    OR?: ConversationReportWhereInput[]
+    NOT?: ConversationReportWhereInput | ConversationReportWhereInput[]
+    conversationId?: StringFilter<"ConversationReport"> | string
+    reporterId?: StringFilter<"ConversationReport"> | string
+    reportedId?: StringFilter<"ConversationReport"> | string
+    reason?: StringFilter<"ConversationReport"> | string
+    status?: EnumReportStatusFilter<"ConversationReport"> | $Enums.ReportStatus
+    createdAt?: DateTimeFilter<"ConversationReport"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"ConversationReport"> | Date | string | null
+    conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
+  }, "id">
+
+  export type ConversationReportOrderByWithAggregationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    reporterId?: SortOrder
+    reportedId?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    _count?: ConversationReportCountOrderByAggregateInput
+    _max?: ConversationReportMaxOrderByAggregateInput
+    _min?: ConversationReportMinOrderByAggregateInput
+  }
+
+  export type ConversationReportScalarWhereWithAggregatesInput = {
+    AND?: ConversationReportScalarWhereWithAggregatesInput | ConversationReportScalarWhereWithAggregatesInput[]
+    OR?: ConversationReportScalarWhereWithAggregatesInput[]
+    NOT?: ConversationReportScalarWhereWithAggregatesInput | ConversationReportScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ConversationReport"> | string
+    conversationId?: StringWithAggregatesFilter<"ConversationReport"> | string
+    reporterId?: StringWithAggregatesFilter<"ConversationReport"> | string
+    reportedId?: StringWithAggregatesFilter<"ConversationReport"> | string
+    reason?: StringWithAggregatesFilter<"ConversationReport"> | string
+    status?: EnumReportStatusWithAggregatesFilter<"ConversationReport"> | $Enums.ReportStatus
+    createdAt?: DateTimeWithAggregatesFilter<"ConversationReport"> | Date | string
+    resolvedAt?: DateTimeNullableWithAggregatesFilter<"ConversationReport"> | Date | string | null
+  }
+
+  export type GuestConversationWhereInput = {
+    AND?: GuestConversationWhereInput | GuestConversationWhereInput[]
+    OR?: GuestConversationWhereInput[]
+    NOT?: GuestConversationWhereInput | GuestConversationWhereInput[]
+    id?: StringFilter<"GuestConversation"> | string
+    vehicleId?: StringFilter<"GuestConversation"> | string
+    ownerId?: StringFilter<"GuestConversation"> | string
+    guestToken?: StringFilter<"GuestConversation"> | string
+    guestName?: StringNullableFilter<"GuestConversation"> | string | null
+    guestContact?: StringNullableFilter<"GuestConversation"> | string | null
+    lastMessage?: StringNullableFilter<"GuestConversation"> | string | null
+    lastMessageAt?: DateTimeNullableFilter<"GuestConversation"> | Date | string | null
+    status?: EnumGuestConversationStatusFilter<"GuestConversation"> | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFilter<"GuestConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"GuestConversation"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+    owner?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    entries?: GuestMessageEntryListRelationFilter
+  }
+
+  export type GuestConversationOrderByWithRelationInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    ownerId?: SortOrder
+    guestToken?: SortOrder
+    guestName?: SortOrderInput | SortOrder
+    guestContact?: SortOrderInput | SortOrder
+    lastMessage?: SortOrderInput | SortOrder
+    lastMessageAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    vehicle?: CustomerVehicleOrderByWithRelationInput
+    owner?: CustomerOrderByWithRelationInput
+    entries?: GuestMessageEntryOrderByRelationAggregateInput
+  }
+
+  export type GuestConversationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    guestToken?: string
+    AND?: GuestConversationWhereInput | GuestConversationWhereInput[]
+    OR?: GuestConversationWhereInput[]
+    NOT?: GuestConversationWhereInput | GuestConversationWhereInput[]
+    vehicleId?: StringFilter<"GuestConversation"> | string
+    ownerId?: StringFilter<"GuestConversation"> | string
+    guestName?: StringNullableFilter<"GuestConversation"> | string | null
+    guestContact?: StringNullableFilter<"GuestConversation"> | string | null
+    lastMessage?: StringNullableFilter<"GuestConversation"> | string | null
+    lastMessageAt?: DateTimeNullableFilter<"GuestConversation"> | Date | string | null
+    status?: EnumGuestConversationStatusFilter<"GuestConversation"> | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFilter<"GuestConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"GuestConversation"> | Date | string
+    vehicle?: XOR<CustomerVehicleScalarRelationFilter, CustomerVehicleWhereInput>
+    owner?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    entries?: GuestMessageEntryListRelationFilter
+  }, "id" | "guestToken">
+
+  export type GuestConversationOrderByWithAggregationInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    ownerId?: SortOrder
+    guestToken?: SortOrder
+    guestName?: SortOrderInput | SortOrder
+    guestContact?: SortOrderInput | SortOrder
+    lastMessage?: SortOrderInput | SortOrder
+    lastMessageAt?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GuestConversationCountOrderByAggregateInput
+    _max?: GuestConversationMaxOrderByAggregateInput
+    _min?: GuestConversationMinOrderByAggregateInput
+  }
+
+  export type GuestConversationScalarWhereWithAggregatesInput = {
+    AND?: GuestConversationScalarWhereWithAggregatesInput | GuestConversationScalarWhereWithAggregatesInput[]
+    OR?: GuestConversationScalarWhereWithAggregatesInput[]
+    NOT?: GuestConversationScalarWhereWithAggregatesInput | GuestConversationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GuestConversation"> | string
+    vehicleId?: StringWithAggregatesFilter<"GuestConversation"> | string
+    ownerId?: StringWithAggregatesFilter<"GuestConversation"> | string
+    guestToken?: StringWithAggregatesFilter<"GuestConversation"> | string
+    guestName?: StringNullableWithAggregatesFilter<"GuestConversation"> | string | null
+    guestContact?: StringNullableWithAggregatesFilter<"GuestConversation"> | string | null
+    lastMessage?: StringNullableWithAggregatesFilter<"GuestConversation"> | string | null
+    lastMessageAt?: DateTimeNullableWithAggregatesFilter<"GuestConversation"> | Date | string | null
+    status?: EnumGuestConversationStatusWithAggregatesFilter<"GuestConversation"> | $Enums.GuestConversationStatus
+    createdAt?: DateTimeWithAggregatesFilter<"GuestConversation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GuestConversation"> | Date | string
+  }
+
+  export type GuestMessageEntryWhereInput = {
+    AND?: GuestMessageEntryWhereInput | GuestMessageEntryWhereInput[]
+    OR?: GuestMessageEntryWhereInput[]
+    NOT?: GuestMessageEntryWhereInput | GuestMessageEntryWhereInput[]
+    id?: StringFilter<"GuestMessageEntry"> | string
+    conversationId?: StringFilter<"GuestMessageEntry"> | string
+    sender?: EnumGuestMessageSenderFilter<"GuestMessageEntry"> | $Enums.GuestMessageSender
+    text?: StringNullableFilter<"GuestMessageEntry"> | string | null
+    imageUrls?: StringNullableListFilter<"GuestMessageEntry">
+    createdAt?: DateTimeFilter<"GuestMessageEntry"> | Date | string
+    conversation?: XOR<GuestConversationScalarRelationFilter, GuestConversationWhereInput>
+  }
+
+  export type GuestMessageEntryOrderByWithRelationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    sender?: SortOrder
+    text?: SortOrderInput | SortOrder
+    imageUrls?: SortOrder
+    createdAt?: SortOrder
+    conversation?: GuestConversationOrderByWithRelationInput
+  }
+
+  export type GuestMessageEntryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: GuestMessageEntryWhereInput | GuestMessageEntryWhereInput[]
+    OR?: GuestMessageEntryWhereInput[]
+    NOT?: GuestMessageEntryWhereInput | GuestMessageEntryWhereInput[]
+    conversationId?: StringFilter<"GuestMessageEntry"> | string
+    sender?: EnumGuestMessageSenderFilter<"GuestMessageEntry"> | $Enums.GuestMessageSender
+    text?: StringNullableFilter<"GuestMessageEntry"> | string | null
+    imageUrls?: StringNullableListFilter<"GuestMessageEntry">
+    createdAt?: DateTimeFilter<"GuestMessageEntry"> | Date | string
+    conversation?: XOR<GuestConversationScalarRelationFilter, GuestConversationWhereInput>
+  }, "id">
+
+  export type GuestMessageEntryOrderByWithAggregationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    sender?: SortOrder
+    text?: SortOrderInput | SortOrder
+    imageUrls?: SortOrder
+    createdAt?: SortOrder
+    _count?: GuestMessageEntryCountOrderByAggregateInput
+    _max?: GuestMessageEntryMaxOrderByAggregateInput
+    _min?: GuestMessageEntryMinOrderByAggregateInput
+  }
+
+  export type GuestMessageEntryScalarWhereWithAggregatesInput = {
+    AND?: GuestMessageEntryScalarWhereWithAggregatesInput | GuestMessageEntryScalarWhereWithAggregatesInput[]
+    OR?: GuestMessageEntryScalarWhereWithAggregatesInput[]
+    NOT?: GuestMessageEntryScalarWhereWithAggregatesInput | GuestMessageEntryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GuestMessageEntry"> | string
+    conversationId?: StringWithAggregatesFilter<"GuestMessageEntry"> | string
+    sender?: EnumGuestMessageSenderWithAggregatesFilter<"GuestMessageEntry"> | $Enums.GuestMessageSender
+    text?: StringNullableWithAggregatesFilter<"GuestMessageEntry"> | string | null
+    imageUrls?: StringNullableListFilter<"GuestMessageEntry">
+    createdAt?: DateTimeWithAggregatesFilter<"GuestMessageEntry"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -121027,6 +130934,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -121046,6 +130956,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateInput = {
@@ -121057,6 +130971,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -121076,6 +130993,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUpdateInput = {
@@ -121087,6 +131008,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -121106,6 +131030,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateInput = {
@@ -121117,6 +131045,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -121136,6 +131067,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerCreateManyInput = {
@@ -121147,6 +131082,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
   }
 
   export type CustomerUpdateManyMutationInput = {
@@ -121158,6 +131096,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CustomerUncheckedUpdateManyInput = {
@@ -121169,6 +131110,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type CustomerDeviceCreateInput = {
@@ -121709,6 +131653,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateInput = {
@@ -121751,6 +131698,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUpdateInput = {
@@ -121793,6 +131743,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateInput = {
@@ -121835,6 +131788,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleCreateManyInput = {
@@ -129466,6 +139422,610 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type VehicleQrTokenCreateInput = {
+    id?: string
+    token: string
+    createdAt?: Date | string
+    rotatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutQrTokenInput
+  }
+
+  export type VehicleQrTokenUncheckedCreateInput = {
+    id?: string
+    vehicleId: string
+    token: string
+    createdAt?: Date | string
+    rotatedAt?: Date | string
+  }
+
+  export type VehicleQrTokenUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutQrTokenNestedInput
+  }
+
+  export type VehicleQrTokenUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleQrTokenCreateManyInput = {
+    id?: string
+    vehicleId: string
+    token: string
+    createdAt?: Date | string
+    rotatedAt?: Date | string
+  }
+
+  export type VehicleQrTokenUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleQrTokenUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationCreateInput = {
+    id?: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutConversationsInput
+    customer: CustomerCreateNestedOneWithoutConversationsAsCustomerInput
+    owner: CustomerCreateNestedOneWithoutConversationsAsOwnerInput
+    messages?: MessageCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUncheckedCreateInput = {
+    id?: string
+    vehicleId: string
+    customerId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: MessageUncheckedCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutConversationsNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutConversationsAsCustomerNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutConversationsAsOwnerNestedInput
+    messages?: MessageUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: MessageUncheckedUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationCreateManyInput = {
+    id?: string
+    vehicleId: string
+    customerId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ConversationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageCreateInput = {
+    id?: string
+    senderId: string
+    receiverId: string
+    type?: $Enums.MessageType
+    text?: string | null
+    imageUrls?: MessageCreateimageUrlsInput | string[]
+    latitude?: number | null
+    longitude?: number | null
+    quickReplyKey?: string | null
+    reaction?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: boolean
+    deliveredAt?: Date | string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    conversation: ConversationCreateNestedOneWithoutMessagesInput
+  }
+
+  export type MessageUncheckedCreateInput = {
+    id?: string
+    conversationId: string
+    senderId: string
+    receiverId: string
+    type?: $Enums.MessageType
+    text?: string | null
+    imageUrls?: MessageCreateimageUrlsInput | string[]
+    latitude?: number | null
+    longitude?: number | null
+    quickReplyKey?: string | null
+    reaction?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: boolean
+    deliveredAt?: Date | string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MessageUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: ConversationUpdateOneRequiredWithoutMessagesNestedInput
+  }
+
+  export type MessageUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageCreateManyInput = {
+    id?: string
+    conversationId: string
+    senderId: string
+    receiverId: string
+    type?: $Enums.MessageType
+    text?: string | null
+    imageUrls?: MessageCreateimageUrlsInput | string[]
+    latitude?: number | null
+    longitude?: number | null
+    quickReplyKey?: string | null
+    reaction?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: boolean
+    deliveredAt?: Date | string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MessageUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BlockedContactCreateInput = {
+    id?: string
+    blockedId: string
+    reason?: string | null
+    createdAt?: Date | string
+    owner: CustomerCreateNestedOneWithoutBlockedContactsInput
+  }
+
+  export type BlockedContactUncheckedCreateInput = {
+    id?: string
+    ownerId: string
+    blockedId: string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type BlockedContactUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: CustomerUpdateOneRequiredWithoutBlockedContactsNestedInput
+  }
+
+  export type BlockedContactUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BlockedContactCreateManyInput = {
+    id?: string
+    ownerId: string
+    blockedId: string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type BlockedContactUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BlockedContactUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationReportCreateInput = {
+    id?: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status?: $Enums.ReportStatus
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+    conversation: ConversationCreateNestedOneWithoutReportsInput
+  }
+
+  export type ConversationReportUncheckedCreateInput = {
+    id?: string
+    conversationId: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status?: $Enums.ReportStatus
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type ConversationReportUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    conversation?: ConversationUpdateOneRequiredWithoutReportsNestedInput
+  }
+
+  export type ConversationReportUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConversationReportCreateManyInput = {
+    id?: string
+    conversationId: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status?: $Enums.ReportStatus
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type ConversationReportUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConversationReportUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuestConversationCreateInput = {
+    id?: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutGuestConversationsInput
+    owner: CustomerCreateNestedOneWithoutGuestConversationsInput
+    entries?: GuestMessageEntryCreateNestedManyWithoutConversationInput
+  }
+
+  export type GuestConversationUncheckedCreateInput = {
+    id?: string
+    vehicleId: string
+    ownerId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    entries?: GuestMessageEntryUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type GuestConversationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutGuestConversationsNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutGuestConversationsNestedInput
+    entries?: GuestMessageEntryUpdateManyWithoutConversationNestedInput
+  }
+
+  export type GuestConversationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    entries?: GuestMessageEntryUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type GuestConversationCreateManyInput = {
+    id?: string
+    vehicleId: string
+    ownerId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GuestConversationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestConversationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestMessageEntryCreateInput = {
+    id?: string
+    sender: $Enums.GuestMessageSender
+    text?: string | null
+    imageUrls?: GuestMessageEntryCreateimageUrlsInput | string[]
+    createdAt?: Date | string
+    conversation: GuestConversationCreateNestedOneWithoutEntriesInput
+  }
+
+  export type GuestMessageEntryUncheckedCreateInput = {
+    id?: string
+    conversationId: string
+    sender: $Enums.GuestMessageSender
+    text?: string | null
+    imageUrls?: GuestMessageEntryCreateimageUrlsInput | string[]
+    createdAt?: Date | string
+  }
+
+  export type GuestMessageEntryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: GuestConversationUpdateOneRequiredWithoutEntriesNestedInput
+  }
+
+  export type GuestMessageEntryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestMessageEntryCreateManyInput = {
+    id?: string
+    conversationId: string
+    sender: $Enums.GuestMessageSender
+    text?: string | null
+    imageUrls?: GuestMessageEntryCreateimageUrlsInput | string[]
+    createdAt?: Date | string
+  }
+
+  export type GuestMessageEntryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestMessageEntryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -129649,6 +140209,17 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
   export type ChatSessionListRelationFilter = {
     every?: ChatSessionWhereInput
     some?: ChatSessionWhereInput
@@ -129754,6 +140325,24 @@ export namespace Prisma {
     none?: ParkingWaitlistEntryWhereInput
   }
 
+  export type ConversationListRelationFilter = {
+    every?: ConversationWhereInput
+    some?: ConversationWhereInput
+    none?: ConversationWhereInput
+  }
+
+  export type BlockedContactListRelationFilter = {
+    every?: BlockedContactWhereInput
+    some?: BlockedContactWhereInput
+    none?: BlockedContactWhereInput
+  }
+
+  export type GuestConversationListRelationFilter = {
+    every?: GuestConversationWhereInput
+    some?: GuestConversationWhereInput
+    none?: GuestConversationWhereInput
+  }
+
   export type ChatSessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -129814,6 +140403,18 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type ConversationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BlockedContactOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GuestConversationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type CustomerCountOrderByAggregateInput = {
     id?: SortOrder
     phoneNumber?: SortOrder
@@ -129823,6 +140424,9 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     googleId?: SortOrder
+    isSuspended?: SortOrder
+    suspendedReason?: SortOrder
+    suspendedAt?: SortOrder
   }
 
   export type CustomerMaxOrderByAggregateInput = {
@@ -129834,6 +140438,9 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     googleId?: SortOrder
+    isSuspended?: SortOrder
+    suspendedReason?: SortOrder
+    suspendedAt?: SortOrder
   }
 
   export type CustomerMinOrderByAggregateInput = {
@@ -129845,6 +140452,23 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     googleId?: SortOrder
+    isSuspended?: SortOrder
+    suspendedReason?: SortOrder
+    suspendedAt?: SortOrder
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type CustomerScalarRelationFilter = {
@@ -129890,17 +140514,6 @@ export namespace Prisma {
     in?: $Enums.DocumentType[] | ListEnumDocumentTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.DocumentType[] | ListEnumDocumentTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumDocumentTypeFilter<$PrismaModel> | $Enums.DocumentType
-  }
-
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
   export type BytesNullableFilter<$PrismaModel = never> = {
@@ -129965,20 +140578,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumDocumentTypeFilter<$PrismaModel>
     _max?: NestedEnumDocumentTypeFilter<$PrismaModel>
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type BytesNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -130237,6 +140836,11 @@ export namespace Prisma {
   export type VehicleHealthScoreNullableScalarRelationFilter = {
     is?: VehicleHealthScoreWhereInput | null
     isNot?: VehicleHealthScoreWhereInput | null
+  }
+
+  export type VehicleQrTokenNullableScalarRelationFilter = {
+    is?: VehicleQrTokenWhereInput | null
+    isNot?: VehicleQrTokenWhereInput | null
   }
 
   export type ChallanOrderByRelationAggregateInput = {
@@ -135555,6 +146159,447 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type VehicleQrTokenCountOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    rotatedAt?: SortOrder
+  }
+
+  export type VehicleQrTokenMaxOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    rotatedAt?: SortOrder
+  }
+
+  export type VehicleQrTokenMinOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    token?: SortOrder
+    createdAt?: SortOrder
+    rotatedAt?: SortOrder
+  }
+
+  export type EnumConversationCategoryFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationCategory | EnumConversationCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationCategoryFilter<$PrismaModel> | $Enums.ConversationCategory
+  }
+
+  export type EnumMessagePriorityFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessagePriority | EnumMessagePriorityFieldRefInput<$PrismaModel>
+    in?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessagePriorityFilter<$PrismaModel> | $Enums.MessagePriority
+  }
+
+  export type EnumConversationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationStatus | EnumConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationStatusFilter<$PrismaModel> | $Enums.ConversationStatus
+  }
+
+  export type MessageListRelationFilter = {
+    every?: MessageWhereInput
+    some?: MessageWhereInput
+    none?: MessageWhereInput
+  }
+
+  export type ConversationReportListRelationFilter = {
+    every?: ConversationReportWhereInput
+    some?: ConversationReportWhereInput
+    none?: ConversationReportWhereInput
+  }
+
+  export type MessageOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ConversationReportOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ConversationVehicleIdCustomerIdCompoundUniqueInput = {
+    vehicleId: string
+    customerId: string
+  }
+
+  export type ConversationCountOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    customerId?: SortOrder
+    ownerId?: SortOrder
+    category?: SortOrder
+    priority?: SortOrder
+    status?: SortOrder
+    lastMessage?: SortOrder
+    lastMessageAt?: SortOrder
+    lastSenderId?: SortOrder
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConversationAvgOrderByAggregateInput = {
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+  }
+
+  export type ConversationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    customerId?: SortOrder
+    ownerId?: SortOrder
+    category?: SortOrder
+    priority?: SortOrder
+    status?: SortOrder
+    lastMessage?: SortOrder
+    lastMessageAt?: SortOrder
+    lastSenderId?: SortOrder
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConversationMinOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    customerId?: SortOrder
+    ownerId?: SortOrder
+    category?: SortOrder
+    priority?: SortOrder
+    status?: SortOrder
+    lastMessage?: SortOrder
+    lastMessageAt?: SortOrder
+    lastSenderId?: SortOrder
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ConversationSumOrderByAggregateInput = {
+    unreadCountOwner?: SortOrder
+    unreadCountCustomer?: SortOrder
+  }
+
+  export type EnumConversationCategoryWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationCategory | EnumConversationCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationCategoryWithAggregatesFilter<$PrismaModel> | $Enums.ConversationCategory
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumConversationCategoryFilter<$PrismaModel>
+    _max?: NestedEnumConversationCategoryFilter<$PrismaModel>
+  }
+
+  export type EnumMessagePriorityWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessagePriority | EnumMessagePriorityFieldRefInput<$PrismaModel>
+    in?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessagePriorityWithAggregatesFilter<$PrismaModel> | $Enums.MessagePriority
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMessagePriorityFilter<$PrismaModel>
+    _max?: NestedEnumMessagePriorityFilter<$PrismaModel>
+  }
+
+  export type EnumConversationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationStatus | EnumConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConversationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumConversationStatusFilter<$PrismaModel>
+    _max?: NestedEnumConversationStatusFilter<$PrismaModel>
+  }
+
+  export type EnumMessageTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessageType | EnumMessageTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessageTypeFilter<$PrismaModel> | $Enums.MessageType
+  }
+
+  export type ConversationScalarRelationFilter = {
+    is?: ConversationWhereInput
+    isNot?: ConversationWhereInput
+  }
+
+  export type MessageCountOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    type?: SortOrder
+    text?: SortOrder
+    imageUrls?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    quickReplyKey?: SortOrder
+    reaction?: SortOrder
+    metadata?: SortOrder
+    isRead?: SortOrder
+    deliveredAt?: SortOrder
+    readAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MessageAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type MessageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    type?: SortOrder
+    text?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    quickReplyKey?: SortOrder
+    reaction?: SortOrder
+    isRead?: SortOrder
+    deliveredAt?: SortOrder
+    readAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MessageMinOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    type?: SortOrder
+    text?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    quickReplyKey?: SortOrder
+    reaction?: SortOrder
+    isRead?: SortOrder
+    deliveredAt?: SortOrder
+    readAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MessageSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type EnumMessageTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessageType | EnumMessageTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessageTypeWithAggregatesFilter<$PrismaModel> | $Enums.MessageType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMessageTypeFilter<$PrismaModel>
+    _max?: NestedEnumMessageTypeFilter<$PrismaModel>
+  }
+
+  export type BlockedContactOwnerIdBlockedIdCompoundUniqueInput = {
+    ownerId: string
+    blockedId: string
+  }
+
+  export type BlockedContactCountOrderByAggregateInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    blockedId?: SortOrder
+    reason?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BlockedContactMaxOrderByAggregateInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    blockedId?: SortOrder
+    reason?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BlockedContactMinOrderByAggregateInput = {
+    id?: SortOrder
+    ownerId?: SortOrder
+    blockedId?: SortOrder
+    reason?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumReportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusFilter<$PrismaModel> | $Enums.ReportStatus
+  }
+
+  export type ConversationReportCountOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    reporterId?: SortOrder
+    reportedId?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type ConversationReportMaxOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    reporterId?: SortOrder
+    reportedId?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type ConversationReportMinOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    reporterId?: SortOrder
+    reportedId?: SortOrder
+    reason?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    resolvedAt?: SortOrder
+  }
+
+  export type EnumReportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReportStatusFilter<$PrismaModel>
+    _max?: NestedEnumReportStatusFilter<$PrismaModel>
+  }
+
+  export type EnumGuestConversationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestConversationStatus | EnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestConversationStatusFilter<$PrismaModel> | $Enums.GuestConversationStatus
+  }
+
+  export type GuestMessageEntryListRelationFilter = {
+    every?: GuestMessageEntryWhereInput
+    some?: GuestMessageEntryWhereInput
+    none?: GuestMessageEntryWhereInput
+  }
+
+  export type GuestMessageEntryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GuestConversationCountOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    ownerId?: SortOrder
+    guestToken?: SortOrder
+    guestName?: SortOrder
+    guestContact?: SortOrder
+    lastMessage?: SortOrder
+    lastMessageAt?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GuestConversationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    ownerId?: SortOrder
+    guestToken?: SortOrder
+    guestName?: SortOrder
+    guestContact?: SortOrder
+    lastMessage?: SortOrder
+    lastMessageAt?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GuestConversationMinOrderByAggregateInput = {
+    id?: SortOrder
+    vehicleId?: SortOrder
+    ownerId?: SortOrder
+    guestToken?: SortOrder
+    guestName?: SortOrder
+    guestContact?: SortOrder
+    lastMessage?: SortOrder
+    lastMessageAt?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumGuestConversationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestConversationStatus | EnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestConversationStatusWithAggregatesFilter<$PrismaModel> | $Enums.GuestConversationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumGuestConversationStatusFilter<$PrismaModel>
+    _max?: NestedEnumGuestConversationStatusFilter<$PrismaModel>
+  }
+
+  export type EnumGuestMessageSenderFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestMessageSender | EnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestMessageSenderFilter<$PrismaModel> | $Enums.GuestMessageSender
+  }
+
+  export type GuestConversationScalarRelationFilter = {
+    is?: GuestConversationWhereInput
+    isNot?: GuestConversationWhereInput
+  }
+
+  export type GuestMessageEntryCountOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    sender?: SortOrder
+    text?: SortOrder
+    imageUrls?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type GuestMessageEntryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    sender?: SortOrder
+    text?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type GuestMessageEntryMinOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    sender?: SortOrder
+    text?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumGuestMessageSenderWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestMessageSender | EnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestMessageSenderWithAggregatesFilter<$PrismaModel> | $Enums.GuestMessageSender
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumGuestMessageSenderFilter<$PrismaModel>
+    _max?: NestedEnumGuestMessageSenderFilter<$PrismaModel>
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -135705,6 +146750,34 @@ export namespace Prisma {
     connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
   }
 
+  export type ConversationCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ConversationCreateWithoutCustomerInput, ConversationUncheckedCreateWithoutCustomerInput> | ConversationCreateWithoutCustomerInput[] | ConversationUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutCustomerInput | ConversationCreateOrConnectWithoutCustomerInput[]
+    createMany?: ConversationCreateManyCustomerInputEnvelope
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type ConversationCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<ConversationCreateWithoutOwnerInput, ConversationUncheckedCreateWithoutOwnerInput> | ConversationCreateWithoutOwnerInput[] | ConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutOwnerInput | ConversationCreateOrConnectWithoutOwnerInput[]
+    createMany?: ConversationCreateManyOwnerInputEnvelope
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type BlockedContactCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<BlockedContactCreateWithoutOwnerInput, BlockedContactUncheckedCreateWithoutOwnerInput> | BlockedContactCreateWithoutOwnerInput[] | BlockedContactUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: BlockedContactCreateOrConnectWithoutOwnerInput | BlockedContactCreateOrConnectWithoutOwnerInput[]
+    createMany?: BlockedContactCreateManyOwnerInputEnvelope
+    connect?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+  }
+
+  export type GuestConversationCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<GuestConversationCreateWithoutOwnerInput, GuestConversationUncheckedCreateWithoutOwnerInput> | GuestConversationCreateWithoutOwnerInput[] | GuestConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutOwnerInput | GuestConversationCreateOrConnectWithoutOwnerInput[]
+    createMany?: GuestConversationCreateManyOwnerInputEnvelope
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutCustomerInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -135833,6 +146906,38 @@ export namespace Prisma {
     connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
     createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
     connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
+  export type ConversationUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<ConversationCreateWithoutCustomerInput, ConversationUncheckedCreateWithoutCustomerInput> | ConversationCreateWithoutCustomerInput[] | ConversationUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutCustomerInput | ConversationCreateOrConnectWithoutCustomerInput[]
+    createMany?: ConversationCreateManyCustomerInputEnvelope
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type ConversationUncheckedCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<ConversationCreateWithoutOwnerInput, ConversationUncheckedCreateWithoutOwnerInput> | ConversationCreateWithoutOwnerInput[] | ConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutOwnerInput | ConversationCreateOrConnectWithoutOwnerInput[]
+    createMany?: ConversationCreateManyOwnerInputEnvelope
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type BlockedContactUncheckedCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<BlockedContactCreateWithoutOwnerInput, BlockedContactUncheckedCreateWithoutOwnerInput> | BlockedContactCreateWithoutOwnerInput[] | BlockedContactUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: BlockedContactCreateOrConnectWithoutOwnerInput | BlockedContactCreateOrConnectWithoutOwnerInput[]
+    createMany?: BlockedContactCreateManyOwnerInputEnvelope
+    connect?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+  }
+
+  export type GuestConversationUncheckedCreateNestedManyWithoutOwnerInput = {
+    create?: XOR<GuestConversationCreateWithoutOwnerInput, GuestConversationUncheckedCreateWithoutOwnerInput> | GuestConversationCreateWithoutOwnerInput[] | GuestConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutOwnerInput | GuestConversationCreateOrConnectWithoutOwnerInput[]
+    createMany?: GuestConversationCreateManyOwnerInputEnvelope
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
   }
 
   export type ChatSessionUpdateManyWithoutCustomerNestedInput = {
@@ -136089,6 +147194,62 @@ export namespace Prisma {
     deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
   }
 
+  export type ConversationUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ConversationCreateWithoutCustomerInput, ConversationUncheckedCreateWithoutCustomerInput> | ConversationCreateWithoutCustomerInput[] | ConversationUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutCustomerInput | ConversationCreateOrConnectWithoutCustomerInput[]
+    upsert?: ConversationUpsertWithWhereUniqueWithoutCustomerInput | ConversationUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ConversationCreateManyCustomerInputEnvelope
+    set?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    disconnect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    delete?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    update?: ConversationUpdateWithWhereUniqueWithoutCustomerInput | ConversationUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ConversationUpdateManyWithWhereWithoutCustomerInput | ConversationUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type ConversationUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<ConversationCreateWithoutOwnerInput, ConversationUncheckedCreateWithoutOwnerInput> | ConversationCreateWithoutOwnerInput[] | ConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutOwnerInput | ConversationCreateOrConnectWithoutOwnerInput[]
+    upsert?: ConversationUpsertWithWhereUniqueWithoutOwnerInput | ConversationUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: ConversationCreateManyOwnerInputEnvelope
+    set?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    disconnect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    delete?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    update?: ConversationUpdateWithWhereUniqueWithoutOwnerInput | ConversationUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: ConversationUpdateManyWithWhereWithoutOwnerInput | ConversationUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type BlockedContactUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<BlockedContactCreateWithoutOwnerInput, BlockedContactUncheckedCreateWithoutOwnerInput> | BlockedContactCreateWithoutOwnerInput[] | BlockedContactUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: BlockedContactCreateOrConnectWithoutOwnerInput | BlockedContactCreateOrConnectWithoutOwnerInput[]
+    upsert?: BlockedContactUpsertWithWhereUniqueWithoutOwnerInput | BlockedContactUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: BlockedContactCreateManyOwnerInputEnvelope
+    set?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    disconnect?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    delete?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    connect?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    update?: BlockedContactUpdateWithWhereUniqueWithoutOwnerInput | BlockedContactUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: BlockedContactUpdateManyWithWhereWithoutOwnerInput | BlockedContactUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: BlockedContactScalarWhereInput | BlockedContactScalarWhereInput[]
+  }
+
+  export type GuestConversationUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<GuestConversationCreateWithoutOwnerInput, GuestConversationUncheckedCreateWithoutOwnerInput> | GuestConversationCreateWithoutOwnerInput[] | GuestConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutOwnerInput | GuestConversationCreateOrConnectWithoutOwnerInput[]
+    upsert?: GuestConversationUpsertWithWhereUniqueWithoutOwnerInput | GuestConversationUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: GuestConversationCreateManyOwnerInputEnvelope
+    set?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    disconnect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    delete?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    update?: GuestConversationUpdateWithWhereUniqueWithoutOwnerInput | GuestConversationUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: GuestConversationUpdateManyWithWhereWithoutOwnerInput | GuestConversationUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: GuestConversationScalarWhereInput | GuestConversationScalarWhereInput[]
+  }
+
   export type ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput = {
     create?: XOR<ChatSessionCreateWithoutCustomerInput, ChatSessionUncheckedCreateWithoutCustomerInput> | ChatSessionCreateWithoutCustomerInput[] | ChatSessionUncheckedCreateWithoutCustomerInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutCustomerInput | ChatSessionCreateOrConnectWithoutCustomerInput[]
@@ -136343,6 +147504,62 @@ export namespace Prisma {
     deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
   }
 
+  export type ConversationUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<ConversationCreateWithoutCustomerInput, ConversationUncheckedCreateWithoutCustomerInput> | ConversationCreateWithoutCustomerInput[] | ConversationUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutCustomerInput | ConversationCreateOrConnectWithoutCustomerInput[]
+    upsert?: ConversationUpsertWithWhereUniqueWithoutCustomerInput | ConversationUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: ConversationCreateManyCustomerInputEnvelope
+    set?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    disconnect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    delete?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    update?: ConversationUpdateWithWhereUniqueWithoutCustomerInput | ConversationUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: ConversationUpdateManyWithWhereWithoutCustomerInput | ConversationUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type ConversationUncheckedUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<ConversationCreateWithoutOwnerInput, ConversationUncheckedCreateWithoutOwnerInput> | ConversationCreateWithoutOwnerInput[] | ConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutOwnerInput | ConversationCreateOrConnectWithoutOwnerInput[]
+    upsert?: ConversationUpsertWithWhereUniqueWithoutOwnerInput | ConversationUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: ConversationCreateManyOwnerInputEnvelope
+    set?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    disconnect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    delete?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    update?: ConversationUpdateWithWhereUniqueWithoutOwnerInput | ConversationUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: ConversationUpdateManyWithWhereWithoutOwnerInput | ConversationUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<BlockedContactCreateWithoutOwnerInput, BlockedContactUncheckedCreateWithoutOwnerInput> | BlockedContactCreateWithoutOwnerInput[] | BlockedContactUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: BlockedContactCreateOrConnectWithoutOwnerInput | BlockedContactCreateOrConnectWithoutOwnerInput[]
+    upsert?: BlockedContactUpsertWithWhereUniqueWithoutOwnerInput | BlockedContactUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: BlockedContactCreateManyOwnerInputEnvelope
+    set?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    disconnect?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    delete?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    connect?: BlockedContactWhereUniqueInput | BlockedContactWhereUniqueInput[]
+    update?: BlockedContactUpdateWithWhereUniqueWithoutOwnerInput | BlockedContactUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: BlockedContactUpdateManyWithWhereWithoutOwnerInput | BlockedContactUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: BlockedContactScalarWhereInput | BlockedContactScalarWhereInput[]
+  }
+
+  export type GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput = {
+    create?: XOR<GuestConversationCreateWithoutOwnerInput, GuestConversationUncheckedCreateWithoutOwnerInput> | GuestConversationCreateWithoutOwnerInput[] | GuestConversationUncheckedCreateWithoutOwnerInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutOwnerInput | GuestConversationCreateOrConnectWithoutOwnerInput[]
+    upsert?: GuestConversationUpsertWithWhereUniqueWithoutOwnerInput | GuestConversationUpsertWithWhereUniqueWithoutOwnerInput[]
+    createMany?: GuestConversationCreateManyOwnerInputEnvelope
+    set?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    disconnect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    delete?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    update?: GuestConversationUpdateWithWhereUniqueWithoutOwnerInput | GuestConversationUpdateWithWhereUniqueWithoutOwnerInput[]
+    updateMany?: GuestConversationUpdateManyWithWhereWithoutOwnerInput | GuestConversationUpdateManyWithWhereWithoutOwnerInput[]
+    deleteMany?: GuestConversationScalarWhereInput | GuestConversationScalarWhereInput[]
+  }
+
   export type CustomerCreateNestedOneWithoutDevicesInput = {
     create?: XOR<CustomerCreateWithoutDevicesInput, CustomerUncheckedCreateWithoutDevicesInput>
     connectOrCreate?: CustomerCreateOrConnectWithoutDevicesInput
@@ -136371,10 +147588,6 @@ export namespace Prisma {
 
   export type EnumDocumentTypeFieldUpdateOperationsInput = {
     set?: $Enums.DocumentType
-  }
-
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
   }
 
   export type NullableBytesFieldUpdateOperationsInput = {
@@ -136512,6 +147725,26 @@ export namespace Prisma {
     connect?: VehicleHealthScoreWhereUniqueInput
   }
 
+  export type VehicleQrTokenCreateNestedOneWithoutVehicleInput = {
+    create?: XOR<VehicleQrTokenCreateWithoutVehicleInput, VehicleQrTokenUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: VehicleQrTokenCreateOrConnectWithoutVehicleInput
+    connect?: VehicleQrTokenWhereUniqueInput
+  }
+
+  export type ConversationCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<ConversationCreateWithoutVehicleInput, ConversationUncheckedCreateWithoutVehicleInput> | ConversationCreateWithoutVehicleInput[] | ConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutVehicleInput | ConversationCreateOrConnectWithoutVehicleInput[]
+    createMany?: ConversationCreateManyVehicleInputEnvelope
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type GuestConversationCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<GuestConversationCreateWithoutVehicleInput, GuestConversationUncheckedCreateWithoutVehicleInput> | GuestConversationCreateWithoutVehicleInput[] | GuestConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutVehicleInput | GuestConversationCreateOrConnectWithoutVehicleInput[]
+    createMany?: GuestConversationCreateManyVehicleInputEnvelope
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+  }
+
   export type ChallanUncheckedCreateNestedManyWithoutVehicleInput = {
     create?: XOR<ChallanCreateWithoutVehicleInput, ChallanUncheckedCreateWithoutVehicleInput> | ChallanCreateWithoutVehicleInput[] | ChallanUncheckedCreateWithoutVehicleInput[]
     connectOrCreate?: ChallanCreateOrConnectWithoutVehicleInput | ChallanCreateOrConnectWithoutVehicleInput[]
@@ -136571,6 +147804,26 @@ export namespace Prisma {
     create?: XOR<VehicleHealthScoreCreateWithoutVehicleInput, VehicleHealthScoreUncheckedCreateWithoutVehicleInput>
     connectOrCreate?: VehicleHealthScoreCreateOrConnectWithoutVehicleInput
     connect?: VehicleHealthScoreWhereUniqueInput
+  }
+
+  export type VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput = {
+    create?: XOR<VehicleQrTokenCreateWithoutVehicleInput, VehicleQrTokenUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: VehicleQrTokenCreateOrConnectWithoutVehicleInput
+    connect?: VehicleQrTokenWhereUniqueInput
+  }
+
+  export type ConversationUncheckedCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<ConversationCreateWithoutVehicleInput, ConversationUncheckedCreateWithoutVehicleInput> | ConversationCreateWithoutVehicleInput[] | ConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutVehicleInput | ConversationCreateOrConnectWithoutVehicleInput[]
+    createMany?: ConversationCreateManyVehicleInputEnvelope
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+  }
+
+  export type GuestConversationUncheckedCreateNestedManyWithoutVehicleInput = {
+    create?: XOR<GuestConversationCreateWithoutVehicleInput, GuestConversationUncheckedCreateWithoutVehicleInput> | GuestConversationCreateWithoutVehicleInput[] | GuestConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutVehicleInput | GuestConversationCreateOrConnectWithoutVehicleInput[]
+    createMany?: GuestConversationCreateManyVehicleInputEnvelope
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -136707,6 +147960,44 @@ export namespace Prisma {
     update?: XOR<XOR<VehicleHealthScoreUpdateToOneWithWhereWithoutVehicleInput, VehicleHealthScoreUpdateWithoutVehicleInput>, VehicleHealthScoreUncheckedUpdateWithoutVehicleInput>
   }
 
+  export type VehicleQrTokenUpdateOneWithoutVehicleNestedInput = {
+    create?: XOR<VehicleQrTokenCreateWithoutVehicleInput, VehicleQrTokenUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: VehicleQrTokenCreateOrConnectWithoutVehicleInput
+    upsert?: VehicleQrTokenUpsertWithoutVehicleInput
+    disconnect?: VehicleQrTokenWhereInput | boolean
+    delete?: VehicleQrTokenWhereInput | boolean
+    connect?: VehicleQrTokenWhereUniqueInput
+    update?: XOR<XOR<VehicleQrTokenUpdateToOneWithWhereWithoutVehicleInput, VehicleQrTokenUpdateWithoutVehicleInput>, VehicleQrTokenUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type ConversationUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<ConversationCreateWithoutVehicleInput, ConversationUncheckedCreateWithoutVehicleInput> | ConversationCreateWithoutVehicleInput[] | ConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutVehicleInput | ConversationCreateOrConnectWithoutVehicleInput[]
+    upsert?: ConversationUpsertWithWhereUniqueWithoutVehicleInput | ConversationUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: ConversationCreateManyVehicleInputEnvelope
+    set?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    disconnect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    delete?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    update?: ConversationUpdateWithWhereUniqueWithoutVehicleInput | ConversationUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: ConversationUpdateManyWithWhereWithoutVehicleInput | ConversationUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type GuestConversationUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<GuestConversationCreateWithoutVehicleInput, GuestConversationUncheckedCreateWithoutVehicleInput> | GuestConversationCreateWithoutVehicleInput[] | GuestConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutVehicleInput | GuestConversationCreateOrConnectWithoutVehicleInput[]
+    upsert?: GuestConversationUpsertWithWhereUniqueWithoutVehicleInput | GuestConversationUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: GuestConversationCreateManyVehicleInputEnvelope
+    set?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    disconnect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    delete?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    update?: GuestConversationUpdateWithWhereUniqueWithoutVehicleInput | GuestConversationUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: GuestConversationUpdateManyWithWhereWithoutVehicleInput | GuestConversationUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: GuestConversationScalarWhereInput | GuestConversationScalarWhereInput[]
+  }
+
   export type ChallanUncheckedUpdateManyWithoutVehicleNestedInput = {
     create?: XOR<ChallanCreateWithoutVehicleInput, ChallanUncheckedCreateWithoutVehicleInput> | ChallanCreateWithoutVehicleInput[] | ChallanUncheckedCreateWithoutVehicleInput[]
     connectOrCreate?: ChallanCreateOrConnectWithoutVehicleInput | ChallanCreateOrConnectWithoutVehicleInput[]
@@ -136823,6 +148114,44 @@ export namespace Prisma {
     delete?: VehicleHealthScoreWhereInput | boolean
     connect?: VehicleHealthScoreWhereUniqueInput
     update?: XOR<XOR<VehicleHealthScoreUpdateToOneWithWhereWithoutVehicleInput, VehicleHealthScoreUpdateWithoutVehicleInput>, VehicleHealthScoreUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput = {
+    create?: XOR<VehicleQrTokenCreateWithoutVehicleInput, VehicleQrTokenUncheckedCreateWithoutVehicleInput>
+    connectOrCreate?: VehicleQrTokenCreateOrConnectWithoutVehicleInput
+    upsert?: VehicleQrTokenUpsertWithoutVehicleInput
+    disconnect?: VehicleQrTokenWhereInput | boolean
+    delete?: VehicleQrTokenWhereInput | boolean
+    connect?: VehicleQrTokenWhereUniqueInput
+    update?: XOR<XOR<VehicleQrTokenUpdateToOneWithWhereWithoutVehicleInput, VehicleQrTokenUpdateWithoutVehicleInput>, VehicleQrTokenUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type ConversationUncheckedUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<ConversationCreateWithoutVehicleInput, ConversationUncheckedCreateWithoutVehicleInput> | ConversationCreateWithoutVehicleInput[] | ConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: ConversationCreateOrConnectWithoutVehicleInput | ConversationCreateOrConnectWithoutVehicleInput[]
+    upsert?: ConversationUpsertWithWhereUniqueWithoutVehicleInput | ConversationUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: ConversationCreateManyVehicleInputEnvelope
+    set?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    disconnect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    delete?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    connect?: ConversationWhereUniqueInput | ConversationWhereUniqueInput[]
+    update?: ConversationUpdateWithWhereUniqueWithoutVehicleInput | ConversationUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: ConversationUpdateManyWithWhereWithoutVehicleInput | ConversationUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+  }
+
+  export type GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput = {
+    create?: XOR<GuestConversationCreateWithoutVehicleInput, GuestConversationUncheckedCreateWithoutVehicleInput> | GuestConversationCreateWithoutVehicleInput[] | GuestConversationUncheckedCreateWithoutVehicleInput[]
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutVehicleInput | GuestConversationCreateOrConnectWithoutVehicleInput[]
+    upsert?: GuestConversationUpsertWithWhereUniqueWithoutVehicleInput | GuestConversationUpsertWithWhereUniqueWithoutVehicleInput[]
+    createMany?: GuestConversationCreateManyVehicleInputEnvelope
+    set?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    disconnect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    delete?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    connect?: GuestConversationWhereUniqueInput | GuestConversationWhereUniqueInput[]
+    update?: GuestConversationUpdateWithWhereUniqueWithoutVehicleInput | GuestConversationUpdateWithWhereUniqueWithoutVehicleInput[]
+    updateMany?: GuestConversationUpdateManyWithWhereWithoutVehicleInput | GuestConversationUpdateManyWithWhereWithoutVehicleInput[]
+    deleteMany?: GuestConversationScalarWhereInput | GuestConversationScalarWhereInput[]
   }
 
   export type VehicleAssetCreateNestedManyWithoutCatalogInput = {
@@ -140772,6 +152101,318 @@ export namespace Prisma {
     update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutWaitlistInput, ParkingListingUpdateWithoutWaitlistInput>, ParkingListingUncheckedUpdateWithoutWaitlistInput>
   }
 
+  export type CustomerVehicleCreateNestedOneWithoutQrTokenInput = {
+    create?: XOR<CustomerVehicleCreateWithoutQrTokenInput, CustomerVehicleUncheckedCreateWithoutQrTokenInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutQrTokenInput
+    connect?: CustomerVehicleWhereUniqueInput
+  }
+
+  export type CustomerVehicleUpdateOneRequiredWithoutQrTokenNestedInput = {
+    create?: XOR<CustomerVehicleCreateWithoutQrTokenInput, CustomerVehicleUncheckedCreateWithoutQrTokenInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutQrTokenInput
+    upsert?: CustomerVehicleUpsertWithoutQrTokenInput
+    connect?: CustomerVehicleWhereUniqueInput
+    update?: XOR<XOR<CustomerVehicleUpdateToOneWithWhereWithoutQrTokenInput, CustomerVehicleUpdateWithoutQrTokenInput>, CustomerVehicleUncheckedUpdateWithoutQrTokenInput>
+  }
+
+  export type CustomerVehicleCreateNestedOneWithoutConversationsInput = {
+    create?: XOR<CustomerVehicleCreateWithoutConversationsInput, CustomerVehicleUncheckedCreateWithoutConversationsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutConversationsInput
+    connect?: CustomerVehicleWhereUniqueInput
+  }
+
+  export type CustomerCreateNestedOneWithoutConversationsAsCustomerInput = {
+    create?: XOR<CustomerCreateWithoutConversationsAsCustomerInput, CustomerUncheckedCreateWithoutConversationsAsCustomerInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutConversationsAsCustomerInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerCreateNestedOneWithoutConversationsAsOwnerInput = {
+    create?: XOR<CustomerCreateWithoutConversationsAsOwnerInput, CustomerUncheckedCreateWithoutConversationsAsOwnerInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutConversationsAsOwnerInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type MessageCreateNestedManyWithoutConversationInput = {
+    create?: XOR<MessageCreateWithoutConversationInput, MessageUncheckedCreateWithoutConversationInput> | MessageCreateWithoutConversationInput[] | MessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutConversationInput | MessageCreateOrConnectWithoutConversationInput[]
+    createMany?: MessageCreateManyConversationInputEnvelope
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+  }
+
+  export type ConversationReportCreateNestedManyWithoutConversationInput = {
+    create?: XOR<ConversationReportCreateWithoutConversationInput, ConversationReportUncheckedCreateWithoutConversationInput> | ConversationReportCreateWithoutConversationInput[] | ConversationReportUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: ConversationReportCreateOrConnectWithoutConversationInput | ConversationReportCreateOrConnectWithoutConversationInput[]
+    createMany?: ConversationReportCreateManyConversationInputEnvelope
+    connect?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+  }
+
+  export type MessageUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<MessageCreateWithoutConversationInput, MessageUncheckedCreateWithoutConversationInput> | MessageCreateWithoutConversationInput[] | MessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutConversationInput | MessageCreateOrConnectWithoutConversationInput[]
+    createMany?: MessageCreateManyConversationInputEnvelope
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+  }
+
+  export type ConversationReportUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<ConversationReportCreateWithoutConversationInput, ConversationReportUncheckedCreateWithoutConversationInput> | ConversationReportCreateWithoutConversationInput[] | ConversationReportUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: ConversationReportCreateOrConnectWithoutConversationInput | ConversationReportCreateOrConnectWithoutConversationInput[]
+    createMany?: ConversationReportCreateManyConversationInputEnvelope
+    connect?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+  }
+
+  export type EnumConversationCategoryFieldUpdateOperationsInput = {
+    set?: $Enums.ConversationCategory
+  }
+
+  export type EnumMessagePriorityFieldUpdateOperationsInput = {
+    set?: $Enums.MessagePriority
+  }
+
+  export type EnumConversationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ConversationStatus
+  }
+
+  export type CustomerVehicleUpdateOneRequiredWithoutConversationsNestedInput = {
+    create?: XOR<CustomerVehicleCreateWithoutConversationsInput, CustomerVehicleUncheckedCreateWithoutConversationsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutConversationsInput
+    upsert?: CustomerVehicleUpsertWithoutConversationsInput
+    connect?: CustomerVehicleWhereUniqueInput
+    update?: XOR<XOR<CustomerVehicleUpdateToOneWithWhereWithoutConversationsInput, CustomerVehicleUpdateWithoutConversationsInput>, CustomerVehicleUncheckedUpdateWithoutConversationsInput>
+  }
+
+  export type CustomerUpdateOneRequiredWithoutConversationsAsCustomerNestedInput = {
+    create?: XOR<CustomerCreateWithoutConversationsAsCustomerInput, CustomerUncheckedCreateWithoutConversationsAsCustomerInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutConversationsAsCustomerInput
+    upsert?: CustomerUpsertWithoutConversationsAsCustomerInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutConversationsAsCustomerInput, CustomerUpdateWithoutConversationsAsCustomerInput>, CustomerUncheckedUpdateWithoutConversationsAsCustomerInput>
+  }
+
+  export type CustomerUpdateOneRequiredWithoutConversationsAsOwnerNestedInput = {
+    create?: XOR<CustomerCreateWithoutConversationsAsOwnerInput, CustomerUncheckedCreateWithoutConversationsAsOwnerInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutConversationsAsOwnerInput
+    upsert?: CustomerUpsertWithoutConversationsAsOwnerInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutConversationsAsOwnerInput, CustomerUpdateWithoutConversationsAsOwnerInput>, CustomerUncheckedUpdateWithoutConversationsAsOwnerInput>
+  }
+
+  export type MessageUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<MessageCreateWithoutConversationInput, MessageUncheckedCreateWithoutConversationInput> | MessageCreateWithoutConversationInput[] | MessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutConversationInput | MessageCreateOrConnectWithoutConversationInput[]
+    upsert?: MessageUpsertWithWhereUniqueWithoutConversationInput | MessageUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: MessageCreateManyConversationInputEnvelope
+    set?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    disconnect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    delete?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    update?: MessageUpdateWithWhereUniqueWithoutConversationInput | MessageUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: MessageUpdateManyWithWhereWithoutConversationInput | MessageUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
+  }
+
+  export type ConversationReportUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<ConversationReportCreateWithoutConversationInput, ConversationReportUncheckedCreateWithoutConversationInput> | ConversationReportCreateWithoutConversationInput[] | ConversationReportUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: ConversationReportCreateOrConnectWithoutConversationInput | ConversationReportCreateOrConnectWithoutConversationInput[]
+    upsert?: ConversationReportUpsertWithWhereUniqueWithoutConversationInput | ConversationReportUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: ConversationReportCreateManyConversationInputEnvelope
+    set?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    disconnect?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    delete?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    connect?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    update?: ConversationReportUpdateWithWhereUniqueWithoutConversationInput | ConversationReportUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: ConversationReportUpdateManyWithWhereWithoutConversationInput | ConversationReportUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: ConversationReportScalarWhereInput | ConversationReportScalarWhereInput[]
+  }
+
+  export type MessageUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<MessageCreateWithoutConversationInput, MessageUncheckedCreateWithoutConversationInput> | MessageCreateWithoutConversationInput[] | MessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: MessageCreateOrConnectWithoutConversationInput | MessageCreateOrConnectWithoutConversationInput[]
+    upsert?: MessageUpsertWithWhereUniqueWithoutConversationInput | MessageUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: MessageCreateManyConversationInputEnvelope
+    set?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    disconnect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    delete?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+    update?: MessageUpdateWithWhereUniqueWithoutConversationInput | MessageUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: MessageUpdateManyWithWhereWithoutConversationInput | MessageUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
+  }
+
+  export type ConversationReportUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<ConversationReportCreateWithoutConversationInput, ConversationReportUncheckedCreateWithoutConversationInput> | ConversationReportCreateWithoutConversationInput[] | ConversationReportUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: ConversationReportCreateOrConnectWithoutConversationInput | ConversationReportCreateOrConnectWithoutConversationInput[]
+    upsert?: ConversationReportUpsertWithWhereUniqueWithoutConversationInput | ConversationReportUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: ConversationReportCreateManyConversationInputEnvelope
+    set?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    disconnect?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    delete?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    connect?: ConversationReportWhereUniqueInput | ConversationReportWhereUniqueInput[]
+    update?: ConversationReportUpdateWithWhereUniqueWithoutConversationInput | ConversationReportUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: ConversationReportUpdateManyWithWhereWithoutConversationInput | ConversationReportUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: ConversationReportScalarWhereInput | ConversationReportScalarWhereInput[]
+  }
+
+  export type MessageCreateimageUrlsInput = {
+    set: string[]
+  }
+
+  export type ConversationCreateNestedOneWithoutMessagesInput = {
+    create?: XOR<ConversationCreateWithoutMessagesInput, ConversationUncheckedCreateWithoutMessagesInput>
+    connectOrCreate?: ConversationCreateOrConnectWithoutMessagesInput
+    connect?: ConversationWhereUniqueInput
+  }
+
+  export type EnumMessageTypeFieldUpdateOperationsInput = {
+    set?: $Enums.MessageType
+  }
+
+  export type MessageUpdateimageUrlsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type ConversationUpdateOneRequiredWithoutMessagesNestedInput = {
+    create?: XOR<ConversationCreateWithoutMessagesInput, ConversationUncheckedCreateWithoutMessagesInput>
+    connectOrCreate?: ConversationCreateOrConnectWithoutMessagesInput
+    upsert?: ConversationUpsertWithoutMessagesInput
+    connect?: ConversationWhereUniqueInput
+    update?: XOR<XOR<ConversationUpdateToOneWithWhereWithoutMessagesInput, ConversationUpdateWithoutMessagesInput>, ConversationUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type CustomerCreateNestedOneWithoutBlockedContactsInput = {
+    create?: XOR<CustomerCreateWithoutBlockedContactsInput, CustomerUncheckedCreateWithoutBlockedContactsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutBlockedContactsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type CustomerUpdateOneRequiredWithoutBlockedContactsNestedInput = {
+    create?: XOR<CustomerCreateWithoutBlockedContactsInput, CustomerUncheckedCreateWithoutBlockedContactsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutBlockedContactsInput
+    upsert?: CustomerUpsertWithoutBlockedContactsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutBlockedContactsInput, CustomerUpdateWithoutBlockedContactsInput>, CustomerUncheckedUpdateWithoutBlockedContactsInput>
+  }
+
+  export type ConversationCreateNestedOneWithoutReportsInput = {
+    create?: XOR<ConversationCreateWithoutReportsInput, ConversationUncheckedCreateWithoutReportsInput>
+    connectOrCreate?: ConversationCreateOrConnectWithoutReportsInput
+    connect?: ConversationWhereUniqueInput
+  }
+
+  export type EnumReportStatusFieldUpdateOperationsInput = {
+    set?: $Enums.ReportStatus
+  }
+
+  export type ConversationUpdateOneRequiredWithoutReportsNestedInput = {
+    create?: XOR<ConversationCreateWithoutReportsInput, ConversationUncheckedCreateWithoutReportsInput>
+    connectOrCreate?: ConversationCreateOrConnectWithoutReportsInput
+    upsert?: ConversationUpsertWithoutReportsInput
+    connect?: ConversationWhereUniqueInput
+    update?: XOR<XOR<ConversationUpdateToOneWithWhereWithoutReportsInput, ConversationUpdateWithoutReportsInput>, ConversationUncheckedUpdateWithoutReportsInput>
+  }
+
+  export type CustomerVehicleCreateNestedOneWithoutGuestConversationsInput = {
+    create?: XOR<CustomerVehicleCreateWithoutGuestConversationsInput, CustomerVehicleUncheckedCreateWithoutGuestConversationsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutGuestConversationsInput
+    connect?: CustomerVehicleWhereUniqueInput
+  }
+
+  export type CustomerCreateNestedOneWithoutGuestConversationsInput = {
+    create?: XOR<CustomerCreateWithoutGuestConversationsInput, CustomerUncheckedCreateWithoutGuestConversationsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutGuestConversationsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type GuestMessageEntryCreateNestedManyWithoutConversationInput = {
+    create?: XOR<GuestMessageEntryCreateWithoutConversationInput, GuestMessageEntryUncheckedCreateWithoutConversationInput> | GuestMessageEntryCreateWithoutConversationInput[] | GuestMessageEntryUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: GuestMessageEntryCreateOrConnectWithoutConversationInput | GuestMessageEntryCreateOrConnectWithoutConversationInput[]
+    createMany?: GuestMessageEntryCreateManyConversationInputEnvelope
+    connect?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+  }
+
+  export type GuestMessageEntryUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<GuestMessageEntryCreateWithoutConversationInput, GuestMessageEntryUncheckedCreateWithoutConversationInput> | GuestMessageEntryCreateWithoutConversationInput[] | GuestMessageEntryUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: GuestMessageEntryCreateOrConnectWithoutConversationInput | GuestMessageEntryCreateOrConnectWithoutConversationInput[]
+    createMany?: GuestMessageEntryCreateManyConversationInputEnvelope
+    connect?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+  }
+
+  export type EnumGuestConversationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.GuestConversationStatus
+  }
+
+  export type CustomerVehicleUpdateOneRequiredWithoutGuestConversationsNestedInput = {
+    create?: XOR<CustomerVehicleCreateWithoutGuestConversationsInput, CustomerVehicleUncheckedCreateWithoutGuestConversationsInput>
+    connectOrCreate?: CustomerVehicleCreateOrConnectWithoutGuestConversationsInput
+    upsert?: CustomerVehicleUpsertWithoutGuestConversationsInput
+    connect?: CustomerVehicleWhereUniqueInput
+    update?: XOR<XOR<CustomerVehicleUpdateToOneWithWhereWithoutGuestConversationsInput, CustomerVehicleUpdateWithoutGuestConversationsInput>, CustomerVehicleUncheckedUpdateWithoutGuestConversationsInput>
+  }
+
+  export type CustomerUpdateOneRequiredWithoutGuestConversationsNestedInput = {
+    create?: XOR<CustomerCreateWithoutGuestConversationsInput, CustomerUncheckedCreateWithoutGuestConversationsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutGuestConversationsInput
+    upsert?: CustomerUpsertWithoutGuestConversationsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutGuestConversationsInput, CustomerUpdateWithoutGuestConversationsInput>, CustomerUncheckedUpdateWithoutGuestConversationsInput>
+  }
+
+  export type GuestMessageEntryUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<GuestMessageEntryCreateWithoutConversationInput, GuestMessageEntryUncheckedCreateWithoutConversationInput> | GuestMessageEntryCreateWithoutConversationInput[] | GuestMessageEntryUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: GuestMessageEntryCreateOrConnectWithoutConversationInput | GuestMessageEntryCreateOrConnectWithoutConversationInput[]
+    upsert?: GuestMessageEntryUpsertWithWhereUniqueWithoutConversationInput | GuestMessageEntryUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: GuestMessageEntryCreateManyConversationInputEnvelope
+    set?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    disconnect?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    delete?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    connect?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    update?: GuestMessageEntryUpdateWithWhereUniqueWithoutConversationInput | GuestMessageEntryUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: GuestMessageEntryUpdateManyWithWhereWithoutConversationInput | GuestMessageEntryUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: GuestMessageEntryScalarWhereInput | GuestMessageEntryScalarWhereInput[]
+  }
+
+  export type GuestMessageEntryUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<GuestMessageEntryCreateWithoutConversationInput, GuestMessageEntryUncheckedCreateWithoutConversationInput> | GuestMessageEntryCreateWithoutConversationInput[] | GuestMessageEntryUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: GuestMessageEntryCreateOrConnectWithoutConversationInput | GuestMessageEntryCreateOrConnectWithoutConversationInput[]
+    upsert?: GuestMessageEntryUpsertWithWhereUniqueWithoutConversationInput | GuestMessageEntryUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: GuestMessageEntryCreateManyConversationInputEnvelope
+    set?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    disconnect?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    delete?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    connect?: GuestMessageEntryWhereUniqueInput | GuestMessageEntryWhereUniqueInput[]
+    update?: GuestMessageEntryUpdateWithWhereUniqueWithoutConversationInput | GuestMessageEntryUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: GuestMessageEntryUpdateManyWithWhereWithoutConversationInput | GuestMessageEntryUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: GuestMessageEntryScalarWhereInput | GuestMessageEntryScalarWhereInput[]
+  }
+
+  export type GuestMessageEntryCreateimageUrlsInput = {
+    set: string[]
+  }
+
+  export type GuestConversationCreateNestedOneWithoutEntriesInput = {
+    create?: XOR<GuestConversationCreateWithoutEntriesInput, GuestConversationUncheckedCreateWithoutEntriesInput>
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutEntriesInput
+    connect?: GuestConversationWhereUniqueInput
+  }
+
+  export type EnumGuestMessageSenderFieldUpdateOperationsInput = {
+    set?: $Enums.GuestMessageSender
+  }
+
+  export type GuestMessageEntryUpdateimageUrlsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type GuestConversationUpdateOneRequiredWithoutEntriesNestedInput = {
+    create?: XOR<GuestConversationCreateWithoutEntriesInput, GuestConversationUncheckedCreateWithoutEntriesInput>
+    connectOrCreate?: GuestConversationCreateOrConnectWithoutEntriesInput
+    upsert?: GuestConversationUpsertWithoutEntriesInput
+    connect?: GuestConversationWhereUniqueInput
+    update?: XOR<XOR<GuestConversationUpdateToOneWithWhereWithoutEntriesInput, GuestConversationUpdateWithoutEntriesInput>, GuestConversationUncheckedUpdateWithoutEntriesInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -140911,13 +152552,6 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type NestedEnumDocumentTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.DocumentType | EnumDocumentTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.DocumentType[] | ListEnumDocumentTypeFieldRefInput<$PrismaModel>
-    notIn?: $Enums.DocumentType[] | ListEnumDocumentTypeFieldRefInput<$PrismaModel>
-    not?: NestedEnumDocumentTypeFilter<$PrismaModel> | $Enums.DocumentType
-  }
-
   export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -140927,6 +152561,27 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDocumentTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.DocumentType | EnumDocumentTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.DocumentType[] | ListEnumDocumentTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DocumentType[] | ListEnumDocumentTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumDocumentTypeFilter<$PrismaModel> | $Enums.DocumentType
   }
 
   export type NestedBytesNullableFilter<$PrismaModel = never> = {
@@ -140944,20 +152599,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumDocumentTypeFilter<$PrismaModel>
     _max?: NestedEnumDocumentTypeFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type NestedBytesNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -142064,6 +153705,125 @@ export namespace Prisma {
     _max?: NestedEnumBookingStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumConversationCategoryFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationCategory | EnumConversationCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationCategoryFilter<$PrismaModel> | $Enums.ConversationCategory
+  }
+
+  export type NestedEnumMessagePriorityFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessagePriority | EnumMessagePriorityFieldRefInput<$PrismaModel>
+    in?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessagePriorityFilter<$PrismaModel> | $Enums.MessagePriority
+  }
+
+  export type NestedEnumConversationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationStatus | EnumConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationStatusFilter<$PrismaModel> | $Enums.ConversationStatus
+  }
+
+  export type NestedEnumConversationCategoryWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationCategory | EnumConversationCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationCategory[] | ListEnumConversationCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationCategoryWithAggregatesFilter<$PrismaModel> | $Enums.ConversationCategory
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumConversationCategoryFilter<$PrismaModel>
+    _max?: NestedEnumConversationCategoryFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMessagePriorityWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessagePriority | EnumMessagePriorityFieldRefInput<$PrismaModel>
+    in?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessagePriority[] | ListEnumMessagePriorityFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessagePriorityWithAggregatesFilter<$PrismaModel> | $Enums.MessagePriority
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMessagePriorityFilter<$PrismaModel>
+    _max?: NestedEnumMessagePriorityFilter<$PrismaModel>
+  }
+
+  export type NestedEnumConversationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ConversationStatus | EnumConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ConversationStatus[] | ListEnumConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumConversationStatusWithAggregatesFilter<$PrismaModel> | $Enums.ConversationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumConversationStatusFilter<$PrismaModel>
+    _max?: NestedEnumConversationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumMessageTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessageType | EnumMessageTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessageTypeFilter<$PrismaModel> | $Enums.MessageType
+  }
+
+  export type NestedEnumMessageTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.MessageType | EnumMessageTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.MessageType[] | ListEnumMessageTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumMessageTypeWithAggregatesFilter<$PrismaModel> | $Enums.MessageType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumMessageTypeFilter<$PrismaModel>
+    _max?: NestedEnumMessageTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumReportStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusFilter<$PrismaModel> | $Enums.ReportStatus
+  }
+
+  export type NestedEnumReportStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ReportStatus | EnumReportStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ReportStatus[] | ListEnumReportStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumReportStatusWithAggregatesFilter<$PrismaModel> | $Enums.ReportStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumReportStatusFilter<$PrismaModel>
+    _max?: NestedEnumReportStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumGuestConversationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestConversationStatus | EnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestConversationStatusFilter<$PrismaModel> | $Enums.GuestConversationStatus
+  }
+
+  export type NestedEnumGuestConversationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestConversationStatus | EnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestConversationStatus[] | ListEnumGuestConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestConversationStatusWithAggregatesFilter<$PrismaModel> | $Enums.GuestConversationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumGuestConversationStatusFilter<$PrismaModel>
+    _max?: NestedEnumGuestConversationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumGuestMessageSenderFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestMessageSender | EnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestMessageSenderFilter<$PrismaModel> | $Enums.GuestMessageSender
+  }
+
+  export type NestedEnumGuestMessageSenderWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.GuestMessageSender | EnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    in?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    notIn?: $Enums.GuestMessageSender[] | ListEnumGuestMessageSenderFieldRefInput<$PrismaModel>
+    not?: NestedEnumGuestMessageSenderWithAggregatesFilter<$PrismaModel> | $Enums.GuestMessageSender
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumGuestMessageSenderFilter<$PrismaModel>
+    _max?: NestedEnumGuestMessageSenderFilter<$PrismaModel>
+  }
+
   export type ChatSessionCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
@@ -142199,6 +153959,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutCustomerInput = {
@@ -142240,6 +154003,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutCustomerInput = {
@@ -142808,6 +154574,160 @@ export namespace Prisma {
 
   export type ParkingWaitlistEntryCreateManyCustomerInputEnvelope = {
     data: ParkingWaitlistEntryCreateManyCustomerInput | ParkingWaitlistEntryCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ConversationCreateWithoutCustomerInput = {
+    id?: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutConversationsInput
+    owner: CustomerCreateNestedOneWithoutConversationsAsOwnerInput
+    messages?: MessageCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    vehicleId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: MessageUncheckedCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationCreateOrConnectWithoutCustomerInput = {
+    where: ConversationWhereUniqueInput
+    create: XOR<ConversationCreateWithoutCustomerInput, ConversationUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ConversationCreateManyCustomerInputEnvelope = {
+    data: ConversationCreateManyCustomerInput | ConversationCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ConversationCreateWithoutOwnerInput = {
+    id?: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutConversationsInput
+    customer: CustomerCreateNestedOneWithoutConversationsAsCustomerInput
+    messages?: MessageCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUncheckedCreateWithoutOwnerInput = {
+    id?: string
+    vehicleId: string
+    customerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: MessageUncheckedCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationCreateOrConnectWithoutOwnerInput = {
+    where: ConversationWhereUniqueInput
+    create: XOR<ConversationCreateWithoutOwnerInput, ConversationUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type ConversationCreateManyOwnerInputEnvelope = {
+    data: ConversationCreateManyOwnerInput | ConversationCreateManyOwnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BlockedContactCreateWithoutOwnerInput = {
+    id?: string
+    blockedId: string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type BlockedContactUncheckedCreateWithoutOwnerInput = {
+    id?: string
+    blockedId: string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type BlockedContactCreateOrConnectWithoutOwnerInput = {
+    where: BlockedContactWhereUniqueInput
+    create: XOR<BlockedContactCreateWithoutOwnerInput, BlockedContactUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type BlockedContactCreateManyOwnerInputEnvelope = {
+    data: BlockedContactCreateManyOwnerInput | BlockedContactCreateManyOwnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GuestConversationCreateWithoutOwnerInput = {
+    id?: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutGuestConversationsInput
+    entries?: GuestMessageEntryCreateNestedManyWithoutConversationInput
+  }
+
+  export type GuestConversationUncheckedCreateWithoutOwnerInput = {
+    id?: string
+    vehicleId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    entries?: GuestMessageEntryUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type GuestConversationCreateOrConnectWithoutOwnerInput = {
+    where: GuestConversationWhereUniqueInput
+    create: XOR<GuestConversationCreateWithoutOwnerInput, GuestConversationUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type GuestConversationCreateManyOwnerInputEnvelope = {
+    data: GuestConversationCreateManyOwnerInput | GuestConversationCreateManyOwnerInput[]
     skipDuplicates?: boolean
   }
 
@@ -143452,6 +155372,118 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
   }
 
+  export type ConversationUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: ConversationWhereUniqueInput
+    update: XOR<ConversationUpdateWithoutCustomerInput, ConversationUncheckedUpdateWithoutCustomerInput>
+    create: XOR<ConversationCreateWithoutCustomerInput, ConversationUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type ConversationUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: ConversationWhereUniqueInput
+    data: XOR<ConversationUpdateWithoutCustomerInput, ConversationUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type ConversationUpdateManyWithWhereWithoutCustomerInput = {
+    where: ConversationScalarWhereInput
+    data: XOR<ConversationUpdateManyMutationInput, ConversationUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type ConversationScalarWhereInput = {
+    AND?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+    OR?: ConversationScalarWhereInput[]
+    NOT?: ConversationScalarWhereInput | ConversationScalarWhereInput[]
+    id?: StringFilter<"Conversation"> | string
+    vehicleId?: StringFilter<"Conversation"> | string
+    customerId?: StringFilter<"Conversation"> | string
+    ownerId?: StringFilter<"Conversation"> | string
+    category?: EnumConversationCategoryFilter<"Conversation"> | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFilter<"Conversation"> | $Enums.MessagePriority
+    status?: EnumConversationStatusFilter<"Conversation"> | $Enums.ConversationStatus
+    lastMessage?: StringNullableFilter<"Conversation"> | string | null
+    lastMessageAt?: DateTimeNullableFilter<"Conversation"> | Date | string | null
+    lastSenderId?: StringNullableFilter<"Conversation"> | string | null
+    unreadCountOwner?: IntFilter<"Conversation"> | number
+    unreadCountCustomer?: IntFilter<"Conversation"> | number
+    createdAt?: DateTimeFilter<"Conversation"> | Date | string
+    updatedAt?: DateTimeFilter<"Conversation"> | Date | string
+  }
+
+  export type ConversationUpsertWithWhereUniqueWithoutOwnerInput = {
+    where: ConversationWhereUniqueInput
+    update: XOR<ConversationUpdateWithoutOwnerInput, ConversationUncheckedUpdateWithoutOwnerInput>
+    create: XOR<ConversationCreateWithoutOwnerInput, ConversationUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type ConversationUpdateWithWhereUniqueWithoutOwnerInput = {
+    where: ConversationWhereUniqueInput
+    data: XOR<ConversationUpdateWithoutOwnerInput, ConversationUncheckedUpdateWithoutOwnerInput>
+  }
+
+  export type ConversationUpdateManyWithWhereWithoutOwnerInput = {
+    where: ConversationScalarWhereInput
+    data: XOR<ConversationUpdateManyMutationInput, ConversationUncheckedUpdateManyWithoutOwnerInput>
+  }
+
+  export type BlockedContactUpsertWithWhereUniqueWithoutOwnerInput = {
+    where: BlockedContactWhereUniqueInput
+    update: XOR<BlockedContactUpdateWithoutOwnerInput, BlockedContactUncheckedUpdateWithoutOwnerInput>
+    create: XOR<BlockedContactCreateWithoutOwnerInput, BlockedContactUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type BlockedContactUpdateWithWhereUniqueWithoutOwnerInput = {
+    where: BlockedContactWhereUniqueInput
+    data: XOR<BlockedContactUpdateWithoutOwnerInput, BlockedContactUncheckedUpdateWithoutOwnerInput>
+  }
+
+  export type BlockedContactUpdateManyWithWhereWithoutOwnerInput = {
+    where: BlockedContactScalarWhereInput
+    data: XOR<BlockedContactUpdateManyMutationInput, BlockedContactUncheckedUpdateManyWithoutOwnerInput>
+  }
+
+  export type BlockedContactScalarWhereInput = {
+    AND?: BlockedContactScalarWhereInput | BlockedContactScalarWhereInput[]
+    OR?: BlockedContactScalarWhereInput[]
+    NOT?: BlockedContactScalarWhereInput | BlockedContactScalarWhereInput[]
+    id?: StringFilter<"BlockedContact"> | string
+    ownerId?: StringFilter<"BlockedContact"> | string
+    blockedId?: StringFilter<"BlockedContact"> | string
+    reason?: StringNullableFilter<"BlockedContact"> | string | null
+    createdAt?: DateTimeFilter<"BlockedContact"> | Date | string
+  }
+
+  export type GuestConversationUpsertWithWhereUniqueWithoutOwnerInput = {
+    where: GuestConversationWhereUniqueInput
+    update: XOR<GuestConversationUpdateWithoutOwnerInput, GuestConversationUncheckedUpdateWithoutOwnerInput>
+    create: XOR<GuestConversationCreateWithoutOwnerInput, GuestConversationUncheckedCreateWithoutOwnerInput>
+  }
+
+  export type GuestConversationUpdateWithWhereUniqueWithoutOwnerInput = {
+    where: GuestConversationWhereUniqueInput
+    data: XOR<GuestConversationUpdateWithoutOwnerInput, GuestConversationUncheckedUpdateWithoutOwnerInput>
+  }
+
+  export type GuestConversationUpdateManyWithWhereWithoutOwnerInput = {
+    where: GuestConversationScalarWhereInput
+    data: XOR<GuestConversationUpdateManyMutationInput, GuestConversationUncheckedUpdateManyWithoutOwnerInput>
+  }
+
+  export type GuestConversationScalarWhereInput = {
+    AND?: GuestConversationScalarWhereInput | GuestConversationScalarWhereInput[]
+    OR?: GuestConversationScalarWhereInput[]
+    NOT?: GuestConversationScalarWhereInput | GuestConversationScalarWhereInput[]
+    id?: StringFilter<"GuestConversation"> | string
+    vehicleId?: StringFilter<"GuestConversation"> | string
+    ownerId?: StringFilter<"GuestConversation"> | string
+    guestToken?: StringFilter<"GuestConversation"> | string
+    guestName?: StringNullableFilter<"GuestConversation"> | string | null
+    guestContact?: StringNullableFilter<"GuestConversation"> | string | null
+    lastMessage?: StringNullableFilter<"GuestConversation"> | string | null
+    lastMessageAt?: DateTimeNullableFilter<"GuestConversation"> | Date | string | null
+    status?: EnumGuestConversationStatusFilter<"GuestConversation"> | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFilter<"GuestConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"GuestConversation"> | Date | string
+  }
+
   export type CustomerCreateWithoutDevicesInput = {
     id?: string
     phoneNumber: string
@@ -143461,6 +155493,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
@@ -143479,6 +155514,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutDevicesInput = {
@@ -143490,6 +155529,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
@@ -143508,6 +155550,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutDevicesInput = {
@@ -143535,6 +155581,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
@@ -143553,6 +155602,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDevicesInput = {
@@ -143564,6 +155617,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
@@ -143582,6 +155638,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerCreateWithoutDocumentsInput = {
@@ -143593,6 +155653,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
@@ -143611,6 +155674,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutDocumentsInput = {
@@ -143622,6 +155689,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
@@ -143640,6 +155710,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutDocumentsInput = {
@@ -143686,6 +155760,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutDocumentsInput = {
@@ -143727,6 +155804,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutDocumentsInput = {
@@ -143754,6 +155834,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
@@ -143772,6 +155855,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDocumentsInput = {
@@ -143783,6 +155870,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
@@ -143801,6 +155891,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutDocumentsInput = {
@@ -143853,6 +155947,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutDocumentsInput = {
@@ -143894,6 +155991,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerCreateWithoutDrivingLicenseInput = {
@@ -143905,6 +156005,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -143923,6 +156026,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutDrivingLicenseInput = {
@@ -143934,6 +156041,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -143952,6 +156062,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutDrivingLicenseInput = {
@@ -143979,6 +156093,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -143997,6 +156114,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDrivingLicenseInput = {
@@ -144008,6 +156129,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -144026,6 +156150,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerCreateWithoutFastagInput = {
@@ -144037,6 +156165,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -144055,6 +156186,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutFastagInput = {
@@ -144066,6 +156201,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -144084,6 +156222,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutFastagInput = {
@@ -144111,6 +156253,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -144129,6 +156274,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutFastagInput = {
@@ -144140,6 +156289,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -144158,6 +156310,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerCreateWithoutDigilockerInput = {
@@ -144169,6 +156325,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -144187,6 +156346,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutDigilockerInput = {
@@ -144198,6 +156361,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -144216,6 +156382,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutDigilockerInput = {
@@ -144243,6 +156413,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -144261,6 +156434,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDigilockerInput = {
@@ -144272,6 +156449,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -144290,6 +156470,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type ChallanCreateWithoutVehicleInput = {
@@ -144377,6 +156561,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -144395,6 +156582,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutVehiclesInput = {
@@ -144406,6 +156597,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -144424,6 +156618,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutVehiclesInput = {
@@ -144689,6 +156887,109 @@ export namespace Prisma {
     create: XOR<VehicleHealthScoreCreateWithoutVehicleInput, VehicleHealthScoreUncheckedCreateWithoutVehicleInput>
   }
 
+  export type VehicleQrTokenCreateWithoutVehicleInput = {
+    id?: string
+    token: string
+    createdAt?: Date | string
+    rotatedAt?: Date | string
+  }
+
+  export type VehicleQrTokenUncheckedCreateWithoutVehicleInput = {
+    id?: string
+    token: string
+    createdAt?: Date | string
+    rotatedAt?: Date | string
+  }
+
+  export type VehicleQrTokenCreateOrConnectWithoutVehicleInput = {
+    where: VehicleQrTokenWhereUniqueInput
+    create: XOR<VehicleQrTokenCreateWithoutVehicleInput, VehicleQrTokenUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type ConversationCreateWithoutVehicleInput = {
+    id?: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutConversationsAsCustomerInput
+    owner: CustomerCreateNestedOneWithoutConversationsAsOwnerInput
+    messages?: MessageCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUncheckedCreateWithoutVehicleInput = {
+    id?: string
+    customerId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: MessageUncheckedCreateNestedManyWithoutConversationInput
+    reports?: ConversationReportUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationCreateOrConnectWithoutVehicleInput = {
+    where: ConversationWhereUniqueInput
+    create: XOR<ConversationCreateWithoutVehicleInput, ConversationUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type ConversationCreateManyVehicleInputEnvelope = {
+    data: ConversationCreateManyVehicleInput | ConversationCreateManyVehicleInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GuestConversationCreateWithoutVehicleInput = {
+    id?: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    owner: CustomerCreateNestedOneWithoutGuestConversationsInput
+    entries?: GuestMessageEntryCreateNestedManyWithoutConversationInput
+  }
+
+  export type GuestConversationUncheckedCreateWithoutVehicleInput = {
+    id?: string
+    ownerId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    entries?: GuestMessageEntryUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type GuestConversationCreateOrConnectWithoutVehicleInput = {
+    where: GuestConversationWhereUniqueInput
+    create: XOR<GuestConversationCreateWithoutVehicleInput, GuestConversationUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type GuestConversationCreateManyVehicleInputEnvelope = {
+    data: GuestConversationCreateManyVehicleInput | GuestConversationCreateManyVehicleInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ChallanUpsertWithWhereUniqueWithoutVehicleInput = {
     where: ChallanWhereUniqueInput
     update: XOR<ChallanUpdateWithoutVehicleInput, ChallanUncheckedUpdateWithoutVehicleInput>
@@ -144760,6 +157061,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -144778,6 +157082,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutVehiclesInput = {
@@ -144789,6 +157097,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -144807,6 +157118,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type DrivingTripUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -145011,6 +157326,63 @@ export namespace Prisma {
     nextDueDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type VehicleQrTokenUpsertWithoutVehicleInput = {
+    update: XOR<VehicleQrTokenUpdateWithoutVehicleInput, VehicleQrTokenUncheckedUpdateWithoutVehicleInput>
+    create: XOR<VehicleQrTokenCreateWithoutVehicleInput, VehicleQrTokenUncheckedCreateWithoutVehicleInput>
+    where?: VehicleQrTokenWhereInput
+  }
+
+  export type VehicleQrTokenUpdateToOneWithWhereWithoutVehicleInput = {
+    where?: VehicleQrTokenWhereInput
+    data: XOR<VehicleQrTokenUpdateWithoutVehicleInput, VehicleQrTokenUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type VehicleQrTokenUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type VehicleQrTokenUncheckedUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    token?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    rotatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationUpsertWithWhereUniqueWithoutVehicleInput = {
+    where: ConversationWhereUniqueInput
+    update: XOR<ConversationUpdateWithoutVehicleInput, ConversationUncheckedUpdateWithoutVehicleInput>
+    create: XOR<ConversationCreateWithoutVehicleInput, ConversationUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type ConversationUpdateWithWhereUniqueWithoutVehicleInput = {
+    where: ConversationWhereUniqueInput
+    data: XOR<ConversationUpdateWithoutVehicleInput, ConversationUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type ConversationUpdateManyWithWhereWithoutVehicleInput = {
+    where: ConversationScalarWhereInput
+    data: XOR<ConversationUpdateManyMutationInput, ConversationUncheckedUpdateManyWithoutVehicleInput>
+  }
+
+  export type GuestConversationUpsertWithWhereUniqueWithoutVehicleInput = {
+    where: GuestConversationWhereUniqueInput
+    update: XOR<GuestConversationUpdateWithoutVehicleInput, GuestConversationUncheckedUpdateWithoutVehicleInput>
+    create: XOR<GuestConversationCreateWithoutVehicleInput, GuestConversationUncheckedCreateWithoutVehicleInput>
+  }
+
+  export type GuestConversationUpdateWithWhereUniqueWithoutVehicleInput = {
+    where: GuestConversationWhereUniqueInput
+    data: XOR<GuestConversationUpdateWithoutVehicleInput, GuestConversationUncheckedUpdateWithoutVehicleInput>
+  }
+
+  export type GuestConversationUpdateManyWithWhereWithoutVehicleInput = {
+    where: GuestConversationScalarWhereInput
+    data: XOR<GuestConversationUpdateManyMutationInput, GuestConversationUncheckedUpdateManyWithoutVehicleInput>
+  }
+
   export type VehicleAssetCreateWithoutCatalogInput = {
     id?: string
     type: $Enums.VehicleAssetType
@@ -145179,6 +157551,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutOdometerLogsInput = {
@@ -145220,6 +157595,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutOdometerLogsInput = {
@@ -145277,6 +157655,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutOdometerLogsInput = {
@@ -145318,6 +157699,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleCreateWithoutChallansInput = {
@@ -145359,6 +157743,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutChallansInput = {
@@ -145400,6 +157787,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutChallansInput = {
@@ -145457,6 +157847,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutChallansInput = {
@@ -145498,6 +157891,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerCreateWithoutSharedVehiclesInput = {
@@ -145509,6 +157905,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -145527,6 +157926,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutSharedVehiclesInput = {
@@ -145538,6 +157941,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -145556,6 +157962,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutSharedVehiclesInput = {
@@ -145602,6 +158012,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutAccessListInput = {
@@ -145643,6 +158056,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutAccessListInput = {
@@ -145670,6 +158086,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -145688,6 +158107,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSharedVehiclesInput = {
@@ -145699,6 +158122,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -145717,6 +158143,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutAccessListInput = {
@@ -145769,6 +158199,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutAccessListInput = {
@@ -145810,6 +158243,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleCreateWithoutHealthScoreInput = {
@@ -145851,6 +158287,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutHealthScoreInput = {
@@ -145892,6 +158331,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutHealthScoreInput = {
@@ -145949,6 +158391,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutHealthScoreInput = {
@@ -145990,6 +158435,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerCreateWithoutNotificationsInput = {
@@ -146001,6 +158449,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -146019,6 +158470,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutNotificationsInput = {
@@ -146030,6 +158485,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -146048,6 +158506,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutNotificationsInput = {
@@ -146075,6 +158537,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -146093,6 +158558,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutNotificationsInput = {
@@ -146104,6 +158573,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -146122,6 +158594,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type ChatMessageCreateWithoutSessionInput = {
@@ -146159,6 +158635,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
@@ -146177,6 +158656,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutChatsInput = {
@@ -146188,6 +158671,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
     vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
@@ -146206,6 +158692,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutChatsInput = {
@@ -146261,6 +158751,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
@@ -146279,6 +158772,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutChatsInput = {
@@ -146290,6 +158787,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
     vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
@@ -146308,6 +158808,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type ChatSessionCreateWithoutMessagesInput = {
@@ -146375,6 +158879,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -146393,6 +158900,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutExpensesInput = {
@@ -146404,6 +158915,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -146422,6 +158936,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutExpensesInput = {
@@ -146438,6 +158956,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -146456,6 +158977,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutDriverExpensesInput = {
@@ -146467,6 +158992,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -146485,6 +159013,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutDriverExpensesInput = {
@@ -146531,6 +159063,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutExpensesInput = {
@@ -146572,6 +159107,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutExpensesInput = {
@@ -146599,6 +159137,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -146617,6 +159158,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutExpensesInput = {
@@ -146628,6 +159173,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -146646,6 +159194,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUpsertWithoutDriverExpensesInput = {
@@ -146668,6 +159220,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -146686,6 +159241,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutDriverExpensesInput = {
@@ -146697,6 +159256,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -146715,6 +159277,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerVehicleUpsertWithoutExpensesInput = {
@@ -146767,6 +159333,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutExpensesInput = {
@@ -146808,6 +159377,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerCreateWithoutBudgetsInput = {
@@ -146819,6 +159391,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -146837,6 +159412,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutBudgetsInput = {
@@ -146848,6 +159427,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -146866,6 +159448,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutBudgetsInput = {
@@ -146893,6 +159479,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -146911,6 +159500,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutBudgetsInput = {
@@ -146922,6 +159515,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -146940,6 +159536,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type ServicePartCreateWithoutServiceRecordInput = {
@@ -147021,6 +159621,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutServiceRecordsInput = {
@@ -147062,6 +159665,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutServiceRecordsInput = {
@@ -147154,6 +159760,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutServiceRecordsInput = {
@@ -147195,6 +159804,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type ServiceRecordCreateWithoutPartsInput = {
@@ -147312,6 +159924,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutTelematicsDeviceInput = {
@@ -147353,6 +159968,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutTelematicsDeviceInput = {
@@ -147410,6 +160028,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutTelematicsDeviceInput = {
@@ -147451,6 +160072,9 @@ export namespace Prisma {
     serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type DrivingEventCreateWithoutTripInput = {
@@ -147524,6 +160148,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleUncheckedCreateWithoutDrivingTripsInput = {
@@ -147565,6 +160192,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
     accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
     healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
   }
 
   export type CustomerVehicleCreateOrConnectWithoutDrivingTripsInput = {
@@ -147653,6 +160283,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutDrivingTripsInput = {
@@ -147694,6 +160327,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerCreateWithoutPlannedTripsInput = {
@@ -147705,6 +160341,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -147723,6 +160362,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutPlannedTripsInput = {
@@ -147734,6 +160377,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -147752,6 +160398,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutPlannedTripsInput = {
@@ -147779,6 +160429,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -147797,6 +160450,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutPlannedTripsInput = {
@@ -147808,6 +160465,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -147826,6 +160486,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type DrivingTripCreateWithoutEventsInput = {
@@ -147933,6 +160597,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -147951,6 +160618,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutSosRequestsInput = {
@@ -147962,6 +160633,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -147980,6 +160654,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutSosRequestsInput = {
@@ -148007,6 +160685,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -148025,6 +160706,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSosRequestsInput = {
@@ -148036,6 +160721,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -148054,6 +160742,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerCreateWithoutEmergencyContactsInput = {
@@ -148065,6 +160757,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -148083,6 +160778,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutEmergencyContactsInput = {
@@ -148094,6 +160793,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -148112,6 +160814,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutEmergencyContactsInput = {
@@ -148139,6 +160845,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -148157,6 +160866,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutEmergencyContactsInput = {
@@ -148168,6 +160881,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -148186,6 +160902,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerCreateWithoutSupportTicketsInput = {
@@ -148197,6 +160917,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -148215,6 +160938,10 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutSupportTicketsInput = {
@@ -148226,6 +160953,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -148244,6 +160974,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutSupportTicketsInput = {
@@ -148297,6 +161031,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -148315,6 +161052,10 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutSupportTicketsInput = {
@@ -148326,6 +161067,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -148344,6 +161088,10 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type TicketMessageUpsertWithWhereUniqueWithoutTicketInput = {
@@ -159813,6 +172561,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -159831,6 +172582,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutOrdersInput = {
@@ -159842,6 +172597,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -159860,6 +172618,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutOrdersInput = {
@@ -159949,6 +172711,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -159967,6 +172732,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutOrdersInput = {
@@ -159978,6 +172747,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -159996,6 +172768,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerPaymentAttemptUpsertWithWhereUniqueWithoutOrderInput = {
@@ -160610,6 +173386,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -160628,6 +173407,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutParkingBookingsInput = {
@@ -160639,6 +173422,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -160657,6 +173443,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutParkingBookingsInput = {
@@ -160729,6 +173519,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -160747,6 +173540,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutParkingBookingsInput = {
@@ -160758,6 +173555,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -160776,6 +173576,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type ParkingListingUpsertWithoutBookingsInput = {
@@ -160838,6 +173642,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
@@ -160856,6 +173663,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerUncheckedCreateWithoutWaitlistEntriesInput = {
@@ -160867,6 +173678,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
     chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
     devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
     documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
@@ -160885,6 +173699,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
   }
 
   export type CustomerCreateOrConnectWithoutWaitlistEntriesInput = {
@@ -160957,6 +173775,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
@@ -160975,6 +173796,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
   }
 
   export type CustomerUncheckedUpdateWithoutWaitlistEntriesInput = {
@@ -160986,6 +173811,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
     devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
     documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
@@ -161004,6 +173832,10 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type ParkingListingUpsertWithoutWaitlistInput = {
@@ -161055,6 +173887,1668 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type CustomerVehicleCreateWithoutQrTokenInput = {
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    imageUrl?: string | null
+    ownerName?: string | null
+    rto?: string | null
+    vehicleClass?: string | null
+    fuelNorms?: string | null
+    rcStatus?: string | null
+    unloadedWeight?: string | null
+    fitnessUpto?: string | null
+    insuranceUpto?: string | null
+    pollutionUpto?: string | null
+    mileage?: string | null
+    brand?: string | null
+    color?: string | null
+    manufacturingMonthYear?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
+  }
+
+  export type CustomerVehicleUncheckedCreateWithoutQrTokenInput = {
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    imageUrl?: string | null
+    ownerName?: string | null
+    rto?: string | null
+    vehicleClass?: string | null
+    fuelNorms?: string | null
+    rcStatus?: string | null
+    unloadedWeight?: string | null
+    fitnessUpto?: string | null
+    insuranceUpto?: string | null
+    pollutionUpto?: string | null
+    mileage?: string | null
+    brand?: string | null
+    color?: string | null
+    manufacturingMonthYear?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
+  }
+
+  export type CustomerVehicleCreateOrConnectWithoutQrTokenInput = {
+    where: CustomerVehicleWhereUniqueInput
+    create: XOR<CustomerVehicleCreateWithoutQrTokenInput, CustomerVehicleUncheckedCreateWithoutQrTokenInput>
+  }
+
+  export type CustomerVehicleUpsertWithoutQrTokenInput = {
+    update: XOR<CustomerVehicleUpdateWithoutQrTokenInput, CustomerVehicleUncheckedUpdateWithoutQrTokenInput>
+    create: XOR<CustomerVehicleCreateWithoutQrTokenInput, CustomerVehicleUncheckedCreateWithoutQrTokenInput>
+    where?: CustomerVehicleWhereInput
+  }
+
+  export type CustomerVehicleUpdateToOneWithWhereWithoutQrTokenInput = {
+    where?: CustomerVehicleWhereInput
+    data: XOR<CustomerVehicleUpdateWithoutQrTokenInput, CustomerVehicleUncheckedUpdateWithoutQrTokenInput>
+  }
+
+  export type CustomerVehicleUpdateWithoutQrTokenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerName?: NullableStringFieldUpdateOperationsInput | string | null
+    rto?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
+    rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
+    fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    insuranceUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    pollutionUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    mileage?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
+  }
+
+  export type CustomerVehicleUncheckedUpdateWithoutQrTokenInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerName?: NullableStringFieldUpdateOperationsInput | string | null
+    rto?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
+    rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
+    fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    insuranceUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    pollutionUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    mileage?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
+  }
+
+  export type CustomerVehicleCreateWithoutConversationsInput = {
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    imageUrl?: string | null
+    ownerName?: string | null
+    rto?: string | null
+    vehicleClass?: string | null
+    fuelNorms?: string | null
+    rcStatus?: string | null
+    unloadedWeight?: string | null
+    fitnessUpto?: string | null
+    insuranceUpto?: string | null
+    pollutionUpto?: string | null
+    mileage?: string | null
+    brand?: string | null
+    color?: string | null
+    manufacturingMonthYear?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutVehicleInput
+  }
+
+  export type CustomerVehicleUncheckedCreateWithoutConversationsInput = {
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    imageUrl?: string | null
+    ownerName?: string | null
+    rto?: string | null
+    vehicleClass?: string | null
+    fuelNorms?: string | null
+    rcStatus?: string | null
+    unloadedWeight?: string | null
+    fitnessUpto?: string | null
+    insuranceUpto?: string | null
+    pollutionUpto?: string | null
+    mileage?: string | null
+    brand?: string | null
+    color?: string | null
+    manufacturingMonthYear?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutVehicleInput
+  }
+
+  export type CustomerVehicleCreateOrConnectWithoutConversationsInput = {
+    where: CustomerVehicleWhereUniqueInput
+    create: XOR<CustomerVehicleCreateWithoutConversationsInput, CustomerVehicleUncheckedCreateWithoutConversationsInput>
+  }
+
+  export type CustomerCreateWithoutConversationsAsCustomerInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutConversationsAsCustomerInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutConversationsAsCustomerInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutConversationsAsCustomerInput, CustomerUncheckedCreateWithoutConversationsAsCustomerInput>
+  }
+
+  export type CustomerCreateWithoutConversationsAsOwnerInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutConversationsAsOwnerInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutConversationsAsOwnerInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutConversationsAsOwnerInput, CustomerUncheckedCreateWithoutConversationsAsOwnerInput>
+  }
+
+  export type MessageCreateWithoutConversationInput = {
+    id?: string
+    senderId: string
+    receiverId: string
+    type?: $Enums.MessageType
+    text?: string | null
+    imageUrls?: MessageCreateimageUrlsInput | string[]
+    latitude?: number | null
+    longitude?: number | null
+    quickReplyKey?: string | null
+    reaction?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: boolean
+    deliveredAt?: Date | string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MessageUncheckedCreateWithoutConversationInput = {
+    id?: string
+    senderId: string
+    receiverId: string
+    type?: $Enums.MessageType
+    text?: string | null
+    imageUrls?: MessageCreateimageUrlsInput | string[]
+    latitude?: number | null
+    longitude?: number | null
+    quickReplyKey?: string | null
+    reaction?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: boolean
+    deliveredAt?: Date | string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type MessageCreateOrConnectWithoutConversationInput = {
+    where: MessageWhereUniqueInput
+    create: XOR<MessageCreateWithoutConversationInput, MessageUncheckedCreateWithoutConversationInput>
+  }
+
+  export type MessageCreateManyConversationInputEnvelope = {
+    data: MessageCreateManyConversationInput | MessageCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ConversationReportCreateWithoutConversationInput = {
+    id?: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status?: $Enums.ReportStatus
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type ConversationReportUncheckedCreateWithoutConversationInput = {
+    id?: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status?: $Enums.ReportStatus
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type ConversationReportCreateOrConnectWithoutConversationInput = {
+    where: ConversationReportWhereUniqueInput
+    create: XOR<ConversationReportCreateWithoutConversationInput, ConversationReportUncheckedCreateWithoutConversationInput>
+  }
+
+  export type ConversationReportCreateManyConversationInputEnvelope = {
+    data: ConversationReportCreateManyConversationInput | ConversationReportCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CustomerVehicleUpsertWithoutConversationsInput = {
+    update: XOR<CustomerVehicleUpdateWithoutConversationsInput, CustomerVehicleUncheckedUpdateWithoutConversationsInput>
+    create: XOR<CustomerVehicleCreateWithoutConversationsInput, CustomerVehicleUncheckedCreateWithoutConversationsInput>
+    where?: CustomerVehicleWhereInput
+  }
+
+  export type CustomerVehicleUpdateToOneWithWhereWithoutConversationsInput = {
+    where?: CustomerVehicleWhereInput
+    data: XOR<CustomerVehicleUpdateWithoutConversationsInput, CustomerVehicleUncheckedUpdateWithoutConversationsInput>
+  }
+
+  export type CustomerVehicleUpdateWithoutConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerName?: NullableStringFieldUpdateOperationsInput | string | null
+    rto?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
+    rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
+    fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    insuranceUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    pollutionUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    mileage?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
+  }
+
+  export type CustomerVehicleUncheckedUpdateWithoutConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerName?: NullableStringFieldUpdateOperationsInput | string | null
+    rto?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
+    rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
+    fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    insuranceUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    pollutionUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    mileage?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
+  }
+
+  export type CustomerUpsertWithoutConversationsAsCustomerInput = {
+    update: XOR<CustomerUpdateWithoutConversationsAsCustomerInput, CustomerUncheckedUpdateWithoutConversationsAsCustomerInput>
+    create: XOR<CustomerCreateWithoutConversationsAsCustomerInput, CustomerUncheckedCreateWithoutConversationsAsCustomerInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutConversationsAsCustomerInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutConversationsAsCustomerInput, CustomerUncheckedUpdateWithoutConversationsAsCustomerInput>
+  }
+
+  export type CustomerUpdateWithoutConversationsAsCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutConversationsAsCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type CustomerUpsertWithoutConversationsAsOwnerInput = {
+    update: XOR<CustomerUpdateWithoutConversationsAsOwnerInput, CustomerUncheckedUpdateWithoutConversationsAsOwnerInput>
+    create: XOR<CustomerCreateWithoutConversationsAsOwnerInput, CustomerUncheckedCreateWithoutConversationsAsOwnerInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutConversationsAsOwnerInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutConversationsAsOwnerInput, CustomerUncheckedUpdateWithoutConversationsAsOwnerInput>
+  }
+
+  export type CustomerUpdateWithoutConversationsAsOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutConversationsAsOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type MessageUpsertWithWhereUniqueWithoutConversationInput = {
+    where: MessageWhereUniqueInput
+    update: XOR<MessageUpdateWithoutConversationInput, MessageUncheckedUpdateWithoutConversationInput>
+    create: XOR<MessageCreateWithoutConversationInput, MessageUncheckedCreateWithoutConversationInput>
+  }
+
+  export type MessageUpdateWithWhereUniqueWithoutConversationInput = {
+    where: MessageWhereUniqueInput
+    data: XOR<MessageUpdateWithoutConversationInput, MessageUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type MessageUpdateManyWithWhereWithoutConversationInput = {
+    where: MessageScalarWhereInput
+    data: XOR<MessageUpdateManyMutationInput, MessageUncheckedUpdateManyWithoutConversationInput>
+  }
+
+  export type MessageScalarWhereInput = {
+    AND?: MessageScalarWhereInput | MessageScalarWhereInput[]
+    OR?: MessageScalarWhereInput[]
+    NOT?: MessageScalarWhereInput | MessageScalarWhereInput[]
+    id?: StringFilter<"Message"> | string
+    conversationId?: StringFilter<"Message"> | string
+    senderId?: StringFilter<"Message"> | string
+    receiverId?: StringFilter<"Message"> | string
+    type?: EnumMessageTypeFilter<"Message"> | $Enums.MessageType
+    text?: StringNullableFilter<"Message"> | string | null
+    imageUrls?: StringNullableListFilter<"Message">
+    latitude?: FloatNullableFilter<"Message"> | number | null
+    longitude?: FloatNullableFilter<"Message"> | number | null
+    quickReplyKey?: StringNullableFilter<"Message"> | string | null
+    reaction?: StringNullableFilter<"Message"> | string | null
+    metadata?: JsonNullableFilter<"Message">
+    isRead?: BoolFilter<"Message"> | boolean
+    deliveredAt?: DateTimeNullableFilter<"Message"> | Date | string | null
+    readAt?: DateTimeNullableFilter<"Message"> | Date | string | null
+    createdAt?: DateTimeFilter<"Message"> | Date | string
+  }
+
+  export type ConversationReportUpsertWithWhereUniqueWithoutConversationInput = {
+    where: ConversationReportWhereUniqueInput
+    update: XOR<ConversationReportUpdateWithoutConversationInput, ConversationReportUncheckedUpdateWithoutConversationInput>
+    create: XOR<ConversationReportCreateWithoutConversationInput, ConversationReportUncheckedCreateWithoutConversationInput>
+  }
+
+  export type ConversationReportUpdateWithWhereUniqueWithoutConversationInput = {
+    where: ConversationReportWhereUniqueInput
+    data: XOR<ConversationReportUpdateWithoutConversationInput, ConversationReportUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type ConversationReportUpdateManyWithWhereWithoutConversationInput = {
+    where: ConversationReportScalarWhereInput
+    data: XOR<ConversationReportUpdateManyMutationInput, ConversationReportUncheckedUpdateManyWithoutConversationInput>
+  }
+
+  export type ConversationReportScalarWhereInput = {
+    AND?: ConversationReportScalarWhereInput | ConversationReportScalarWhereInput[]
+    OR?: ConversationReportScalarWhereInput[]
+    NOT?: ConversationReportScalarWhereInput | ConversationReportScalarWhereInput[]
+    id?: StringFilter<"ConversationReport"> | string
+    conversationId?: StringFilter<"ConversationReport"> | string
+    reporterId?: StringFilter<"ConversationReport"> | string
+    reportedId?: StringFilter<"ConversationReport"> | string
+    reason?: StringFilter<"ConversationReport"> | string
+    status?: EnumReportStatusFilter<"ConversationReport"> | $Enums.ReportStatus
+    createdAt?: DateTimeFilter<"ConversationReport"> | Date | string
+    resolvedAt?: DateTimeNullableFilter<"ConversationReport"> | Date | string | null
+  }
+
+  export type ConversationCreateWithoutMessagesInput = {
+    id?: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutConversationsInput
+    customer: CustomerCreateNestedOneWithoutConversationsAsCustomerInput
+    owner: CustomerCreateNestedOneWithoutConversationsAsOwnerInput
+    reports?: ConversationReportCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUncheckedCreateWithoutMessagesInput = {
+    id?: string
+    vehicleId: string
+    customerId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    reports?: ConversationReportUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationCreateOrConnectWithoutMessagesInput = {
+    where: ConversationWhereUniqueInput
+    create: XOR<ConversationCreateWithoutMessagesInput, ConversationUncheckedCreateWithoutMessagesInput>
+  }
+
+  export type ConversationUpsertWithoutMessagesInput = {
+    update: XOR<ConversationUpdateWithoutMessagesInput, ConversationUncheckedUpdateWithoutMessagesInput>
+    create: XOR<ConversationCreateWithoutMessagesInput, ConversationUncheckedCreateWithoutMessagesInput>
+    where?: ConversationWhereInput
+  }
+
+  export type ConversationUpdateToOneWithWhereWithoutMessagesInput = {
+    where?: ConversationWhereInput
+    data: XOR<ConversationUpdateWithoutMessagesInput, ConversationUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type ConversationUpdateWithoutMessagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutConversationsNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutConversationsAsCustomerNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutConversationsAsOwnerNestedInput
+    reports?: ConversationReportUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateWithoutMessagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reports?: ConversationReportUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type CustomerCreateWithoutBlockedContactsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutBlockedContactsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutBlockedContactsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutBlockedContactsInput, CustomerUncheckedCreateWithoutBlockedContactsInput>
+  }
+
+  export type CustomerUpsertWithoutBlockedContactsInput = {
+    update: XOR<CustomerUpdateWithoutBlockedContactsInput, CustomerUncheckedUpdateWithoutBlockedContactsInput>
+    create: XOR<CustomerCreateWithoutBlockedContactsInput, CustomerUncheckedCreateWithoutBlockedContactsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutBlockedContactsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutBlockedContactsInput, CustomerUncheckedUpdateWithoutBlockedContactsInput>
+  }
+
+  export type CustomerUpdateWithoutBlockedContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutBlockedContactsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type ConversationCreateWithoutReportsInput = {
+    id?: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutConversationsInput
+    customer: CustomerCreateNestedOneWithoutConversationsAsCustomerInput
+    owner: CustomerCreateNestedOneWithoutConversationsAsOwnerInput
+    messages?: MessageCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationUncheckedCreateWithoutReportsInput = {
+    id?: string
+    vehicleId: string
+    customerId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: MessageUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type ConversationCreateOrConnectWithoutReportsInput = {
+    where: ConversationWhereUniqueInput
+    create: XOR<ConversationCreateWithoutReportsInput, ConversationUncheckedCreateWithoutReportsInput>
+  }
+
+  export type ConversationUpsertWithoutReportsInput = {
+    update: XOR<ConversationUpdateWithoutReportsInput, ConversationUncheckedUpdateWithoutReportsInput>
+    create: XOR<ConversationCreateWithoutReportsInput, ConversationUncheckedCreateWithoutReportsInput>
+    where?: ConversationWhereInput
+  }
+
+  export type ConversationUpdateToOneWithWhereWithoutReportsInput = {
+    where?: ConversationWhereInput
+    data: XOR<ConversationUpdateWithoutReportsInput, ConversationUncheckedUpdateWithoutReportsInput>
+  }
+
+  export type ConversationUpdateWithoutReportsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutConversationsNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutConversationsAsCustomerNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutConversationsAsOwnerNestedInput
+    messages?: MessageUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateWithoutReportsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: MessageUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type CustomerVehicleCreateWithoutGuestConversationsInput = {
+    id?: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    imageUrl?: string | null
+    ownerName?: string | null
+    rto?: string | null
+    vehicleClass?: string | null
+    fuelNorms?: string | null
+    rcStatus?: string | null
+    unloadedWeight?: string | null
+    fitnessUpto?: string | null
+    insuranceUpto?: string | null
+    pollutionUpto?: string | null
+    mileage?: string | null
+    brand?: string | null
+    color?: string | null
+    manufacturingMonthYear?: string | null
+    challans?: ChallanCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentCreateNestedManyWithoutVehicleInput
+    customer: CustomerCreateNestedOneWithoutVehiclesInput
+    drivingTrips?: DrivingTripCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationCreateNestedManyWithoutVehicleInput
+  }
+
+  export type CustomerVehicleUncheckedCreateWithoutGuestConversationsInput = {
+    id?: string
+    customerId: string
+    registrationNumber: string
+    make?: string | null
+    model?: string | null
+    fuelType?: string | null
+    vehicleType?: string | null
+    currentOdometer?: number | null
+    registrationDate?: Date | string | null
+    rcVerified?: boolean
+    isActive?: boolean
+    isPrimary?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    chassisNumber?: string | null
+    engineNumber?: string | null
+    imageUrl?: string | null
+    ownerName?: string | null
+    rto?: string | null
+    vehicleClass?: string | null
+    fuelNorms?: string | null
+    rcStatus?: string | null
+    unloadedWeight?: string | null
+    fitnessUpto?: string | null
+    insuranceUpto?: string | null
+    pollutionUpto?: string | null
+    mileage?: string | null
+    brand?: string | null
+    color?: string | null
+    manufacturingMonthYear?: string | null
+    challans?: ChallanUncheckedCreateNestedManyWithoutVehicleInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutVehicleInput
+    drivingTrips?: DrivingTripUncheckedCreateNestedManyWithoutVehicleInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutVehicleInput
+    odometerLogs?: OdometerLogUncheckedCreateNestedManyWithoutVehicleInput
+    serviceRecords?: ServiceRecordUncheckedCreateNestedManyWithoutVehicleInput
+    telematicsDevice?: TelematicsDeviceUncheckedCreateNestedOneWithoutVehicleInput
+    accessList?: VehicleAccessUncheckedCreateNestedManyWithoutVehicleInput
+    healthScore?: VehicleHealthScoreUncheckedCreateNestedOneWithoutVehicleInput
+    qrToken?: VehicleQrTokenUncheckedCreateNestedOneWithoutVehicleInput
+    conversations?: ConversationUncheckedCreateNestedManyWithoutVehicleInput
+  }
+
+  export type CustomerVehicleCreateOrConnectWithoutGuestConversationsInput = {
+    where: CustomerVehicleWhereUniqueInput
+    create: XOR<CustomerVehicleCreateWithoutGuestConversationsInput, CustomerVehicleUncheckedCreateWithoutGuestConversationsInput>
+  }
+
+  export type CustomerCreateWithoutGuestConversationsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerUncheckedCreateWithoutGuestConversationsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type CustomerCreateOrConnectWithoutGuestConversationsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutGuestConversationsInput, CustomerUncheckedCreateWithoutGuestConversationsInput>
+  }
+
+  export type GuestMessageEntryCreateWithoutConversationInput = {
+    id?: string
+    sender: $Enums.GuestMessageSender
+    text?: string | null
+    imageUrls?: GuestMessageEntryCreateimageUrlsInput | string[]
+    createdAt?: Date | string
+  }
+
+  export type GuestMessageEntryUncheckedCreateWithoutConversationInput = {
+    id?: string
+    sender: $Enums.GuestMessageSender
+    text?: string | null
+    imageUrls?: GuestMessageEntryCreateimageUrlsInput | string[]
+    createdAt?: Date | string
+  }
+
+  export type GuestMessageEntryCreateOrConnectWithoutConversationInput = {
+    where: GuestMessageEntryWhereUniqueInput
+    create: XOR<GuestMessageEntryCreateWithoutConversationInput, GuestMessageEntryUncheckedCreateWithoutConversationInput>
+  }
+
+  export type GuestMessageEntryCreateManyConversationInputEnvelope = {
+    data: GuestMessageEntryCreateManyConversationInput | GuestMessageEntryCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CustomerVehicleUpsertWithoutGuestConversationsInput = {
+    update: XOR<CustomerVehicleUpdateWithoutGuestConversationsInput, CustomerVehicleUncheckedUpdateWithoutGuestConversationsInput>
+    create: XOR<CustomerVehicleCreateWithoutGuestConversationsInput, CustomerVehicleUncheckedCreateWithoutGuestConversationsInput>
+    where?: CustomerVehicleWhereInput
+  }
+
+  export type CustomerVehicleUpdateToOneWithWhereWithoutGuestConversationsInput = {
+    where?: CustomerVehicleWhereInput
+    data: XOR<CustomerVehicleUpdateWithoutGuestConversationsInput, CustomerVehicleUncheckedUpdateWithoutGuestConversationsInput>
+  }
+
+  export type CustomerVehicleUpdateWithoutGuestConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerName?: NullableStringFieldUpdateOperationsInput | string | null
+    rto?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
+    rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
+    fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    insuranceUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    pollutionUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    mileage?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutVehicleNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutVehiclesNestedInput
+    drivingTrips?: DrivingTripUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+  }
+
+  export type CustomerVehicleUncheckedUpdateWithoutGuestConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    registrationNumber?: StringFieldUpdateOperationsInput | string
+    make?: NullableStringFieldUpdateOperationsInput | string | null
+    model?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelType?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: NullableStringFieldUpdateOperationsInput | string | null
+    currentOdometer?: NullableIntFieldUpdateOperationsInput | number | null
+    registrationDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rcVerified?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    engineNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerName?: NullableStringFieldUpdateOperationsInput | string | null
+    rto?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleClass?: NullableStringFieldUpdateOperationsInput | string | null
+    fuelNorms?: NullableStringFieldUpdateOperationsInput | string | null
+    rcStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    unloadedWeight?: NullableStringFieldUpdateOperationsInput | string | null
+    fitnessUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    insuranceUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    pollutionUpto?: NullableStringFieldUpdateOperationsInput | string | null
+    mileage?: NullableStringFieldUpdateOperationsInput | string | null
+    brand?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    manufacturingMonthYear?: NullableStringFieldUpdateOperationsInput | string | null
+    challans?: ChallanUncheckedUpdateManyWithoutVehicleNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutVehicleNestedInput
+    drivingTrips?: DrivingTripUncheckedUpdateManyWithoutVehicleNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+    odometerLogs?: OdometerLogUncheckedUpdateManyWithoutVehicleNestedInput
+    serviceRecords?: ServiceRecordUncheckedUpdateManyWithoutVehicleNestedInput
+    telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
+    accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
+    healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+  }
+
+  export type CustomerUpsertWithoutGuestConversationsInput = {
+    update: XOR<CustomerUpdateWithoutGuestConversationsInput, CustomerUncheckedUpdateWithoutGuestConversationsInput>
+    create: XOR<CustomerCreateWithoutGuestConversationsInput, CustomerUncheckedCreateWithoutGuestConversationsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutGuestConversationsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutGuestConversationsInput, CustomerUncheckedUpdateWithoutGuestConversationsInput>
+  }
+
+  export type CustomerUpdateWithoutGuestConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutGuestConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type GuestMessageEntryUpsertWithWhereUniqueWithoutConversationInput = {
+    where: GuestMessageEntryWhereUniqueInput
+    update: XOR<GuestMessageEntryUpdateWithoutConversationInput, GuestMessageEntryUncheckedUpdateWithoutConversationInput>
+    create: XOR<GuestMessageEntryCreateWithoutConversationInput, GuestMessageEntryUncheckedCreateWithoutConversationInput>
+  }
+
+  export type GuestMessageEntryUpdateWithWhereUniqueWithoutConversationInput = {
+    where: GuestMessageEntryWhereUniqueInput
+    data: XOR<GuestMessageEntryUpdateWithoutConversationInput, GuestMessageEntryUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type GuestMessageEntryUpdateManyWithWhereWithoutConversationInput = {
+    where: GuestMessageEntryScalarWhereInput
+    data: XOR<GuestMessageEntryUpdateManyMutationInput, GuestMessageEntryUncheckedUpdateManyWithoutConversationInput>
+  }
+
+  export type GuestMessageEntryScalarWhereInput = {
+    AND?: GuestMessageEntryScalarWhereInput | GuestMessageEntryScalarWhereInput[]
+    OR?: GuestMessageEntryScalarWhereInput[]
+    NOT?: GuestMessageEntryScalarWhereInput | GuestMessageEntryScalarWhereInput[]
+    id?: StringFilter<"GuestMessageEntry"> | string
+    conversationId?: StringFilter<"GuestMessageEntry"> | string
+    sender?: EnumGuestMessageSenderFilter<"GuestMessageEntry"> | $Enums.GuestMessageSender
+    text?: StringNullableFilter<"GuestMessageEntry"> | string | null
+    imageUrls?: StringNullableListFilter<"GuestMessageEntry">
+    createdAt?: DateTimeFilter<"GuestMessageEntry"> | Date | string
+  }
+
+  export type GuestConversationCreateWithoutEntriesInput = {
+    id?: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vehicle: CustomerVehicleCreateNestedOneWithoutGuestConversationsInput
+    owner: CustomerCreateNestedOneWithoutGuestConversationsInput
+  }
+
+  export type GuestConversationUncheckedCreateWithoutEntriesInput = {
+    id?: string
+    vehicleId: string
+    ownerId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GuestConversationCreateOrConnectWithoutEntriesInput = {
+    where: GuestConversationWhereUniqueInput
+    create: XOR<GuestConversationCreateWithoutEntriesInput, GuestConversationUncheckedCreateWithoutEntriesInput>
+  }
+
+  export type GuestConversationUpsertWithoutEntriesInput = {
+    update: XOR<GuestConversationUpdateWithoutEntriesInput, GuestConversationUncheckedUpdateWithoutEntriesInput>
+    create: XOR<GuestConversationCreateWithoutEntriesInput, GuestConversationUncheckedCreateWithoutEntriesInput>
+    where?: GuestConversationWhereInput
+  }
+
+  export type GuestConversationUpdateToOneWithWhereWithoutEntriesInput = {
+    where?: GuestConversationWhereInput
+    data: XOR<GuestConversationUpdateWithoutEntriesInput, GuestConversationUncheckedUpdateWithoutEntriesInput>
+  }
+
+  export type GuestConversationUpdateWithoutEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutGuestConversationsNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutGuestConversationsNestedInput
+  }
+
+  export type GuestConversationUncheckedUpdateWithoutEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ChatSessionCreateManyCustomerInput = {
@@ -161286,6 +175780,58 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type ConversationCreateManyCustomerInput = {
+    id?: string
+    vehicleId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ConversationCreateManyOwnerInput = {
+    id?: string
+    vehicleId: string
+    customerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BlockedContactCreateManyOwnerInput = {
+    id?: string
+    blockedId: string
+    reason?: string | null
+    createdAt?: Date | string
+  }
+
+  export type GuestConversationCreateManyOwnerInput = {
+    id?: string
+    vehicleId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ChatSessionUpdateWithoutCustomerInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
@@ -161423,6 +175969,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateWithoutCustomerInput = {
@@ -161464,6 +176013,9 @@ export namespace Prisma {
     telematicsDevice?: TelematicsDeviceUncheckedUpdateOneWithoutVehicleNestedInput
     accessList?: VehicleAccessUncheckedUpdateManyWithoutVehicleNestedInput
     healthScore?: VehicleHealthScoreUncheckedUpdateOneWithoutVehicleNestedInput
+    qrToken?: VehicleQrTokenUncheckedUpdateOneWithoutVehicleNestedInput
+    conversations?: ConversationUncheckedUpdateManyWithoutVehicleNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutVehicleNestedInput
   }
 
   export type CustomerVehicleUncheckedUpdateManyWithoutCustomerInput = {
@@ -161999,6 +176551,172 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ConversationUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutConversationsNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutConversationsAsOwnerNestedInput
+    messages?: MessageUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: MessageUncheckedUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutConversationsNestedInput
+    customer?: CustomerUpdateOneRequiredWithoutConversationsAsCustomerNestedInput
+    messages?: MessageUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: MessageUncheckedUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateManyWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BlockedContactUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BlockedContactUncheckedUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BlockedContactUncheckedUpdateManyWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    blockedId?: StringFieldUpdateOperationsInput | string
+    reason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestConversationUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vehicle?: CustomerVehicleUpdateOneRequiredWithoutGuestConversationsNestedInput
+    entries?: GuestMessageEntryUpdateManyWithoutConversationNestedInput
+  }
+
+  export type GuestConversationUncheckedUpdateWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    entries?: GuestMessageEntryUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type GuestConversationUncheckedUpdateManyWithoutOwnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ChallanCreateManyVehicleInput = {
     id?: string
     challanNumber: string
@@ -162096,6 +176814,35 @@ export namespace Prisma {
     id?: string
     customerId: string
     role?: $Enums.AccessRole
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ConversationCreateManyVehicleInput = {
+    id?: string
+    customerId: string
+    ownerId: string
+    category?: $Enums.ConversationCategory
+    priority?: $Enums.MessagePriority
+    status?: $Enums.ConversationStatus
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    lastSenderId?: string | null
+    unreadCountOwner?: number
+    unreadCountCustomer?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GuestConversationCreateManyVehicleInput = {
+    id?: string
+    ownerId: string
+    guestToken: string
+    guestName?: string | null
+    guestContact?: string | null
+    lastMessage?: string | null
+    lastMessageAt?: Date | string | null
+    status?: $Enums.GuestConversationStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -162403,6 +177150,99 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     customerId?: StringFieldUpdateOperationsInput | string
     role?: EnumAccessRoleFieldUpdateOperationsInput | $Enums.AccessRole
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutConversationsAsCustomerNestedInput
+    owner?: CustomerUpdateOneRequiredWithoutConversationsAsOwnerNestedInput
+    messages?: MessageUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: MessageUncheckedUpdateManyWithoutConversationNestedInput
+    reports?: ConversationReportUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type ConversationUncheckedUpdateManyWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    category?: EnumConversationCategoryFieldUpdateOperationsInput | $Enums.ConversationCategory
+    priority?: EnumMessagePriorityFieldUpdateOperationsInput | $Enums.MessagePriority
+    status?: EnumConversationStatusFieldUpdateOperationsInput | $Enums.ConversationStatus
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastSenderId?: NullableStringFieldUpdateOperationsInput | string | null
+    unreadCountOwner?: IntFieldUpdateOperationsInput | number
+    unreadCountCustomer?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestConversationUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    owner?: CustomerUpdateOneRequiredWithoutGuestConversationsNestedInput
+    entries?: GuestMessageEntryUpdateManyWithoutConversationNestedInput
+  }
+
+  export type GuestConversationUncheckedUpdateWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    entries?: GuestMessageEntryUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type GuestConversationUncheckedUpdateManyWithoutVehicleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerId?: StringFieldUpdateOperationsInput | string
+    guestToken?: StringFieldUpdateOperationsInput | string
+    guestName?: NullableStringFieldUpdateOperationsInput | string | null
+    guestContact?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    lastMessageAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumGuestConversationStatusFieldUpdateOperationsInput | $Enums.GuestConversationStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165986,6 +180826,150 @@ export namespace Prisma {
     customerId?: StringFieldUpdateOperationsInput | string
     desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
     notified?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageCreateManyConversationInput = {
+    id?: string
+    senderId: string
+    receiverId: string
+    type?: $Enums.MessageType
+    text?: string | null
+    imageUrls?: MessageCreateimageUrlsInput | string[]
+    latitude?: number | null
+    longitude?: number | null
+    quickReplyKey?: string | null
+    reaction?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: boolean
+    deliveredAt?: Date | string | null
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type ConversationReportCreateManyConversationInput = {
+    id?: string
+    reporterId: string
+    reportedId: string
+    reason: string
+    status?: $Enums.ReportStatus
+    createdAt?: Date | string
+    resolvedAt?: Date | string | null
+  }
+
+  export type MessageUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MessageUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: MessageUpdateimageUrlsInput | string[]
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    quickReplyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    reaction?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    isRead?: BoolFieldUpdateOperationsInput | boolean
+    deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ConversationReportUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConversationReportUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ConversationReportUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reporterId?: StringFieldUpdateOperationsInput | string
+    reportedId?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    status?: EnumReportStatusFieldUpdateOperationsInput | $Enums.ReportStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type GuestMessageEntryCreateManyConversationInput = {
+    id?: string
+    sender: $Enums.GuestMessageSender
+    text?: string | null
+    imageUrls?: GuestMessageEntryCreateimageUrlsInput | string[]
+    createdAt?: Date | string
+  }
+
+  export type GuestMessageEntryUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestMessageEntryUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GuestMessageEntryUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    sender?: EnumGuestMessageSenderFieldUpdateOperationsInput | $Enums.GuestMessageSender
+    text?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrls?: GuestMessageEntryUpdateimageUrlsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

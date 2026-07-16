@@ -4,6 +4,7 @@ import express, { type Request, type Response } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
+import path from "path";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { errorMiddleware } from "./middlewares/error.middleware";
@@ -143,6 +144,14 @@ setupSwagger(app);
 
 // Public DigiLocker Success Redirect (Must be before /api to bypass auth middleware)
 app.get("/api/v1/documents/digilocker/success", digilockerController.handleSuccess);
+
+// Public "message the owner" web fallback for a QR scan without the app installed.
+// This is what the QR code itself encodes — the page's own JS calls the JSON API
+// under /api/v1/public/vehicle-qr/* (no auth) to actually resolve the vehicle and
+// send/read messages. Registered before /api so it's reachable with no auth at all.
+app.get("/v/:token", (_req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, "../public/guest-qr.html"));
+});
 
 app.use("/api", apiRoutes);
 

@@ -228,6 +228,30 @@ export const adminApi = {
     );
   },
 
+  // Vehicle QR Messaging moderation
+  listMessagingReports: (status?: string) =>
+    api<MessagingReport[]>(`/v1/admin/messaging/reports${status ? `?status=${status}` : ''}`),
+  resolveMessagingReport: (id: string, status: 'REVIEWED' | 'DISMISSED' | 'ACTIONED') =>
+    api<MessagingReport>(`/v1/admin/messaging/reports/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  listMessagingConversations: (params?: { page?: number; limit?: number }) => {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set('page', String(params.page));
+    if (params?.limit) sp.set('limit', String(params.limit));
+    const q = sp.toString();
+    return api<{ data: MessagingConversationListItem[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/v1/admin/messaging/conversations${q ? `?${q}` : ''}`
+    );
+  },
+  deleteMessagingConversation: (id: string) =>
+    api<{ ok: boolean }>(`/v1/admin/messaging/conversations/${id}`, { method: 'DELETE' }),
+  suspendMessagingCustomer: (id: string, reason: string) =>
+    api<{ id: string; isSuspended: boolean }>(`/v1/admin/messaging/customers/${id}/suspend`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
+  unsuspendMessagingCustomer: (id: string) =>
+    api<{ id: string; isSuspended: boolean }>(`/v1/admin/messaging/customers/${id}/unsuspend`, { method: 'POST' }),
+  getMessagingAnalytics: () => api<MessagingAnalytics>('/v1/admin/messaging/analytics'),
 };
 
 
@@ -531,6 +555,42 @@ export interface PaymentOrderListItem {
   customer: { id: string; fullName: string | null; phoneNumber: string };
   attempts: { id: string; status: string; failureReason: string | null; razorpayPaymentId: string | null }[];
   refunds: { id: string; status: string; amountPaise: number }[];
+}
+
+export interface MessagingReport {
+  id: string;
+  conversationId: string;
+  reporterId: string;
+  reportedId: string;
+  reason: string;
+  status: 'PENDING' | 'REVIEWED' | 'DISMISSED' | 'ACTIONED';
+  createdAt: string;
+  resolvedAt: string | null;
+  conversation?: { vehicle: { registrationNumber: string } };
+}
+
+export interface MessagingConversationListItem {
+  id: string;
+  category: string;
+  priority: 'NORMAL' | 'URGENT' | 'EMERGENCY';
+  status: 'OPEN' | 'WAITING_FOR_OWNER' | 'WAITING_FOR_CUSTOMER' | 'RESOLVED' | 'CLOSED';
+  lastMessage: string | null;
+  updatedAt: string;
+  createdAt: string;
+  vehicle: { registrationNumber: string };
+  customer: { fullName: string | null; phoneNumber: string };
+  owner: { fullName: string | null; phoneNumber: string };
+  _count: { messages: number; reports: number };
+}
+
+export interface MessagingAnalytics {
+  totalConversations: number;
+  totalMessages: number;
+  resolutionRate: number;
+  pendingReports: number;
+  dailyActiveConversations: number;
+  avgOwnerResponseTimeMinutes: number | null;
+  mostReportedConversationIds: { conversationId: string; reportCount: number }[];
 }
 
 

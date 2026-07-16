@@ -123,6 +123,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Release Abandoned Parking Bookings (*/5 * * * *)");
 
+    // F. Auto-close idle vehicle-message conversations (Every day at 3:00 AM)
+    await queues.maintenance.add(
+      "auto-close-idle-conversations",
+      {},
+      {
+        repeat: { pattern: "0 3 * * *" },
+        jobId: "auto-close-idle-conversations-job",
+      },
+    );
+    logger.info("Scheduled: Auto-close Idle Conversations (0 3 * * *)");
+
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },
 

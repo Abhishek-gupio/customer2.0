@@ -51,6 +51,11 @@ import TripPlannerInsightsScreen from '../screens/Other/TripPlannerInsightsScree
 import DLVerification from '../screens/ServiceAndWarrenty/DLVerification';
 import Fastag from '../screens/ServiceAndWarrenty/Fastag';
 import DIYGuides from '../screens/ServiceAndWarrenty/DIYGuides';
+import InboxScreen from '../screens/Messaging/InboxScreen';
+import ScanQrScreen from '../screens/Messaging/ScanQrScreen';
+import ChatScreen from '../screens/Messaging/ChatScreen';
+import MyQrCodeScreen from '../screens/Messaging/MyQrCodeScreen';
+import GuestConversationScreen from '../screens/Messaging/GuestConversationScreen';
 import { store } from '../store';
 import { withErrorBoundary } from '../components/withErrorBoundary';
 
@@ -223,6 +228,11 @@ export function RootNavigator() {
       <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
       <Stack.Screen name="DLVerification" component={DLVerificationScreen} />
       <Stack.Screen name="Fastag" component={FastagScreen} />
+      <Stack.Screen name="VehicleInbox" component={InboxScreen} />
+      <Stack.Screen name="ScanQr" component={ScanQrScreen} />
+      <Stack.Screen name="ChatConversation" component={ChatScreen} />
+      <Stack.Screen name="MyVehicleQrCode" component={MyQrCodeScreen} />
+      <Stack.Screen name="GuestConversation" component={GuestConversationScreen} />
     </Stack.Navigator>
     <ErrorBoundary
       level="widget"

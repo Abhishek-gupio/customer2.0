@@ -36,6 +36,15 @@ export function getAbsoluteUrl(path: string | null | undefined): string {
   return base + (path.startsWith('/') ? path : '/' + path);
 }
 
+/**
+ * The URL encoded in a vehicle's printed QR sticker. Not under /api — Backend's
+ * app.ts serves the no-app-required web fallback page directly at GET /v/:token,
+ * whose own JS then calls the JSON API under /api/v1/public/vehicle-qr/*.
+ */
+export function getVehicleQrUrl(token: string): string {
+  return `${API_BASE_URL}/v/${token}`;
+}
+
 /** Google Sign-In: OAuth 2.0 Web client ID (for ID token). Same as backend GOOGLE_CLIENT_ID. */
 export const GOOGLE_WEB_CLIENT_ID = '1024404965563-segb2pqhssinho0a4m74nq4d9e0tg569.apps.googleusercontent.com';
 

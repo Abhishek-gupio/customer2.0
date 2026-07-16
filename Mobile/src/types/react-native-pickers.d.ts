@@ -15,7 +15,7 @@ declare module 'react-native-image-picker' {
     options?: { mediaType?: string; quality?: number },
   ): Promise<ImagePickerResponse>;
   export function launchImageLibrary(
-    options?: { mediaType?: string; quality?: number },
+    options?: { mediaType?: string; quality?: number; selectionLimit?: number },
   ): Promise<ImagePickerResponse>;
 }
 

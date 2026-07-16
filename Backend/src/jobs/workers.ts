@@ -126,6 +126,9 @@ export const initWorkers = () => {
       } else if (job.name === "release-abandoned-parking-bookings") {
         const { parkingService } = await import("../modules/parking/parking.service");
         await parkingService.releaseAbandonedBookings();
+      } else if (job.name === "auto-close-idle-conversations") {
+        const { messagingService } = await import("../modules/messaging/messaging.service");
+        await messagingService.autoCloseIdleConversations();
       }
     },
     defaultWorkerOptions

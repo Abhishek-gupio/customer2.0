@@ -14,6 +14,7 @@ import Expenses from './pages/Expenses';
 import ManageAdmins from './pages/ManageAdmins';
 import ParkingDealers from './pages/ParkingDealers';
 import PaymentsOps from './pages/PaymentsOps';
+import Messaging from './pages/Messaging';
 import DealerRoutes from './pages/dealer/DealerRoutes';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
@@ -157,6 +158,14 @@ export default function App() {
               element={
                 <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
                   <PaymentsOps />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="messaging"
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'SUPPORT']}>
+                  <Messaging />
                 </RoleProtectedRoute>
               }
             />

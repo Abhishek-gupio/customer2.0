@@ -23,6 +23,8 @@ import { diyRoutes } from "./modules/diy/diy.routes";
 import { agentRoutes } from "./modules/agent/agent.routes";
 import { paymentsRoutes } from "./modules/payments/payments.routes";
 import { parkingRoutes } from "./modules/parking/parking.routes";
+import { messagingRoutes } from "./modules/messaging/messaging.routes";
+import { guestPublicRoutes } from "./modules/messaging/guest-public.routes";
 
 const router = Router();
 
@@ -84,5 +86,7 @@ router.use("/v1/diy", diyRoutes);
 router.use("/v1/agent", agentRoutes);
 router.use("/v1/payments", paymentsRoutes);
 router.use("/v1/parking", parkingRoutes);
+router.use("/v1/messaging", messagingRoutes);
+router.use("/v1/public/vehicle-qr", guestPublicRoutes);
 
 export const apiRoutes = router;

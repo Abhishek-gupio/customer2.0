@@ -49,7 +49,14 @@ router.patch("/manage/admins/:id/toggle-support-customers", requireAdminRole(["S
 router.post("/manage/admins/:id/toggle-support-customers", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleSupportCustomerAccess);
 router.patch("/manage/admins/:id/toggle-status", requireAdminRole(["SUPER_ADMIN"]), adminController.toggleAdminStatus);
 
-
+// Vehicle QR Messaging moderation
+router.get("/messaging/reports", requireAdminRole(["SUPER_ADMIN", "ADMIN", "SUPPORT"]), adminController.listMessagingReports);
+router.patch("/messaging/reports/:id", requireAdminRole(["SUPER_ADMIN", "ADMIN", "SUPPORT"]), adminController.resolveMessagingReport);
+router.get("/messaging/conversations", requireAdminRole(["SUPER_ADMIN", "ADMIN", "SUPPORT"]), adminController.listConversations);
+router.delete("/messaging/conversations/:id", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.deleteConversation);
+router.post("/messaging/customers/:id/suspend", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.suspendCustomer);
+router.post("/messaging/customers/:id/unsuspend", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.unsuspendCustomer);
+router.get("/messaging/analytics", requireAdminRole(["SUPER_ADMIN", "ADMIN"]), adminController.messagingAnalytics);
 
 
 export const adminRoutes = router;
