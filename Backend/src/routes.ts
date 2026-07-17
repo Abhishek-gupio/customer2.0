@@ -26,6 +26,7 @@ import { parkingRoutes } from "./modules/parking/parking.routes";
 import { messagingRoutes } from "./modules/messaging/messaging.routes";
 import { guestPublicRoutes } from "./modules/messaging/guest-public.routes";
 import { communityRoutes } from "./modules/community/community.routes";
+import { carwashRoutes } from "./modules/carwash/carwash.routes";
 
 const router = Router();
 
@@ -90,5 +91,6 @@ router.use("/v1/parking", parkingRoutes);
 router.use("/v1/messaging", messagingRoutes);
 router.use("/v1/public/vehicle-qr", guestPublicRoutes);
 router.use("/v1/community", communityRoutes);
+router.use("/v1/carwash", carwashRoutes);
 
 export const apiRoutes = router;

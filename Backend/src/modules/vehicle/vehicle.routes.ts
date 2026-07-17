@@ -14,6 +14,7 @@ router.post("/verify", vehicleController.verify);
 router.get("/", vehicleController.list);
 router.get("/:id", vehicleController.getById);
 router.get("/:id/assets", vehicleController.getAssets);
+router.get("/:id/timeline", vehicleController.getTimeline);
 router.put("/:id", vehicleController.update);
 router.delete("/:id", vehicleController.delete);
 

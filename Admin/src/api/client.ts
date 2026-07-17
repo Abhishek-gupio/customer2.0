@@ -216,6 +216,10 @@ export const adminApi = {
     api<ParkingDealerListItem>('/v1/parking/admin/dealers', { method: 'POST', body: JSON.stringify(data) }),
   listParkingDealers: () => api<ParkingDealerListItem[]>('/v1/parking/admin/dealers'),
 
+  createWashPartner: (data: { name: string; phoneNumber: string; password: string }) =>
+    api<WashPartnerListItem>('/v1/carwash/admin/partners', { method: 'POST', body: JSON.stringify(data) }),
+  listWashPartners: () => api<WashPartnerListItem[]>('/v1/carwash/admin/partners'),
+
   listPaymentOrders: (params?: { status?: string; stuckOnly?: boolean; page?: number; limit?: number }) => {
     const sp = new URLSearchParams();
     if (params?.status) sp.set('status', params.status);
@@ -547,6 +551,16 @@ export interface ParkingDealerListItem {
   status: 'PENDING_VERIFICATION' | 'VERIFIED' | 'SUSPENDED';
   createdAt: string;
   _count?: { listings: number };
+}
+
+export interface WashPartnerListItem {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
+  rating: number | null;
+  createdAt: string;
+  _count?: { centers: number; technicians: number; bookings: number };
 }
 
 export interface PaymentOrderListItem {

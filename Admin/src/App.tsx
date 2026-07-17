@@ -13,9 +13,12 @@ import ExpenseDetail from './pages/ExpenseDetail';
 import Expenses from './pages/Expenses';
 import ManageAdmins from './pages/ManageAdmins';
 import ParkingDealers from './pages/ParkingDealers';
+import WashPartners from './pages/WashPartners';
 import PaymentsOps from './pages/PaymentsOps';
 import Messaging from './pages/Messaging';
 import DealerRoutes from './pages/dealer/DealerRoutes';
+import PartnerRoutes from './pages/partner/PartnerRoutes';
+import TechnicianRoutes from './pages/technician/TechnicianRoutes';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
 
@@ -154,6 +157,14 @@ export default function App() {
               }
             />
             <Route
+              path="wash-partners"
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+                  <WashPartners />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
               path="payments-ops"
               element={
                 <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
@@ -176,6 +187,12 @@ export default function App() {
 
           {/* Parking partner (dealer) portal — separate auth from admin, not behind ProtectedRoute/Shell */}
           <Route path="/dealer/*" element={<DealerRoutes />} />
+
+          {/* Wash partner portal — separate auth from admin, not behind ProtectedRoute/Shell */}
+          <Route path="/partner/*" element={<PartnerRoutes />} />
+
+          {/* Wash technician portal — separate auth from admin/partner, not behind ProtectedRoute/Shell */}
+          <Route path="/technician/*" element={<TechnicianRoutes />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

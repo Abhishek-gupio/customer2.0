@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createOrderSchema = z.object({
-  purpose: z.enum(["PARKING_BOOKING"]),
+  purpose: z.enum(["PARKING_BOOKING", "CAR_WASH_BOOKING"]),
   referenceId: z.string().min(1),
   amountPaise: z.coerce.number().int().positive(),
 });

@@ -69,6 +69,7 @@ model Customer {
   orders                  CustomerOrder[]
   parkingBookings         ParkingBooking[]
   waitlistEntries         ParkingWaitlistEntry[]
+  washBookings            WashBooking[]
   isSuspended             Boolean                @default(false)
   suspendedReason         String?
   suspendedAt             DateTime?
@@ -2198,6 +2199,7 @@ model WebhookEvent {
 
 enum PaymentPurpose {
   PARKING_BOOKING
+  CAR_WASH_BOOKING
 
   @@schema("customer")
 }
@@ -2689,6 +2691,17 @@ model Comment {
 
 /// One row per (customer, target, emoji) — covers post AND comment reactions
 /// via nullable targets rather than two near-identical tables.
+///
+/// NOTE: the @@unique below does NOT actually stop duplicate reactions on the
+/// DB side — Postgres treats each NULL as distinct, so (customerId, postId,
+/// NULL) can repeat. Real enforcement is two partial unique indexes applied
+/// directly via SQL (not expressible in Prisma's schema language):
+///   CREATE UNIQUE INDEX "Reaction_customer_post_unique"
+///     ON "customer"."Reaction" ("customerId", "postId") WHERE "commentId" IS NULL;
+///   CREATE UNIQUE INDEX "Reaction_customer_comment_unique"
+///     ON "customer"."Reaction" ("customerId", "commentId") WHERE "postId" IS NULL;
+/// Future `prisma migrate diff` runs won't know about these — don't let a
+/// generated diff drop them.
 model Reaction {
   id         String   @id @default(cuid())
   customerId String
@@ -2790,6 +2803,172 @@ enum PostStatus {
 enum ContentReportTarget {
   POST
   COMMENT
+
+  @@schema("customer")
+}
+
+// ---------------------------------------------------------------------------
+// Car Wash / Vehicle Care — Phase A (core booking). See
+// docs/gupio-carwash-platform-plan.md. Mirrors the Parking/Dealer/Payments
+// model shape directly. Phases B-D (subscriptions, pickup&drop, reviews) are
+// deliberately not modeled yet; Marketplace is parked indefinitely per that
+// plan's §17.
+// ---------------------------------------------------------------------------
+
+model WashPartner {
+  id           String            @id @default(cuid())
+  name         String
+  phoneNumber  String            @unique
+  passwordHash String
+  status       WashPartnerStatus @default(PENDING)
+  rating       Float?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  centers     WashCenter[]
+  technicians WashTechnician[]
+  bookings    WashBooking[]
+
+  @@schema("customer")
+}
+
+/// A technician is a person; WashPartner is the business entity that employs them.
+/// Doorstep jobs assign a WashTechnician, not just a WashPartner.
+model WashTechnician {
+  id           String   @id @default(cuid())
+  partnerId    String
+  name         String
+  phoneNumber  String   @unique
+  passwordHash String
+  photoUrl     String?
+  isActive     Boolean  @default(true)
+  rating       Float?
+  createdAt    DateTime @default(now())
+
+  partner  WashPartner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  bookings WashBooking[]
+
+  @@index([partnerId])
+  @@schema("customer")
+}
+
+model WashCenter {
+  id           String   @id @default(cuid())
+  partnerId    String
+  name         String
+  address      String
+  latitude     Float
+  longitude    Float
+  supportsBike Boolean  @default(true)
+  supportsCar  Boolean  @default(true)
+  supportsEV   Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  partner  WashPartner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  slots    WashSlot[]
+  bookings WashBooking[]
+
+  @@index([partnerId])
+  @@index([latitude, longitude])
+  @@schema("customer")
+}
+
+model WashSlot {
+  id          String   @id @default(cuid())
+  centerId    String
+  startsAt    DateTime
+  endsAt      DateTime
+  capacity    Int      @default(1)
+  bookedCount Int      @default(0)
+
+  center   WashCenter    @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  bookings WashBooking[]
+
+  @@index([centerId, startsAt])
+  @@schema("customer")
+}
+
+model WashBooking {
+  id              String            @id @default(cuid())
+  customerId      String
+  vehicleId       String?
+  partnerId       String
+  centerId        String? // null for doorstep — no fixed center
+  slotId          String? // null for doorstep — no fixed slot
+  technicianId    String? // set once a doorstep job is assigned
+  serviceModel    WashServiceModel
+  washType        WashType
+  addressLine     String? // doorstep only
+  latitude        Float?
+  longitude       Float?
+  status          WashBookingStatus @default(PENDING_PAYMENT)
+  amountPaise     Int
+  orderId         String?
+  beforePhotoUrls String[]          @default([])
+  afterPhotoUrls  String[]          @default([])
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  idempotencyKey  String?           @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  partner    WashPartner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  center     WashCenter?     @relation(fields: [centerId], references: [id])
+  slot       WashSlot?       @relation(fields: [slotId], references: [id])
+  technician WashTechnician? @relation(fields: [technicianId], references: [id])
+
+  @@index([customerId, createdAt])
+  @@index([partnerId, status])
+  @@index([technicianId])
+  @@schema("customer")
+}
+
+enum WashPartnerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+
+  @@schema("customer")
+}
+
+enum WashServiceModel {
+  VISIT_CENTER
+  DOORSTEP
+
+  @@schema("customer")
+}
+
+enum WashType {
+  EXTERIOR
+  INTERIOR
+  FOAM
+  PRESSURE
+  STEAM
+  WATERLESS
+  DETAILING
+  CERAMIC_COATING
+  WAX_POLISH
+  ENGINE_CLEAN
+  TYRE_POLISH
+  GLASS_TREATMENT
+  UNDERCARRIAGE
+  SANITIZATION
+  BIKE_WASH
+  EV_SAFE_WASH
+
+  @@schema("customer")
+}
+
+enum WashBookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  TECHNICIAN_ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
 
   @@schema("customer")
 }

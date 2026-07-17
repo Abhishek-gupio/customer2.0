@@ -1495,6 +1495,77 @@ exports.Prisma.ContentReportScalarFieldEnum = {
   resolvedAt: 'resolvedAt'
 };
 
+exports.Prisma.WashPartnerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  passwordHash: 'passwordHash',
+  status: 'status',
+  rating: 'rating',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WashTechnicianScalarFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  passwordHash: 'passwordHash',
+  photoUrl: 'photoUrl',
+  isActive: 'isActive',
+  rating: 'rating',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WashCenterScalarFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  name: 'name',
+  address: 'address',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  supportsBike: 'supportsBike',
+  supportsCar: 'supportsCar',
+  supportsEV: 'supportsEV',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WashSlotScalarFieldEnum = {
+  id: 'id',
+  centerId: 'centerId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  capacity: 'capacity',
+  bookedCount: 'bookedCount'
+};
+
+exports.Prisma.WashBookingScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  vehicleId: 'vehicleId',
+  partnerId: 'partnerId',
+  centerId: 'centerId',
+  slotId: 'slotId',
+  technicianId: 'technicianId',
+  serviceModel: 'serviceModel',
+  washType: 'washType',
+  addressLine: 'addressLine',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  status: 'status',
+  amountPaise: 'amountPaise',
+  orderId: 'orderId',
+  beforePhotoUrls: 'beforePhotoUrls',
+  afterPhotoUrls: 'afterPhotoUrls',
+  scheduledAt: 'scheduledAt',
+  completedAt: 'completedAt',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1893,7 +1964,8 @@ exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
 };
 
 exports.PaymentPurpose = exports.$Enums.PaymentPurpose = {
-  PARKING_BOOKING: 'PARKING_BOOKING'
+  PARKING_BOOKING: 'PARKING_BOOKING',
+  CAR_WASH_BOOKING: 'CAR_WASH_BOOKING'
 };
 
 exports.OrderStatus = exports.$Enums.OrderStatus = {
@@ -2025,6 +2097,46 @@ exports.ContentReportTarget = exports.$Enums.ContentReportTarget = {
   COMMENT: 'COMMENT'
 };
 
+exports.WashPartnerStatus = exports.$Enums.WashPartnerStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.WashServiceModel = exports.$Enums.WashServiceModel = {
+  VISIT_CENTER: 'VISIT_CENTER',
+  DOORSTEP: 'DOORSTEP'
+};
+
+exports.WashType = exports.$Enums.WashType = {
+  EXTERIOR: 'EXTERIOR',
+  INTERIOR: 'INTERIOR',
+  FOAM: 'FOAM',
+  PRESSURE: 'PRESSURE',
+  STEAM: 'STEAM',
+  WATERLESS: 'WATERLESS',
+  DETAILING: 'DETAILING',
+  CERAMIC_COATING: 'CERAMIC_COATING',
+  WAX_POLISH: 'WAX_POLISH',
+  ENGINE_CLEAN: 'ENGINE_CLEAN',
+  TYRE_POLISH: 'TYRE_POLISH',
+  GLASS_TREATMENT: 'GLASS_TREATMENT',
+  UNDERCARRIAGE: 'UNDERCARRIAGE',
+  SANITIZATION: 'SANITIZATION',
+  BIKE_WASH: 'BIKE_WASH',
+  EV_SAFE_WASH: 'EV_SAFE_WASH'
+};
+
+exports.WashBookingStatus = exports.$Enums.WashBookingStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  TECHNICIAN_ASSIGNED: 'TECHNICIAN_ASSIGNED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   AdminUser: 'AdminUser',
@@ -2126,7 +2238,12 @@ exports.Prisma.ModelName = {
   Comment: 'Comment',
   Reaction: 'Reaction',
   Follow: 'Follow',
-  ContentReport: 'ContentReport'
+  ContentReport: 'ContentReport',
+  WashPartner: 'WashPartner',
+  WashTechnician: 'WashTechnician',
+  WashCenter: 'WashCenter',
+  WashSlot: 'WashSlot',
+  WashBooking: 'WashBooking'
 };
 
 /**

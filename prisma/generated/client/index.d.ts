@@ -514,6 +514,17 @@ export type Comment = $Result.DefaultSelection<Prisma.$CommentPayload>
  * Model Reaction
  * One row per (customer, target, emoji) — covers post AND comment reactions
  * via nullable targets rather than two near-identical tables.
+ * 
+ * NOTE: the @@unique below does NOT actually stop duplicate reactions on the
+ * DB side — Postgres treats each NULL as distinct, so (customerId, postId,
+ * NULL) can repeat. Real enforcement is two partial unique indexes applied
+ * directly via SQL (not expressible in Prisma's schema language):
+ * CREATE UNIQUE INDEX "Reaction_customer_post_unique"
+ * ON "customer"."Reaction" ("customerId", "postId") WHERE "commentId" IS NULL;
+ * CREATE UNIQUE INDEX "Reaction_customer_comment_unique"
+ * ON "customer"."Reaction" ("customerId", "commentId") WHERE "postId" IS NULL;
+ * Future `prisma migrate diff` runs won't know about these — don't let a
+ * generated diff drop them.
  */
 export type Reaction = $Result.DefaultSelection<Prisma.$ReactionPayload>
 /**
@@ -528,6 +539,32 @@ export type Follow = $Result.DefaultSelection<Prisma.$FollowPayload>
  * than introducing a second near-identical enum.
  */
 export type ContentReport = $Result.DefaultSelection<Prisma.$ContentReportPayload>
+/**
+ * Model WashPartner
+ * 
+ */
+export type WashPartner = $Result.DefaultSelection<Prisma.$WashPartnerPayload>
+/**
+ * Model WashTechnician
+ * A technician is a person; WashPartner is the business entity that employs them.
+ * Doorstep jobs assign a WashTechnician, not just a WashPartner.
+ */
+export type WashTechnician = $Result.DefaultSelection<Prisma.$WashTechnicianPayload>
+/**
+ * Model WashCenter
+ * 
+ */
+export type WashCenter = $Result.DefaultSelection<Prisma.$WashCenterPayload>
+/**
+ * Model WashSlot
+ * 
+ */
+export type WashSlot = $Result.DefaultSelection<Prisma.$WashSlotPayload>
+/**
+ * Model WashBooking
+ * 
+ */
+export type WashBooking = $Result.DefaultSelection<Prisma.$WashBookingPayload>
 
 /**
  * Enums
@@ -1087,7 +1124,8 @@ export type VehicleStatus = (typeof VehicleStatus)[keyof typeof VehicleStatus]
 
 
 export const PaymentPurpose: {
-  PARKING_BOOKING: 'PARKING_BOOKING'
+  PARKING_BOOKING: 'PARKING_BOOKING',
+  CAR_WASH_BOOKING: 'CAR_WASH_BOOKING'
 };
 
 export type PaymentPurpose = (typeof PaymentPurpose)[keyof typeof PaymentPurpose]
@@ -1277,6 +1315,58 @@ export const ContentReportTarget: {
 };
 
 export type ContentReportTarget = (typeof ContentReportTarget)[keyof typeof ContentReportTarget]
+
+
+export const WashPartnerStatus: {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+export type WashPartnerStatus = (typeof WashPartnerStatus)[keyof typeof WashPartnerStatus]
+
+
+export const WashServiceModel: {
+  VISIT_CENTER: 'VISIT_CENTER',
+  DOORSTEP: 'DOORSTEP'
+};
+
+export type WashServiceModel = (typeof WashServiceModel)[keyof typeof WashServiceModel]
+
+
+export const WashType: {
+  EXTERIOR: 'EXTERIOR',
+  INTERIOR: 'INTERIOR',
+  FOAM: 'FOAM',
+  PRESSURE: 'PRESSURE',
+  STEAM: 'STEAM',
+  WATERLESS: 'WATERLESS',
+  DETAILING: 'DETAILING',
+  CERAMIC_COATING: 'CERAMIC_COATING',
+  WAX_POLISH: 'WAX_POLISH',
+  ENGINE_CLEAN: 'ENGINE_CLEAN',
+  TYRE_POLISH: 'TYRE_POLISH',
+  GLASS_TREATMENT: 'GLASS_TREATMENT',
+  UNDERCARRIAGE: 'UNDERCARRIAGE',
+  SANITIZATION: 'SANITIZATION',
+  BIKE_WASH: 'BIKE_WASH',
+  EV_SAFE_WASH: 'EV_SAFE_WASH'
+};
+
+export type WashType = (typeof WashType)[keyof typeof WashType]
+
+
+export const WashBookingStatus: {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  TECHNICIAN_ASSIGNED: 'TECHNICIAN_ASSIGNED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+};
+
+export type WashBookingStatus = (typeof WashBookingStatus)[keyof typeof WashBookingStatus]
 
 }
 
@@ -1575,6 +1665,22 @@ export const PostStatus: typeof $Enums.PostStatus
 export type ContentReportTarget = $Enums.ContentReportTarget
 
 export const ContentReportTarget: typeof $Enums.ContentReportTarget
+
+export type WashPartnerStatus = $Enums.WashPartnerStatus
+
+export const WashPartnerStatus: typeof $Enums.WashPartnerStatus
+
+export type WashServiceModel = $Enums.WashServiceModel
+
+export const WashServiceModel: typeof $Enums.WashServiceModel
+
+export type WashType = $Enums.WashType
+
+export const WashType: typeof $Enums.WashType
+
+export type WashBookingStatus = $Enums.WashBookingStatus
+
+export const WashBookingStatus: typeof $Enums.WashBookingStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -2706,6 +2812,56 @@ export class PrismaClient<
     * ```
     */
   get contentReport(): Prisma.ContentReportDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.washPartner`: Exposes CRUD operations for the **WashPartner** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WashPartners
+    * const washPartners = await prisma.washPartner.findMany()
+    * ```
+    */
+  get washPartner(): Prisma.WashPartnerDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.washTechnician`: Exposes CRUD operations for the **WashTechnician** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WashTechnicians
+    * const washTechnicians = await prisma.washTechnician.findMany()
+    * ```
+    */
+  get washTechnician(): Prisma.WashTechnicianDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.washCenter`: Exposes CRUD operations for the **WashCenter** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WashCenters
+    * const washCenters = await prisma.washCenter.findMany()
+    * ```
+    */
+  get washCenter(): Prisma.WashCenterDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.washSlot`: Exposes CRUD operations for the **WashSlot** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WashSlots
+    * const washSlots = await prisma.washSlot.findMany()
+    * ```
+    */
+  get washSlot(): Prisma.WashSlotDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.washBooking`: Exposes CRUD operations for the **WashBooking** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WashBookings
+    * const washBookings = await prisma.washBooking.findMany()
+    * ```
+    */
+  get washBooking(): Prisma.WashBookingDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -3240,7 +3396,12 @@ export namespace Prisma {
     Comment: 'Comment',
     Reaction: 'Reaction',
     Follow: 'Follow',
-    ContentReport: 'ContentReport'
+    ContentReport: 'ContentReport',
+    WashPartner: 'WashPartner',
+    WashTechnician: 'WashTechnician',
+    WashCenter: 'WashCenter',
+    WashSlot: 'WashSlot',
+    WashBooking: 'WashBooking'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -3256,7 +3417,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingListing" | "parkingSlotWindow" | "parkingBooking" | "parkingWaitlistEntry" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry" | "community" | "communityMembership" | "hashtag" | "post" | "postHashtag" | "comment" | "reaction" | "follow" | "contentReport"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingListing" | "parkingSlotWindow" | "parkingBooking" | "parkingWaitlistEntry" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry" | "community" | "communityMembership" | "hashtag" | "post" | "postHashtag" | "comment" | "reaction" | "follow" | "contentReport" | "washPartner" | "washTechnician" | "washCenter" | "washSlot" | "washBooking"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10734,6 +10895,376 @@ export namespace Prisma {
           }
         }
       }
+      WashPartner: {
+        payload: Prisma.$WashPartnerPayload<ExtArgs>
+        fields: Prisma.WashPartnerFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WashPartnerFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WashPartnerFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>
+          }
+          findFirst: {
+            args: Prisma.WashPartnerFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WashPartnerFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>
+          }
+          findMany: {
+            args: Prisma.WashPartnerFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>[]
+          }
+          create: {
+            args: Prisma.WashPartnerCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>
+          }
+          createMany: {
+            args: Prisma.WashPartnerCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WashPartnerCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>[]
+          }
+          delete: {
+            args: Prisma.WashPartnerDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>
+          }
+          update: {
+            args: Prisma.WashPartnerUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>
+          }
+          deleteMany: {
+            args: Prisma.WashPartnerDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WashPartnerUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WashPartnerUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>[]
+          }
+          upsert: {
+            args: Prisma.WashPartnerUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashPartnerPayload>
+          }
+          aggregate: {
+            args: Prisma.WashPartnerAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWashPartner>
+          }
+          groupBy: {
+            args: Prisma.WashPartnerGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WashPartnerGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WashPartnerCountArgs<ExtArgs>
+            result: $Utils.Optional<WashPartnerCountAggregateOutputType> | number
+          }
+        }
+      }
+      WashTechnician: {
+        payload: Prisma.$WashTechnicianPayload<ExtArgs>
+        fields: Prisma.WashTechnicianFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WashTechnicianFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WashTechnicianFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>
+          }
+          findFirst: {
+            args: Prisma.WashTechnicianFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WashTechnicianFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>
+          }
+          findMany: {
+            args: Prisma.WashTechnicianFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>[]
+          }
+          create: {
+            args: Prisma.WashTechnicianCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>
+          }
+          createMany: {
+            args: Prisma.WashTechnicianCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WashTechnicianCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>[]
+          }
+          delete: {
+            args: Prisma.WashTechnicianDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>
+          }
+          update: {
+            args: Prisma.WashTechnicianUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>
+          }
+          deleteMany: {
+            args: Prisma.WashTechnicianDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WashTechnicianUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WashTechnicianUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>[]
+          }
+          upsert: {
+            args: Prisma.WashTechnicianUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashTechnicianPayload>
+          }
+          aggregate: {
+            args: Prisma.WashTechnicianAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWashTechnician>
+          }
+          groupBy: {
+            args: Prisma.WashTechnicianGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WashTechnicianGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WashTechnicianCountArgs<ExtArgs>
+            result: $Utils.Optional<WashTechnicianCountAggregateOutputType> | number
+          }
+        }
+      }
+      WashCenter: {
+        payload: Prisma.$WashCenterPayload<ExtArgs>
+        fields: Prisma.WashCenterFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WashCenterFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WashCenterFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>
+          }
+          findFirst: {
+            args: Prisma.WashCenterFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WashCenterFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>
+          }
+          findMany: {
+            args: Prisma.WashCenterFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>[]
+          }
+          create: {
+            args: Prisma.WashCenterCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>
+          }
+          createMany: {
+            args: Prisma.WashCenterCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WashCenterCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>[]
+          }
+          delete: {
+            args: Prisma.WashCenterDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>
+          }
+          update: {
+            args: Prisma.WashCenterUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>
+          }
+          deleteMany: {
+            args: Prisma.WashCenterDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WashCenterUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WashCenterUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>[]
+          }
+          upsert: {
+            args: Prisma.WashCenterUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashCenterPayload>
+          }
+          aggregate: {
+            args: Prisma.WashCenterAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWashCenter>
+          }
+          groupBy: {
+            args: Prisma.WashCenterGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WashCenterGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WashCenterCountArgs<ExtArgs>
+            result: $Utils.Optional<WashCenterCountAggregateOutputType> | number
+          }
+        }
+      }
+      WashSlot: {
+        payload: Prisma.$WashSlotPayload<ExtArgs>
+        fields: Prisma.WashSlotFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WashSlotFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WashSlotFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>
+          }
+          findFirst: {
+            args: Prisma.WashSlotFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WashSlotFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>
+          }
+          findMany: {
+            args: Prisma.WashSlotFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>[]
+          }
+          create: {
+            args: Prisma.WashSlotCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>
+          }
+          createMany: {
+            args: Prisma.WashSlotCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WashSlotCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>[]
+          }
+          delete: {
+            args: Prisma.WashSlotDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>
+          }
+          update: {
+            args: Prisma.WashSlotUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>
+          }
+          deleteMany: {
+            args: Prisma.WashSlotDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WashSlotUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WashSlotUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>[]
+          }
+          upsert: {
+            args: Prisma.WashSlotUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashSlotPayload>
+          }
+          aggregate: {
+            args: Prisma.WashSlotAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWashSlot>
+          }
+          groupBy: {
+            args: Prisma.WashSlotGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WashSlotGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WashSlotCountArgs<ExtArgs>
+            result: $Utils.Optional<WashSlotCountAggregateOutputType> | number
+          }
+        }
+      }
+      WashBooking: {
+        payload: Prisma.$WashBookingPayload<ExtArgs>
+        fields: Prisma.WashBookingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WashBookingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WashBookingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>
+          }
+          findFirst: {
+            args: Prisma.WashBookingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WashBookingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>
+          }
+          findMany: {
+            args: Prisma.WashBookingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>[]
+          }
+          create: {
+            args: Prisma.WashBookingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>
+          }
+          createMany: {
+            args: Prisma.WashBookingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WashBookingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>[]
+          }
+          delete: {
+            args: Prisma.WashBookingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>
+          }
+          update: {
+            args: Prisma.WashBookingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>
+          }
+          deleteMany: {
+            args: Prisma.WashBookingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WashBookingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WashBookingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>[]
+          }
+          upsert: {
+            args: Prisma.WashBookingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WashBookingPayload>
+          }
+          aggregate: {
+            args: Prisma.WashBookingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWashBooking>
+          }
+          groupBy: {
+            args: Prisma.WashBookingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WashBookingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WashBookingCountArgs<ExtArgs>
+            result: $Utils.Optional<WashBookingCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -10943,6 +11474,11 @@ export namespace Prisma {
     reaction?: ReactionOmit
     follow?: FollowOmit
     contentReport?: ContentReportOmit
+    washPartner?: WashPartnerOmit
+    washTechnician?: WashTechnicianOmit
+    washCenter?: WashCenterOmit
+    washSlot?: WashSlotOmit
+    washBooking?: WashBookingOmit
   }
 
   /* Types for Logging */
@@ -11039,6 +11575,7 @@ export namespace Prisma {
     orders: number
     parkingBookings: number
     waitlistEntries: number
+    washBookings: number
     conversationsAsCustomer: number
     conversationsAsOwner: number
     blockedContacts: number
@@ -11069,6 +11606,7 @@ export namespace Prisma {
     orders?: boolean | CustomerCountOutputTypeCountOrdersArgs
     parkingBookings?: boolean | CustomerCountOutputTypeCountParkingBookingsArgs
     waitlistEntries?: boolean | CustomerCountOutputTypeCountWaitlistEntriesArgs
+    washBookings?: boolean | CustomerCountOutputTypeCountWashBookingsArgs
     conversationsAsCustomer?: boolean | CustomerCountOutputTypeCountConversationsAsCustomerArgs
     conversationsAsOwner?: boolean | CustomerCountOutputTypeCountConversationsAsOwnerArgs
     blockedContacts?: boolean | CustomerCountOutputTypeCountBlockedContactsArgs
@@ -11203,6 +11741,13 @@ export namespace Prisma {
    */
   export type CustomerCountOutputTypeCountWaitlistEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ParkingWaitlistEntryWhereInput
+  }
+
+  /**
+   * CustomerCountOutputType without action
+   */
+  export type CustomerCountOutputTypeCountWashBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashBookingWhereInput
   }
 
   /**
@@ -12598,6 +13143,157 @@ export namespace Prisma {
    */
   export type CommentCountOutputTypeCountReactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ReactionWhereInput
+  }
+
+
+  /**
+   * Count Type WashPartnerCountOutputType
+   */
+
+  export type WashPartnerCountOutputType = {
+    centers: number
+    technicians: number
+    bookings: number
+  }
+
+  export type WashPartnerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    centers?: boolean | WashPartnerCountOutputTypeCountCentersArgs
+    technicians?: boolean | WashPartnerCountOutputTypeCountTechniciansArgs
+    bookings?: boolean | WashPartnerCountOutputTypeCountBookingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WashPartnerCountOutputType without action
+   */
+  export type WashPartnerCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartnerCountOutputType
+     */
+    select?: WashPartnerCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WashPartnerCountOutputType without action
+   */
+  export type WashPartnerCountOutputTypeCountCentersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashCenterWhereInput
+  }
+
+  /**
+   * WashPartnerCountOutputType without action
+   */
+  export type WashPartnerCountOutputTypeCountTechniciansArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashTechnicianWhereInput
+  }
+
+  /**
+   * WashPartnerCountOutputType without action
+   */
+  export type WashPartnerCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashBookingWhereInput
+  }
+
+
+  /**
+   * Count Type WashTechnicianCountOutputType
+   */
+
+  export type WashTechnicianCountOutputType = {
+    bookings: number
+  }
+
+  export type WashTechnicianCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bookings?: boolean | WashTechnicianCountOutputTypeCountBookingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WashTechnicianCountOutputType without action
+   */
+  export type WashTechnicianCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnicianCountOutputType
+     */
+    select?: WashTechnicianCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WashTechnicianCountOutputType without action
+   */
+  export type WashTechnicianCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashBookingWhereInput
+  }
+
+
+  /**
+   * Count Type WashCenterCountOutputType
+   */
+
+  export type WashCenterCountOutputType = {
+    slots: number
+    bookings: number
+  }
+
+  export type WashCenterCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    slots?: boolean | WashCenterCountOutputTypeCountSlotsArgs
+    bookings?: boolean | WashCenterCountOutputTypeCountBookingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WashCenterCountOutputType without action
+   */
+  export type WashCenterCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenterCountOutputType
+     */
+    select?: WashCenterCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WashCenterCountOutputType without action
+   */
+  export type WashCenterCountOutputTypeCountSlotsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashSlotWhereInput
+  }
+
+  /**
+   * WashCenterCountOutputType without action
+   */
+  export type WashCenterCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashBookingWhereInput
+  }
+
+
+  /**
+   * Count Type WashSlotCountOutputType
+   */
+
+  export type WashSlotCountOutputType = {
+    bookings: number
+  }
+
+  export type WashSlotCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bookings?: boolean | WashSlotCountOutputTypeCountBookingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WashSlotCountOutputType without action
+   */
+  export type WashSlotCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlotCountOutputType
+     */
+    select?: WashSlotCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WashSlotCountOutputType without action
+   */
+  export type WashSlotCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashBookingWhereInput
   }
 
 
@@ -14875,6 +15571,7 @@ export namespace Prisma {
     orders?: boolean | Customer$ordersArgs<ExtArgs>
     parkingBookings?: boolean | Customer$parkingBookingsArgs<ExtArgs>
     waitlistEntries?: boolean | Customer$waitlistEntriesArgs<ExtArgs>
+    washBookings?: boolean | Customer$washBookingsArgs<ExtArgs>
     conversationsAsCustomer?: boolean | Customer$conversationsAsCustomerArgs<ExtArgs>
     conversationsAsOwner?: boolean | Customer$conversationsAsOwnerArgs<ExtArgs>
     blockedContacts?: boolean | Customer$blockedContactsArgs<ExtArgs>
@@ -14952,6 +15649,7 @@ export namespace Prisma {
     orders?: boolean | Customer$ordersArgs<ExtArgs>
     parkingBookings?: boolean | Customer$parkingBookingsArgs<ExtArgs>
     waitlistEntries?: boolean | Customer$waitlistEntriesArgs<ExtArgs>
+    washBookings?: boolean | Customer$washBookingsArgs<ExtArgs>
     conversationsAsCustomer?: boolean | Customer$conversationsAsCustomerArgs<ExtArgs>
     conversationsAsOwner?: boolean | Customer$conversationsAsOwnerArgs<ExtArgs>
     blockedContacts?: boolean | Customer$blockedContactsArgs<ExtArgs>
@@ -14990,6 +15688,7 @@ export namespace Prisma {
       orders: Prisma.$CustomerOrderPayload<ExtArgs>[]
       parkingBookings: Prisma.$ParkingBookingPayload<ExtArgs>[]
       waitlistEntries: Prisma.$ParkingWaitlistEntryPayload<ExtArgs>[]
+      washBookings: Prisma.$WashBookingPayload<ExtArgs>[]
       conversationsAsCustomer: Prisma.$ConversationPayload<ExtArgs>[]
       conversationsAsOwner: Prisma.$ConversationPayload<ExtArgs>[]
       blockedContacts: Prisma.$BlockedContactPayload<ExtArgs>[]
@@ -15427,6 +16126,7 @@ export namespace Prisma {
     orders<T extends Customer$ordersArgs<ExtArgs> = {}>(args?: Subset<T, Customer$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     parkingBookings<T extends Customer$parkingBookingsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$parkingBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     waitlistEntries<T extends Customer$waitlistEntriesArgs<ExtArgs> = {}>(args?: Subset<T, Customer$waitlistEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    washBookings<T extends Customer$washBookingsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$washBookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversationsAsCustomer<T extends Customer$conversationsAsCustomerArgs<ExtArgs> = {}>(args?: Subset<T, Customer$conversationsAsCustomerArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     conversationsAsOwner<T extends Customer$conversationsAsOwnerArgs<ExtArgs> = {}>(args?: Subset<T, Customer$conversationsAsOwnerArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     blockedContacts<T extends Customer$blockedContactsArgs<ExtArgs> = {}>(args?: Subset<T, Customer$blockedContactsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BlockedContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -16309,6 +17009,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ParkingWaitlistEntryScalarFieldEnum | ParkingWaitlistEntryScalarFieldEnum[]
+  }
+
+  /**
+   * Customer.washBookings
+   */
+  export type Customer$washBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    where?: WashBookingWhereInput
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    cursor?: WashBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
   }
 
   /**
@@ -131698,6 +132422,6177 @@ export namespace Prisma {
 
 
   /**
+   * Model WashPartner
+   */
+
+  export type AggregateWashPartner = {
+    _count: WashPartnerCountAggregateOutputType | null
+    _avg: WashPartnerAvgAggregateOutputType | null
+    _sum: WashPartnerSumAggregateOutputType | null
+    _min: WashPartnerMinAggregateOutputType | null
+    _max: WashPartnerMaxAggregateOutputType | null
+  }
+
+  export type WashPartnerAvgAggregateOutputType = {
+    rating: number | null
+  }
+
+  export type WashPartnerSumAggregateOutputType = {
+    rating: number | null
+  }
+
+  export type WashPartnerMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    phoneNumber: string | null
+    passwordHash: string | null
+    status: $Enums.WashPartnerStatus | null
+    rating: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WashPartnerMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    phoneNumber: string | null
+    passwordHash: string | null
+    status: $Enums.WashPartnerStatus | null
+    rating: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WashPartnerCountAggregateOutputType = {
+    id: number
+    name: number
+    phoneNumber: number
+    passwordHash: number
+    status: number
+    rating: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type WashPartnerAvgAggregateInputType = {
+    rating?: true
+  }
+
+  export type WashPartnerSumAggregateInputType = {
+    rating?: true
+  }
+
+  export type WashPartnerMinAggregateInputType = {
+    id?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    status?: true
+    rating?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WashPartnerMaxAggregateInputType = {
+    id?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    status?: true
+    rating?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WashPartnerCountAggregateInputType = {
+    id?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    status?: true
+    rating?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type WashPartnerAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashPartner to aggregate.
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashPartners to fetch.
+     */
+    orderBy?: WashPartnerOrderByWithRelationInput | WashPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WashPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WashPartners
+    **/
+    _count?: true | WashPartnerCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WashPartnerAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WashPartnerSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WashPartnerMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WashPartnerMaxAggregateInputType
+  }
+
+  export type GetWashPartnerAggregateType<T extends WashPartnerAggregateArgs> = {
+        [P in keyof T & keyof AggregateWashPartner]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWashPartner[P]>
+      : GetScalarType<T[P], AggregateWashPartner[P]>
+  }
+
+
+
+
+  export type WashPartnerGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashPartnerWhereInput
+    orderBy?: WashPartnerOrderByWithAggregationInput | WashPartnerOrderByWithAggregationInput[]
+    by: WashPartnerScalarFieldEnum[] | WashPartnerScalarFieldEnum
+    having?: WashPartnerScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WashPartnerCountAggregateInputType | true
+    _avg?: WashPartnerAvgAggregateInputType
+    _sum?: WashPartnerSumAggregateInputType
+    _min?: WashPartnerMinAggregateInputType
+    _max?: WashPartnerMaxAggregateInputType
+  }
+
+  export type WashPartnerGroupByOutputType = {
+    id: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status: $Enums.WashPartnerStatus
+    rating: number | null
+    createdAt: Date
+    updatedAt: Date
+    _count: WashPartnerCountAggregateOutputType | null
+    _avg: WashPartnerAvgAggregateOutputType | null
+    _sum: WashPartnerSumAggregateOutputType | null
+    _min: WashPartnerMinAggregateOutputType | null
+    _max: WashPartnerMaxAggregateOutputType | null
+  }
+
+  type GetWashPartnerGroupByPayload<T extends WashPartnerGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WashPartnerGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WashPartnerGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WashPartnerGroupByOutputType[P]>
+            : GetScalarType<T[P], WashPartnerGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WashPartnerSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    centers?: boolean | WashPartner$centersArgs<ExtArgs>
+    technicians?: boolean | WashPartner$techniciansArgs<ExtArgs>
+    bookings?: boolean | WashPartner$bookingsArgs<ExtArgs>
+    _count?: boolean | WashPartnerCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washPartner"]>
+
+  export type WashPartnerSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["washPartner"]>
+
+  export type WashPartnerSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["washPartner"]>
+
+  export type WashPartnerSelectScalar = {
+    id?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    status?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type WashPartnerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "phoneNumber" | "passwordHash" | "status" | "rating" | "createdAt" | "updatedAt", ExtArgs["result"]["washPartner"]>
+  export type WashPartnerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    centers?: boolean | WashPartner$centersArgs<ExtArgs>
+    technicians?: boolean | WashPartner$techniciansArgs<ExtArgs>
+    bookings?: boolean | WashPartner$bookingsArgs<ExtArgs>
+    _count?: boolean | WashPartnerCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WashPartnerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type WashPartnerIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $WashPartnerPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WashPartner"
+    objects: {
+      centers: Prisma.$WashCenterPayload<ExtArgs>[]
+      technicians: Prisma.$WashTechnicianPayload<ExtArgs>[]
+      bookings: Prisma.$WashBookingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      phoneNumber: string
+      passwordHash: string
+      status: $Enums.WashPartnerStatus
+      rating: number | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["washPartner"]>
+    composites: {}
+  }
+
+  type WashPartnerGetPayload<S extends boolean | null | undefined | WashPartnerDefaultArgs> = $Result.GetResult<Prisma.$WashPartnerPayload, S>
+
+  type WashPartnerCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WashPartnerFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WashPartnerCountAggregateInputType | true
+    }
+
+  export interface WashPartnerDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WashPartner'], meta: { name: 'WashPartner' } }
+    /**
+     * Find zero or one WashPartner that matches the filter.
+     * @param {WashPartnerFindUniqueArgs} args - Arguments to find a WashPartner
+     * @example
+     * // Get one WashPartner
+     * const washPartner = await prisma.washPartner.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WashPartnerFindUniqueArgs>(args: SelectSubset<T, WashPartnerFindUniqueArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WashPartner that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WashPartnerFindUniqueOrThrowArgs} args - Arguments to find a WashPartner
+     * @example
+     * // Get one WashPartner
+     * const washPartner = await prisma.washPartner.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WashPartnerFindUniqueOrThrowArgs>(args: SelectSubset<T, WashPartnerFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashPartner that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerFindFirstArgs} args - Arguments to find a WashPartner
+     * @example
+     * // Get one WashPartner
+     * const washPartner = await prisma.washPartner.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WashPartnerFindFirstArgs>(args?: SelectSubset<T, WashPartnerFindFirstArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashPartner that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerFindFirstOrThrowArgs} args - Arguments to find a WashPartner
+     * @example
+     * // Get one WashPartner
+     * const washPartner = await prisma.washPartner.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WashPartnerFindFirstOrThrowArgs>(args?: SelectSubset<T, WashPartnerFindFirstOrThrowArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WashPartners that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WashPartners
+     * const washPartners = await prisma.washPartner.findMany()
+     * 
+     * // Get first 10 WashPartners
+     * const washPartners = await prisma.washPartner.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const washPartnerWithIdOnly = await prisma.washPartner.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WashPartnerFindManyArgs>(args?: SelectSubset<T, WashPartnerFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WashPartner.
+     * @param {WashPartnerCreateArgs} args - Arguments to create a WashPartner.
+     * @example
+     * // Create one WashPartner
+     * const WashPartner = await prisma.washPartner.create({
+     *   data: {
+     *     // ... data to create a WashPartner
+     *   }
+     * })
+     * 
+     */
+    create<T extends WashPartnerCreateArgs>(args: SelectSubset<T, WashPartnerCreateArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WashPartners.
+     * @param {WashPartnerCreateManyArgs} args - Arguments to create many WashPartners.
+     * @example
+     * // Create many WashPartners
+     * const washPartner = await prisma.washPartner.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WashPartnerCreateManyArgs>(args?: SelectSubset<T, WashPartnerCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WashPartners and returns the data saved in the database.
+     * @param {WashPartnerCreateManyAndReturnArgs} args - Arguments to create many WashPartners.
+     * @example
+     * // Create many WashPartners
+     * const washPartner = await prisma.washPartner.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WashPartners and only return the `id`
+     * const washPartnerWithIdOnly = await prisma.washPartner.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WashPartnerCreateManyAndReturnArgs>(args?: SelectSubset<T, WashPartnerCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WashPartner.
+     * @param {WashPartnerDeleteArgs} args - Arguments to delete one WashPartner.
+     * @example
+     * // Delete one WashPartner
+     * const WashPartner = await prisma.washPartner.delete({
+     *   where: {
+     *     // ... filter to delete one WashPartner
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WashPartnerDeleteArgs>(args: SelectSubset<T, WashPartnerDeleteArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WashPartner.
+     * @param {WashPartnerUpdateArgs} args - Arguments to update one WashPartner.
+     * @example
+     * // Update one WashPartner
+     * const washPartner = await prisma.washPartner.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WashPartnerUpdateArgs>(args: SelectSubset<T, WashPartnerUpdateArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WashPartners.
+     * @param {WashPartnerDeleteManyArgs} args - Arguments to filter WashPartners to delete.
+     * @example
+     * // Delete a few WashPartners
+     * const { count } = await prisma.washPartner.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WashPartnerDeleteManyArgs>(args?: SelectSubset<T, WashPartnerDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashPartners.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WashPartners
+     * const washPartner = await prisma.washPartner.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WashPartnerUpdateManyArgs>(args: SelectSubset<T, WashPartnerUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashPartners and returns the data updated in the database.
+     * @param {WashPartnerUpdateManyAndReturnArgs} args - Arguments to update many WashPartners.
+     * @example
+     * // Update many WashPartners
+     * const washPartner = await prisma.washPartner.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WashPartners and only return the `id`
+     * const washPartnerWithIdOnly = await prisma.washPartner.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WashPartnerUpdateManyAndReturnArgs>(args: SelectSubset<T, WashPartnerUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WashPartner.
+     * @param {WashPartnerUpsertArgs} args - Arguments to update or create a WashPartner.
+     * @example
+     * // Update or create a WashPartner
+     * const washPartner = await prisma.washPartner.upsert({
+     *   create: {
+     *     // ... data to create a WashPartner
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WashPartner we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WashPartnerUpsertArgs>(args: SelectSubset<T, WashPartnerUpsertArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WashPartners.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerCountArgs} args - Arguments to filter WashPartners to count.
+     * @example
+     * // Count the number of WashPartners
+     * const count = await prisma.washPartner.count({
+     *   where: {
+     *     // ... the filter for the WashPartners we want to count
+     *   }
+     * })
+    **/
+    count<T extends WashPartnerCountArgs>(
+      args?: Subset<T, WashPartnerCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WashPartnerCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WashPartner.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WashPartnerAggregateArgs>(args: Subset<T, WashPartnerAggregateArgs>): Prisma.PrismaPromise<GetWashPartnerAggregateType<T>>
+
+    /**
+     * Group by WashPartner.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashPartnerGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WashPartnerGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WashPartnerGroupByArgs['orderBy'] }
+        : { orderBy?: WashPartnerGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WashPartnerGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWashPartnerGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WashPartner model
+   */
+  readonly fields: WashPartnerFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WashPartner.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WashPartnerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    centers<T extends WashPartner$centersArgs<ExtArgs> = {}>(args?: Subset<T, WashPartner$centersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    technicians<T extends WashPartner$techniciansArgs<ExtArgs> = {}>(args?: Subset<T, WashPartner$techniciansArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bookings<T extends WashPartner$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, WashPartner$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WashPartner model
+   */
+  interface WashPartnerFieldRefs {
+    readonly id: FieldRef<"WashPartner", 'String'>
+    readonly name: FieldRef<"WashPartner", 'String'>
+    readonly phoneNumber: FieldRef<"WashPartner", 'String'>
+    readonly passwordHash: FieldRef<"WashPartner", 'String'>
+    readonly status: FieldRef<"WashPartner", 'WashPartnerStatus'>
+    readonly rating: FieldRef<"WashPartner", 'Float'>
+    readonly createdAt: FieldRef<"WashPartner", 'DateTime'>
+    readonly updatedAt: FieldRef<"WashPartner", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WashPartner findUnique
+   */
+  export type WashPartnerFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which WashPartner to fetch.
+     */
+    where: WashPartnerWhereUniqueInput
+  }
+
+  /**
+   * WashPartner findUniqueOrThrow
+   */
+  export type WashPartnerFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which WashPartner to fetch.
+     */
+    where: WashPartnerWhereUniqueInput
+  }
+
+  /**
+   * WashPartner findFirst
+   */
+  export type WashPartnerFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which WashPartner to fetch.
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashPartners to fetch.
+     */
+    orderBy?: WashPartnerOrderByWithRelationInput | WashPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashPartners.
+     */
+    cursor?: WashPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashPartners.
+     */
+    distinct?: WashPartnerScalarFieldEnum | WashPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * WashPartner findFirstOrThrow
+   */
+  export type WashPartnerFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which WashPartner to fetch.
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashPartners to fetch.
+     */
+    orderBy?: WashPartnerOrderByWithRelationInput | WashPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashPartners.
+     */
+    cursor?: WashPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashPartners.
+     */
+    distinct?: WashPartnerScalarFieldEnum | WashPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * WashPartner findMany
+   */
+  export type WashPartnerFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which WashPartners to fetch.
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashPartners to fetch.
+     */
+    orderBy?: WashPartnerOrderByWithRelationInput | WashPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WashPartners.
+     */
+    cursor?: WashPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashPartners.
+     */
+    distinct?: WashPartnerScalarFieldEnum | WashPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * WashPartner create
+   */
+  export type WashPartnerCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WashPartner.
+     */
+    data: XOR<WashPartnerCreateInput, WashPartnerUncheckedCreateInput>
+  }
+
+  /**
+   * WashPartner createMany
+   */
+  export type WashPartnerCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WashPartners.
+     */
+    data: WashPartnerCreateManyInput | WashPartnerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WashPartner createManyAndReturn
+   */
+  export type WashPartnerCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * The data used to create many WashPartners.
+     */
+    data: WashPartnerCreateManyInput | WashPartnerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WashPartner update
+   */
+  export type WashPartnerUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WashPartner.
+     */
+    data: XOR<WashPartnerUpdateInput, WashPartnerUncheckedUpdateInput>
+    /**
+     * Choose, which WashPartner to update.
+     */
+    where: WashPartnerWhereUniqueInput
+  }
+
+  /**
+   * WashPartner updateMany
+   */
+  export type WashPartnerUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WashPartners.
+     */
+    data: XOR<WashPartnerUpdateManyMutationInput, WashPartnerUncheckedUpdateManyInput>
+    /**
+     * Filter which WashPartners to update
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * Limit how many WashPartners to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashPartner updateManyAndReturn
+   */
+  export type WashPartnerUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * The data used to update WashPartners.
+     */
+    data: XOR<WashPartnerUpdateManyMutationInput, WashPartnerUncheckedUpdateManyInput>
+    /**
+     * Filter which WashPartners to update
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * Limit how many WashPartners to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashPartner upsert
+   */
+  export type WashPartnerUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WashPartner to update in case it exists.
+     */
+    where: WashPartnerWhereUniqueInput
+    /**
+     * In case the WashPartner found by the `where` argument doesn't exist, create a new WashPartner with this data.
+     */
+    create: XOR<WashPartnerCreateInput, WashPartnerUncheckedCreateInput>
+    /**
+     * In case the WashPartner was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WashPartnerUpdateInput, WashPartnerUncheckedUpdateInput>
+  }
+
+  /**
+   * WashPartner delete
+   */
+  export type WashPartnerDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+    /**
+     * Filter which WashPartner to delete.
+     */
+    where: WashPartnerWhereUniqueInput
+  }
+
+  /**
+   * WashPartner deleteMany
+   */
+  export type WashPartnerDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashPartners to delete
+     */
+    where?: WashPartnerWhereInput
+    /**
+     * Limit how many WashPartners to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashPartner.centers
+   */
+  export type WashPartner$centersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    where?: WashCenterWhereInput
+    orderBy?: WashCenterOrderByWithRelationInput | WashCenterOrderByWithRelationInput[]
+    cursor?: WashCenterWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashCenterScalarFieldEnum | WashCenterScalarFieldEnum[]
+  }
+
+  /**
+   * WashPartner.technicians
+   */
+  export type WashPartner$techniciansArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    where?: WashTechnicianWhereInput
+    orderBy?: WashTechnicianOrderByWithRelationInput | WashTechnicianOrderByWithRelationInput[]
+    cursor?: WashTechnicianWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashTechnicianScalarFieldEnum | WashTechnicianScalarFieldEnum[]
+  }
+
+  /**
+   * WashPartner.bookings
+   */
+  export type WashPartner$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    where?: WashBookingWhereInput
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    cursor?: WashBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashPartner without action
+   */
+  export type WashPartnerDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashPartner
+     */
+    select?: WashPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashPartner
+     */
+    omit?: WashPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashPartnerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WashTechnician
+   */
+
+  export type AggregateWashTechnician = {
+    _count: WashTechnicianCountAggregateOutputType | null
+    _avg: WashTechnicianAvgAggregateOutputType | null
+    _sum: WashTechnicianSumAggregateOutputType | null
+    _min: WashTechnicianMinAggregateOutputType | null
+    _max: WashTechnicianMaxAggregateOutputType | null
+  }
+
+  export type WashTechnicianAvgAggregateOutputType = {
+    rating: number | null
+  }
+
+  export type WashTechnicianSumAggregateOutputType = {
+    rating: number | null
+  }
+
+  export type WashTechnicianMinAggregateOutputType = {
+    id: string | null
+    partnerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    passwordHash: string | null
+    photoUrl: string | null
+    isActive: boolean | null
+    rating: number | null
+    createdAt: Date | null
+  }
+
+  export type WashTechnicianMaxAggregateOutputType = {
+    id: string | null
+    partnerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    passwordHash: string | null
+    photoUrl: string | null
+    isActive: boolean | null
+    rating: number | null
+    createdAt: Date | null
+  }
+
+  export type WashTechnicianCountAggregateOutputType = {
+    id: number
+    partnerId: number
+    name: number
+    phoneNumber: number
+    passwordHash: number
+    photoUrl: number
+    isActive: number
+    rating: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type WashTechnicianAvgAggregateInputType = {
+    rating?: true
+  }
+
+  export type WashTechnicianSumAggregateInputType = {
+    rating?: true
+  }
+
+  export type WashTechnicianMinAggregateInputType = {
+    id?: true
+    partnerId?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    photoUrl?: true
+    isActive?: true
+    rating?: true
+    createdAt?: true
+  }
+
+  export type WashTechnicianMaxAggregateInputType = {
+    id?: true
+    partnerId?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    photoUrl?: true
+    isActive?: true
+    rating?: true
+    createdAt?: true
+  }
+
+  export type WashTechnicianCountAggregateInputType = {
+    id?: true
+    partnerId?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    photoUrl?: true
+    isActive?: true
+    rating?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type WashTechnicianAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashTechnician to aggregate.
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashTechnicians to fetch.
+     */
+    orderBy?: WashTechnicianOrderByWithRelationInput | WashTechnicianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WashTechnicianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashTechnicians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashTechnicians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WashTechnicians
+    **/
+    _count?: true | WashTechnicianCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WashTechnicianAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WashTechnicianSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WashTechnicianMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WashTechnicianMaxAggregateInputType
+  }
+
+  export type GetWashTechnicianAggregateType<T extends WashTechnicianAggregateArgs> = {
+        [P in keyof T & keyof AggregateWashTechnician]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWashTechnician[P]>
+      : GetScalarType<T[P], AggregateWashTechnician[P]>
+  }
+
+
+
+
+  export type WashTechnicianGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashTechnicianWhereInput
+    orderBy?: WashTechnicianOrderByWithAggregationInput | WashTechnicianOrderByWithAggregationInput[]
+    by: WashTechnicianScalarFieldEnum[] | WashTechnicianScalarFieldEnum
+    having?: WashTechnicianScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WashTechnicianCountAggregateInputType | true
+    _avg?: WashTechnicianAvgAggregateInputType
+    _sum?: WashTechnicianSumAggregateInputType
+    _min?: WashTechnicianMinAggregateInputType
+    _max?: WashTechnicianMaxAggregateInputType
+  }
+
+  export type WashTechnicianGroupByOutputType = {
+    id: string
+    partnerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl: string | null
+    isActive: boolean
+    rating: number | null
+    createdAt: Date
+    _count: WashTechnicianCountAggregateOutputType | null
+    _avg: WashTechnicianAvgAggregateOutputType | null
+    _sum: WashTechnicianSumAggregateOutputType | null
+    _min: WashTechnicianMinAggregateOutputType | null
+    _max: WashTechnicianMaxAggregateOutputType | null
+  }
+
+  type GetWashTechnicianGroupByPayload<T extends WashTechnicianGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WashTechnicianGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WashTechnicianGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WashTechnicianGroupByOutputType[P]>
+            : GetScalarType<T[P], WashTechnicianGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WashTechnicianSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    photoUrl?: boolean
+    isActive?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    bookings?: boolean | WashTechnician$bookingsArgs<ExtArgs>
+    _count?: boolean | WashTechnicianCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washTechnician"]>
+
+  export type WashTechnicianSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    photoUrl?: boolean
+    isActive?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washTechnician"]>
+
+  export type WashTechnicianSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    photoUrl?: boolean
+    isActive?: boolean
+    rating?: boolean
+    createdAt?: boolean
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washTechnician"]>
+
+  export type WashTechnicianSelectScalar = {
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    photoUrl?: boolean
+    isActive?: boolean
+    rating?: boolean
+    createdAt?: boolean
+  }
+
+  export type WashTechnicianOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "partnerId" | "name" | "phoneNumber" | "passwordHash" | "photoUrl" | "isActive" | "rating" | "createdAt", ExtArgs["result"]["washTechnician"]>
+  export type WashTechnicianInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    bookings?: boolean | WashTechnician$bookingsArgs<ExtArgs>
+    _count?: boolean | WashTechnicianCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WashTechnicianIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }
+  export type WashTechnicianIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }
+
+  export type $WashTechnicianPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WashTechnician"
+    objects: {
+      partner: Prisma.$WashPartnerPayload<ExtArgs>
+      bookings: Prisma.$WashBookingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      partnerId: string
+      name: string
+      phoneNumber: string
+      passwordHash: string
+      photoUrl: string | null
+      isActive: boolean
+      rating: number | null
+      createdAt: Date
+    }, ExtArgs["result"]["washTechnician"]>
+    composites: {}
+  }
+
+  type WashTechnicianGetPayload<S extends boolean | null | undefined | WashTechnicianDefaultArgs> = $Result.GetResult<Prisma.$WashTechnicianPayload, S>
+
+  type WashTechnicianCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WashTechnicianFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WashTechnicianCountAggregateInputType | true
+    }
+
+  export interface WashTechnicianDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WashTechnician'], meta: { name: 'WashTechnician' } }
+    /**
+     * Find zero or one WashTechnician that matches the filter.
+     * @param {WashTechnicianFindUniqueArgs} args - Arguments to find a WashTechnician
+     * @example
+     * // Get one WashTechnician
+     * const washTechnician = await prisma.washTechnician.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WashTechnicianFindUniqueArgs>(args: SelectSubset<T, WashTechnicianFindUniqueArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WashTechnician that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WashTechnicianFindUniqueOrThrowArgs} args - Arguments to find a WashTechnician
+     * @example
+     * // Get one WashTechnician
+     * const washTechnician = await prisma.washTechnician.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WashTechnicianFindUniqueOrThrowArgs>(args: SelectSubset<T, WashTechnicianFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashTechnician that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianFindFirstArgs} args - Arguments to find a WashTechnician
+     * @example
+     * // Get one WashTechnician
+     * const washTechnician = await prisma.washTechnician.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WashTechnicianFindFirstArgs>(args?: SelectSubset<T, WashTechnicianFindFirstArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashTechnician that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianFindFirstOrThrowArgs} args - Arguments to find a WashTechnician
+     * @example
+     * // Get one WashTechnician
+     * const washTechnician = await prisma.washTechnician.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WashTechnicianFindFirstOrThrowArgs>(args?: SelectSubset<T, WashTechnicianFindFirstOrThrowArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WashTechnicians that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WashTechnicians
+     * const washTechnicians = await prisma.washTechnician.findMany()
+     * 
+     * // Get first 10 WashTechnicians
+     * const washTechnicians = await prisma.washTechnician.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const washTechnicianWithIdOnly = await prisma.washTechnician.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WashTechnicianFindManyArgs>(args?: SelectSubset<T, WashTechnicianFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WashTechnician.
+     * @param {WashTechnicianCreateArgs} args - Arguments to create a WashTechnician.
+     * @example
+     * // Create one WashTechnician
+     * const WashTechnician = await prisma.washTechnician.create({
+     *   data: {
+     *     // ... data to create a WashTechnician
+     *   }
+     * })
+     * 
+     */
+    create<T extends WashTechnicianCreateArgs>(args: SelectSubset<T, WashTechnicianCreateArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WashTechnicians.
+     * @param {WashTechnicianCreateManyArgs} args - Arguments to create many WashTechnicians.
+     * @example
+     * // Create many WashTechnicians
+     * const washTechnician = await prisma.washTechnician.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WashTechnicianCreateManyArgs>(args?: SelectSubset<T, WashTechnicianCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WashTechnicians and returns the data saved in the database.
+     * @param {WashTechnicianCreateManyAndReturnArgs} args - Arguments to create many WashTechnicians.
+     * @example
+     * // Create many WashTechnicians
+     * const washTechnician = await prisma.washTechnician.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WashTechnicians and only return the `id`
+     * const washTechnicianWithIdOnly = await prisma.washTechnician.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WashTechnicianCreateManyAndReturnArgs>(args?: SelectSubset<T, WashTechnicianCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WashTechnician.
+     * @param {WashTechnicianDeleteArgs} args - Arguments to delete one WashTechnician.
+     * @example
+     * // Delete one WashTechnician
+     * const WashTechnician = await prisma.washTechnician.delete({
+     *   where: {
+     *     // ... filter to delete one WashTechnician
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WashTechnicianDeleteArgs>(args: SelectSubset<T, WashTechnicianDeleteArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WashTechnician.
+     * @param {WashTechnicianUpdateArgs} args - Arguments to update one WashTechnician.
+     * @example
+     * // Update one WashTechnician
+     * const washTechnician = await prisma.washTechnician.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WashTechnicianUpdateArgs>(args: SelectSubset<T, WashTechnicianUpdateArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WashTechnicians.
+     * @param {WashTechnicianDeleteManyArgs} args - Arguments to filter WashTechnicians to delete.
+     * @example
+     * // Delete a few WashTechnicians
+     * const { count } = await prisma.washTechnician.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WashTechnicianDeleteManyArgs>(args?: SelectSubset<T, WashTechnicianDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashTechnicians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WashTechnicians
+     * const washTechnician = await prisma.washTechnician.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WashTechnicianUpdateManyArgs>(args: SelectSubset<T, WashTechnicianUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashTechnicians and returns the data updated in the database.
+     * @param {WashTechnicianUpdateManyAndReturnArgs} args - Arguments to update many WashTechnicians.
+     * @example
+     * // Update many WashTechnicians
+     * const washTechnician = await prisma.washTechnician.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WashTechnicians and only return the `id`
+     * const washTechnicianWithIdOnly = await prisma.washTechnician.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WashTechnicianUpdateManyAndReturnArgs>(args: SelectSubset<T, WashTechnicianUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WashTechnician.
+     * @param {WashTechnicianUpsertArgs} args - Arguments to update or create a WashTechnician.
+     * @example
+     * // Update or create a WashTechnician
+     * const washTechnician = await prisma.washTechnician.upsert({
+     *   create: {
+     *     // ... data to create a WashTechnician
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WashTechnician we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WashTechnicianUpsertArgs>(args: SelectSubset<T, WashTechnicianUpsertArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WashTechnicians.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianCountArgs} args - Arguments to filter WashTechnicians to count.
+     * @example
+     * // Count the number of WashTechnicians
+     * const count = await prisma.washTechnician.count({
+     *   where: {
+     *     // ... the filter for the WashTechnicians we want to count
+     *   }
+     * })
+    **/
+    count<T extends WashTechnicianCountArgs>(
+      args?: Subset<T, WashTechnicianCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WashTechnicianCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WashTechnician.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WashTechnicianAggregateArgs>(args: Subset<T, WashTechnicianAggregateArgs>): Prisma.PrismaPromise<GetWashTechnicianAggregateType<T>>
+
+    /**
+     * Group by WashTechnician.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashTechnicianGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WashTechnicianGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WashTechnicianGroupByArgs['orderBy'] }
+        : { orderBy?: WashTechnicianGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WashTechnicianGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWashTechnicianGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WashTechnician model
+   */
+  readonly fields: WashTechnicianFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WashTechnician.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WashTechnicianClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    partner<T extends WashPartnerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WashPartnerDefaultArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    bookings<T extends WashTechnician$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, WashTechnician$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WashTechnician model
+   */
+  interface WashTechnicianFieldRefs {
+    readonly id: FieldRef<"WashTechnician", 'String'>
+    readonly partnerId: FieldRef<"WashTechnician", 'String'>
+    readonly name: FieldRef<"WashTechnician", 'String'>
+    readonly phoneNumber: FieldRef<"WashTechnician", 'String'>
+    readonly passwordHash: FieldRef<"WashTechnician", 'String'>
+    readonly photoUrl: FieldRef<"WashTechnician", 'String'>
+    readonly isActive: FieldRef<"WashTechnician", 'Boolean'>
+    readonly rating: FieldRef<"WashTechnician", 'Float'>
+    readonly createdAt: FieldRef<"WashTechnician", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WashTechnician findUnique
+   */
+  export type WashTechnicianFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * Filter, which WashTechnician to fetch.
+     */
+    where: WashTechnicianWhereUniqueInput
+  }
+
+  /**
+   * WashTechnician findUniqueOrThrow
+   */
+  export type WashTechnicianFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * Filter, which WashTechnician to fetch.
+     */
+    where: WashTechnicianWhereUniqueInput
+  }
+
+  /**
+   * WashTechnician findFirst
+   */
+  export type WashTechnicianFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * Filter, which WashTechnician to fetch.
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashTechnicians to fetch.
+     */
+    orderBy?: WashTechnicianOrderByWithRelationInput | WashTechnicianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashTechnicians.
+     */
+    cursor?: WashTechnicianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashTechnicians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashTechnicians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashTechnicians.
+     */
+    distinct?: WashTechnicianScalarFieldEnum | WashTechnicianScalarFieldEnum[]
+  }
+
+  /**
+   * WashTechnician findFirstOrThrow
+   */
+  export type WashTechnicianFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * Filter, which WashTechnician to fetch.
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashTechnicians to fetch.
+     */
+    orderBy?: WashTechnicianOrderByWithRelationInput | WashTechnicianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashTechnicians.
+     */
+    cursor?: WashTechnicianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashTechnicians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashTechnicians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashTechnicians.
+     */
+    distinct?: WashTechnicianScalarFieldEnum | WashTechnicianScalarFieldEnum[]
+  }
+
+  /**
+   * WashTechnician findMany
+   */
+  export type WashTechnicianFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * Filter, which WashTechnicians to fetch.
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashTechnicians to fetch.
+     */
+    orderBy?: WashTechnicianOrderByWithRelationInput | WashTechnicianOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WashTechnicians.
+     */
+    cursor?: WashTechnicianWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashTechnicians from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashTechnicians.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashTechnicians.
+     */
+    distinct?: WashTechnicianScalarFieldEnum | WashTechnicianScalarFieldEnum[]
+  }
+
+  /**
+   * WashTechnician create
+   */
+  export type WashTechnicianCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WashTechnician.
+     */
+    data: XOR<WashTechnicianCreateInput, WashTechnicianUncheckedCreateInput>
+  }
+
+  /**
+   * WashTechnician createMany
+   */
+  export type WashTechnicianCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WashTechnicians.
+     */
+    data: WashTechnicianCreateManyInput | WashTechnicianCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WashTechnician createManyAndReturn
+   */
+  export type WashTechnicianCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * The data used to create many WashTechnicians.
+     */
+    data: WashTechnicianCreateManyInput | WashTechnicianCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashTechnician update
+   */
+  export type WashTechnicianUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WashTechnician.
+     */
+    data: XOR<WashTechnicianUpdateInput, WashTechnicianUncheckedUpdateInput>
+    /**
+     * Choose, which WashTechnician to update.
+     */
+    where: WashTechnicianWhereUniqueInput
+  }
+
+  /**
+   * WashTechnician updateMany
+   */
+  export type WashTechnicianUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WashTechnicians.
+     */
+    data: XOR<WashTechnicianUpdateManyMutationInput, WashTechnicianUncheckedUpdateManyInput>
+    /**
+     * Filter which WashTechnicians to update
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * Limit how many WashTechnicians to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashTechnician updateManyAndReturn
+   */
+  export type WashTechnicianUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * The data used to update WashTechnicians.
+     */
+    data: XOR<WashTechnicianUpdateManyMutationInput, WashTechnicianUncheckedUpdateManyInput>
+    /**
+     * Filter which WashTechnicians to update
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * Limit how many WashTechnicians to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashTechnician upsert
+   */
+  export type WashTechnicianUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WashTechnician to update in case it exists.
+     */
+    where: WashTechnicianWhereUniqueInput
+    /**
+     * In case the WashTechnician found by the `where` argument doesn't exist, create a new WashTechnician with this data.
+     */
+    create: XOR<WashTechnicianCreateInput, WashTechnicianUncheckedCreateInput>
+    /**
+     * In case the WashTechnician was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WashTechnicianUpdateInput, WashTechnicianUncheckedUpdateInput>
+  }
+
+  /**
+   * WashTechnician delete
+   */
+  export type WashTechnicianDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    /**
+     * Filter which WashTechnician to delete.
+     */
+    where: WashTechnicianWhereUniqueInput
+  }
+
+  /**
+   * WashTechnician deleteMany
+   */
+  export type WashTechnicianDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashTechnicians to delete
+     */
+    where?: WashTechnicianWhereInput
+    /**
+     * Limit how many WashTechnicians to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashTechnician.bookings
+   */
+  export type WashTechnician$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    where?: WashBookingWhereInput
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    cursor?: WashBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashTechnician without action
+   */
+  export type WashTechnicianDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WashCenter
+   */
+
+  export type AggregateWashCenter = {
+    _count: WashCenterCountAggregateOutputType | null
+    _avg: WashCenterAvgAggregateOutputType | null
+    _sum: WashCenterSumAggregateOutputType | null
+    _min: WashCenterMinAggregateOutputType | null
+    _max: WashCenterMaxAggregateOutputType | null
+  }
+
+  export type WashCenterAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type WashCenterSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+  }
+
+  export type WashCenterMinAggregateOutputType = {
+    id: string | null
+    partnerId: string | null
+    name: string | null
+    address: string | null
+    latitude: number | null
+    longitude: number | null
+    supportsBike: boolean | null
+    supportsCar: boolean | null
+    supportsEV: boolean | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type WashCenterMaxAggregateOutputType = {
+    id: string | null
+    partnerId: string | null
+    name: string | null
+    address: string | null
+    latitude: number | null
+    longitude: number | null
+    supportsBike: boolean | null
+    supportsCar: boolean | null
+    supportsEV: boolean | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type WashCenterCountAggregateOutputType = {
+    id: number
+    partnerId: number
+    name: number
+    address: number
+    latitude: number
+    longitude: number
+    supportsBike: number
+    supportsCar: number
+    supportsEV: number
+    isActive: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type WashCenterAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type WashCenterSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
+  }
+
+  export type WashCenterMinAggregateInputType = {
+    id?: true
+    partnerId?: true
+    name?: true
+    address?: true
+    latitude?: true
+    longitude?: true
+    supportsBike?: true
+    supportsCar?: true
+    supportsEV?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type WashCenterMaxAggregateInputType = {
+    id?: true
+    partnerId?: true
+    name?: true
+    address?: true
+    latitude?: true
+    longitude?: true
+    supportsBike?: true
+    supportsCar?: true
+    supportsEV?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type WashCenterCountAggregateInputType = {
+    id?: true
+    partnerId?: true
+    name?: true
+    address?: true
+    latitude?: true
+    longitude?: true
+    supportsBike?: true
+    supportsCar?: true
+    supportsEV?: true
+    isActive?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type WashCenterAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashCenter to aggregate.
+     */
+    where?: WashCenterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashCenters to fetch.
+     */
+    orderBy?: WashCenterOrderByWithRelationInput | WashCenterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WashCenterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashCenters from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashCenters.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WashCenters
+    **/
+    _count?: true | WashCenterCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WashCenterAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WashCenterSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WashCenterMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WashCenterMaxAggregateInputType
+  }
+
+  export type GetWashCenterAggregateType<T extends WashCenterAggregateArgs> = {
+        [P in keyof T & keyof AggregateWashCenter]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWashCenter[P]>
+      : GetScalarType<T[P], AggregateWashCenter[P]>
+  }
+
+
+
+
+  export type WashCenterGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashCenterWhereInput
+    orderBy?: WashCenterOrderByWithAggregationInput | WashCenterOrderByWithAggregationInput[]
+    by: WashCenterScalarFieldEnum[] | WashCenterScalarFieldEnum
+    having?: WashCenterScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WashCenterCountAggregateInputType | true
+    _avg?: WashCenterAvgAggregateInputType
+    _sum?: WashCenterSumAggregateInputType
+    _min?: WashCenterMinAggregateInputType
+    _max?: WashCenterMaxAggregateInputType
+  }
+
+  export type WashCenterGroupByOutputType = {
+    id: string
+    partnerId: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike: boolean
+    supportsCar: boolean
+    supportsEV: boolean
+    isActive: boolean
+    createdAt: Date
+    _count: WashCenterCountAggregateOutputType | null
+    _avg: WashCenterAvgAggregateOutputType | null
+    _sum: WashCenterSumAggregateOutputType | null
+    _min: WashCenterMinAggregateOutputType | null
+    _max: WashCenterMaxAggregateOutputType | null
+  }
+
+  type GetWashCenterGroupByPayload<T extends WashCenterGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WashCenterGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WashCenterGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WashCenterGroupByOutputType[P]>
+            : GetScalarType<T[P], WashCenterGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WashCenterSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    address?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    slots?: boolean | WashCenter$slotsArgs<ExtArgs>
+    bookings?: boolean | WashCenter$bookingsArgs<ExtArgs>
+    _count?: boolean | WashCenterCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washCenter"]>
+
+  export type WashCenterSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    address?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washCenter"]>
+
+  export type WashCenterSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    address?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washCenter"]>
+
+  export type WashCenterSelectScalar = {
+    id?: boolean
+    partnerId?: boolean
+    name?: boolean
+    address?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+  }
+
+  export type WashCenterOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "partnerId" | "name" | "address" | "latitude" | "longitude" | "supportsBike" | "supportsCar" | "supportsEV" | "isActive" | "createdAt", ExtArgs["result"]["washCenter"]>
+  export type WashCenterInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    slots?: boolean | WashCenter$slotsArgs<ExtArgs>
+    bookings?: boolean | WashCenter$bookingsArgs<ExtArgs>
+    _count?: boolean | WashCenterCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WashCenterIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }
+  export type WashCenterIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+  }
+
+  export type $WashCenterPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WashCenter"
+    objects: {
+      partner: Prisma.$WashPartnerPayload<ExtArgs>
+      slots: Prisma.$WashSlotPayload<ExtArgs>[]
+      bookings: Prisma.$WashBookingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      partnerId: string
+      name: string
+      address: string
+      latitude: number
+      longitude: number
+      supportsBike: boolean
+      supportsCar: boolean
+      supportsEV: boolean
+      isActive: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["washCenter"]>
+    composites: {}
+  }
+
+  type WashCenterGetPayload<S extends boolean | null | undefined | WashCenterDefaultArgs> = $Result.GetResult<Prisma.$WashCenterPayload, S>
+
+  type WashCenterCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WashCenterFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WashCenterCountAggregateInputType | true
+    }
+
+  export interface WashCenterDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WashCenter'], meta: { name: 'WashCenter' } }
+    /**
+     * Find zero or one WashCenter that matches the filter.
+     * @param {WashCenterFindUniqueArgs} args - Arguments to find a WashCenter
+     * @example
+     * // Get one WashCenter
+     * const washCenter = await prisma.washCenter.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WashCenterFindUniqueArgs>(args: SelectSubset<T, WashCenterFindUniqueArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WashCenter that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WashCenterFindUniqueOrThrowArgs} args - Arguments to find a WashCenter
+     * @example
+     * // Get one WashCenter
+     * const washCenter = await prisma.washCenter.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WashCenterFindUniqueOrThrowArgs>(args: SelectSubset<T, WashCenterFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashCenter that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterFindFirstArgs} args - Arguments to find a WashCenter
+     * @example
+     * // Get one WashCenter
+     * const washCenter = await prisma.washCenter.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WashCenterFindFirstArgs>(args?: SelectSubset<T, WashCenterFindFirstArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashCenter that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterFindFirstOrThrowArgs} args - Arguments to find a WashCenter
+     * @example
+     * // Get one WashCenter
+     * const washCenter = await prisma.washCenter.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WashCenterFindFirstOrThrowArgs>(args?: SelectSubset<T, WashCenterFindFirstOrThrowArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WashCenters that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WashCenters
+     * const washCenters = await prisma.washCenter.findMany()
+     * 
+     * // Get first 10 WashCenters
+     * const washCenters = await prisma.washCenter.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const washCenterWithIdOnly = await prisma.washCenter.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WashCenterFindManyArgs>(args?: SelectSubset<T, WashCenterFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WashCenter.
+     * @param {WashCenterCreateArgs} args - Arguments to create a WashCenter.
+     * @example
+     * // Create one WashCenter
+     * const WashCenter = await prisma.washCenter.create({
+     *   data: {
+     *     // ... data to create a WashCenter
+     *   }
+     * })
+     * 
+     */
+    create<T extends WashCenterCreateArgs>(args: SelectSubset<T, WashCenterCreateArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WashCenters.
+     * @param {WashCenterCreateManyArgs} args - Arguments to create many WashCenters.
+     * @example
+     * // Create many WashCenters
+     * const washCenter = await prisma.washCenter.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WashCenterCreateManyArgs>(args?: SelectSubset<T, WashCenterCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WashCenters and returns the data saved in the database.
+     * @param {WashCenterCreateManyAndReturnArgs} args - Arguments to create many WashCenters.
+     * @example
+     * // Create many WashCenters
+     * const washCenter = await prisma.washCenter.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WashCenters and only return the `id`
+     * const washCenterWithIdOnly = await prisma.washCenter.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WashCenterCreateManyAndReturnArgs>(args?: SelectSubset<T, WashCenterCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WashCenter.
+     * @param {WashCenterDeleteArgs} args - Arguments to delete one WashCenter.
+     * @example
+     * // Delete one WashCenter
+     * const WashCenter = await prisma.washCenter.delete({
+     *   where: {
+     *     // ... filter to delete one WashCenter
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WashCenterDeleteArgs>(args: SelectSubset<T, WashCenterDeleteArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WashCenter.
+     * @param {WashCenterUpdateArgs} args - Arguments to update one WashCenter.
+     * @example
+     * // Update one WashCenter
+     * const washCenter = await prisma.washCenter.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WashCenterUpdateArgs>(args: SelectSubset<T, WashCenterUpdateArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WashCenters.
+     * @param {WashCenterDeleteManyArgs} args - Arguments to filter WashCenters to delete.
+     * @example
+     * // Delete a few WashCenters
+     * const { count } = await prisma.washCenter.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WashCenterDeleteManyArgs>(args?: SelectSubset<T, WashCenterDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashCenters.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WashCenters
+     * const washCenter = await prisma.washCenter.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WashCenterUpdateManyArgs>(args: SelectSubset<T, WashCenterUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashCenters and returns the data updated in the database.
+     * @param {WashCenterUpdateManyAndReturnArgs} args - Arguments to update many WashCenters.
+     * @example
+     * // Update many WashCenters
+     * const washCenter = await prisma.washCenter.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WashCenters and only return the `id`
+     * const washCenterWithIdOnly = await prisma.washCenter.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WashCenterUpdateManyAndReturnArgs>(args: SelectSubset<T, WashCenterUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WashCenter.
+     * @param {WashCenterUpsertArgs} args - Arguments to update or create a WashCenter.
+     * @example
+     * // Update or create a WashCenter
+     * const washCenter = await prisma.washCenter.upsert({
+     *   create: {
+     *     // ... data to create a WashCenter
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WashCenter we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WashCenterUpsertArgs>(args: SelectSubset<T, WashCenterUpsertArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WashCenters.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterCountArgs} args - Arguments to filter WashCenters to count.
+     * @example
+     * // Count the number of WashCenters
+     * const count = await prisma.washCenter.count({
+     *   where: {
+     *     // ... the filter for the WashCenters we want to count
+     *   }
+     * })
+    **/
+    count<T extends WashCenterCountArgs>(
+      args?: Subset<T, WashCenterCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WashCenterCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WashCenter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WashCenterAggregateArgs>(args: Subset<T, WashCenterAggregateArgs>): Prisma.PrismaPromise<GetWashCenterAggregateType<T>>
+
+    /**
+     * Group by WashCenter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashCenterGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WashCenterGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WashCenterGroupByArgs['orderBy'] }
+        : { orderBy?: WashCenterGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WashCenterGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWashCenterGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WashCenter model
+   */
+  readonly fields: WashCenterFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WashCenter.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WashCenterClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    partner<T extends WashPartnerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WashPartnerDefaultArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    slots<T extends WashCenter$slotsArgs<ExtArgs> = {}>(args?: Subset<T, WashCenter$slotsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    bookings<T extends WashCenter$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, WashCenter$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WashCenter model
+   */
+  interface WashCenterFieldRefs {
+    readonly id: FieldRef<"WashCenter", 'String'>
+    readonly partnerId: FieldRef<"WashCenter", 'String'>
+    readonly name: FieldRef<"WashCenter", 'String'>
+    readonly address: FieldRef<"WashCenter", 'String'>
+    readonly latitude: FieldRef<"WashCenter", 'Float'>
+    readonly longitude: FieldRef<"WashCenter", 'Float'>
+    readonly supportsBike: FieldRef<"WashCenter", 'Boolean'>
+    readonly supportsCar: FieldRef<"WashCenter", 'Boolean'>
+    readonly supportsEV: FieldRef<"WashCenter", 'Boolean'>
+    readonly isActive: FieldRef<"WashCenter", 'Boolean'>
+    readonly createdAt: FieldRef<"WashCenter", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WashCenter findUnique
+   */
+  export type WashCenterFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * Filter, which WashCenter to fetch.
+     */
+    where: WashCenterWhereUniqueInput
+  }
+
+  /**
+   * WashCenter findUniqueOrThrow
+   */
+  export type WashCenterFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * Filter, which WashCenter to fetch.
+     */
+    where: WashCenterWhereUniqueInput
+  }
+
+  /**
+   * WashCenter findFirst
+   */
+  export type WashCenterFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * Filter, which WashCenter to fetch.
+     */
+    where?: WashCenterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashCenters to fetch.
+     */
+    orderBy?: WashCenterOrderByWithRelationInput | WashCenterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashCenters.
+     */
+    cursor?: WashCenterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashCenters from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashCenters.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashCenters.
+     */
+    distinct?: WashCenterScalarFieldEnum | WashCenterScalarFieldEnum[]
+  }
+
+  /**
+   * WashCenter findFirstOrThrow
+   */
+  export type WashCenterFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * Filter, which WashCenter to fetch.
+     */
+    where?: WashCenterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashCenters to fetch.
+     */
+    orderBy?: WashCenterOrderByWithRelationInput | WashCenterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashCenters.
+     */
+    cursor?: WashCenterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashCenters from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashCenters.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashCenters.
+     */
+    distinct?: WashCenterScalarFieldEnum | WashCenterScalarFieldEnum[]
+  }
+
+  /**
+   * WashCenter findMany
+   */
+  export type WashCenterFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * Filter, which WashCenters to fetch.
+     */
+    where?: WashCenterWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashCenters to fetch.
+     */
+    orderBy?: WashCenterOrderByWithRelationInput | WashCenterOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WashCenters.
+     */
+    cursor?: WashCenterWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashCenters from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashCenters.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashCenters.
+     */
+    distinct?: WashCenterScalarFieldEnum | WashCenterScalarFieldEnum[]
+  }
+
+  /**
+   * WashCenter create
+   */
+  export type WashCenterCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WashCenter.
+     */
+    data: XOR<WashCenterCreateInput, WashCenterUncheckedCreateInput>
+  }
+
+  /**
+   * WashCenter createMany
+   */
+  export type WashCenterCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WashCenters.
+     */
+    data: WashCenterCreateManyInput | WashCenterCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WashCenter createManyAndReturn
+   */
+  export type WashCenterCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * The data used to create many WashCenters.
+     */
+    data: WashCenterCreateManyInput | WashCenterCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashCenter update
+   */
+  export type WashCenterUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WashCenter.
+     */
+    data: XOR<WashCenterUpdateInput, WashCenterUncheckedUpdateInput>
+    /**
+     * Choose, which WashCenter to update.
+     */
+    where: WashCenterWhereUniqueInput
+  }
+
+  /**
+   * WashCenter updateMany
+   */
+  export type WashCenterUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WashCenters.
+     */
+    data: XOR<WashCenterUpdateManyMutationInput, WashCenterUncheckedUpdateManyInput>
+    /**
+     * Filter which WashCenters to update
+     */
+    where?: WashCenterWhereInput
+    /**
+     * Limit how many WashCenters to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashCenter updateManyAndReturn
+   */
+  export type WashCenterUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * The data used to update WashCenters.
+     */
+    data: XOR<WashCenterUpdateManyMutationInput, WashCenterUncheckedUpdateManyInput>
+    /**
+     * Filter which WashCenters to update
+     */
+    where?: WashCenterWhereInput
+    /**
+     * Limit how many WashCenters to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashCenter upsert
+   */
+  export type WashCenterUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WashCenter to update in case it exists.
+     */
+    where: WashCenterWhereUniqueInput
+    /**
+     * In case the WashCenter found by the `where` argument doesn't exist, create a new WashCenter with this data.
+     */
+    create: XOR<WashCenterCreateInput, WashCenterUncheckedCreateInput>
+    /**
+     * In case the WashCenter was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WashCenterUpdateInput, WashCenterUncheckedUpdateInput>
+  }
+
+  /**
+   * WashCenter delete
+   */
+  export type WashCenterDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    /**
+     * Filter which WashCenter to delete.
+     */
+    where: WashCenterWhereUniqueInput
+  }
+
+  /**
+   * WashCenter deleteMany
+   */
+  export type WashCenterDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashCenters to delete
+     */
+    where?: WashCenterWhereInput
+    /**
+     * Limit how many WashCenters to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashCenter.slots
+   */
+  export type WashCenter$slotsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    where?: WashSlotWhereInput
+    orderBy?: WashSlotOrderByWithRelationInput | WashSlotOrderByWithRelationInput[]
+    cursor?: WashSlotWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashSlotScalarFieldEnum | WashSlotScalarFieldEnum[]
+  }
+
+  /**
+   * WashCenter.bookings
+   */
+  export type WashCenter$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    where?: WashBookingWhereInput
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    cursor?: WashBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashCenter without action
+   */
+  export type WashCenterDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WashSlot
+   */
+
+  export type AggregateWashSlot = {
+    _count: WashSlotCountAggregateOutputType | null
+    _avg: WashSlotAvgAggregateOutputType | null
+    _sum: WashSlotSumAggregateOutputType | null
+    _min: WashSlotMinAggregateOutputType | null
+    _max: WashSlotMaxAggregateOutputType | null
+  }
+
+  export type WashSlotAvgAggregateOutputType = {
+    capacity: number | null
+    bookedCount: number | null
+  }
+
+  export type WashSlotSumAggregateOutputType = {
+    capacity: number | null
+    bookedCount: number | null
+  }
+
+  export type WashSlotMinAggregateOutputType = {
+    id: string | null
+    centerId: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    capacity: number | null
+    bookedCount: number | null
+  }
+
+  export type WashSlotMaxAggregateOutputType = {
+    id: string | null
+    centerId: string | null
+    startsAt: Date | null
+    endsAt: Date | null
+    capacity: number | null
+    bookedCount: number | null
+  }
+
+  export type WashSlotCountAggregateOutputType = {
+    id: number
+    centerId: number
+    startsAt: number
+    endsAt: number
+    capacity: number
+    bookedCount: number
+    _all: number
+  }
+
+
+  export type WashSlotAvgAggregateInputType = {
+    capacity?: true
+    bookedCount?: true
+  }
+
+  export type WashSlotSumAggregateInputType = {
+    capacity?: true
+    bookedCount?: true
+  }
+
+  export type WashSlotMinAggregateInputType = {
+    id?: true
+    centerId?: true
+    startsAt?: true
+    endsAt?: true
+    capacity?: true
+    bookedCount?: true
+  }
+
+  export type WashSlotMaxAggregateInputType = {
+    id?: true
+    centerId?: true
+    startsAt?: true
+    endsAt?: true
+    capacity?: true
+    bookedCount?: true
+  }
+
+  export type WashSlotCountAggregateInputType = {
+    id?: true
+    centerId?: true
+    startsAt?: true
+    endsAt?: true
+    capacity?: true
+    bookedCount?: true
+    _all?: true
+  }
+
+  export type WashSlotAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashSlot to aggregate.
+     */
+    where?: WashSlotWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashSlots to fetch.
+     */
+    orderBy?: WashSlotOrderByWithRelationInput | WashSlotOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WashSlotWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashSlots from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashSlots.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WashSlots
+    **/
+    _count?: true | WashSlotCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WashSlotAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WashSlotSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WashSlotMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WashSlotMaxAggregateInputType
+  }
+
+  export type GetWashSlotAggregateType<T extends WashSlotAggregateArgs> = {
+        [P in keyof T & keyof AggregateWashSlot]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWashSlot[P]>
+      : GetScalarType<T[P], AggregateWashSlot[P]>
+  }
+
+
+
+
+  export type WashSlotGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashSlotWhereInput
+    orderBy?: WashSlotOrderByWithAggregationInput | WashSlotOrderByWithAggregationInput[]
+    by: WashSlotScalarFieldEnum[] | WashSlotScalarFieldEnum
+    having?: WashSlotScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WashSlotCountAggregateInputType | true
+    _avg?: WashSlotAvgAggregateInputType
+    _sum?: WashSlotSumAggregateInputType
+    _min?: WashSlotMinAggregateInputType
+    _max?: WashSlotMaxAggregateInputType
+  }
+
+  export type WashSlotGroupByOutputType = {
+    id: string
+    centerId: string
+    startsAt: Date
+    endsAt: Date
+    capacity: number
+    bookedCount: number
+    _count: WashSlotCountAggregateOutputType | null
+    _avg: WashSlotAvgAggregateOutputType | null
+    _sum: WashSlotSumAggregateOutputType | null
+    _min: WashSlotMinAggregateOutputType | null
+    _max: WashSlotMaxAggregateOutputType | null
+  }
+
+  type GetWashSlotGroupByPayload<T extends WashSlotGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WashSlotGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WashSlotGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WashSlotGroupByOutputType[P]>
+            : GetScalarType<T[P], WashSlotGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WashSlotSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    centerId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    capacity?: boolean
+    bookedCount?: boolean
+    center?: boolean | WashCenterDefaultArgs<ExtArgs>
+    bookings?: boolean | WashSlot$bookingsArgs<ExtArgs>
+    _count?: boolean | WashSlotCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washSlot"]>
+
+  export type WashSlotSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    centerId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    capacity?: boolean
+    bookedCount?: boolean
+    center?: boolean | WashCenterDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washSlot"]>
+
+  export type WashSlotSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    centerId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    capacity?: boolean
+    bookedCount?: boolean
+    center?: boolean | WashCenterDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["washSlot"]>
+
+  export type WashSlotSelectScalar = {
+    id?: boolean
+    centerId?: boolean
+    startsAt?: boolean
+    endsAt?: boolean
+    capacity?: boolean
+    bookedCount?: boolean
+  }
+
+  export type WashSlotOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "centerId" | "startsAt" | "endsAt" | "capacity" | "bookedCount", ExtArgs["result"]["washSlot"]>
+  export type WashSlotInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    center?: boolean | WashCenterDefaultArgs<ExtArgs>
+    bookings?: boolean | WashSlot$bookingsArgs<ExtArgs>
+    _count?: boolean | WashSlotCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WashSlotIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    center?: boolean | WashCenterDefaultArgs<ExtArgs>
+  }
+  export type WashSlotIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    center?: boolean | WashCenterDefaultArgs<ExtArgs>
+  }
+
+  export type $WashSlotPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WashSlot"
+    objects: {
+      center: Prisma.$WashCenterPayload<ExtArgs>
+      bookings: Prisma.$WashBookingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      centerId: string
+      startsAt: Date
+      endsAt: Date
+      capacity: number
+      bookedCount: number
+    }, ExtArgs["result"]["washSlot"]>
+    composites: {}
+  }
+
+  type WashSlotGetPayload<S extends boolean | null | undefined | WashSlotDefaultArgs> = $Result.GetResult<Prisma.$WashSlotPayload, S>
+
+  type WashSlotCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WashSlotFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WashSlotCountAggregateInputType | true
+    }
+
+  export interface WashSlotDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WashSlot'], meta: { name: 'WashSlot' } }
+    /**
+     * Find zero or one WashSlot that matches the filter.
+     * @param {WashSlotFindUniqueArgs} args - Arguments to find a WashSlot
+     * @example
+     * // Get one WashSlot
+     * const washSlot = await prisma.washSlot.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WashSlotFindUniqueArgs>(args: SelectSubset<T, WashSlotFindUniqueArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WashSlot that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WashSlotFindUniqueOrThrowArgs} args - Arguments to find a WashSlot
+     * @example
+     * // Get one WashSlot
+     * const washSlot = await prisma.washSlot.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WashSlotFindUniqueOrThrowArgs>(args: SelectSubset<T, WashSlotFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashSlot that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotFindFirstArgs} args - Arguments to find a WashSlot
+     * @example
+     * // Get one WashSlot
+     * const washSlot = await prisma.washSlot.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WashSlotFindFirstArgs>(args?: SelectSubset<T, WashSlotFindFirstArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashSlot that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotFindFirstOrThrowArgs} args - Arguments to find a WashSlot
+     * @example
+     * // Get one WashSlot
+     * const washSlot = await prisma.washSlot.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WashSlotFindFirstOrThrowArgs>(args?: SelectSubset<T, WashSlotFindFirstOrThrowArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WashSlots that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WashSlots
+     * const washSlots = await prisma.washSlot.findMany()
+     * 
+     * // Get first 10 WashSlots
+     * const washSlots = await prisma.washSlot.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const washSlotWithIdOnly = await prisma.washSlot.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WashSlotFindManyArgs>(args?: SelectSubset<T, WashSlotFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WashSlot.
+     * @param {WashSlotCreateArgs} args - Arguments to create a WashSlot.
+     * @example
+     * // Create one WashSlot
+     * const WashSlot = await prisma.washSlot.create({
+     *   data: {
+     *     // ... data to create a WashSlot
+     *   }
+     * })
+     * 
+     */
+    create<T extends WashSlotCreateArgs>(args: SelectSubset<T, WashSlotCreateArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WashSlots.
+     * @param {WashSlotCreateManyArgs} args - Arguments to create many WashSlots.
+     * @example
+     * // Create many WashSlots
+     * const washSlot = await prisma.washSlot.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WashSlotCreateManyArgs>(args?: SelectSubset<T, WashSlotCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WashSlots and returns the data saved in the database.
+     * @param {WashSlotCreateManyAndReturnArgs} args - Arguments to create many WashSlots.
+     * @example
+     * // Create many WashSlots
+     * const washSlot = await prisma.washSlot.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WashSlots and only return the `id`
+     * const washSlotWithIdOnly = await prisma.washSlot.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WashSlotCreateManyAndReturnArgs>(args?: SelectSubset<T, WashSlotCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WashSlot.
+     * @param {WashSlotDeleteArgs} args - Arguments to delete one WashSlot.
+     * @example
+     * // Delete one WashSlot
+     * const WashSlot = await prisma.washSlot.delete({
+     *   where: {
+     *     // ... filter to delete one WashSlot
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WashSlotDeleteArgs>(args: SelectSubset<T, WashSlotDeleteArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WashSlot.
+     * @param {WashSlotUpdateArgs} args - Arguments to update one WashSlot.
+     * @example
+     * // Update one WashSlot
+     * const washSlot = await prisma.washSlot.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WashSlotUpdateArgs>(args: SelectSubset<T, WashSlotUpdateArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WashSlots.
+     * @param {WashSlotDeleteManyArgs} args - Arguments to filter WashSlots to delete.
+     * @example
+     * // Delete a few WashSlots
+     * const { count } = await prisma.washSlot.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WashSlotDeleteManyArgs>(args?: SelectSubset<T, WashSlotDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashSlots.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WashSlots
+     * const washSlot = await prisma.washSlot.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WashSlotUpdateManyArgs>(args: SelectSubset<T, WashSlotUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashSlots and returns the data updated in the database.
+     * @param {WashSlotUpdateManyAndReturnArgs} args - Arguments to update many WashSlots.
+     * @example
+     * // Update many WashSlots
+     * const washSlot = await prisma.washSlot.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WashSlots and only return the `id`
+     * const washSlotWithIdOnly = await prisma.washSlot.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WashSlotUpdateManyAndReturnArgs>(args: SelectSubset<T, WashSlotUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WashSlot.
+     * @param {WashSlotUpsertArgs} args - Arguments to update or create a WashSlot.
+     * @example
+     * // Update or create a WashSlot
+     * const washSlot = await prisma.washSlot.upsert({
+     *   create: {
+     *     // ... data to create a WashSlot
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WashSlot we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WashSlotUpsertArgs>(args: SelectSubset<T, WashSlotUpsertArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WashSlots.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotCountArgs} args - Arguments to filter WashSlots to count.
+     * @example
+     * // Count the number of WashSlots
+     * const count = await prisma.washSlot.count({
+     *   where: {
+     *     // ... the filter for the WashSlots we want to count
+     *   }
+     * })
+    **/
+    count<T extends WashSlotCountArgs>(
+      args?: Subset<T, WashSlotCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WashSlotCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WashSlot.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WashSlotAggregateArgs>(args: Subset<T, WashSlotAggregateArgs>): Prisma.PrismaPromise<GetWashSlotAggregateType<T>>
+
+    /**
+     * Group by WashSlot.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashSlotGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WashSlotGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WashSlotGroupByArgs['orderBy'] }
+        : { orderBy?: WashSlotGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WashSlotGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWashSlotGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WashSlot model
+   */
+  readonly fields: WashSlotFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WashSlot.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WashSlotClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    center<T extends WashCenterDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WashCenterDefaultArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    bookings<T extends WashSlot$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, WashSlot$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WashSlot model
+   */
+  interface WashSlotFieldRefs {
+    readonly id: FieldRef<"WashSlot", 'String'>
+    readonly centerId: FieldRef<"WashSlot", 'String'>
+    readonly startsAt: FieldRef<"WashSlot", 'DateTime'>
+    readonly endsAt: FieldRef<"WashSlot", 'DateTime'>
+    readonly capacity: FieldRef<"WashSlot", 'Int'>
+    readonly bookedCount: FieldRef<"WashSlot", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WashSlot findUnique
+   */
+  export type WashSlotFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * Filter, which WashSlot to fetch.
+     */
+    where: WashSlotWhereUniqueInput
+  }
+
+  /**
+   * WashSlot findUniqueOrThrow
+   */
+  export type WashSlotFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * Filter, which WashSlot to fetch.
+     */
+    where: WashSlotWhereUniqueInput
+  }
+
+  /**
+   * WashSlot findFirst
+   */
+  export type WashSlotFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * Filter, which WashSlot to fetch.
+     */
+    where?: WashSlotWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashSlots to fetch.
+     */
+    orderBy?: WashSlotOrderByWithRelationInput | WashSlotOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashSlots.
+     */
+    cursor?: WashSlotWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashSlots from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashSlots.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashSlots.
+     */
+    distinct?: WashSlotScalarFieldEnum | WashSlotScalarFieldEnum[]
+  }
+
+  /**
+   * WashSlot findFirstOrThrow
+   */
+  export type WashSlotFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * Filter, which WashSlot to fetch.
+     */
+    where?: WashSlotWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashSlots to fetch.
+     */
+    orderBy?: WashSlotOrderByWithRelationInput | WashSlotOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashSlots.
+     */
+    cursor?: WashSlotWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashSlots from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashSlots.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashSlots.
+     */
+    distinct?: WashSlotScalarFieldEnum | WashSlotScalarFieldEnum[]
+  }
+
+  /**
+   * WashSlot findMany
+   */
+  export type WashSlotFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * Filter, which WashSlots to fetch.
+     */
+    where?: WashSlotWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashSlots to fetch.
+     */
+    orderBy?: WashSlotOrderByWithRelationInput | WashSlotOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WashSlots.
+     */
+    cursor?: WashSlotWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashSlots from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashSlots.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashSlots.
+     */
+    distinct?: WashSlotScalarFieldEnum | WashSlotScalarFieldEnum[]
+  }
+
+  /**
+   * WashSlot create
+   */
+  export type WashSlotCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WashSlot.
+     */
+    data: XOR<WashSlotCreateInput, WashSlotUncheckedCreateInput>
+  }
+
+  /**
+   * WashSlot createMany
+   */
+  export type WashSlotCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WashSlots.
+     */
+    data: WashSlotCreateManyInput | WashSlotCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WashSlot createManyAndReturn
+   */
+  export type WashSlotCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * The data used to create many WashSlots.
+     */
+    data: WashSlotCreateManyInput | WashSlotCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashSlot update
+   */
+  export type WashSlotUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WashSlot.
+     */
+    data: XOR<WashSlotUpdateInput, WashSlotUncheckedUpdateInput>
+    /**
+     * Choose, which WashSlot to update.
+     */
+    where: WashSlotWhereUniqueInput
+  }
+
+  /**
+   * WashSlot updateMany
+   */
+  export type WashSlotUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WashSlots.
+     */
+    data: XOR<WashSlotUpdateManyMutationInput, WashSlotUncheckedUpdateManyInput>
+    /**
+     * Filter which WashSlots to update
+     */
+    where?: WashSlotWhereInput
+    /**
+     * Limit how many WashSlots to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashSlot updateManyAndReturn
+   */
+  export type WashSlotUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * The data used to update WashSlots.
+     */
+    data: XOR<WashSlotUpdateManyMutationInput, WashSlotUncheckedUpdateManyInput>
+    /**
+     * Filter which WashSlots to update
+     */
+    where?: WashSlotWhereInput
+    /**
+     * Limit how many WashSlots to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashSlot upsert
+   */
+  export type WashSlotUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WashSlot to update in case it exists.
+     */
+    where: WashSlotWhereUniqueInput
+    /**
+     * In case the WashSlot found by the `where` argument doesn't exist, create a new WashSlot with this data.
+     */
+    create: XOR<WashSlotCreateInput, WashSlotUncheckedCreateInput>
+    /**
+     * In case the WashSlot was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WashSlotUpdateInput, WashSlotUncheckedUpdateInput>
+  }
+
+  /**
+   * WashSlot delete
+   */
+  export type WashSlotDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    /**
+     * Filter which WashSlot to delete.
+     */
+    where: WashSlotWhereUniqueInput
+  }
+
+  /**
+   * WashSlot deleteMany
+   */
+  export type WashSlotDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashSlots to delete
+     */
+    where?: WashSlotWhereInput
+    /**
+     * Limit how many WashSlots to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashSlot.bookings
+   */
+  export type WashSlot$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    where?: WashBookingWhereInput
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    cursor?: WashBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashSlot without action
+   */
+  export type WashSlotDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WashBooking
+   */
+
+  export type AggregateWashBooking = {
+    _count: WashBookingCountAggregateOutputType | null
+    _avg: WashBookingAvgAggregateOutputType | null
+    _sum: WashBookingSumAggregateOutputType | null
+    _min: WashBookingMinAggregateOutputType | null
+    _max: WashBookingMaxAggregateOutputType | null
+  }
+
+  export type WashBookingAvgAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+    amountPaise: number | null
+  }
+
+  export type WashBookingSumAggregateOutputType = {
+    latitude: number | null
+    longitude: number | null
+    amountPaise: number | null
+  }
+
+  export type WashBookingMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    vehicleId: string | null
+    partnerId: string | null
+    centerId: string | null
+    slotId: string | null
+    technicianId: string | null
+    serviceModel: $Enums.WashServiceModel | null
+    washType: $Enums.WashType | null
+    addressLine: string | null
+    latitude: number | null
+    longitude: number | null
+    status: $Enums.WashBookingStatus | null
+    amountPaise: number | null
+    orderId: string | null
+    scheduledAt: Date | null
+    completedAt: Date | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WashBookingMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    vehicleId: string | null
+    partnerId: string | null
+    centerId: string | null
+    slotId: string | null
+    technicianId: string | null
+    serviceModel: $Enums.WashServiceModel | null
+    washType: $Enums.WashType | null
+    addressLine: string | null
+    latitude: number | null
+    longitude: number | null
+    status: $Enums.WashBookingStatus | null
+    amountPaise: number | null
+    orderId: string | null
+    scheduledAt: Date | null
+    completedAt: Date | null
+    idempotencyKey: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WashBookingCountAggregateOutputType = {
+    id: number
+    customerId: number
+    vehicleId: number
+    partnerId: number
+    centerId: number
+    slotId: number
+    technicianId: number
+    serviceModel: number
+    washType: number
+    addressLine: number
+    latitude: number
+    longitude: number
+    status: number
+    amountPaise: number
+    orderId: number
+    beforePhotoUrls: number
+    afterPhotoUrls: number
+    scheduledAt: number
+    completedAt: number
+    idempotencyKey: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type WashBookingAvgAggregateInputType = {
+    latitude?: true
+    longitude?: true
+    amountPaise?: true
+  }
+
+  export type WashBookingSumAggregateInputType = {
+    latitude?: true
+    longitude?: true
+    amountPaise?: true
+  }
+
+  export type WashBookingMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    vehicleId?: true
+    partnerId?: true
+    centerId?: true
+    slotId?: true
+    technicianId?: true
+    serviceModel?: true
+    washType?: true
+    addressLine?: true
+    latitude?: true
+    longitude?: true
+    status?: true
+    amountPaise?: true
+    orderId?: true
+    scheduledAt?: true
+    completedAt?: true
+    idempotencyKey?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WashBookingMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    vehicleId?: true
+    partnerId?: true
+    centerId?: true
+    slotId?: true
+    technicianId?: true
+    serviceModel?: true
+    washType?: true
+    addressLine?: true
+    latitude?: true
+    longitude?: true
+    status?: true
+    amountPaise?: true
+    orderId?: true
+    scheduledAt?: true
+    completedAt?: true
+    idempotencyKey?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WashBookingCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    vehicleId?: true
+    partnerId?: true
+    centerId?: true
+    slotId?: true
+    technicianId?: true
+    serviceModel?: true
+    washType?: true
+    addressLine?: true
+    latitude?: true
+    longitude?: true
+    status?: true
+    amountPaise?: true
+    orderId?: true
+    beforePhotoUrls?: true
+    afterPhotoUrls?: true
+    scheduledAt?: true
+    completedAt?: true
+    idempotencyKey?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type WashBookingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashBooking to aggregate.
+     */
+    where?: WashBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashBookings to fetch.
+     */
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WashBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WashBookings
+    **/
+    _count?: true | WashBookingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: WashBookingAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WashBookingSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WashBookingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WashBookingMaxAggregateInputType
+  }
+
+  export type GetWashBookingAggregateType<T extends WashBookingAggregateArgs> = {
+        [P in keyof T & keyof AggregateWashBooking]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWashBooking[P]>
+      : GetScalarType<T[P], AggregateWashBooking[P]>
+  }
+
+
+
+
+  export type WashBookingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WashBookingWhereInput
+    orderBy?: WashBookingOrderByWithAggregationInput | WashBookingOrderByWithAggregationInput[]
+    by: WashBookingScalarFieldEnum[] | WashBookingScalarFieldEnum
+    having?: WashBookingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WashBookingCountAggregateInputType | true
+    _avg?: WashBookingAvgAggregateInputType
+    _sum?: WashBookingSumAggregateInputType
+    _min?: WashBookingMinAggregateInputType
+    _max?: WashBookingMaxAggregateInputType
+  }
+
+  export type WashBookingGroupByOutputType = {
+    id: string
+    customerId: string
+    vehicleId: string | null
+    partnerId: string
+    centerId: string | null
+    slotId: string | null
+    technicianId: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine: string | null
+    latitude: number | null
+    longitude: number | null
+    status: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId: string | null
+    beforePhotoUrls: string[]
+    afterPhotoUrls: string[]
+    scheduledAt: Date | null
+    completedAt: Date | null
+    idempotencyKey: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: WashBookingCountAggregateOutputType | null
+    _avg: WashBookingAvgAggregateOutputType | null
+    _sum: WashBookingSumAggregateOutputType | null
+    _min: WashBookingMinAggregateOutputType | null
+    _max: WashBookingMaxAggregateOutputType | null
+  }
+
+  type GetWashBookingGroupByPayload<T extends WashBookingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WashBookingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WashBookingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WashBookingGroupByOutputType[P]>
+            : GetScalarType<T[P], WashBookingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WashBookingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    vehicleId?: boolean
+    partnerId?: boolean
+    centerId?: boolean
+    slotId?: boolean
+    technicianId?: boolean
+    serviceModel?: boolean
+    washType?: boolean
+    addressLine?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    status?: boolean
+    amountPaise?: boolean
+    orderId?: boolean
+    beforePhotoUrls?: boolean
+    afterPhotoUrls?: boolean
+    scheduledAt?: boolean
+    completedAt?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    center?: boolean | WashBooking$centerArgs<ExtArgs>
+    slot?: boolean | WashBooking$slotArgs<ExtArgs>
+    technician?: boolean | WashBooking$technicianArgs<ExtArgs>
+  }, ExtArgs["result"]["washBooking"]>
+
+  export type WashBookingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    vehicleId?: boolean
+    partnerId?: boolean
+    centerId?: boolean
+    slotId?: boolean
+    technicianId?: boolean
+    serviceModel?: boolean
+    washType?: boolean
+    addressLine?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    status?: boolean
+    amountPaise?: boolean
+    orderId?: boolean
+    beforePhotoUrls?: boolean
+    afterPhotoUrls?: boolean
+    scheduledAt?: boolean
+    completedAt?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    center?: boolean | WashBooking$centerArgs<ExtArgs>
+    slot?: boolean | WashBooking$slotArgs<ExtArgs>
+    technician?: boolean | WashBooking$technicianArgs<ExtArgs>
+  }, ExtArgs["result"]["washBooking"]>
+
+  export type WashBookingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    vehicleId?: boolean
+    partnerId?: boolean
+    centerId?: boolean
+    slotId?: boolean
+    technicianId?: boolean
+    serviceModel?: boolean
+    washType?: boolean
+    addressLine?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    status?: boolean
+    amountPaise?: boolean
+    orderId?: boolean
+    beforePhotoUrls?: boolean
+    afterPhotoUrls?: boolean
+    scheduledAt?: boolean
+    completedAt?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    center?: boolean | WashBooking$centerArgs<ExtArgs>
+    slot?: boolean | WashBooking$slotArgs<ExtArgs>
+    technician?: boolean | WashBooking$technicianArgs<ExtArgs>
+  }, ExtArgs["result"]["washBooking"]>
+
+  export type WashBookingSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    vehicleId?: boolean
+    partnerId?: boolean
+    centerId?: boolean
+    slotId?: boolean
+    technicianId?: boolean
+    serviceModel?: boolean
+    washType?: boolean
+    addressLine?: boolean
+    latitude?: boolean
+    longitude?: boolean
+    status?: boolean
+    amountPaise?: boolean
+    orderId?: boolean
+    beforePhotoUrls?: boolean
+    afterPhotoUrls?: boolean
+    scheduledAt?: boolean
+    completedAt?: boolean
+    idempotencyKey?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type WashBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "vehicleId" | "partnerId" | "centerId" | "slotId" | "technicianId" | "serviceModel" | "washType" | "addressLine" | "latitude" | "longitude" | "status" | "amountPaise" | "orderId" | "beforePhotoUrls" | "afterPhotoUrls" | "scheduledAt" | "completedAt" | "idempotencyKey" | "createdAt" | "updatedAt", ExtArgs["result"]["washBooking"]>
+  export type WashBookingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    center?: boolean | WashBooking$centerArgs<ExtArgs>
+    slot?: boolean | WashBooking$slotArgs<ExtArgs>
+    technician?: boolean | WashBooking$technicianArgs<ExtArgs>
+  }
+  export type WashBookingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    center?: boolean | WashBooking$centerArgs<ExtArgs>
+    slot?: boolean | WashBooking$slotArgs<ExtArgs>
+    technician?: boolean | WashBooking$technicianArgs<ExtArgs>
+  }
+  export type WashBookingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerDefaultArgs<ExtArgs>
+    partner?: boolean | WashPartnerDefaultArgs<ExtArgs>
+    center?: boolean | WashBooking$centerArgs<ExtArgs>
+    slot?: boolean | WashBooking$slotArgs<ExtArgs>
+    technician?: boolean | WashBooking$technicianArgs<ExtArgs>
+  }
+
+  export type $WashBookingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WashBooking"
+    objects: {
+      customer: Prisma.$CustomerPayload<ExtArgs>
+      partner: Prisma.$WashPartnerPayload<ExtArgs>
+      center: Prisma.$WashCenterPayload<ExtArgs> | null
+      slot: Prisma.$WashSlotPayload<ExtArgs> | null
+      technician: Prisma.$WashTechnicianPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string
+      vehicleId: string | null
+      partnerId: string
+      centerId: string | null
+      slotId: string | null
+      technicianId: string | null
+      serviceModel: $Enums.WashServiceModel
+      washType: $Enums.WashType
+      addressLine: string | null
+      latitude: number | null
+      longitude: number | null
+      status: $Enums.WashBookingStatus
+      amountPaise: number
+      orderId: string | null
+      beforePhotoUrls: string[]
+      afterPhotoUrls: string[]
+      scheduledAt: Date | null
+      completedAt: Date | null
+      idempotencyKey: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["washBooking"]>
+    composites: {}
+  }
+
+  type WashBookingGetPayload<S extends boolean | null | undefined | WashBookingDefaultArgs> = $Result.GetResult<Prisma.$WashBookingPayload, S>
+
+  type WashBookingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WashBookingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WashBookingCountAggregateInputType | true
+    }
+
+  export interface WashBookingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WashBooking'], meta: { name: 'WashBooking' } }
+    /**
+     * Find zero or one WashBooking that matches the filter.
+     * @param {WashBookingFindUniqueArgs} args - Arguments to find a WashBooking
+     * @example
+     * // Get one WashBooking
+     * const washBooking = await prisma.washBooking.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WashBookingFindUniqueArgs>(args: SelectSubset<T, WashBookingFindUniqueArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WashBooking that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WashBookingFindUniqueOrThrowArgs} args - Arguments to find a WashBooking
+     * @example
+     * // Get one WashBooking
+     * const washBooking = await prisma.washBooking.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WashBookingFindUniqueOrThrowArgs>(args: SelectSubset<T, WashBookingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashBooking that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingFindFirstArgs} args - Arguments to find a WashBooking
+     * @example
+     * // Get one WashBooking
+     * const washBooking = await prisma.washBooking.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WashBookingFindFirstArgs>(args?: SelectSubset<T, WashBookingFindFirstArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WashBooking that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingFindFirstOrThrowArgs} args - Arguments to find a WashBooking
+     * @example
+     * // Get one WashBooking
+     * const washBooking = await prisma.washBooking.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WashBookingFindFirstOrThrowArgs>(args?: SelectSubset<T, WashBookingFindFirstOrThrowArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WashBookings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WashBookings
+     * const washBookings = await prisma.washBooking.findMany()
+     * 
+     * // Get first 10 WashBookings
+     * const washBookings = await prisma.washBooking.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const washBookingWithIdOnly = await prisma.washBooking.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WashBookingFindManyArgs>(args?: SelectSubset<T, WashBookingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WashBooking.
+     * @param {WashBookingCreateArgs} args - Arguments to create a WashBooking.
+     * @example
+     * // Create one WashBooking
+     * const WashBooking = await prisma.washBooking.create({
+     *   data: {
+     *     // ... data to create a WashBooking
+     *   }
+     * })
+     * 
+     */
+    create<T extends WashBookingCreateArgs>(args: SelectSubset<T, WashBookingCreateArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WashBookings.
+     * @param {WashBookingCreateManyArgs} args - Arguments to create many WashBookings.
+     * @example
+     * // Create many WashBookings
+     * const washBooking = await prisma.washBooking.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WashBookingCreateManyArgs>(args?: SelectSubset<T, WashBookingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WashBookings and returns the data saved in the database.
+     * @param {WashBookingCreateManyAndReturnArgs} args - Arguments to create many WashBookings.
+     * @example
+     * // Create many WashBookings
+     * const washBooking = await prisma.washBooking.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WashBookings and only return the `id`
+     * const washBookingWithIdOnly = await prisma.washBooking.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WashBookingCreateManyAndReturnArgs>(args?: SelectSubset<T, WashBookingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WashBooking.
+     * @param {WashBookingDeleteArgs} args - Arguments to delete one WashBooking.
+     * @example
+     * // Delete one WashBooking
+     * const WashBooking = await prisma.washBooking.delete({
+     *   where: {
+     *     // ... filter to delete one WashBooking
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WashBookingDeleteArgs>(args: SelectSubset<T, WashBookingDeleteArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WashBooking.
+     * @param {WashBookingUpdateArgs} args - Arguments to update one WashBooking.
+     * @example
+     * // Update one WashBooking
+     * const washBooking = await prisma.washBooking.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WashBookingUpdateArgs>(args: SelectSubset<T, WashBookingUpdateArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WashBookings.
+     * @param {WashBookingDeleteManyArgs} args - Arguments to filter WashBookings to delete.
+     * @example
+     * // Delete a few WashBookings
+     * const { count } = await prisma.washBooking.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WashBookingDeleteManyArgs>(args?: SelectSubset<T, WashBookingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashBookings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WashBookings
+     * const washBooking = await prisma.washBooking.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WashBookingUpdateManyArgs>(args: SelectSubset<T, WashBookingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WashBookings and returns the data updated in the database.
+     * @param {WashBookingUpdateManyAndReturnArgs} args - Arguments to update many WashBookings.
+     * @example
+     * // Update many WashBookings
+     * const washBooking = await prisma.washBooking.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WashBookings and only return the `id`
+     * const washBookingWithIdOnly = await prisma.washBooking.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WashBookingUpdateManyAndReturnArgs>(args: SelectSubset<T, WashBookingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WashBooking.
+     * @param {WashBookingUpsertArgs} args - Arguments to update or create a WashBooking.
+     * @example
+     * // Update or create a WashBooking
+     * const washBooking = await prisma.washBooking.upsert({
+     *   create: {
+     *     // ... data to create a WashBooking
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WashBooking we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WashBookingUpsertArgs>(args: SelectSubset<T, WashBookingUpsertArgs<ExtArgs>>): Prisma__WashBookingClient<$Result.GetResult<Prisma.$WashBookingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WashBookings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingCountArgs} args - Arguments to filter WashBookings to count.
+     * @example
+     * // Count the number of WashBookings
+     * const count = await prisma.washBooking.count({
+     *   where: {
+     *     // ... the filter for the WashBookings we want to count
+     *   }
+     * })
+    **/
+    count<T extends WashBookingCountArgs>(
+      args?: Subset<T, WashBookingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WashBookingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WashBooking.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WashBookingAggregateArgs>(args: Subset<T, WashBookingAggregateArgs>): Prisma.PrismaPromise<GetWashBookingAggregateType<T>>
+
+    /**
+     * Group by WashBooking.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WashBookingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WashBookingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WashBookingGroupByArgs['orderBy'] }
+        : { orderBy?: WashBookingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WashBookingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWashBookingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WashBooking model
+   */
+  readonly fields: WashBookingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WashBooking.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WashBookingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    partner<T extends WashPartnerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WashPartnerDefaultArgs<ExtArgs>>): Prisma__WashPartnerClient<$Result.GetResult<Prisma.$WashPartnerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    center<T extends WashBooking$centerArgs<ExtArgs> = {}>(args?: Subset<T, WashBooking$centerArgs<ExtArgs>>): Prisma__WashCenterClient<$Result.GetResult<Prisma.$WashCenterPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    slot<T extends WashBooking$slotArgs<ExtArgs> = {}>(args?: Subset<T, WashBooking$slotArgs<ExtArgs>>): Prisma__WashSlotClient<$Result.GetResult<Prisma.$WashSlotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    technician<T extends WashBooking$technicianArgs<ExtArgs> = {}>(args?: Subset<T, WashBooking$technicianArgs<ExtArgs>>): Prisma__WashTechnicianClient<$Result.GetResult<Prisma.$WashTechnicianPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WashBooking model
+   */
+  interface WashBookingFieldRefs {
+    readonly id: FieldRef<"WashBooking", 'String'>
+    readonly customerId: FieldRef<"WashBooking", 'String'>
+    readonly vehicleId: FieldRef<"WashBooking", 'String'>
+    readonly partnerId: FieldRef<"WashBooking", 'String'>
+    readonly centerId: FieldRef<"WashBooking", 'String'>
+    readonly slotId: FieldRef<"WashBooking", 'String'>
+    readonly technicianId: FieldRef<"WashBooking", 'String'>
+    readonly serviceModel: FieldRef<"WashBooking", 'WashServiceModel'>
+    readonly washType: FieldRef<"WashBooking", 'WashType'>
+    readonly addressLine: FieldRef<"WashBooking", 'String'>
+    readonly latitude: FieldRef<"WashBooking", 'Float'>
+    readonly longitude: FieldRef<"WashBooking", 'Float'>
+    readonly status: FieldRef<"WashBooking", 'WashBookingStatus'>
+    readonly amountPaise: FieldRef<"WashBooking", 'Int'>
+    readonly orderId: FieldRef<"WashBooking", 'String'>
+    readonly beforePhotoUrls: FieldRef<"WashBooking", 'String[]'>
+    readonly afterPhotoUrls: FieldRef<"WashBooking", 'String[]'>
+    readonly scheduledAt: FieldRef<"WashBooking", 'DateTime'>
+    readonly completedAt: FieldRef<"WashBooking", 'DateTime'>
+    readonly idempotencyKey: FieldRef<"WashBooking", 'String'>
+    readonly createdAt: FieldRef<"WashBooking", 'DateTime'>
+    readonly updatedAt: FieldRef<"WashBooking", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WashBooking findUnique
+   */
+  export type WashBookingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which WashBooking to fetch.
+     */
+    where: WashBookingWhereUniqueInput
+  }
+
+  /**
+   * WashBooking findUniqueOrThrow
+   */
+  export type WashBookingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which WashBooking to fetch.
+     */
+    where: WashBookingWhereUniqueInput
+  }
+
+  /**
+   * WashBooking findFirst
+   */
+  export type WashBookingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which WashBooking to fetch.
+     */
+    where?: WashBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashBookings to fetch.
+     */
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashBookings.
+     */
+    cursor?: WashBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashBookings.
+     */
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashBooking findFirstOrThrow
+   */
+  export type WashBookingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which WashBooking to fetch.
+     */
+    where?: WashBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashBookings to fetch.
+     */
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WashBookings.
+     */
+    cursor?: WashBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashBookings.
+     */
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashBooking findMany
+   */
+  export type WashBookingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * Filter, which WashBookings to fetch.
+     */
+    where?: WashBookingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WashBookings to fetch.
+     */
+    orderBy?: WashBookingOrderByWithRelationInput | WashBookingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WashBookings.
+     */
+    cursor?: WashBookingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WashBookings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WashBookings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WashBookings.
+     */
+    distinct?: WashBookingScalarFieldEnum | WashBookingScalarFieldEnum[]
+  }
+
+  /**
+   * WashBooking create
+   */
+  export type WashBookingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WashBooking.
+     */
+    data: XOR<WashBookingCreateInput, WashBookingUncheckedCreateInput>
+  }
+
+  /**
+   * WashBooking createMany
+   */
+  export type WashBookingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WashBookings.
+     */
+    data: WashBookingCreateManyInput | WashBookingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WashBooking createManyAndReturn
+   */
+  export type WashBookingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * The data used to create many WashBookings.
+     */
+    data: WashBookingCreateManyInput | WashBookingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashBooking update
+   */
+  export type WashBookingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WashBooking.
+     */
+    data: XOR<WashBookingUpdateInput, WashBookingUncheckedUpdateInput>
+    /**
+     * Choose, which WashBooking to update.
+     */
+    where: WashBookingWhereUniqueInput
+  }
+
+  /**
+   * WashBooking updateMany
+   */
+  export type WashBookingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WashBookings.
+     */
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyInput>
+    /**
+     * Filter which WashBookings to update
+     */
+    where?: WashBookingWhereInput
+    /**
+     * Limit how many WashBookings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashBooking updateManyAndReturn
+   */
+  export type WashBookingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * The data used to update WashBookings.
+     */
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyInput>
+    /**
+     * Filter which WashBookings to update
+     */
+    where?: WashBookingWhereInput
+    /**
+     * Limit how many WashBookings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WashBooking upsert
+   */
+  export type WashBookingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WashBooking to update in case it exists.
+     */
+    where: WashBookingWhereUniqueInput
+    /**
+     * In case the WashBooking found by the `where` argument doesn't exist, create a new WashBooking with this data.
+     */
+    create: XOR<WashBookingCreateInput, WashBookingUncheckedCreateInput>
+    /**
+     * In case the WashBooking was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WashBookingUpdateInput, WashBookingUncheckedUpdateInput>
+  }
+
+  /**
+   * WashBooking delete
+   */
+  export type WashBookingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+    /**
+     * Filter which WashBooking to delete.
+     */
+    where: WashBookingWhereUniqueInput
+  }
+
+  /**
+   * WashBooking deleteMany
+   */
+  export type WashBookingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WashBookings to delete
+     */
+    where?: WashBookingWhereInput
+    /**
+     * Limit how many WashBookings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WashBooking.center
+   */
+  export type WashBooking$centerArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashCenter
+     */
+    select?: WashCenterSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashCenter
+     */
+    omit?: WashCenterOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashCenterInclude<ExtArgs> | null
+    where?: WashCenterWhereInput
+  }
+
+  /**
+   * WashBooking.slot
+   */
+  export type WashBooking$slotArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashSlot
+     */
+    select?: WashSlotSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashSlot
+     */
+    omit?: WashSlotOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashSlotInclude<ExtArgs> | null
+    where?: WashSlotWhereInput
+  }
+
+  /**
+   * WashBooking.technician
+   */
+  export type WashBooking$technicianArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashTechnician
+     */
+    select?: WashTechnicianSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashTechnician
+     */
+    omit?: WashTechnicianOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashTechnicianInclude<ExtArgs> | null
+    where?: WashTechnicianWhereInput
+  }
+
+  /**
+   * WashBooking without action
+   */
+  export type WashBookingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WashBooking
+     */
+    select?: WashBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WashBooking
+     */
+    omit?: WashBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WashBookingInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -133389,6 +140284,92 @@ export namespace Prisma {
   export type ContentReportScalarFieldEnum = (typeof ContentReportScalarFieldEnum)[keyof typeof ContentReportScalarFieldEnum]
 
 
+  export const WashPartnerScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    phoneNumber: 'phoneNumber',
+    passwordHash: 'passwordHash',
+    status: 'status',
+    rating: 'rating',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type WashPartnerScalarFieldEnum = (typeof WashPartnerScalarFieldEnum)[keyof typeof WashPartnerScalarFieldEnum]
+
+
+  export const WashTechnicianScalarFieldEnum: {
+    id: 'id',
+    partnerId: 'partnerId',
+    name: 'name',
+    phoneNumber: 'phoneNumber',
+    passwordHash: 'passwordHash',
+    photoUrl: 'photoUrl',
+    isActive: 'isActive',
+    rating: 'rating',
+    createdAt: 'createdAt'
+  };
+
+  export type WashTechnicianScalarFieldEnum = (typeof WashTechnicianScalarFieldEnum)[keyof typeof WashTechnicianScalarFieldEnum]
+
+
+  export const WashCenterScalarFieldEnum: {
+    id: 'id',
+    partnerId: 'partnerId',
+    name: 'name',
+    address: 'address',
+    latitude: 'latitude',
+    longitude: 'longitude',
+    supportsBike: 'supportsBike',
+    supportsCar: 'supportsCar',
+    supportsEV: 'supportsEV',
+    isActive: 'isActive',
+    createdAt: 'createdAt'
+  };
+
+  export type WashCenterScalarFieldEnum = (typeof WashCenterScalarFieldEnum)[keyof typeof WashCenterScalarFieldEnum]
+
+
+  export const WashSlotScalarFieldEnum: {
+    id: 'id',
+    centerId: 'centerId',
+    startsAt: 'startsAt',
+    endsAt: 'endsAt',
+    capacity: 'capacity',
+    bookedCount: 'bookedCount'
+  };
+
+  export type WashSlotScalarFieldEnum = (typeof WashSlotScalarFieldEnum)[keyof typeof WashSlotScalarFieldEnum]
+
+
+  export const WashBookingScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    vehicleId: 'vehicleId',
+    partnerId: 'partnerId',
+    centerId: 'centerId',
+    slotId: 'slotId',
+    technicianId: 'technicianId',
+    serviceModel: 'serviceModel',
+    washType: 'washType',
+    addressLine: 'addressLine',
+    latitude: 'latitude',
+    longitude: 'longitude',
+    status: 'status',
+    amountPaise: 'amountPaise',
+    orderId: 'orderId',
+    beforePhotoUrls: 'beforePhotoUrls',
+    afterPhotoUrls: 'afterPhotoUrls',
+    scheduledAt: 'scheduledAt',
+    completedAt: 'completedAt',
+    idempotencyKey: 'idempotencyKey',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type WashBookingScalarFieldEnum = (typeof WashBookingScalarFieldEnum)[keyof typeof WashBookingScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -134525,6 +141506,62 @@ export namespace Prisma {
    */
   export type ListEnumContentReportTargetFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ContentReportTarget[]'>
     
+
+
+  /**
+   * Reference to a field of type 'WashPartnerStatus'
+   */
+  export type EnumWashPartnerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashPartnerStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashPartnerStatus[]'
+   */
+  export type ListEnumWashPartnerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashPartnerStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashServiceModel'
+   */
+  export type EnumWashServiceModelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashServiceModel'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashServiceModel[]'
+   */
+  export type ListEnumWashServiceModelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashServiceModel[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashType'
+   */
+  export type EnumWashTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashType'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashType[]'
+   */
+  export type ListEnumWashTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashBookingStatus'
+   */
+  export type EnumWashBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashBookingStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'WashBookingStatus[]'
+   */
+  export type ListEnumWashBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WashBookingStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -134683,6 +141720,7 @@ export namespace Prisma {
     orders?: CustomerOrderListRelationFilter
     parkingBookings?: ParkingBookingListRelationFilter
     waitlistEntries?: ParkingWaitlistEntryListRelationFilter
+    washBookings?: WashBookingListRelationFilter
     conversationsAsCustomer?: ConversationListRelationFilter
     conversationsAsOwner?: ConversationListRelationFilter
     blockedContacts?: BlockedContactListRelationFilter
@@ -134727,6 +141765,7 @@ export namespace Prisma {
     orders?: CustomerOrderOrderByRelationAggregateInput
     parkingBookings?: ParkingBookingOrderByRelationAggregateInput
     waitlistEntries?: ParkingWaitlistEntryOrderByRelationAggregateInput
+    washBookings?: WashBookingOrderByRelationAggregateInput
     conversationsAsCustomer?: ConversationOrderByRelationAggregateInput
     conversationsAsOwner?: ConversationOrderByRelationAggregateInput
     blockedContacts?: BlockedContactOrderByRelationAggregateInput
@@ -134774,6 +141813,7 @@ export namespace Prisma {
     orders?: CustomerOrderListRelationFilter
     parkingBookings?: ParkingBookingListRelationFilter
     waitlistEntries?: ParkingWaitlistEntryListRelationFilter
+    washBookings?: WashBookingListRelationFilter
     conversationsAsCustomer?: ConversationListRelationFilter
     conversationsAsOwner?: ConversationListRelationFilter
     blockedContacts?: BlockedContactListRelationFilter
@@ -143396,6 +150436,476 @@ export namespace Prisma {
     resolvedAt?: DateTimeNullableWithAggregatesFilter<"ContentReport"> | Date | string | null
   }
 
+  export type WashPartnerWhereInput = {
+    AND?: WashPartnerWhereInput | WashPartnerWhereInput[]
+    OR?: WashPartnerWhereInput[]
+    NOT?: WashPartnerWhereInput | WashPartnerWhereInput[]
+    id?: StringFilter<"WashPartner"> | string
+    name?: StringFilter<"WashPartner"> | string
+    phoneNumber?: StringFilter<"WashPartner"> | string
+    passwordHash?: StringFilter<"WashPartner"> | string
+    status?: EnumWashPartnerStatusFilter<"WashPartner"> | $Enums.WashPartnerStatus
+    rating?: FloatNullableFilter<"WashPartner"> | number | null
+    createdAt?: DateTimeFilter<"WashPartner"> | Date | string
+    updatedAt?: DateTimeFilter<"WashPartner"> | Date | string
+    centers?: WashCenterListRelationFilter
+    technicians?: WashTechnicianListRelationFilter
+    bookings?: WashBookingListRelationFilter
+  }
+
+  export type WashPartnerOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    rating?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    centers?: WashCenterOrderByRelationAggregateInput
+    technicians?: WashTechnicianOrderByRelationAggregateInput
+    bookings?: WashBookingOrderByRelationAggregateInput
+  }
+
+  export type WashPartnerWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneNumber?: string
+    AND?: WashPartnerWhereInput | WashPartnerWhereInput[]
+    OR?: WashPartnerWhereInput[]
+    NOT?: WashPartnerWhereInput | WashPartnerWhereInput[]
+    name?: StringFilter<"WashPartner"> | string
+    passwordHash?: StringFilter<"WashPartner"> | string
+    status?: EnumWashPartnerStatusFilter<"WashPartner"> | $Enums.WashPartnerStatus
+    rating?: FloatNullableFilter<"WashPartner"> | number | null
+    createdAt?: DateTimeFilter<"WashPartner"> | Date | string
+    updatedAt?: DateTimeFilter<"WashPartner"> | Date | string
+    centers?: WashCenterListRelationFilter
+    technicians?: WashTechnicianListRelationFilter
+    bookings?: WashBookingListRelationFilter
+  }, "id" | "phoneNumber">
+
+  export type WashPartnerOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    rating?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: WashPartnerCountOrderByAggregateInput
+    _avg?: WashPartnerAvgOrderByAggregateInput
+    _max?: WashPartnerMaxOrderByAggregateInput
+    _min?: WashPartnerMinOrderByAggregateInput
+    _sum?: WashPartnerSumOrderByAggregateInput
+  }
+
+  export type WashPartnerScalarWhereWithAggregatesInput = {
+    AND?: WashPartnerScalarWhereWithAggregatesInput | WashPartnerScalarWhereWithAggregatesInput[]
+    OR?: WashPartnerScalarWhereWithAggregatesInput[]
+    NOT?: WashPartnerScalarWhereWithAggregatesInput | WashPartnerScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WashPartner"> | string
+    name?: StringWithAggregatesFilter<"WashPartner"> | string
+    phoneNumber?: StringWithAggregatesFilter<"WashPartner"> | string
+    passwordHash?: StringWithAggregatesFilter<"WashPartner"> | string
+    status?: EnumWashPartnerStatusWithAggregatesFilter<"WashPartner"> | $Enums.WashPartnerStatus
+    rating?: FloatNullableWithAggregatesFilter<"WashPartner"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"WashPartner"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"WashPartner"> | Date | string
+  }
+
+  export type WashTechnicianWhereInput = {
+    AND?: WashTechnicianWhereInput | WashTechnicianWhereInput[]
+    OR?: WashTechnicianWhereInput[]
+    NOT?: WashTechnicianWhereInput | WashTechnicianWhereInput[]
+    id?: StringFilter<"WashTechnician"> | string
+    partnerId?: StringFilter<"WashTechnician"> | string
+    name?: StringFilter<"WashTechnician"> | string
+    phoneNumber?: StringFilter<"WashTechnician"> | string
+    passwordHash?: StringFilter<"WashTechnician"> | string
+    photoUrl?: StringNullableFilter<"WashTechnician"> | string | null
+    isActive?: BoolFilter<"WashTechnician"> | boolean
+    rating?: FloatNullableFilter<"WashTechnician"> | number | null
+    createdAt?: DateTimeFilter<"WashTechnician"> | Date | string
+    partner?: XOR<WashPartnerScalarRelationFilter, WashPartnerWhereInput>
+    bookings?: WashBookingListRelationFilter
+  }
+
+  export type WashTechnicianOrderByWithRelationInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    photoUrl?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    rating?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    partner?: WashPartnerOrderByWithRelationInput
+    bookings?: WashBookingOrderByRelationAggregateInput
+  }
+
+  export type WashTechnicianWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneNumber?: string
+    AND?: WashTechnicianWhereInput | WashTechnicianWhereInput[]
+    OR?: WashTechnicianWhereInput[]
+    NOT?: WashTechnicianWhereInput | WashTechnicianWhereInput[]
+    partnerId?: StringFilter<"WashTechnician"> | string
+    name?: StringFilter<"WashTechnician"> | string
+    passwordHash?: StringFilter<"WashTechnician"> | string
+    photoUrl?: StringNullableFilter<"WashTechnician"> | string | null
+    isActive?: BoolFilter<"WashTechnician"> | boolean
+    rating?: FloatNullableFilter<"WashTechnician"> | number | null
+    createdAt?: DateTimeFilter<"WashTechnician"> | Date | string
+    partner?: XOR<WashPartnerScalarRelationFilter, WashPartnerWhereInput>
+    bookings?: WashBookingListRelationFilter
+  }, "id" | "phoneNumber">
+
+  export type WashTechnicianOrderByWithAggregationInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    photoUrl?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    rating?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: WashTechnicianCountOrderByAggregateInput
+    _avg?: WashTechnicianAvgOrderByAggregateInput
+    _max?: WashTechnicianMaxOrderByAggregateInput
+    _min?: WashTechnicianMinOrderByAggregateInput
+    _sum?: WashTechnicianSumOrderByAggregateInput
+  }
+
+  export type WashTechnicianScalarWhereWithAggregatesInput = {
+    AND?: WashTechnicianScalarWhereWithAggregatesInput | WashTechnicianScalarWhereWithAggregatesInput[]
+    OR?: WashTechnicianScalarWhereWithAggregatesInput[]
+    NOT?: WashTechnicianScalarWhereWithAggregatesInput | WashTechnicianScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WashTechnician"> | string
+    partnerId?: StringWithAggregatesFilter<"WashTechnician"> | string
+    name?: StringWithAggregatesFilter<"WashTechnician"> | string
+    phoneNumber?: StringWithAggregatesFilter<"WashTechnician"> | string
+    passwordHash?: StringWithAggregatesFilter<"WashTechnician"> | string
+    photoUrl?: StringNullableWithAggregatesFilter<"WashTechnician"> | string | null
+    isActive?: BoolWithAggregatesFilter<"WashTechnician"> | boolean
+    rating?: FloatNullableWithAggregatesFilter<"WashTechnician"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"WashTechnician"> | Date | string
+  }
+
+  export type WashCenterWhereInput = {
+    AND?: WashCenterWhereInput | WashCenterWhereInput[]
+    OR?: WashCenterWhereInput[]
+    NOT?: WashCenterWhereInput | WashCenterWhereInput[]
+    id?: StringFilter<"WashCenter"> | string
+    partnerId?: StringFilter<"WashCenter"> | string
+    name?: StringFilter<"WashCenter"> | string
+    address?: StringFilter<"WashCenter"> | string
+    latitude?: FloatFilter<"WashCenter"> | number
+    longitude?: FloatFilter<"WashCenter"> | number
+    supportsBike?: BoolFilter<"WashCenter"> | boolean
+    supportsCar?: BoolFilter<"WashCenter"> | boolean
+    supportsEV?: BoolFilter<"WashCenter"> | boolean
+    isActive?: BoolFilter<"WashCenter"> | boolean
+    createdAt?: DateTimeFilter<"WashCenter"> | Date | string
+    partner?: XOR<WashPartnerScalarRelationFilter, WashPartnerWhereInput>
+    slots?: WashSlotListRelationFilter
+    bookings?: WashBookingListRelationFilter
+  }
+
+  export type WashCenterOrderByWithRelationInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    address?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    supportsBike?: SortOrder
+    supportsCar?: SortOrder
+    supportsEV?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    partner?: WashPartnerOrderByWithRelationInput
+    slots?: WashSlotOrderByRelationAggregateInput
+    bookings?: WashBookingOrderByRelationAggregateInput
+  }
+
+  export type WashCenterWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WashCenterWhereInput | WashCenterWhereInput[]
+    OR?: WashCenterWhereInput[]
+    NOT?: WashCenterWhereInput | WashCenterWhereInput[]
+    partnerId?: StringFilter<"WashCenter"> | string
+    name?: StringFilter<"WashCenter"> | string
+    address?: StringFilter<"WashCenter"> | string
+    latitude?: FloatFilter<"WashCenter"> | number
+    longitude?: FloatFilter<"WashCenter"> | number
+    supportsBike?: BoolFilter<"WashCenter"> | boolean
+    supportsCar?: BoolFilter<"WashCenter"> | boolean
+    supportsEV?: BoolFilter<"WashCenter"> | boolean
+    isActive?: BoolFilter<"WashCenter"> | boolean
+    createdAt?: DateTimeFilter<"WashCenter"> | Date | string
+    partner?: XOR<WashPartnerScalarRelationFilter, WashPartnerWhereInput>
+    slots?: WashSlotListRelationFilter
+    bookings?: WashBookingListRelationFilter
+  }, "id">
+
+  export type WashCenterOrderByWithAggregationInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    address?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    supportsBike?: SortOrder
+    supportsCar?: SortOrder
+    supportsEV?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    _count?: WashCenterCountOrderByAggregateInput
+    _avg?: WashCenterAvgOrderByAggregateInput
+    _max?: WashCenterMaxOrderByAggregateInput
+    _min?: WashCenterMinOrderByAggregateInput
+    _sum?: WashCenterSumOrderByAggregateInput
+  }
+
+  export type WashCenterScalarWhereWithAggregatesInput = {
+    AND?: WashCenterScalarWhereWithAggregatesInput | WashCenterScalarWhereWithAggregatesInput[]
+    OR?: WashCenterScalarWhereWithAggregatesInput[]
+    NOT?: WashCenterScalarWhereWithAggregatesInput | WashCenterScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WashCenter"> | string
+    partnerId?: StringWithAggregatesFilter<"WashCenter"> | string
+    name?: StringWithAggregatesFilter<"WashCenter"> | string
+    address?: StringWithAggregatesFilter<"WashCenter"> | string
+    latitude?: FloatWithAggregatesFilter<"WashCenter"> | number
+    longitude?: FloatWithAggregatesFilter<"WashCenter"> | number
+    supportsBike?: BoolWithAggregatesFilter<"WashCenter"> | boolean
+    supportsCar?: BoolWithAggregatesFilter<"WashCenter"> | boolean
+    supportsEV?: BoolWithAggregatesFilter<"WashCenter"> | boolean
+    isActive?: BoolWithAggregatesFilter<"WashCenter"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"WashCenter"> | Date | string
+  }
+
+  export type WashSlotWhereInput = {
+    AND?: WashSlotWhereInput | WashSlotWhereInput[]
+    OR?: WashSlotWhereInput[]
+    NOT?: WashSlotWhereInput | WashSlotWhereInput[]
+    id?: StringFilter<"WashSlot"> | string
+    centerId?: StringFilter<"WashSlot"> | string
+    startsAt?: DateTimeFilter<"WashSlot"> | Date | string
+    endsAt?: DateTimeFilter<"WashSlot"> | Date | string
+    capacity?: IntFilter<"WashSlot"> | number
+    bookedCount?: IntFilter<"WashSlot"> | number
+    center?: XOR<WashCenterScalarRelationFilter, WashCenterWhereInput>
+    bookings?: WashBookingListRelationFilter
+  }
+
+  export type WashSlotOrderByWithRelationInput = {
+    id?: SortOrder
+    centerId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+    center?: WashCenterOrderByWithRelationInput
+    bookings?: WashBookingOrderByRelationAggregateInput
+  }
+
+  export type WashSlotWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WashSlotWhereInput | WashSlotWhereInput[]
+    OR?: WashSlotWhereInput[]
+    NOT?: WashSlotWhereInput | WashSlotWhereInput[]
+    centerId?: StringFilter<"WashSlot"> | string
+    startsAt?: DateTimeFilter<"WashSlot"> | Date | string
+    endsAt?: DateTimeFilter<"WashSlot"> | Date | string
+    capacity?: IntFilter<"WashSlot"> | number
+    bookedCount?: IntFilter<"WashSlot"> | number
+    center?: XOR<WashCenterScalarRelationFilter, WashCenterWhereInput>
+    bookings?: WashBookingListRelationFilter
+  }, "id">
+
+  export type WashSlotOrderByWithAggregationInput = {
+    id?: SortOrder
+    centerId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+    _count?: WashSlotCountOrderByAggregateInput
+    _avg?: WashSlotAvgOrderByAggregateInput
+    _max?: WashSlotMaxOrderByAggregateInput
+    _min?: WashSlotMinOrderByAggregateInput
+    _sum?: WashSlotSumOrderByAggregateInput
+  }
+
+  export type WashSlotScalarWhereWithAggregatesInput = {
+    AND?: WashSlotScalarWhereWithAggregatesInput | WashSlotScalarWhereWithAggregatesInput[]
+    OR?: WashSlotScalarWhereWithAggregatesInput[]
+    NOT?: WashSlotScalarWhereWithAggregatesInput | WashSlotScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WashSlot"> | string
+    centerId?: StringWithAggregatesFilter<"WashSlot"> | string
+    startsAt?: DateTimeWithAggregatesFilter<"WashSlot"> | Date | string
+    endsAt?: DateTimeWithAggregatesFilter<"WashSlot"> | Date | string
+    capacity?: IntWithAggregatesFilter<"WashSlot"> | number
+    bookedCount?: IntWithAggregatesFilter<"WashSlot"> | number
+  }
+
+  export type WashBookingWhereInput = {
+    AND?: WashBookingWhereInput | WashBookingWhereInput[]
+    OR?: WashBookingWhereInput[]
+    NOT?: WashBookingWhereInput | WashBookingWhereInput[]
+    id?: StringFilter<"WashBooking"> | string
+    customerId?: StringFilter<"WashBooking"> | string
+    vehicleId?: StringNullableFilter<"WashBooking"> | string | null
+    partnerId?: StringFilter<"WashBooking"> | string
+    centerId?: StringNullableFilter<"WashBooking"> | string | null
+    slotId?: StringNullableFilter<"WashBooking"> | string | null
+    technicianId?: StringNullableFilter<"WashBooking"> | string | null
+    serviceModel?: EnumWashServiceModelFilter<"WashBooking"> | $Enums.WashServiceModel
+    washType?: EnumWashTypeFilter<"WashBooking"> | $Enums.WashType
+    addressLine?: StringNullableFilter<"WashBooking"> | string | null
+    latitude?: FloatNullableFilter<"WashBooking"> | number | null
+    longitude?: FloatNullableFilter<"WashBooking"> | number | null
+    status?: EnumWashBookingStatusFilter<"WashBooking"> | $Enums.WashBookingStatus
+    amountPaise?: IntFilter<"WashBooking"> | number
+    orderId?: StringNullableFilter<"WashBooking"> | string | null
+    beforePhotoUrls?: StringNullableListFilter<"WashBooking">
+    afterPhotoUrls?: StringNullableListFilter<"WashBooking">
+    scheduledAt?: DateTimeNullableFilter<"WashBooking"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"WashBooking"> | Date | string | null
+    idempotencyKey?: StringNullableFilter<"WashBooking"> | string | null
+    createdAt?: DateTimeFilter<"WashBooking"> | Date | string
+    updatedAt?: DateTimeFilter<"WashBooking"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    partner?: XOR<WashPartnerScalarRelationFilter, WashPartnerWhereInput>
+    center?: XOR<WashCenterNullableScalarRelationFilter, WashCenterWhereInput> | null
+    slot?: XOR<WashSlotNullableScalarRelationFilter, WashSlotWhereInput> | null
+    technician?: XOR<WashTechnicianNullableScalarRelationFilter, WashTechnicianWhereInput> | null
+  }
+
+  export type WashBookingOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    vehicleId?: SortOrderInput | SortOrder
+    partnerId?: SortOrder
+    centerId?: SortOrderInput | SortOrder
+    slotId?: SortOrderInput | SortOrder
+    technicianId?: SortOrderInput | SortOrder
+    serviceModel?: SortOrder
+    washType?: SortOrder
+    addressLine?: SortOrderInput | SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
+    status?: SortOrder
+    amountPaise?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    beforePhotoUrls?: SortOrder
+    afterPhotoUrls?: SortOrder
+    scheduledAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerOrderByWithRelationInput
+    partner?: WashPartnerOrderByWithRelationInput
+    center?: WashCenterOrderByWithRelationInput
+    slot?: WashSlotOrderByWithRelationInput
+    technician?: WashTechnicianOrderByWithRelationInput
+  }
+
+  export type WashBookingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    idempotencyKey?: string
+    AND?: WashBookingWhereInput | WashBookingWhereInput[]
+    OR?: WashBookingWhereInput[]
+    NOT?: WashBookingWhereInput | WashBookingWhereInput[]
+    customerId?: StringFilter<"WashBooking"> | string
+    vehicleId?: StringNullableFilter<"WashBooking"> | string | null
+    partnerId?: StringFilter<"WashBooking"> | string
+    centerId?: StringNullableFilter<"WashBooking"> | string | null
+    slotId?: StringNullableFilter<"WashBooking"> | string | null
+    technicianId?: StringNullableFilter<"WashBooking"> | string | null
+    serviceModel?: EnumWashServiceModelFilter<"WashBooking"> | $Enums.WashServiceModel
+    washType?: EnumWashTypeFilter<"WashBooking"> | $Enums.WashType
+    addressLine?: StringNullableFilter<"WashBooking"> | string | null
+    latitude?: FloatNullableFilter<"WashBooking"> | number | null
+    longitude?: FloatNullableFilter<"WashBooking"> | number | null
+    status?: EnumWashBookingStatusFilter<"WashBooking"> | $Enums.WashBookingStatus
+    amountPaise?: IntFilter<"WashBooking"> | number
+    orderId?: StringNullableFilter<"WashBooking"> | string | null
+    beforePhotoUrls?: StringNullableListFilter<"WashBooking">
+    afterPhotoUrls?: StringNullableListFilter<"WashBooking">
+    scheduledAt?: DateTimeNullableFilter<"WashBooking"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"WashBooking"> | Date | string | null
+    createdAt?: DateTimeFilter<"WashBooking"> | Date | string
+    updatedAt?: DateTimeFilter<"WashBooking"> | Date | string
+    customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
+    partner?: XOR<WashPartnerScalarRelationFilter, WashPartnerWhereInput>
+    center?: XOR<WashCenterNullableScalarRelationFilter, WashCenterWhereInput> | null
+    slot?: XOR<WashSlotNullableScalarRelationFilter, WashSlotWhereInput> | null
+    technician?: XOR<WashTechnicianNullableScalarRelationFilter, WashTechnicianWhereInput> | null
+  }, "id" | "idempotencyKey">
+
+  export type WashBookingOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    vehicleId?: SortOrderInput | SortOrder
+    partnerId?: SortOrder
+    centerId?: SortOrderInput | SortOrder
+    slotId?: SortOrderInput | SortOrder
+    technicianId?: SortOrderInput | SortOrder
+    serviceModel?: SortOrder
+    washType?: SortOrder
+    addressLine?: SortOrderInput | SortOrder
+    latitude?: SortOrderInput | SortOrder
+    longitude?: SortOrderInput | SortOrder
+    status?: SortOrder
+    amountPaise?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    beforePhotoUrls?: SortOrder
+    afterPhotoUrls?: SortOrder
+    scheduledAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: WashBookingCountOrderByAggregateInput
+    _avg?: WashBookingAvgOrderByAggregateInput
+    _max?: WashBookingMaxOrderByAggregateInput
+    _min?: WashBookingMinOrderByAggregateInput
+    _sum?: WashBookingSumOrderByAggregateInput
+  }
+
+  export type WashBookingScalarWhereWithAggregatesInput = {
+    AND?: WashBookingScalarWhereWithAggregatesInput | WashBookingScalarWhereWithAggregatesInput[]
+    OR?: WashBookingScalarWhereWithAggregatesInput[]
+    NOT?: WashBookingScalarWhereWithAggregatesInput | WashBookingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WashBooking"> | string
+    customerId?: StringWithAggregatesFilter<"WashBooking"> | string
+    vehicleId?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    partnerId?: StringWithAggregatesFilter<"WashBooking"> | string
+    centerId?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    slotId?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    technicianId?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    serviceModel?: EnumWashServiceModelWithAggregatesFilter<"WashBooking"> | $Enums.WashServiceModel
+    washType?: EnumWashTypeWithAggregatesFilter<"WashBooking"> | $Enums.WashType
+    addressLine?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    latitude?: FloatNullableWithAggregatesFilter<"WashBooking"> | number | null
+    longitude?: FloatNullableWithAggregatesFilter<"WashBooking"> | number | null
+    status?: EnumWashBookingStatusWithAggregatesFilter<"WashBooking"> | $Enums.WashBookingStatus
+    amountPaise?: IntWithAggregatesFilter<"WashBooking"> | number
+    orderId?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    beforePhotoUrls?: StringNullableListFilter<"WashBooking">
+    afterPhotoUrls?: StringNullableListFilter<"WashBooking">
+    scheduledAt?: DateTimeNullableWithAggregatesFilter<"WashBooking"> | Date | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"WashBooking"> | Date | string | null
+    idempotencyKey?: StringNullableWithAggregatesFilter<"WashBooking"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"WashBooking"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"WashBooking"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -143560,6 +151070,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -143604,6 +151115,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -143648,6 +151160,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -143692,6 +151205,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -153355,6 +160869,523 @@ export namespace Prisma {
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type WashPartnerCreateInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    centers?: WashCenterCreateNestedManyWithoutPartnerInput
+    technicians?: WashTechnicianCreateNestedManyWithoutPartnerInput
+    bookings?: WashBookingCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerUncheckedCreateInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    centers?: WashCenterUncheckedCreateNestedManyWithoutPartnerInput
+    technicians?: WashTechnicianUncheckedCreateNestedManyWithoutPartnerInput
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    centers?: WashCenterUpdateManyWithoutPartnerNestedInput
+    technicians?: WashTechnicianUpdateManyWithoutPartnerNestedInput
+    bookings?: WashBookingUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashPartnerUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    centers?: WashCenterUncheckedUpdateManyWithoutPartnerNestedInput
+    technicians?: WashTechnicianUncheckedUpdateManyWithoutPartnerNestedInput
+    bookings?: WashBookingUncheckedUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashPartnerCreateManyInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashPartnerUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashPartnerUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashTechnicianCreateInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+    partner: WashPartnerCreateNestedOneWithoutTechniciansInput
+    bookings?: WashBookingCreateNestedManyWithoutTechnicianInput
+  }
+
+  export type WashTechnicianUncheckedCreateInput = {
+    id?: string
+    partnerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutTechnicianInput
+  }
+
+  export type WashTechnicianUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    partner?: WashPartnerUpdateOneRequiredWithoutTechniciansNestedInput
+    bookings?: WashBookingUpdateManyWithoutTechnicianNestedInput
+  }
+
+  export type WashTechnicianUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: WashBookingUncheckedUpdateManyWithoutTechnicianNestedInput
+  }
+
+  export type WashTechnicianCreateManyInput = {
+    id?: string
+    partnerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+  }
+
+  export type WashTechnicianUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashTechnicianUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashCenterCreateInput = {
+    id?: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    partner: WashPartnerCreateNestedOneWithoutCentersInput
+    slots?: WashSlotCreateNestedManyWithoutCenterInput
+    bookings?: WashBookingCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterUncheckedCreateInput = {
+    id?: string
+    partnerId: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    slots?: WashSlotUncheckedCreateNestedManyWithoutCenterInput
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    partner?: WashPartnerUpdateOneRequiredWithoutCentersNestedInput
+    slots?: WashSlotUpdateManyWithoutCenterNestedInput
+    bookings?: WashBookingUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashCenterUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slots?: WashSlotUncheckedUpdateManyWithoutCenterNestedInput
+    bookings?: WashBookingUncheckedUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashCenterCreateManyInput = {
+    id?: string
+    partnerId: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type WashCenterUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashCenterUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashSlotCreateInput = {
+    id?: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+    center: WashCenterCreateNestedOneWithoutSlotsInput
+    bookings?: WashBookingCreateNestedManyWithoutSlotInput
+  }
+
+  export type WashSlotUncheckedCreateInput = {
+    id?: string
+    centerId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutSlotInput
+  }
+
+  export type WashSlotUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+    center?: WashCenterUpdateOneRequiredWithoutSlotsNestedInput
+    bookings?: WashBookingUpdateManyWithoutSlotNestedInput
+  }
+
+  export type WashSlotUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    centerId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+    bookings?: WashBookingUncheckedUpdateManyWithoutSlotNestedInput
+  }
+
+  export type WashSlotCreateManyInput = {
+    id?: string
+    centerId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+  }
+
+  export type WashSlotUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type WashSlotUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    centerId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type WashBookingCreateInput = {
+    id?: string
+    vehicleId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWashBookingsInput
+    partner: WashPartnerCreateNestedOneWithoutBookingsInput
+    center?: WashCenterCreateNestedOneWithoutBookingsInput
+    slot?: WashSlotCreateNestedOneWithoutBookingsInput
+    technician?: WashTechnicianCreateNestedOneWithoutBookingsInput
+  }
+
+  export type WashBookingUncheckedCreateInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWashBookingsNestedInput
+    partner?: WashPartnerUpdateOneRequiredWithoutBookingsNestedInput
+    center?: WashCenterUpdateOneWithoutBookingsNestedInput
+    slot?: WashSlotUpdateOneWithoutBookingsNestedInput
+    technician?: WashTechnicianUpdateOneWithoutBookingsNestedInput
+  }
+
+  export type WashBookingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingCreateManyInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -153654,6 +161685,12 @@ export namespace Prisma {
     none?: ParkingWaitlistEntryWhereInput
   }
 
+  export type WashBookingListRelationFilter = {
+    every?: WashBookingWhereInput
+    some?: WashBookingWhereInput
+    none?: WashBookingWhereInput
+  }
+
   export type ConversationListRelationFilter = {
     every?: ConversationWhereInput
     some?: ConversationWhereInput
@@ -153765,6 +161802,10 @@ export namespace Prisma {
   }
 
   export type ParkingWaitlistEntryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WashBookingOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -160481,6 +168522,386 @@ export namespace Prisma {
     _max?: NestedEnumContentReportTargetFilter<$PrismaModel>
   }
 
+  export type EnumWashPartnerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashPartnerStatus | EnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashPartnerStatusFilter<$PrismaModel> | $Enums.WashPartnerStatus
+  }
+
+  export type WashCenterListRelationFilter = {
+    every?: WashCenterWhereInput
+    some?: WashCenterWhereInput
+    none?: WashCenterWhereInput
+  }
+
+  export type WashTechnicianListRelationFilter = {
+    every?: WashTechnicianWhereInput
+    some?: WashTechnicianWhereInput
+    none?: WashTechnicianWhereInput
+  }
+
+  export type WashCenterOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WashTechnicianOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WashPartnerCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    rating?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WashPartnerAvgOrderByAggregateInput = {
+    rating?: SortOrder
+  }
+
+  export type WashPartnerMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    rating?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WashPartnerMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    status?: SortOrder
+    rating?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WashPartnerSumOrderByAggregateInput = {
+    rating?: SortOrder
+  }
+
+  export type EnumWashPartnerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashPartnerStatus | EnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashPartnerStatusWithAggregatesFilter<$PrismaModel> | $Enums.WashPartnerStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashPartnerStatusFilter<$PrismaModel>
+    _max?: NestedEnumWashPartnerStatusFilter<$PrismaModel>
+  }
+
+  export type WashPartnerScalarRelationFilter = {
+    is?: WashPartnerWhereInput
+    isNot?: WashPartnerWhereInput
+  }
+
+  export type WashTechnicianCountOrderByAggregateInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    photoUrl?: SortOrder
+    isActive?: SortOrder
+    rating?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WashTechnicianAvgOrderByAggregateInput = {
+    rating?: SortOrder
+  }
+
+  export type WashTechnicianMaxOrderByAggregateInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    photoUrl?: SortOrder
+    isActive?: SortOrder
+    rating?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WashTechnicianMinOrderByAggregateInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    photoUrl?: SortOrder
+    isActive?: SortOrder
+    rating?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WashTechnicianSumOrderByAggregateInput = {
+    rating?: SortOrder
+  }
+
+  export type WashSlotListRelationFilter = {
+    every?: WashSlotWhereInput
+    some?: WashSlotWhereInput
+    none?: WashSlotWhereInput
+  }
+
+  export type WashSlotOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WashCenterCountOrderByAggregateInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    address?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    supportsBike?: SortOrder
+    supportsCar?: SortOrder
+    supportsEV?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WashCenterAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type WashCenterMaxOrderByAggregateInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    address?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    supportsBike?: SortOrder
+    supportsCar?: SortOrder
+    supportsEV?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WashCenterMinOrderByAggregateInput = {
+    id?: SortOrder
+    partnerId?: SortOrder
+    name?: SortOrder
+    address?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    supportsBike?: SortOrder
+    supportsCar?: SortOrder
+    supportsEV?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WashCenterSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+  }
+
+  export type WashCenterScalarRelationFilter = {
+    is?: WashCenterWhereInput
+    isNot?: WashCenterWhereInput
+  }
+
+  export type WashSlotCountOrderByAggregateInput = {
+    id?: SortOrder
+    centerId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+  }
+
+  export type WashSlotAvgOrderByAggregateInput = {
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+  }
+
+  export type WashSlotMaxOrderByAggregateInput = {
+    id?: SortOrder
+    centerId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+  }
+
+  export type WashSlotMinOrderByAggregateInput = {
+    id?: SortOrder
+    centerId?: SortOrder
+    startsAt?: SortOrder
+    endsAt?: SortOrder
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+  }
+
+  export type WashSlotSumOrderByAggregateInput = {
+    capacity?: SortOrder
+    bookedCount?: SortOrder
+  }
+
+  export type EnumWashServiceModelFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashServiceModel | EnumWashServiceModelFieldRefInput<$PrismaModel>
+    in?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashServiceModelFilter<$PrismaModel> | $Enums.WashServiceModel
+  }
+
+  export type EnumWashTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashType | EnumWashTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashTypeFilter<$PrismaModel> | $Enums.WashType
+  }
+
+  export type EnumWashBookingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashBookingStatus | EnumWashBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashBookingStatusFilter<$PrismaModel> | $Enums.WashBookingStatus
+  }
+
+  export type WashCenterNullableScalarRelationFilter = {
+    is?: WashCenterWhereInput | null
+    isNot?: WashCenterWhereInput | null
+  }
+
+  export type WashSlotNullableScalarRelationFilter = {
+    is?: WashSlotWhereInput | null
+    isNot?: WashSlotWhereInput | null
+  }
+
+  export type WashTechnicianNullableScalarRelationFilter = {
+    is?: WashTechnicianWhereInput | null
+    isNot?: WashTechnicianWhereInput | null
+  }
+
+  export type WashBookingCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    vehicleId?: SortOrder
+    partnerId?: SortOrder
+    centerId?: SortOrder
+    slotId?: SortOrder
+    technicianId?: SortOrder
+    serviceModel?: SortOrder
+    washType?: SortOrder
+    addressLine?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    status?: SortOrder
+    amountPaise?: SortOrder
+    orderId?: SortOrder
+    beforePhotoUrls?: SortOrder
+    afterPhotoUrls?: SortOrder
+    scheduledAt?: SortOrder
+    completedAt?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WashBookingAvgOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+    amountPaise?: SortOrder
+  }
+
+  export type WashBookingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    vehicleId?: SortOrder
+    partnerId?: SortOrder
+    centerId?: SortOrder
+    slotId?: SortOrder
+    technicianId?: SortOrder
+    serviceModel?: SortOrder
+    washType?: SortOrder
+    addressLine?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    status?: SortOrder
+    amountPaise?: SortOrder
+    orderId?: SortOrder
+    scheduledAt?: SortOrder
+    completedAt?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WashBookingMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    vehicleId?: SortOrder
+    partnerId?: SortOrder
+    centerId?: SortOrder
+    slotId?: SortOrder
+    technicianId?: SortOrder
+    serviceModel?: SortOrder
+    washType?: SortOrder
+    addressLine?: SortOrder
+    latitude?: SortOrder
+    longitude?: SortOrder
+    status?: SortOrder
+    amountPaise?: SortOrder
+    orderId?: SortOrder
+    scheduledAt?: SortOrder
+    completedAt?: SortOrder
+    idempotencyKey?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WashBookingSumOrderByAggregateInput = {
+    latitude?: SortOrder
+    longitude?: SortOrder
+    amountPaise?: SortOrder
+  }
+
+  export type EnumWashServiceModelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashServiceModel | EnumWashServiceModelFieldRefInput<$PrismaModel>
+    in?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashServiceModelWithAggregatesFilter<$PrismaModel> | $Enums.WashServiceModel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashServiceModelFilter<$PrismaModel>
+    _max?: NestedEnumWashServiceModelFilter<$PrismaModel>
+  }
+
+  export type EnumWashTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashType | EnumWashTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashTypeWithAggregatesFilter<$PrismaModel> | $Enums.WashType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashTypeFilter<$PrismaModel>
+    _max?: NestedEnumWashTypeFilter<$PrismaModel>
+  }
+
+  export type EnumWashBookingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashBookingStatus | EnumWashBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashBookingStatusWithAggregatesFilter<$PrismaModel> | $Enums.WashBookingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashBookingStatusFilter<$PrismaModel>
+    _max?: NestedEnumWashBookingStatusFilter<$PrismaModel>
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -160629,6 +169050,13 @@ export namespace Prisma {
     connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
     createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
     connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
+  export type WashBookingCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<WashBookingCreateWithoutCustomerInput, WashBookingUncheckedCreateWithoutCustomerInput> | WashBookingCreateWithoutCustomerInput[] | WashBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCustomerInput | WashBookingCreateOrConnectWithoutCustomerInput[]
+    createMany?: WashBookingCreateManyCustomerInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
   }
 
   export type ConversationCreateNestedManyWithoutCustomerInput = {
@@ -160836,6 +169264,13 @@ export namespace Prisma {
     connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput | ParkingWaitlistEntryCreateOrConnectWithoutCustomerInput[]
     createMany?: ParkingWaitlistEntryCreateManyCustomerInputEnvelope
     connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
+  export type WashBookingUncheckedCreateNestedManyWithoutCustomerInput = {
+    create?: XOR<WashBookingCreateWithoutCustomerInput, WashBookingUncheckedCreateWithoutCustomerInput> | WashBookingCreateWithoutCustomerInput[] | WashBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCustomerInput | WashBookingCreateOrConnectWithoutCustomerInput[]
+    createMany?: WashBookingCreateManyCustomerInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
   }
 
   export type ConversationUncheckedCreateNestedManyWithoutCustomerInput = {
@@ -161171,6 +169606,20 @@ export namespace Prisma {
     update?: ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput | ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput | ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+  }
+
+  export type WashBookingUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<WashBookingCreateWithoutCustomerInput, WashBookingUncheckedCreateWithoutCustomerInput> | WashBookingCreateWithoutCustomerInput[] | WashBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCustomerInput | WashBookingCreateOrConnectWithoutCustomerInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutCustomerInput | WashBookingUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: WashBookingCreateManyCustomerInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutCustomerInput | WashBookingUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutCustomerInput | WashBookingUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
   }
 
   export type ConversationUpdateManyWithoutCustomerNestedInput = {
@@ -161579,6 +170028,20 @@ export namespace Prisma {
     update?: ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput | ParkingWaitlistEntryUpdateWithWhereUniqueWithoutCustomerInput[]
     updateMany?: ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput | ParkingWaitlistEntryUpdateManyWithWhereWithoutCustomerInput[]
     deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutCustomerNestedInput = {
+    create?: XOR<WashBookingCreateWithoutCustomerInput, WashBookingUncheckedCreateWithoutCustomerInput> | WashBookingCreateWithoutCustomerInput[] | WashBookingUncheckedCreateWithoutCustomerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCustomerInput | WashBookingCreateOrConnectWithoutCustomerInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutCustomerInput | WashBookingUpsertWithWhereUniqueWithoutCustomerInput[]
+    createMany?: WashBookingCreateManyCustomerInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutCustomerInput | WashBookingUpdateWithWhereUniqueWithoutCustomerInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutCustomerInput | WashBookingUpdateManyWithWhereWithoutCustomerInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
   }
 
   export type ConversationUncheckedUpdateManyWithoutCustomerNestedInput = {
@@ -167175,6 +175638,452 @@ export namespace Prisma {
     update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutContentReportsFiledInput, CustomerUpdateWithoutContentReportsFiledInput>, CustomerUncheckedUpdateWithoutContentReportsFiledInput>
   }
 
+  export type WashCenterCreateNestedManyWithoutPartnerInput = {
+    create?: XOR<WashCenterCreateWithoutPartnerInput, WashCenterUncheckedCreateWithoutPartnerInput> | WashCenterCreateWithoutPartnerInput[] | WashCenterUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashCenterCreateOrConnectWithoutPartnerInput | WashCenterCreateOrConnectWithoutPartnerInput[]
+    createMany?: WashCenterCreateManyPartnerInputEnvelope
+    connect?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+  }
+
+  export type WashTechnicianCreateNestedManyWithoutPartnerInput = {
+    create?: XOR<WashTechnicianCreateWithoutPartnerInput, WashTechnicianUncheckedCreateWithoutPartnerInput> | WashTechnicianCreateWithoutPartnerInput[] | WashTechnicianUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashTechnicianCreateOrConnectWithoutPartnerInput | WashTechnicianCreateOrConnectWithoutPartnerInput[]
+    createMany?: WashTechnicianCreateManyPartnerInputEnvelope
+    connect?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+  }
+
+  export type WashBookingCreateNestedManyWithoutPartnerInput = {
+    create?: XOR<WashBookingCreateWithoutPartnerInput, WashBookingUncheckedCreateWithoutPartnerInput> | WashBookingCreateWithoutPartnerInput[] | WashBookingUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutPartnerInput | WashBookingCreateOrConnectWithoutPartnerInput[]
+    createMany?: WashBookingCreateManyPartnerInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashCenterUncheckedCreateNestedManyWithoutPartnerInput = {
+    create?: XOR<WashCenterCreateWithoutPartnerInput, WashCenterUncheckedCreateWithoutPartnerInput> | WashCenterCreateWithoutPartnerInput[] | WashCenterUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashCenterCreateOrConnectWithoutPartnerInput | WashCenterCreateOrConnectWithoutPartnerInput[]
+    createMany?: WashCenterCreateManyPartnerInputEnvelope
+    connect?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+  }
+
+  export type WashTechnicianUncheckedCreateNestedManyWithoutPartnerInput = {
+    create?: XOR<WashTechnicianCreateWithoutPartnerInput, WashTechnicianUncheckedCreateWithoutPartnerInput> | WashTechnicianCreateWithoutPartnerInput[] | WashTechnicianUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashTechnicianCreateOrConnectWithoutPartnerInput | WashTechnicianCreateOrConnectWithoutPartnerInput[]
+    createMany?: WashTechnicianCreateManyPartnerInputEnvelope
+    connect?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+  }
+
+  export type WashBookingUncheckedCreateNestedManyWithoutPartnerInput = {
+    create?: XOR<WashBookingCreateWithoutPartnerInput, WashBookingUncheckedCreateWithoutPartnerInput> | WashBookingCreateWithoutPartnerInput[] | WashBookingUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutPartnerInput | WashBookingCreateOrConnectWithoutPartnerInput[]
+    createMany?: WashBookingCreateManyPartnerInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type EnumWashPartnerStatusFieldUpdateOperationsInput = {
+    set?: $Enums.WashPartnerStatus
+  }
+
+  export type WashCenterUpdateManyWithoutPartnerNestedInput = {
+    create?: XOR<WashCenterCreateWithoutPartnerInput, WashCenterUncheckedCreateWithoutPartnerInput> | WashCenterCreateWithoutPartnerInput[] | WashCenterUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashCenterCreateOrConnectWithoutPartnerInput | WashCenterCreateOrConnectWithoutPartnerInput[]
+    upsert?: WashCenterUpsertWithWhereUniqueWithoutPartnerInput | WashCenterUpsertWithWhereUniqueWithoutPartnerInput[]
+    createMany?: WashCenterCreateManyPartnerInputEnvelope
+    set?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    disconnect?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    delete?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    connect?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    update?: WashCenterUpdateWithWhereUniqueWithoutPartnerInput | WashCenterUpdateWithWhereUniqueWithoutPartnerInput[]
+    updateMany?: WashCenterUpdateManyWithWhereWithoutPartnerInput | WashCenterUpdateManyWithWhereWithoutPartnerInput[]
+    deleteMany?: WashCenterScalarWhereInput | WashCenterScalarWhereInput[]
+  }
+
+  export type WashTechnicianUpdateManyWithoutPartnerNestedInput = {
+    create?: XOR<WashTechnicianCreateWithoutPartnerInput, WashTechnicianUncheckedCreateWithoutPartnerInput> | WashTechnicianCreateWithoutPartnerInput[] | WashTechnicianUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashTechnicianCreateOrConnectWithoutPartnerInput | WashTechnicianCreateOrConnectWithoutPartnerInput[]
+    upsert?: WashTechnicianUpsertWithWhereUniqueWithoutPartnerInput | WashTechnicianUpsertWithWhereUniqueWithoutPartnerInput[]
+    createMany?: WashTechnicianCreateManyPartnerInputEnvelope
+    set?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    disconnect?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    delete?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    connect?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    update?: WashTechnicianUpdateWithWhereUniqueWithoutPartnerInput | WashTechnicianUpdateWithWhereUniqueWithoutPartnerInput[]
+    updateMany?: WashTechnicianUpdateManyWithWhereWithoutPartnerInput | WashTechnicianUpdateManyWithWhereWithoutPartnerInput[]
+    deleteMany?: WashTechnicianScalarWhereInput | WashTechnicianScalarWhereInput[]
+  }
+
+  export type WashBookingUpdateManyWithoutPartnerNestedInput = {
+    create?: XOR<WashBookingCreateWithoutPartnerInput, WashBookingUncheckedCreateWithoutPartnerInput> | WashBookingCreateWithoutPartnerInput[] | WashBookingUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutPartnerInput | WashBookingCreateOrConnectWithoutPartnerInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutPartnerInput | WashBookingUpsertWithWhereUniqueWithoutPartnerInput[]
+    createMany?: WashBookingCreateManyPartnerInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutPartnerInput | WashBookingUpdateWithWhereUniqueWithoutPartnerInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutPartnerInput | WashBookingUpdateManyWithWhereWithoutPartnerInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashCenterUncheckedUpdateManyWithoutPartnerNestedInput = {
+    create?: XOR<WashCenterCreateWithoutPartnerInput, WashCenterUncheckedCreateWithoutPartnerInput> | WashCenterCreateWithoutPartnerInput[] | WashCenterUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashCenterCreateOrConnectWithoutPartnerInput | WashCenterCreateOrConnectWithoutPartnerInput[]
+    upsert?: WashCenterUpsertWithWhereUniqueWithoutPartnerInput | WashCenterUpsertWithWhereUniqueWithoutPartnerInput[]
+    createMany?: WashCenterCreateManyPartnerInputEnvelope
+    set?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    disconnect?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    delete?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    connect?: WashCenterWhereUniqueInput | WashCenterWhereUniqueInput[]
+    update?: WashCenterUpdateWithWhereUniqueWithoutPartnerInput | WashCenterUpdateWithWhereUniqueWithoutPartnerInput[]
+    updateMany?: WashCenterUpdateManyWithWhereWithoutPartnerInput | WashCenterUpdateManyWithWhereWithoutPartnerInput[]
+    deleteMany?: WashCenterScalarWhereInput | WashCenterScalarWhereInput[]
+  }
+
+  export type WashTechnicianUncheckedUpdateManyWithoutPartnerNestedInput = {
+    create?: XOR<WashTechnicianCreateWithoutPartnerInput, WashTechnicianUncheckedCreateWithoutPartnerInput> | WashTechnicianCreateWithoutPartnerInput[] | WashTechnicianUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashTechnicianCreateOrConnectWithoutPartnerInput | WashTechnicianCreateOrConnectWithoutPartnerInput[]
+    upsert?: WashTechnicianUpsertWithWhereUniqueWithoutPartnerInput | WashTechnicianUpsertWithWhereUniqueWithoutPartnerInput[]
+    createMany?: WashTechnicianCreateManyPartnerInputEnvelope
+    set?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    disconnect?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    delete?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    connect?: WashTechnicianWhereUniqueInput | WashTechnicianWhereUniqueInput[]
+    update?: WashTechnicianUpdateWithWhereUniqueWithoutPartnerInput | WashTechnicianUpdateWithWhereUniqueWithoutPartnerInput[]
+    updateMany?: WashTechnicianUpdateManyWithWhereWithoutPartnerInput | WashTechnicianUpdateManyWithWhereWithoutPartnerInput[]
+    deleteMany?: WashTechnicianScalarWhereInput | WashTechnicianScalarWhereInput[]
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutPartnerNestedInput = {
+    create?: XOR<WashBookingCreateWithoutPartnerInput, WashBookingUncheckedCreateWithoutPartnerInput> | WashBookingCreateWithoutPartnerInput[] | WashBookingUncheckedCreateWithoutPartnerInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutPartnerInput | WashBookingCreateOrConnectWithoutPartnerInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutPartnerInput | WashBookingUpsertWithWhereUniqueWithoutPartnerInput[]
+    createMany?: WashBookingCreateManyPartnerInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutPartnerInput | WashBookingUpdateWithWhereUniqueWithoutPartnerInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutPartnerInput | WashBookingUpdateManyWithWhereWithoutPartnerInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashPartnerCreateNestedOneWithoutTechniciansInput = {
+    create?: XOR<WashPartnerCreateWithoutTechniciansInput, WashPartnerUncheckedCreateWithoutTechniciansInput>
+    connectOrCreate?: WashPartnerCreateOrConnectWithoutTechniciansInput
+    connect?: WashPartnerWhereUniqueInput
+  }
+
+  export type WashBookingCreateNestedManyWithoutTechnicianInput = {
+    create?: XOR<WashBookingCreateWithoutTechnicianInput, WashBookingUncheckedCreateWithoutTechnicianInput> | WashBookingCreateWithoutTechnicianInput[] | WashBookingUncheckedCreateWithoutTechnicianInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutTechnicianInput | WashBookingCreateOrConnectWithoutTechnicianInput[]
+    createMany?: WashBookingCreateManyTechnicianInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashBookingUncheckedCreateNestedManyWithoutTechnicianInput = {
+    create?: XOR<WashBookingCreateWithoutTechnicianInput, WashBookingUncheckedCreateWithoutTechnicianInput> | WashBookingCreateWithoutTechnicianInput[] | WashBookingUncheckedCreateWithoutTechnicianInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutTechnicianInput | WashBookingCreateOrConnectWithoutTechnicianInput[]
+    createMany?: WashBookingCreateManyTechnicianInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashPartnerUpdateOneRequiredWithoutTechniciansNestedInput = {
+    create?: XOR<WashPartnerCreateWithoutTechniciansInput, WashPartnerUncheckedCreateWithoutTechniciansInput>
+    connectOrCreate?: WashPartnerCreateOrConnectWithoutTechniciansInput
+    upsert?: WashPartnerUpsertWithoutTechniciansInput
+    connect?: WashPartnerWhereUniqueInput
+    update?: XOR<XOR<WashPartnerUpdateToOneWithWhereWithoutTechniciansInput, WashPartnerUpdateWithoutTechniciansInput>, WashPartnerUncheckedUpdateWithoutTechniciansInput>
+  }
+
+  export type WashBookingUpdateManyWithoutTechnicianNestedInput = {
+    create?: XOR<WashBookingCreateWithoutTechnicianInput, WashBookingUncheckedCreateWithoutTechnicianInput> | WashBookingCreateWithoutTechnicianInput[] | WashBookingUncheckedCreateWithoutTechnicianInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutTechnicianInput | WashBookingCreateOrConnectWithoutTechnicianInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutTechnicianInput | WashBookingUpsertWithWhereUniqueWithoutTechnicianInput[]
+    createMany?: WashBookingCreateManyTechnicianInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutTechnicianInput | WashBookingUpdateWithWhereUniqueWithoutTechnicianInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutTechnicianInput | WashBookingUpdateManyWithWhereWithoutTechnicianInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutTechnicianNestedInput = {
+    create?: XOR<WashBookingCreateWithoutTechnicianInput, WashBookingUncheckedCreateWithoutTechnicianInput> | WashBookingCreateWithoutTechnicianInput[] | WashBookingUncheckedCreateWithoutTechnicianInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutTechnicianInput | WashBookingCreateOrConnectWithoutTechnicianInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutTechnicianInput | WashBookingUpsertWithWhereUniqueWithoutTechnicianInput[]
+    createMany?: WashBookingCreateManyTechnicianInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutTechnicianInput | WashBookingUpdateWithWhereUniqueWithoutTechnicianInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutTechnicianInput | WashBookingUpdateManyWithWhereWithoutTechnicianInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashPartnerCreateNestedOneWithoutCentersInput = {
+    create?: XOR<WashPartnerCreateWithoutCentersInput, WashPartnerUncheckedCreateWithoutCentersInput>
+    connectOrCreate?: WashPartnerCreateOrConnectWithoutCentersInput
+    connect?: WashPartnerWhereUniqueInput
+  }
+
+  export type WashSlotCreateNestedManyWithoutCenterInput = {
+    create?: XOR<WashSlotCreateWithoutCenterInput, WashSlotUncheckedCreateWithoutCenterInput> | WashSlotCreateWithoutCenterInput[] | WashSlotUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashSlotCreateOrConnectWithoutCenterInput | WashSlotCreateOrConnectWithoutCenterInput[]
+    createMany?: WashSlotCreateManyCenterInputEnvelope
+    connect?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+  }
+
+  export type WashBookingCreateNestedManyWithoutCenterInput = {
+    create?: XOR<WashBookingCreateWithoutCenterInput, WashBookingUncheckedCreateWithoutCenterInput> | WashBookingCreateWithoutCenterInput[] | WashBookingUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCenterInput | WashBookingCreateOrConnectWithoutCenterInput[]
+    createMany?: WashBookingCreateManyCenterInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashSlotUncheckedCreateNestedManyWithoutCenterInput = {
+    create?: XOR<WashSlotCreateWithoutCenterInput, WashSlotUncheckedCreateWithoutCenterInput> | WashSlotCreateWithoutCenterInput[] | WashSlotUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashSlotCreateOrConnectWithoutCenterInput | WashSlotCreateOrConnectWithoutCenterInput[]
+    createMany?: WashSlotCreateManyCenterInputEnvelope
+    connect?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+  }
+
+  export type WashBookingUncheckedCreateNestedManyWithoutCenterInput = {
+    create?: XOR<WashBookingCreateWithoutCenterInput, WashBookingUncheckedCreateWithoutCenterInput> | WashBookingCreateWithoutCenterInput[] | WashBookingUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCenterInput | WashBookingCreateOrConnectWithoutCenterInput[]
+    createMany?: WashBookingCreateManyCenterInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashPartnerUpdateOneRequiredWithoutCentersNestedInput = {
+    create?: XOR<WashPartnerCreateWithoutCentersInput, WashPartnerUncheckedCreateWithoutCentersInput>
+    connectOrCreate?: WashPartnerCreateOrConnectWithoutCentersInput
+    upsert?: WashPartnerUpsertWithoutCentersInput
+    connect?: WashPartnerWhereUniqueInput
+    update?: XOR<XOR<WashPartnerUpdateToOneWithWhereWithoutCentersInput, WashPartnerUpdateWithoutCentersInput>, WashPartnerUncheckedUpdateWithoutCentersInput>
+  }
+
+  export type WashSlotUpdateManyWithoutCenterNestedInput = {
+    create?: XOR<WashSlotCreateWithoutCenterInput, WashSlotUncheckedCreateWithoutCenterInput> | WashSlotCreateWithoutCenterInput[] | WashSlotUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashSlotCreateOrConnectWithoutCenterInput | WashSlotCreateOrConnectWithoutCenterInput[]
+    upsert?: WashSlotUpsertWithWhereUniqueWithoutCenterInput | WashSlotUpsertWithWhereUniqueWithoutCenterInput[]
+    createMany?: WashSlotCreateManyCenterInputEnvelope
+    set?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    disconnect?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    delete?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    connect?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    update?: WashSlotUpdateWithWhereUniqueWithoutCenterInput | WashSlotUpdateWithWhereUniqueWithoutCenterInput[]
+    updateMany?: WashSlotUpdateManyWithWhereWithoutCenterInput | WashSlotUpdateManyWithWhereWithoutCenterInput[]
+    deleteMany?: WashSlotScalarWhereInput | WashSlotScalarWhereInput[]
+  }
+
+  export type WashBookingUpdateManyWithoutCenterNestedInput = {
+    create?: XOR<WashBookingCreateWithoutCenterInput, WashBookingUncheckedCreateWithoutCenterInput> | WashBookingCreateWithoutCenterInput[] | WashBookingUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCenterInput | WashBookingCreateOrConnectWithoutCenterInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutCenterInput | WashBookingUpsertWithWhereUniqueWithoutCenterInput[]
+    createMany?: WashBookingCreateManyCenterInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutCenterInput | WashBookingUpdateWithWhereUniqueWithoutCenterInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutCenterInput | WashBookingUpdateManyWithWhereWithoutCenterInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashSlotUncheckedUpdateManyWithoutCenterNestedInput = {
+    create?: XOR<WashSlotCreateWithoutCenterInput, WashSlotUncheckedCreateWithoutCenterInput> | WashSlotCreateWithoutCenterInput[] | WashSlotUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashSlotCreateOrConnectWithoutCenterInput | WashSlotCreateOrConnectWithoutCenterInput[]
+    upsert?: WashSlotUpsertWithWhereUniqueWithoutCenterInput | WashSlotUpsertWithWhereUniqueWithoutCenterInput[]
+    createMany?: WashSlotCreateManyCenterInputEnvelope
+    set?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    disconnect?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    delete?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    connect?: WashSlotWhereUniqueInput | WashSlotWhereUniqueInput[]
+    update?: WashSlotUpdateWithWhereUniqueWithoutCenterInput | WashSlotUpdateWithWhereUniqueWithoutCenterInput[]
+    updateMany?: WashSlotUpdateManyWithWhereWithoutCenterInput | WashSlotUpdateManyWithWhereWithoutCenterInput[]
+    deleteMany?: WashSlotScalarWhereInput | WashSlotScalarWhereInput[]
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutCenterNestedInput = {
+    create?: XOR<WashBookingCreateWithoutCenterInput, WashBookingUncheckedCreateWithoutCenterInput> | WashBookingCreateWithoutCenterInput[] | WashBookingUncheckedCreateWithoutCenterInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutCenterInput | WashBookingCreateOrConnectWithoutCenterInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutCenterInput | WashBookingUpsertWithWhereUniqueWithoutCenterInput[]
+    createMany?: WashBookingCreateManyCenterInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutCenterInput | WashBookingUpdateWithWhereUniqueWithoutCenterInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutCenterInput | WashBookingUpdateManyWithWhereWithoutCenterInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashCenterCreateNestedOneWithoutSlotsInput = {
+    create?: XOR<WashCenterCreateWithoutSlotsInput, WashCenterUncheckedCreateWithoutSlotsInput>
+    connectOrCreate?: WashCenterCreateOrConnectWithoutSlotsInput
+    connect?: WashCenterWhereUniqueInput
+  }
+
+  export type WashBookingCreateNestedManyWithoutSlotInput = {
+    create?: XOR<WashBookingCreateWithoutSlotInput, WashBookingUncheckedCreateWithoutSlotInput> | WashBookingCreateWithoutSlotInput[] | WashBookingUncheckedCreateWithoutSlotInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutSlotInput | WashBookingCreateOrConnectWithoutSlotInput[]
+    createMany?: WashBookingCreateManySlotInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashBookingUncheckedCreateNestedManyWithoutSlotInput = {
+    create?: XOR<WashBookingCreateWithoutSlotInput, WashBookingUncheckedCreateWithoutSlotInput> | WashBookingCreateWithoutSlotInput[] | WashBookingUncheckedCreateWithoutSlotInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutSlotInput | WashBookingCreateOrConnectWithoutSlotInput[]
+    createMany?: WashBookingCreateManySlotInputEnvelope
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+  }
+
+  export type WashCenterUpdateOneRequiredWithoutSlotsNestedInput = {
+    create?: XOR<WashCenterCreateWithoutSlotsInput, WashCenterUncheckedCreateWithoutSlotsInput>
+    connectOrCreate?: WashCenterCreateOrConnectWithoutSlotsInput
+    upsert?: WashCenterUpsertWithoutSlotsInput
+    connect?: WashCenterWhereUniqueInput
+    update?: XOR<XOR<WashCenterUpdateToOneWithWhereWithoutSlotsInput, WashCenterUpdateWithoutSlotsInput>, WashCenterUncheckedUpdateWithoutSlotsInput>
+  }
+
+  export type WashBookingUpdateManyWithoutSlotNestedInput = {
+    create?: XOR<WashBookingCreateWithoutSlotInput, WashBookingUncheckedCreateWithoutSlotInput> | WashBookingCreateWithoutSlotInput[] | WashBookingUncheckedCreateWithoutSlotInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutSlotInput | WashBookingCreateOrConnectWithoutSlotInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutSlotInput | WashBookingUpsertWithWhereUniqueWithoutSlotInput[]
+    createMany?: WashBookingCreateManySlotInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutSlotInput | WashBookingUpdateWithWhereUniqueWithoutSlotInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutSlotInput | WashBookingUpdateManyWithWhereWithoutSlotInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutSlotNestedInput = {
+    create?: XOR<WashBookingCreateWithoutSlotInput, WashBookingUncheckedCreateWithoutSlotInput> | WashBookingCreateWithoutSlotInput[] | WashBookingUncheckedCreateWithoutSlotInput[]
+    connectOrCreate?: WashBookingCreateOrConnectWithoutSlotInput | WashBookingCreateOrConnectWithoutSlotInput[]
+    upsert?: WashBookingUpsertWithWhereUniqueWithoutSlotInput | WashBookingUpsertWithWhereUniqueWithoutSlotInput[]
+    createMany?: WashBookingCreateManySlotInputEnvelope
+    set?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    disconnect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    delete?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    connect?: WashBookingWhereUniqueInput | WashBookingWhereUniqueInput[]
+    update?: WashBookingUpdateWithWhereUniqueWithoutSlotInput | WashBookingUpdateWithWhereUniqueWithoutSlotInput[]
+    updateMany?: WashBookingUpdateManyWithWhereWithoutSlotInput | WashBookingUpdateManyWithWhereWithoutSlotInput[]
+    deleteMany?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+  }
+
+  export type WashBookingCreatebeforePhotoUrlsInput = {
+    set: string[]
+  }
+
+  export type WashBookingCreateafterPhotoUrlsInput = {
+    set: string[]
+  }
+
+  export type CustomerCreateNestedOneWithoutWashBookingsInput = {
+    create?: XOR<CustomerCreateWithoutWashBookingsInput, CustomerUncheckedCreateWithoutWashBookingsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutWashBookingsInput
+    connect?: CustomerWhereUniqueInput
+  }
+
+  export type WashPartnerCreateNestedOneWithoutBookingsInput = {
+    create?: XOR<WashPartnerCreateWithoutBookingsInput, WashPartnerUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashPartnerCreateOrConnectWithoutBookingsInput
+    connect?: WashPartnerWhereUniqueInput
+  }
+
+  export type WashCenterCreateNestedOneWithoutBookingsInput = {
+    create?: XOR<WashCenterCreateWithoutBookingsInput, WashCenterUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashCenterCreateOrConnectWithoutBookingsInput
+    connect?: WashCenterWhereUniqueInput
+  }
+
+  export type WashSlotCreateNestedOneWithoutBookingsInput = {
+    create?: XOR<WashSlotCreateWithoutBookingsInput, WashSlotUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashSlotCreateOrConnectWithoutBookingsInput
+    connect?: WashSlotWhereUniqueInput
+  }
+
+  export type WashTechnicianCreateNestedOneWithoutBookingsInput = {
+    create?: XOR<WashTechnicianCreateWithoutBookingsInput, WashTechnicianUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashTechnicianCreateOrConnectWithoutBookingsInput
+    connect?: WashTechnicianWhereUniqueInput
+  }
+
+  export type EnumWashServiceModelFieldUpdateOperationsInput = {
+    set?: $Enums.WashServiceModel
+  }
+
+  export type EnumWashTypeFieldUpdateOperationsInput = {
+    set?: $Enums.WashType
+  }
+
+  export type EnumWashBookingStatusFieldUpdateOperationsInput = {
+    set?: $Enums.WashBookingStatus
+  }
+
+  export type WashBookingUpdatebeforePhotoUrlsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type WashBookingUpdateafterPhotoUrlsInput = {
+    set?: string[]
+    push?: string | string[]
+  }
+
+  export type CustomerUpdateOneRequiredWithoutWashBookingsNestedInput = {
+    create?: XOR<CustomerCreateWithoutWashBookingsInput, CustomerUncheckedCreateWithoutWashBookingsInput>
+    connectOrCreate?: CustomerCreateOrConnectWithoutWashBookingsInput
+    upsert?: CustomerUpsertWithoutWashBookingsInput
+    connect?: CustomerWhereUniqueInput
+    update?: XOR<XOR<CustomerUpdateToOneWithWhereWithoutWashBookingsInput, CustomerUpdateWithoutWashBookingsInput>, CustomerUncheckedUpdateWithoutWashBookingsInput>
+  }
+
+  export type WashPartnerUpdateOneRequiredWithoutBookingsNestedInput = {
+    create?: XOR<WashPartnerCreateWithoutBookingsInput, WashPartnerUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashPartnerCreateOrConnectWithoutBookingsInput
+    upsert?: WashPartnerUpsertWithoutBookingsInput
+    connect?: WashPartnerWhereUniqueInput
+    update?: XOR<XOR<WashPartnerUpdateToOneWithWhereWithoutBookingsInput, WashPartnerUpdateWithoutBookingsInput>, WashPartnerUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashCenterUpdateOneWithoutBookingsNestedInput = {
+    create?: XOR<WashCenterCreateWithoutBookingsInput, WashCenterUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashCenterCreateOrConnectWithoutBookingsInput
+    upsert?: WashCenterUpsertWithoutBookingsInput
+    disconnect?: WashCenterWhereInput | boolean
+    delete?: WashCenterWhereInput | boolean
+    connect?: WashCenterWhereUniqueInput
+    update?: XOR<XOR<WashCenterUpdateToOneWithWhereWithoutBookingsInput, WashCenterUpdateWithoutBookingsInput>, WashCenterUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashSlotUpdateOneWithoutBookingsNestedInput = {
+    create?: XOR<WashSlotCreateWithoutBookingsInput, WashSlotUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashSlotCreateOrConnectWithoutBookingsInput
+    upsert?: WashSlotUpsertWithoutBookingsInput
+    disconnect?: WashSlotWhereInput | boolean
+    delete?: WashSlotWhereInput | boolean
+    connect?: WashSlotWhereUniqueInput
+    update?: XOR<XOR<WashSlotUpdateToOneWithWhereWithoutBookingsInput, WashSlotUpdateWithoutBookingsInput>, WashSlotUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashTechnicianUpdateOneWithoutBookingsNestedInput = {
+    create?: XOR<WashTechnicianCreateWithoutBookingsInput, WashTechnicianUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: WashTechnicianCreateOrConnectWithoutBookingsInput
+    upsert?: WashTechnicianUpsertWithoutBookingsInput
+    disconnect?: WashTechnicianWhereInput | boolean
+    delete?: WashTechnicianWhereInput | boolean
+    connect?: WashTechnicianWhereUniqueInput
+    update?: XOR<XOR<WashTechnicianUpdateToOneWithWhereWithoutBookingsInput, WashTechnicianUpdateWithoutBookingsInput>, WashTechnicianUncheckedUpdateWithoutBookingsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -168688,6 +177597,74 @@ export namespace Prisma {
     _max?: NestedEnumContentReportTargetFilter<$PrismaModel>
   }
 
+  export type NestedEnumWashPartnerStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashPartnerStatus | EnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashPartnerStatusFilter<$PrismaModel> | $Enums.WashPartnerStatus
+  }
+
+  export type NestedEnumWashPartnerStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashPartnerStatus | EnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashPartnerStatus[] | ListEnumWashPartnerStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashPartnerStatusWithAggregatesFilter<$PrismaModel> | $Enums.WashPartnerStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashPartnerStatusFilter<$PrismaModel>
+    _max?: NestedEnumWashPartnerStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumWashServiceModelFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashServiceModel | EnumWashServiceModelFieldRefInput<$PrismaModel>
+    in?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashServiceModelFilter<$PrismaModel> | $Enums.WashServiceModel
+  }
+
+  export type NestedEnumWashTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashType | EnumWashTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashTypeFilter<$PrismaModel> | $Enums.WashType
+  }
+
+  export type NestedEnumWashBookingStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashBookingStatus | EnumWashBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashBookingStatusFilter<$PrismaModel> | $Enums.WashBookingStatus
+  }
+
+  export type NestedEnumWashServiceModelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashServiceModel | EnumWashServiceModelFieldRefInput<$PrismaModel>
+    in?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashServiceModel[] | ListEnumWashServiceModelFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashServiceModelWithAggregatesFilter<$PrismaModel> | $Enums.WashServiceModel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashServiceModelFilter<$PrismaModel>
+    _max?: NestedEnumWashServiceModelFilter<$PrismaModel>
+  }
+
+  export type NestedEnumWashTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashType | EnumWashTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashType[] | ListEnumWashTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashTypeWithAggregatesFilter<$PrismaModel> | $Enums.WashType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashTypeFilter<$PrismaModel>
+    _max?: NestedEnumWashTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumWashBookingStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WashBookingStatus | EnumWashBookingStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.WashBookingStatus[] | ListEnumWashBookingStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumWashBookingStatusWithAggregatesFilter<$PrismaModel> | $Enums.WashBookingStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWashBookingStatusFilter<$PrismaModel>
+    _max?: NestedEnumWashBookingStatusFilter<$PrismaModel>
+  }
+
   export type ChatSessionCreateWithoutCustomerInput = {
     id?: string
     title?: string | null
@@ -169438,6 +178415,64 @@ export namespace Prisma {
 
   export type ParkingWaitlistEntryCreateManyCustomerInputEnvelope = {
     data: ParkingWaitlistEntryCreateManyCustomerInput | ParkingWaitlistEntryCreateManyCustomerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashBookingCreateWithoutCustomerInput = {
+    id?: string
+    vehicleId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    partner: WashPartnerCreateNestedOneWithoutBookingsInput
+    center?: WashCenterCreateNestedOneWithoutBookingsInput
+    slot?: WashSlotCreateNestedOneWithoutBookingsInput
+    technician?: WashTechnicianCreateNestedOneWithoutBookingsInput
+  }
+
+  export type WashBookingUncheckedCreateWithoutCustomerInput = {
+    id?: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingCreateOrConnectWithoutCustomerInput = {
+    where: WashBookingWhereUniqueInput
+    create: XOR<WashBookingCreateWithoutCustomerInput, WashBookingUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type WashBookingCreateManyCustomerInputEnvelope = {
+    data: WashBookingCreateManyCustomerInput | WashBookingCreateManyCustomerInput[]
     skipDuplicates?: boolean
   }
 
@@ -170454,6 +179489,50 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"ParkingWaitlistEntry"> | Date | string
   }
 
+  export type WashBookingUpsertWithWhereUniqueWithoutCustomerInput = {
+    where: WashBookingWhereUniqueInput
+    update: XOR<WashBookingUpdateWithoutCustomerInput, WashBookingUncheckedUpdateWithoutCustomerInput>
+    create: XOR<WashBookingCreateWithoutCustomerInput, WashBookingUncheckedCreateWithoutCustomerInput>
+  }
+
+  export type WashBookingUpdateWithWhereUniqueWithoutCustomerInput = {
+    where: WashBookingWhereUniqueInput
+    data: XOR<WashBookingUpdateWithoutCustomerInput, WashBookingUncheckedUpdateWithoutCustomerInput>
+  }
+
+  export type WashBookingUpdateManyWithWhereWithoutCustomerInput = {
+    where: WashBookingScalarWhereInput
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyWithoutCustomerInput>
+  }
+
+  export type WashBookingScalarWhereInput = {
+    AND?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+    OR?: WashBookingScalarWhereInput[]
+    NOT?: WashBookingScalarWhereInput | WashBookingScalarWhereInput[]
+    id?: StringFilter<"WashBooking"> | string
+    customerId?: StringFilter<"WashBooking"> | string
+    vehicleId?: StringNullableFilter<"WashBooking"> | string | null
+    partnerId?: StringFilter<"WashBooking"> | string
+    centerId?: StringNullableFilter<"WashBooking"> | string | null
+    slotId?: StringNullableFilter<"WashBooking"> | string | null
+    technicianId?: StringNullableFilter<"WashBooking"> | string | null
+    serviceModel?: EnumWashServiceModelFilter<"WashBooking"> | $Enums.WashServiceModel
+    washType?: EnumWashTypeFilter<"WashBooking"> | $Enums.WashType
+    addressLine?: StringNullableFilter<"WashBooking"> | string | null
+    latitude?: FloatNullableFilter<"WashBooking"> | number | null
+    longitude?: FloatNullableFilter<"WashBooking"> | number | null
+    status?: EnumWashBookingStatusFilter<"WashBooking"> | $Enums.WashBookingStatus
+    amountPaise?: IntFilter<"WashBooking"> | number
+    orderId?: StringNullableFilter<"WashBooking"> | string | null
+    beforePhotoUrls?: StringNullableListFilter<"WashBooking">
+    afterPhotoUrls?: StringNullableListFilter<"WashBooking">
+    scheduledAt?: DateTimeNullableFilter<"WashBooking"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"WashBooking"> | Date | string | null
+    idempotencyKey?: StringNullableFilter<"WashBooking"> | string | null
+    createdAt?: DateTimeFilter<"WashBooking"> | Date | string
+    updatedAt?: DateTimeFilter<"WashBooking"> | Date | string
+  }
+
   export type ConversationUpsertWithWhereUniqueWithoutCustomerInput = {
     where: ConversationWhereUniqueInput
     update: XOR<ConversationUpdateWithoutCustomerInput, ConversationUncheckedUpdateWithoutCustomerInput>
@@ -170795,6 +179874,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -170838,6 +179918,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -170897,6 +179978,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -170940,6 +180022,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -170983,6 +180066,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -171026,6 +180110,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -171178,6 +180263,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -171221,6 +180307,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -171363,6 +180450,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -171406,6 +180494,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -171465,6 +180554,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -171508,6 +180598,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -171551,6 +180642,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -171594,6 +180686,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -171653,6 +180746,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -171696,6 +180790,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -171739,6 +180834,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -171782,6 +180878,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -171841,6 +180938,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -171884,6 +180982,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -172003,6 +181102,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -172046,6 +181146,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -172517,6 +181618,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -172560,6 +181662,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -173375,6 +182478,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -173418,6 +182522,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -173570,6 +182675,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -173613,6 +182719,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -173947,6 +183054,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -173990,6 +183098,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -174049,6 +183158,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -174092,6 +183202,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -174161,6 +183272,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -174204,6 +183316,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -174291,6 +183404,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -174334,6 +183448,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -174433,6 +183548,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -174476,6 +183592,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -174524,6 +183641,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -174567,6 +183685,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -174719,6 +183838,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -174762,6 +183882,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -174816,6 +183937,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -174859,6 +183981,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -175001,6 +184124,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -175044,6 +184168,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -175103,6 +184228,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -175146,6 +184272,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -175979,6 +185106,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -176022,6 +185150,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -176081,6 +185210,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -176124,6 +185254,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -176263,6 +185394,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -176306,6 +185438,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -176365,6 +185498,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -176408,6 +185542,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -176451,6 +185586,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -176494,6 +185630,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -176553,6 +185690,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -176596,6 +185734,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -176639,6 +185778,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -176682,6 +185822,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -176767,6 +185908,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -176810,6 +185952,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -188311,6 +197454,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -188354,6 +197498,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -188475,6 +197620,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -188518,6 +197664,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -189164,6 +198311,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -189207,6 +198355,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -189311,6 +198460,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -189354,6 +198504,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -189448,6 +198599,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -189491,6 +198643,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -189595,6 +198748,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -189638,6 +198792,7 @@ export namespace Prisma {
     plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -190018,6 +199173,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
     guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
@@ -190061,6 +199217,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
     guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
@@ -190109,6 +199266,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
     guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
@@ -190152,6 +199310,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
     guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
@@ -190386,6 +199545,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
     guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
@@ -190429,6 +199589,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
     guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
@@ -190483,6 +199644,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
     guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
@@ -190526,6 +199688,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
     guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
@@ -190725,6 +199888,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
@@ -190768,6 +199932,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
@@ -190827,6 +199992,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
@@ -190870,6 +200036,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
@@ -191094,6 +200261,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -191137,6 +200305,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -191321,6 +200490,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -191364,6 +200534,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -191658,6 +200829,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -191701,6 +200873,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -191807,6 +200980,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -191850,6 +201024,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -191935,6 +201110,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -191978,6 +201154,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -192162,6 +201339,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -192205,6 +201383,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -192536,6 +201715,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -192579,6 +201759,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -192794,6 +201975,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -192837,6 +202019,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -192953,6 +202136,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -192996,6 +202180,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -193139,6 +202324,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -193182,6 +202368,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -193321,6 +202508,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -193364,6 +202552,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -193412,6 +202601,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -193455,6 +202645,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -193514,6 +202705,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -193557,6 +202749,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -193611,6 +202804,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -193654,6 +202848,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -193697,6 +202892,7 @@ export namespace Prisma {
     orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
@@ -193740,6 +202936,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
     parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    washBookings?: WashBookingUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
     conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
     blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
@@ -193799,6 +202996,7 @@ export namespace Prisma {
     orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
@@ -193842,6 +203040,7 @@ export namespace Prisma {
     orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
     parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
     waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    washBookings?: WashBookingUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
     conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
     blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
@@ -193852,6 +203051,1160 @@ export namespace Prisma {
     reactions?: ReactionUncheckedUpdateManyWithoutCustomerNestedInput
     followerEdges?: FollowUncheckedUpdateManyWithoutFollowerNestedInput
     followingEdges?: FollowUncheckedUpdateManyWithoutFollowingNestedInput
+  }
+
+  export type WashCenterCreateWithoutPartnerInput = {
+    id?: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    slots?: WashSlotCreateNestedManyWithoutCenterInput
+    bookings?: WashBookingCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterUncheckedCreateWithoutPartnerInput = {
+    id?: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    slots?: WashSlotUncheckedCreateNestedManyWithoutCenterInput
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterCreateOrConnectWithoutPartnerInput = {
+    where: WashCenterWhereUniqueInput
+    create: XOR<WashCenterCreateWithoutPartnerInput, WashCenterUncheckedCreateWithoutPartnerInput>
+  }
+
+  export type WashCenterCreateManyPartnerInputEnvelope = {
+    data: WashCenterCreateManyPartnerInput | WashCenterCreateManyPartnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashTechnicianCreateWithoutPartnerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+    bookings?: WashBookingCreateNestedManyWithoutTechnicianInput
+  }
+
+  export type WashTechnicianUncheckedCreateWithoutPartnerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutTechnicianInput
+  }
+
+  export type WashTechnicianCreateOrConnectWithoutPartnerInput = {
+    where: WashTechnicianWhereUniqueInput
+    create: XOR<WashTechnicianCreateWithoutPartnerInput, WashTechnicianUncheckedCreateWithoutPartnerInput>
+  }
+
+  export type WashTechnicianCreateManyPartnerInputEnvelope = {
+    data: WashTechnicianCreateManyPartnerInput | WashTechnicianCreateManyPartnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashBookingCreateWithoutPartnerInput = {
+    id?: string
+    vehicleId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWashBookingsInput
+    center?: WashCenterCreateNestedOneWithoutBookingsInput
+    slot?: WashSlotCreateNestedOneWithoutBookingsInput
+    technician?: WashTechnicianCreateNestedOneWithoutBookingsInput
+  }
+
+  export type WashBookingUncheckedCreateWithoutPartnerInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    centerId?: string | null
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingCreateOrConnectWithoutPartnerInput = {
+    where: WashBookingWhereUniqueInput
+    create: XOR<WashBookingCreateWithoutPartnerInput, WashBookingUncheckedCreateWithoutPartnerInput>
+  }
+
+  export type WashBookingCreateManyPartnerInputEnvelope = {
+    data: WashBookingCreateManyPartnerInput | WashBookingCreateManyPartnerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashCenterUpsertWithWhereUniqueWithoutPartnerInput = {
+    where: WashCenterWhereUniqueInput
+    update: XOR<WashCenterUpdateWithoutPartnerInput, WashCenterUncheckedUpdateWithoutPartnerInput>
+    create: XOR<WashCenterCreateWithoutPartnerInput, WashCenterUncheckedCreateWithoutPartnerInput>
+  }
+
+  export type WashCenterUpdateWithWhereUniqueWithoutPartnerInput = {
+    where: WashCenterWhereUniqueInput
+    data: XOR<WashCenterUpdateWithoutPartnerInput, WashCenterUncheckedUpdateWithoutPartnerInput>
+  }
+
+  export type WashCenterUpdateManyWithWhereWithoutPartnerInput = {
+    where: WashCenterScalarWhereInput
+    data: XOR<WashCenterUpdateManyMutationInput, WashCenterUncheckedUpdateManyWithoutPartnerInput>
+  }
+
+  export type WashCenterScalarWhereInput = {
+    AND?: WashCenterScalarWhereInput | WashCenterScalarWhereInput[]
+    OR?: WashCenterScalarWhereInput[]
+    NOT?: WashCenterScalarWhereInput | WashCenterScalarWhereInput[]
+    id?: StringFilter<"WashCenter"> | string
+    partnerId?: StringFilter<"WashCenter"> | string
+    name?: StringFilter<"WashCenter"> | string
+    address?: StringFilter<"WashCenter"> | string
+    latitude?: FloatFilter<"WashCenter"> | number
+    longitude?: FloatFilter<"WashCenter"> | number
+    supportsBike?: BoolFilter<"WashCenter"> | boolean
+    supportsCar?: BoolFilter<"WashCenter"> | boolean
+    supportsEV?: BoolFilter<"WashCenter"> | boolean
+    isActive?: BoolFilter<"WashCenter"> | boolean
+    createdAt?: DateTimeFilter<"WashCenter"> | Date | string
+  }
+
+  export type WashTechnicianUpsertWithWhereUniqueWithoutPartnerInput = {
+    where: WashTechnicianWhereUniqueInput
+    update: XOR<WashTechnicianUpdateWithoutPartnerInput, WashTechnicianUncheckedUpdateWithoutPartnerInput>
+    create: XOR<WashTechnicianCreateWithoutPartnerInput, WashTechnicianUncheckedCreateWithoutPartnerInput>
+  }
+
+  export type WashTechnicianUpdateWithWhereUniqueWithoutPartnerInput = {
+    where: WashTechnicianWhereUniqueInput
+    data: XOR<WashTechnicianUpdateWithoutPartnerInput, WashTechnicianUncheckedUpdateWithoutPartnerInput>
+  }
+
+  export type WashTechnicianUpdateManyWithWhereWithoutPartnerInput = {
+    where: WashTechnicianScalarWhereInput
+    data: XOR<WashTechnicianUpdateManyMutationInput, WashTechnicianUncheckedUpdateManyWithoutPartnerInput>
+  }
+
+  export type WashTechnicianScalarWhereInput = {
+    AND?: WashTechnicianScalarWhereInput | WashTechnicianScalarWhereInput[]
+    OR?: WashTechnicianScalarWhereInput[]
+    NOT?: WashTechnicianScalarWhereInput | WashTechnicianScalarWhereInput[]
+    id?: StringFilter<"WashTechnician"> | string
+    partnerId?: StringFilter<"WashTechnician"> | string
+    name?: StringFilter<"WashTechnician"> | string
+    phoneNumber?: StringFilter<"WashTechnician"> | string
+    passwordHash?: StringFilter<"WashTechnician"> | string
+    photoUrl?: StringNullableFilter<"WashTechnician"> | string | null
+    isActive?: BoolFilter<"WashTechnician"> | boolean
+    rating?: FloatNullableFilter<"WashTechnician"> | number | null
+    createdAt?: DateTimeFilter<"WashTechnician"> | Date | string
+  }
+
+  export type WashBookingUpsertWithWhereUniqueWithoutPartnerInput = {
+    where: WashBookingWhereUniqueInput
+    update: XOR<WashBookingUpdateWithoutPartnerInput, WashBookingUncheckedUpdateWithoutPartnerInput>
+    create: XOR<WashBookingCreateWithoutPartnerInput, WashBookingUncheckedCreateWithoutPartnerInput>
+  }
+
+  export type WashBookingUpdateWithWhereUniqueWithoutPartnerInput = {
+    where: WashBookingWhereUniqueInput
+    data: XOR<WashBookingUpdateWithoutPartnerInput, WashBookingUncheckedUpdateWithoutPartnerInput>
+  }
+
+  export type WashBookingUpdateManyWithWhereWithoutPartnerInput = {
+    where: WashBookingScalarWhereInput
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyWithoutPartnerInput>
+  }
+
+  export type WashPartnerCreateWithoutTechniciansInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    centers?: WashCenterCreateNestedManyWithoutPartnerInput
+    bookings?: WashBookingCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerUncheckedCreateWithoutTechniciansInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    centers?: WashCenterUncheckedCreateNestedManyWithoutPartnerInput
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerCreateOrConnectWithoutTechniciansInput = {
+    where: WashPartnerWhereUniqueInput
+    create: XOR<WashPartnerCreateWithoutTechniciansInput, WashPartnerUncheckedCreateWithoutTechniciansInput>
+  }
+
+  export type WashBookingCreateWithoutTechnicianInput = {
+    id?: string
+    vehicleId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWashBookingsInput
+    partner: WashPartnerCreateNestedOneWithoutBookingsInput
+    center?: WashCenterCreateNestedOneWithoutBookingsInput
+    slot?: WashSlotCreateNestedOneWithoutBookingsInput
+  }
+
+  export type WashBookingUncheckedCreateWithoutTechnicianInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    slotId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingCreateOrConnectWithoutTechnicianInput = {
+    where: WashBookingWhereUniqueInput
+    create: XOR<WashBookingCreateWithoutTechnicianInput, WashBookingUncheckedCreateWithoutTechnicianInput>
+  }
+
+  export type WashBookingCreateManyTechnicianInputEnvelope = {
+    data: WashBookingCreateManyTechnicianInput | WashBookingCreateManyTechnicianInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashPartnerUpsertWithoutTechniciansInput = {
+    update: XOR<WashPartnerUpdateWithoutTechniciansInput, WashPartnerUncheckedUpdateWithoutTechniciansInput>
+    create: XOR<WashPartnerCreateWithoutTechniciansInput, WashPartnerUncheckedCreateWithoutTechniciansInput>
+    where?: WashPartnerWhereInput
+  }
+
+  export type WashPartnerUpdateToOneWithWhereWithoutTechniciansInput = {
+    where?: WashPartnerWhereInput
+    data: XOR<WashPartnerUpdateWithoutTechniciansInput, WashPartnerUncheckedUpdateWithoutTechniciansInput>
+  }
+
+  export type WashPartnerUpdateWithoutTechniciansInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    centers?: WashCenterUpdateManyWithoutPartnerNestedInput
+    bookings?: WashBookingUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashPartnerUncheckedUpdateWithoutTechniciansInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    centers?: WashCenterUncheckedUpdateManyWithoutPartnerNestedInput
+    bookings?: WashBookingUncheckedUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashBookingUpsertWithWhereUniqueWithoutTechnicianInput = {
+    where: WashBookingWhereUniqueInput
+    update: XOR<WashBookingUpdateWithoutTechnicianInput, WashBookingUncheckedUpdateWithoutTechnicianInput>
+    create: XOR<WashBookingCreateWithoutTechnicianInput, WashBookingUncheckedCreateWithoutTechnicianInput>
+  }
+
+  export type WashBookingUpdateWithWhereUniqueWithoutTechnicianInput = {
+    where: WashBookingWhereUniqueInput
+    data: XOR<WashBookingUpdateWithoutTechnicianInput, WashBookingUncheckedUpdateWithoutTechnicianInput>
+  }
+
+  export type WashBookingUpdateManyWithWhereWithoutTechnicianInput = {
+    where: WashBookingScalarWhereInput
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyWithoutTechnicianInput>
+  }
+
+  export type WashPartnerCreateWithoutCentersInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    technicians?: WashTechnicianCreateNestedManyWithoutPartnerInput
+    bookings?: WashBookingCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerUncheckedCreateWithoutCentersInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    technicians?: WashTechnicianUncheckedCreateNestedManyWithoutPartnerInput
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerCreateOrConnectWithoutCentersInput = {
+    where: WashPartnerWhereUniqueInput
+    create: XOR<WashPartnerCreateWithoutCentersInput, WashPartnerUncheckedCreateWithoutCentersInput>
+  }
+
+  export type WashSlotCreateWithoutCenterInput = {
+    id?: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+    bookings?: WashBookingCreateNestedManyWithoutSlotInput
+  }
+
+  export type WashSlotUncheckedCreateWithoutCenterInput = {
+    id?: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutSlotInput
+  }
+
+  export type WashSlotCreateOrConnectWithoutCenterInput = {
+    where: WashSlotWhereUniqueInput
+    create: XOR<WashSlotCreateWithoutCenterInput, WashSlotUncheckedCreateWithoutCenterInput>
+  }
+
+  export type WashSlotCreateManyCenterInputEnvelope = {
+    data: WashSlotCreateManyCenterInput | WashSlotCreateManyCenterInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashBookingCreateWithoutCenterInput = {
+    id?: string
+    vehicleId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWashBookingsInput
+    partner: WashPartnerCreateNestedOneWithoutBookingsInput
+    slot?: WashSlotCreateNestedOneWithoutBookingsInput
+    technician?: WashTechnicianCreateNestedOneWithoutBookingsInput
+  }
+
+  export type WashBookingUncheckedCreateWithoutCenterInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingCreateOrConnectWithoutCenterInput = {
+    where: WashBookingWhereUniqueInput
+    create: XOR<WashBookingCreateWithoutCenterInput, WashBookingUncheckedCreateWithoutCenterInput>
+  }
+
+  export type WashBookingCreateManyCenterInputEnvelope = {
+    data: WashBookingCreateManyCenterInput | WashBookingCreateManyCenterInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashPartnerUpsertWithoutCentersInput = {
+    update: XOR<WashPartnerUpdateWithoutCentersInput, WashPartnerUncheckedUpdateWithoutCentersInput>
+    create: XOR<WashPartnerCreateWithoutCentersInput, WashPartnerUncheckedCreateWithoutCentersInput>
+    where?: WashPartnerWhereInput
+  }
+
+  export type WashPartnerUpdateToOneWithWhereWithoutCentersInput = {
+    where?: WashPartnerWhereInput
+    data: XOR<WashPartnerUpdateWithoutCentersInput, WashPartnerUncheckedUpdateWithoutCentersInput>
+  }
+
+  export type WashPartnerUpdateWithoutCentersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    technicians?: WashTechnicianUpdateManyWithoutPartnerNestedInput
+    bookings?: WashBookingUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashPartnerUncheckedUpdateWithoutCentersInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    technicians?: WashTechnicianUncheckedUpdateManyWithoutPartnerNestedInput
+    bookings?: WashBookingUncheckedUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashSlotUpsertWithWhereUniqueWithoutCenterInput = {
+    where: WashSlotWhereUniqueInput
+    update: XOR<WashSlotUpdateWithoutCenterInput, WashSlotUncheckedUpdateWithoutCenterInput>
+    create: XOR<WashSlotCreateWithoutCenterInput, WashSlotUncheckedCreateWithoutCenterInput>
+  }
+
+  export type WashSlotUpdateWithWhereUniqueWithoutCenterInput = {
+    where: WashSlotWhereUniqueInput
+    data: XOR<WashSlotUpdateWithoutCenterInput, WashSlotUncheckedUpdateWithoutCenterInput>
+  }
+
+  export type WashSlotUpdateManyWithWhereWithoutCenterInput = {
+    where: WashSlotScalarWhereInput
+    data: XOR<WashSlotUpdateManyMutationInput, WashSlotUncheckedUpdateManyWithoutCenterInput>
+  }
+
+  export type WashSlotScalarWhereInput = {
+    AND?: WashSlotScalarWhereInput | WashSlotScalarWhereInput[]
+    OR?: WashSlotScalarWhereInput[]
+    NOT?: WashSlotScalarWhereInput | WashSlotScalarWhereInput[]
+    id?: StringFilter<"WashSlot"> | string
+    centerId?: StringFilter<"WashSlot"> | string
+    startsAt?: DateTimeFilter<"WashSlot"> | Date | string
+    endsAt?: DateTimeFilter<"WashSlot"> | Date | string
+    capacity?: IntFilter<"WashSlot"> | number
+    bookedCount?: IntFilter<"WashSlot"> | number
+  }
+
+  export type WashBookingUpsertWithWhereUniqueWithoutCenterInput = {
+    where: WashBookingWhereUniqueInput
+    update: XOR<WashBookingUpdateWithoutCenterInput, WashBookingUncheckedUpdateWithoutCenterInput>
+    create: XOR<WashBookingCreateWithoutCenterInput, WashBookingUncheckedCreateWithoutCenterInput>
+  }
+
+  export type WashBookingUpdateWithWhereUniqueWithoutCenterInput = {
+    where: WashBookingWhereUniqueInput
+    data: XOR<WashBookingUpdateWithoutCenterInput, WashBookingUncheckedUpdateWithoutCenterInput>
+  }
+
+  export type WashBookingUpdateManyWithWhereWithoutCenterInput = {
+    where: WashBookingScalarWhereInput
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyWithoutCenterInput>
+  }
+
+  export type WashCenterCreateWithoutSlotsInput = {
+    id?: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    partner: WashPartnerCreateNestedOneWithoutCentersInput
+    bookings?: WashBookingCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterUncheckedCreateWithoutSlotsInput = {
+    id?: string
+    partnerId: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    bookings?: WashBookingUncheckedCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterCreateOrConnectWithoutSlotsInput = {
+    where: WashCenterWhereUniqueInput
+    create: XOR<WashCenterCreateWithoutSlotsInput, WashCenterUncheckedCreateWithoutSlotsInput>
+  }
+
+  export type WashBookingCreateWithoutSlotInput = {
+    id?: string
+    vehicleId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutWashBookingsInput
+    partner: WashPartnerCreateNestedOneWithoutBookingsInput
+    center?: WashCenterCreateNestedOneWithoutBookingsInput
+    technician?: WashTechnicianCreateNestedOneWithoutBookingsInput
+  }
+
+  export type WashBookingUncheckedCreateWithoutSlotInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingCreateOrConnectWithoutSlotInput = {
+    where: WashBookingWhereUniqueInput
+    create: XOR<WashBookingCreateWithoutSlotInput, WashBookingUncheckedCreateWithoutSlotInput>
+  }
+
+  export type WashBookingCreateManySlotInputEnvelope = {
+    data: WashBookingCreateManySlotInput | WashBookingCreateManySlotInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WashCenterUpsertWithoutSlotsInput = {
+    update: XOR<WashCenterUpdateWithoutSlotsInput, WashCenterUncheckedUpdateWithoutSlotsInput>
+    create: XOR<WashCenterCreateWithoutSlotsInput, WashCenterUncheckedCreateWithoutSlotsInput>
+    where?: WashCenterWhereInput
+  }
+
+  export type WashCenterUpdateToOneWithWhereWithoutSlotsInput = {
+    where?: WashCenterWhereInput
+    data: XOR<WashCenterUpdateWithoutSlotsInput, WashCenterUncheckedUpdateWithoutSlotsInput>
+  }
+
+  export type WashCenterUpdateWithoutSlotsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    partner?: WashPartnerUpdateOneRequiredWithoutCentersNestedInput
+    bookings?: WashBookingUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashCenterUncheckedUpdateWithoutSlotsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: WashBookingUncheckedUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashBookingUpsertWithWhereUniqueWithoutSlotInput = {
+    where: WashBookingWhereUniqueInput
+    update: XOR<WashBookingUpdateWithoutSlotInput, WashBookingUncheckedUpdateWithoutSlotInput>
+    create: XOR<WashBookingCreateWithoutSlotInput, WashBookingUncheckedCreateWithoutSlotInput>
+  }
+
+  export type WashBookingUpdateWithWhereUniqueWithoutSlotInput = {
+    where: WashBookingWhereUniqueInput
+    data: XOR<WashBookingUpdateWithoutSlotInput, WashBookingUncheckedUpdateWithoutSlotInput>
+  }
+
+  export type WashBookingUpdateManyWithWhereWithoutSlotInput = {
+    where: WashBookingScalarWhereInput
+    data: XOR<WashBookingUpdateManyMutationInput, WashBookingUncheckedUpdateManyWithoutSlotInput>
+  }
+
+  export type CustomerCreateWithoutWashBookingsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationCreateNestedManyWithoutOwnerInput
+    communityMemberships?: CommunityMembershipCreateNestedManyWithoutCustomerInput
+    posts?: PostCreateNestedManyWithoutAuthorInput
+    comments?: CommentCreateNestedManyWithoutAuthorInput
+    reactions?: ReactionCreateNestedManyWithoutCustomerInput
+    followerEdges?: FollowCreateNestedManyWithoutFollowerInput
+    followingEdges?: FollowCreateNestedManyWithoutFollowingInput
+    contentReportsFiled?: ContentReportCreateNestedManyWithoutReporterInput
+  }
+
+  export type CustomerUncheckedCreateWithoutWashBookingsInput = {
+    id?: string
+    phoneNumber: string
+    email?: string | null
+    fullName?: string | null
+    profilePic?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    googleId?: string | null
+    isSuspended?: boolean
+    suspendedReason?: string | null
+    suspendedAt?: Date | string | null
+    chats?: ChatSessionUncheckedCreateNestedManyWithoutCustomerInput
+    devices?: CustomerDeviceUncheckedCreateNestedManyWithoutCustomerInput
+    documents?: VehicleDocumentUncheckedCreateNestedManyWithoutCustomerInput
+    vehicles?: CustomerVehicleUncheckedCreateNestedManyWithoutCustomerInput
+    digilocker?: DigiLockerConnectionUncheckedCreateNestedOneWithoutCustomerInput
+    emergencyContacts?: EmergencyContactUncheckedCreateNestedManyWithoutCustomerInput
+    expenses?: ExpenseUncheckedCreateNestedManyWithoutCustomerInput
+    driverExpenses?: ExpenseUncheckedCreateNestedManyWithoutDriverInput
+    drivingLicense?: DrivingLicenseUncheckedCreateNestedOneWithoutCustomerInput
+    fastag?: FastagDocumentUncheckedCreateNestedOneWithoutCustomerInput
+    budgets?: ExpenseBudgetUncheckedCreateNestedManyWithoutCustomerInput
+    notifications?: InAppNotificationUncheckedCreateNestedManyWithoutCustomerInput
+    sosRequests?: SOSRequestUncheckedCreateNestedManyWithoutCustomerInput
+    supportTickets?: SupportTicketUncheckedCreateNestedManyWithoutCustomerInput
+    sharedVehicles?: VehicleAccessUncheckedCreateNestedManyWithoutCustomerInput
+    plannedTrips?: PlannedTripUncheckedCreateNestedManyWithoutCustomerInput
+    orders?: CustomerOrderUncheckedCreateNestedManyWithoutCustomerInput
+    parkingBookings?: ParkingBookingUncheckedCreateNestedManyWithoutCustomerInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsCustomer?: ConversationUncheckedCreateNestedManyWithoutCustomerInput
+    conversationsAsOwner?: ConversationUncheckedCreateNestedManyWithoutOwnerInput
+    blockedContacts?: BlockedContactUncheckedCreateNestedManyWithoutOwnerInput
+    guestConversations?: GuestConversationUncheckedCreateNestedManyWithoutOwnerInput
+    communityMemberships?: CommunityMembershipUncheckedCreateNestedManyWithoutCustomerInput
+    posts?: PostUncheckedCreateNestedManyWithoutAuthorInput
+    comments?: CommentUncheckedCreateNestedManyWithoutAuthorInput
+    reactions?: ReactionUncheckedCreateNestedManyWithoutCustomerInput
+    followerEdges?: FollowUncheckedCreateNestedManyWithoutFollowerInput
+    followingEdges?: FollowUncheckedCreateNestedManyWithoutFollowingInput
+    contentReportsFiled?: ContentReportUncheckedCreateNestedManyWithoutReporterInput
+  }
+
+  export type CustomerCreateOrConnectWithoutWashBookingsInput = {
+    where: CustomerWhereUniqueInput
+    create: XOR<CustomerCreateWithoutWashBookingsInput, CustomerUncheckedCreateWithoutWashBookingsInput>
+  }
+
+  export type WashPartnerCreateWithoutBookingsInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    centers?: WashCenterCreateNestedManyWithoutPartnerInput
+    technicians?: WashTechnicianCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerUncheckedCreateWithoutBookingsInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    status?: $Enums.WashPartnerStatus
+    rating?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    centers?: WashCenterUncheckedCreateNestedManyWithoutPartnerInput
+    technicians?: WashTechnicianUncheckedCreateNestedManyWithoutPartnerInput
+  }
+
+  export type WashPartnerCreateOrConnectWithoutBookingsInput = {
+    where: WashPartnerWhereUniqueInput
+    create: XOR<WashPartnerCreateWithoutBookingsInput, WashPartnerUncheckedCreateWithoutBookingsInput>
+  }
+
+  export type WashCenterCreateWithoutBookingsInput = {
+    id?: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    partner: WashPartnerCreateNestedOneWithoutCentersInput
+    slots?: WashSlotCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterUncheckedCreateWithoutBookingsInput = {
+    id?: string
+    partnerId: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+    slots?: WashSlotUncheckedCreateNestedManyWithoutCenterInput
+  }
+
+  export type WashCenterCreateOrConnectWithoutBookingsInput = {
+    where: WashCenterWhereUniqueInput
+    create: XOR<WashCenterCreateWithoutBookingsInput, WashCenterUncheckedCreateWithoutBookingsInput>
+  }
+
+  export type WashSlotCreateWithoutBookingsInput = {
+    id?: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+    center: WashCenterCreateNestedOneWithoutSlotsInput
+  }
+
+  export type WashSlotUncheckedCreateWithoutBookingsInput = {
+    id?: string
+    centerId: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+  }
+
+  export type WashSlotCreateOrConnectWithoutBookingsInput = {
+    where: WashSlotWhereUniqueInput
+    create: XOR<WashSlotCreateWithoutBookingsInput, WashSlotUncheckedCreateWithoutBookingsInput>
+  }
+
+  export type WashTechnicianCreateWithoutBookingsInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+    partner: WashPartnerCreateNestedOneWithoutTechniciansInput
+  }
+
+  export type WashTechnicianUncheckedCreateWithoutBookingsInput = {
+    id?: string
+    partnerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+  }
+
+  export type WashTechnicianCreateOrConnectWithoutBookingsInput = {
+    where: WashTechnicianWhereUniqueInput
+    create: XOR<WashTechnicianCreateWithoutBookingsInput, WashTechnicianUncheckedCreateWithoutBookingsInput>
+  }
+
+  export type CustomerUpsertWithoutWashBookingsInput = {
+    update: XOR<CustomerUpdateWithoutWashBookingsInput, CustomerUncheckedUpdateWithoutWashBookingsInput>
+    create: XOR<CustomerCreateWithoutWashBookingsInput, CustomerUncheckedCreateWithoutWashBookingsInput>
+    where?: CustomerWhereInput
+  }
+
+  export type CustomerUpdateToOneWithWhereWithoutWashBookingsInput = {
+    where?: CustomerWhereInput
+    data: XOR<CustomerUpdateWithoutWashBookingsInput, CustomerUncheckedUpdateWithoutWashBookingsInput>
+  }
+
+  export type CustomerUpdateWithoutWashBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUpdateManyWithoutOwnerNestedInput
+    communityMemberships?: CommunityMembershipUpdateManyWithoutCustomerNestedInput
+    posts?: PostUpdateManyWithoutAuthorNestedInput
+    comments?: CommentUpdateManyWithoutAuthorNestedInput
+    reactions?: ReactionUpdateManyWithoutCustomerNestedInput
+    followerEdges?: FollowUpdateManyWithoutFollowerNestedInput
+    followingEdges?: FollowUpdateManyWithoutFollowingNestedInput
+    contentReportsFiled?: ContentReportUpdateManyWithoutReporterNestedInput
+  }
+
+  export type CustomerUncheckedUpdateWithoutWashBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    fullName?: NullableStringFieldUpdateOperationsInput | string | null
+    profilePic?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    googleId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSuspended?: BoolFieldUpdateOperationsInput | boolean
+    suspendedReason?: NullableStringFieldUpdateOperationsInput | string | null
+    suspendedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chats?: ChatSessionUncheckedUpdateManyWithoutCustomerNestedInput
+    devices?: CustomerDeviceUncheckedUpdateManyWithoutCustomerNestedInput
+    documents?: VehicleDocumentUncheckedUpdateManyWithoutCustomerNestedInput
+    vehicles?: CustomerVehicleUncheckedUpdateManyWithoutCustomerNestedInput
+    digilocker?: DigiLockerConnectionUncheckedUpdateOneWithoutCustomerNestedInput
+    emergencyContacts?: EmergencyContactUncheckedUpdateManyWithoutCustomerNestedInput
+    expenses?: ExpenseUncheckedUpdateManyWithoutCustomerNestedInput
+    driverExpenses?: ExpenseUncheckedUpdateManyWithoutDriverNestedInput
+    drivingLicense?: DrivingLicenseUncheckedUpdateOneWithoutCustomerNestedInput
+    fastag?: FastagDocumentUncheckedUpdateOneWithoutCustomerNestedInput
+    budgets?: ExpenseBudgetUncheckedUpdateManyWithoutCustomerNestedInput
+    notifications?: InAppNotificationUncheckedUpdateManyWithoutCustomerNestedInput
+    sosRequests?: SOSRequestUncheckedUpdateManyWithoutCustomerNestedInput
+    supportTickets?: SupportTicketUncheckedUpdateManyWithoutCustomerNestedInput
+    sharedVehicles?: VehicleAccessUncheckedUpdateManyWithoutCustomerNestedInput
+    plannedTrips?: PlannedTripUncheckedUpdateManyWithoutCustomerNestedInput
+    orders?: CustomerOrderUncheckedUpdateManyWithoutCustomerNestedInput
+    parkingBookings?: ParkingBookingUncheckedUpdateManyWithoutCustomerNestedInput
+    waitlistEntries?: ParkingWaitlistEntryUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsCustomer?: ConversationUncheckedUpdateManyWithoutCustomerNestedInput
+    conversationsAsOwner?: ConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    blockedContacts?: BlockedContactUncheckedUpdateManyWithoutOwnerNestedInput
+    guestConversations?: GuestConversationUncheckedUpdateManyWithoutOwnerNestedInput
+    communityMemberships?: CommunityMembershipUncheckedUpdateManyWithoutCustomerNestedInput
+    posts?: PostUncheckedUpdateManyWithoutAuthorNestedInput
+    comments?: CommentUncheckedUpdateManyWithoutAuthorNestedInput
+    reactions?: ReactionUncheckedUpdateManyWithoutCustomerNestedInput
+    followerEdges?: FollowUncheckedUpdateManyWithoutFollowerNestedInput
+    followingEdges?: FollowUncheckedUpdateManyWithoutFollowingNestedInput
+    contentReportsFiled?: ContentReportUncheckedUpdateManyWithoutReporterNestedInput
+  }
+
+  export type WashPartnerUpsertWithoutBookingsInput = {
+    update: XOR<WashPartnerUpdateWithoutBookingsInput, WashPartnerUncheckedUpdateWithoutBookingsInput>
+    create: XOR<WashPartnerCreateWithoutBookingsInput, WashPartnerUncheckedCreateWithoutBookingsInput>
+    where?: WashPartnerWhereInput
+  }
+
+  export type WashPartnerUpdateToOneWithWhereWithoutBookingsInput = {
+    where?: WashPartnerWhereInput
+    data: XOR<WashPartnerUpdateWithoutBookingsInput, WashPartnerUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashPartnerUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    centers?: WashCenterUpdateManyWithoutPartnerNestedInput
+    technicians?: WashTechnicianUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashPartnerUncheckedUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumWashPartnerStatusFieldUpdateOperationsInput | $Enums.WashPartnerStatus
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    centers?: WashCenterUncheckedUpdateManyWithoutPartnerNestedInput
+    technicians?: WashTechnicianUncheckedUpdateManyWithoutPartnerNestedInput
+  }
+
+  export type WashCenterUpsertWithoutBookingsInput = {
+    update: XOR<WashCenterUpdateWithoutBookingsInput, WashCenterUncheckedUpdateWithoutBookingsInput>
+    create: XOR<WashCenterCreateWithoutBookingsInput, WashCenterUncheckedCreateWithoutBookingsInput>
+    where?: WashCenterWhereInput
+  }
+
+  export type WashCenterUpdateToOneWithWhereWithoutBookingsInput = {
+    where?: WashCenterWhereInput
+    data: XOR<WashCenterUpdateWithoutBookingsInput, WashCenterUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashCenterUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    partner?: WashPartnerUpdateOneRequiredWithoutCentersNestedInput
+    slots?: WashSlotUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashCenterUncheckedUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slots?: WashSlotUncheckedUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashSlotUpsertWithoutBookingsInput = {
+    update: XOR<WashSlotUpdateWithoutBookingsInput, WashSlotUncheckedUpdateWithoutBookingsInput>
+    create: XOR<WashSlotCreateWithoutBookingsInput, WashSlotUncheckedCreateWithoutBookingsInput>
+    where?: WashSlotWhereInput
+  }
+
+  export type WashSlotUpdateToOneWithWhereWithoutBookingsInput = {
+    where?: WashSlotWhereInput
+    data: XOR<WashSlotUpdateWithoutBookingsInput, WashSlotUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashSlotUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+    center?: WashCenterUpdateOneRequiredWithoutSlotsNestedInput
+  }
+
+  export type WashSlotUncheckedUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    centerId?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type WashTechnicianUpsertWithoutBookingsInput = {
+    update: XOR<WashTechnicianUpdateWithoutBookingsInput, WashTechnicianUncheckedUpdateWithoutBookingsInput>
+    create: XOR<WashTechnicianCreateWithoutBookingsInput, WashTechnicianUncheckedCreateWithoutBookingsInput>
+    where?: WashTechnicianWhereInput
+  }
+
+  export type WashTechnicianUpdateToOneWithWhereWithoutBookingsInput = {
+    where?: WashTechnicianWhereInput
+    data: XOR<WashTechnicianUpdateWithoutBookingsInput, WashTechnicianUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type WashTechnicianUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    partner?: WashPartnerUpdateOneRequiredWithoutTechniciansNestedInput
+  }
+
+  export type WashTechnicianUncheckedUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    partnerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ChatSessionCreateManyCustomerInput = {
@@ -194081,6 +204434,30 @@ export namespace Prisma {
     desiredDate: Date | string
     notified?: boolean
     createdAt?: Date | string
+  }
+
+  export type WashBookingCreateManyCustomerInput = {
+    id?: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ConversationCreateManyCustomerInput = {
@@ -194921,6 +205298,78 @@ export namespace Prisma {
     desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
     notified?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    partner?: WashPartnerUpdateOneRequiredWithoutBookingsNestedInput
+    center?: WashCenterUpdateOneWithoutBookingsNestedInput
+    slot?: WashSlotUpdateOneWithoutBookingsNestedInput
+    technician?: WashTechnicianUpdateOneWithoutBookingsNestedInput
+  }
+
+  export type WashBookingUncheckedUpdateWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutCustomerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ConversationUpdateWithoutCustomerInput = {
@@ -199878,6 +210327,526 @@ export namespace Prisma {
     postId?: NullableStringFieldUpdateOperationsInput | string | null
     emoji?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashCenterCreateManyPartnerInput = {
+    id?: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    supportsBike?: boolean
+    supportsCar?: boolean
+    supportsEV?: boolean
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type WashTechnicianCreateManyPartnerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    photoUrl?: string | null
+    isActive?: boolean
+    rating?: number | null
+    createdAt?: Date | string
+  }
+
+  export type WashBookingCreateManyPartnerInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    centerId?: string | null
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashCenterUpdateWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slots?: WashSlotUpdateManyWithoutCenterNestedInput
+    bookings?: WashBookingUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashCenterUncheckedUpdateWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slots?: WashSlotUncheckedUpdateManyWithoutCenterNestedInput
+    bookings?: WashBookingUncheckedUpdateManyWithoutCenterNestedInput
+  }
+
+  export type WashCenterUncheckedUpdateManyWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    address?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    supportsBike?: BoolFieldUpdateOperationsInput | boolean
+    supportsCar?: BoolFieldUpdateOperationsInput | boolean
+    supportsEV?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashTechnicianUpdateWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: WashBookingUpdateManyWithoutTechnicianNestedInput
+  }
+
+  export type WashTechnicianUncheckedUpdateWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: WashBookingUncheckedUpdateManyWithoutTechnicianNestedInput
+  }
+
+  export type WashTechnicianUncheckedUpdateManyWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    rating?: NullableFloatFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUpdateWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWashBookingsNestedInput
+    center?: WashCenterUpdateOneWithoutBookingsNestedInput
+    slot?: WashSlotUpdateOneWithoutBookingsNestedInput
+    technician?: WashTechnicianUpdateOneWithoutBookingsNestedInput
+  }
+
+  export type WashBookingUncheckedUpdateWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingCreateManyTechnicianInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    slotId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingUpdateWithoutTechnicianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWashBookingsNestedInput
+    partner?: WashPartnerUpdateOneRequiredWithoutBookingsNestedInput
+    center?: WashCenterUpdateOneWithoutBookingsNestedInput
+    slot?: WashSlotUpdateOneWithoutBookingsNestedInput
+  }
+
+  export type WashBookingUncheckedUpdateWithoutTechnicianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutTechnicianInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashSlotCreateManyCenterInput = {
+    id?: string
+    startsAt: Date | string
+    endsAt: Date | string
+    capacity?: number
+    bookedCount?: number
+  }
+
+  export type WashBookingCreateManyCenterInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    slotId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashSlotUpdateWithoutCenterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+    bookings?: WashBookingUpdateManyWithoutSlotNestedInput
+  }
+
+  export type WashSlotUncheckedUpdateWithoutCenterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+    bookings?: WashBookingUncheckedUpdateManyWithoutSlotNestedInput
+  }
+
+  export type WashSlotUncheckedUpdateManyWithoutCenterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endsAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    capacity?: IntFieldUpdateOperationsInput | number
+    bookedCount?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type WashBookingUpdateWithoutCenterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWashBookingsNestedInput
+    partner?: WashPartnerUpdateOneRequiredWithoutBookingsNestedInput
+    slot?: WashSlotUpdateOneWithoutBookingsNestedInput
+    technician?: WashTechnicianUpdateOneWithoutBookingsNestedInput
+  }
+
+  export type WashBookingUncheckedUpdateWithoutCenterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutCenterInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    slotId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingCreateManySlotInput = {
+    id?: string
+    customerId: string
+    vehicleId?: string | null
+    partnerId: string
+    centerId?: string | null
+    technicianId?: string | null
+    serviceModel: $Enums.WashServiceModel
+    washType: $Enums.WashType
+    addressLine?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    status?: $Enums.WashBookingStatus
+    amountPaise: number
+    orderId?: string | null
+    beforePhotoUrls?: WashBookingCreatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingCreateafterPhotoUrlsInput | string[]
+    scheduledAt?: Date | string | null
+    completedAt?: Date | string | null
+    idempotencyKey?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WashBookingUpdateWithoutSlotInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutWashBookingsNestedInput
+    partner?: WashPartnerUpdateOneRequiredWithoutBookingsNestedInput
+    center?: WashCenterUpdateOneWithoutBookingsNestedInput
+    technician?: WashTechnicianUpdateOneWithoutBookingsNestedInput
+  }
+
+  export type WashBookingUncheckedUpdateWithoutSlotInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WashBookingUncheckedUpdateManyWithoutSlotInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    partnerId?: StringFieldUpdateOperationsInput | string
+    centerId?: NullableStringFieldUpdateOperationsInput | string | null
+    technicianId?: NullableStringFieldUpdateOperationsInput | string | null
+    serviceModel?: EnumWashServiceModelFieldUpdateOperationsInput | $Enums.WashServiceModel
+    washType?: EnumWashTypeFieldUpdateOperationsInput | $Enums.WashType
+    addressLine?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    status?: EnumWashBookingStatusFieldUpdateOperationsInput | $Enums.WashBookingStatus
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    beforePhotoUrls?: WashBookingUpdatebeforePhotoUrlsInput | string[]
+    afterPhotoUrls?: WashBookingUpdateafterPhotoUrlsInput | string[]
+    scheduledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

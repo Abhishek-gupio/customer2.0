@@ -35,6 +35,7 @@ type ServiceId =
   | 'CarWash'
   | 'Insurance'
   | 'Parking'
+  | 'CarWash'
   | 'TyreShop'
   | 'DocumentServices'
   | 'CarSpa'
@@ -62,6 +63,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
   { id: 'RTO', name: 'RTO Office', icon: 'landmark', iconSet: 'fa' },
   { id: 'Towing', name: 'Tow Help', icon: 'truck-pickup', iconSet: 'fa' },
   { id: 'Parking', name: 'Parking', icon: 'parking', iconSet: 'fa' },
+  { id: 'CarWash', name: 'Car Wash', icon: 'car-wash', iconSet: 'mc' },
   { id: 'Insurance', name: 'Insurance Help', icon: 'shield-check', iconSet: 'mc' },
   { id: 'TripExpense', name: 'Trip Cost', icon: 'map-signs', iconSet: 'fa' },
   { id: 'DLVerification', name: 'DL Verify', icon: 'id-card', iconSet: 'fa' },
@@ -72,7 +74,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode', 'VehicleMessages'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode', 'VehicleMessages', 'CarWash'], color: '#ef4444' }, // Red
   { title: 'Community', itemIds: ['Community'], color: '#8b5cf6' }, // Violet
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
@@ -211,6 +213,9 @@ export default function ServicesHub() {
         break;
       case 'Parking':
         navigation.navigate('ParkingSearch');
+        break;
+      case 'CarWash':
+        navigation.navigate('WashSearch');
         break;
       case 'VehicleMessages':
         navigation.navigate('VehicleInbox');

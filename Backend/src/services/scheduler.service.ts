@@ -134,6 +134,28 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Auto-close Idle Conversations (0 3 * * *)");
 
+    // G. Release abandoned car wash booking holds (Every 5 min)
+    await queues.maintenance.add(
+      "release-abandoned-carwash-bookings",
+      {},
+      {
+        repeat: { pattern: "*/5 * * * *" },
+        jobId: "release-abandoned-carwash-bookings-job",
+      },
+    );
+    logger.info("Scheduled: Release Abandoned Car Wash Bookings (*/5 * * * *)");
+
+    // H. Daily AI wash reminder (Every day at 9:30 AM)
+    await queues.maintenance.add(
+      "carwash-daily-reminder",
+      {},
+      {
+        repeat: { pattern: "30 9 * * *" },
+        jobId: "carwash-daily-reminder-job",
+      },
+    );
+    logger.info("Scheduled: Car Wash Daily Reminder (30 9 * * *)");
+
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },
 

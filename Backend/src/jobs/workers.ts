@@ -129,6 +129,12 @@ export const initWorkers = () => {
       } else if (job.name === "auto-close-idle-conversations") {
         const { messagingService } = await import("../modules/messaging/messaging.service");
         await messagingService.autoCloseIdleConversations();
+      } else if (job.name === "release-abandoned-carwash-bookings") {
+        const { carwashService } = await import("../modules/carwash/carwash.service");
+        await carwashService.releaseAbandonedBookings();
+      } else if (job.name === "carwash-daily-reminder") {
+        const { reminderService } = await import("../modules/carwash/reminder.service");
+        await reminderService.sendDailyWashReminders();
       }
     },
     defaultWorkerOptions
