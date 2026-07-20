@@ -3,7 +3,7 @@ import { logger } from "../config/logger";
 import { vectorService } from "./vector.service";
 import { ocrService } from "./ocr.service";
 
-const db = dbInstances as any;
+const db = dbInstances;
 
 /**
  * Service to automatically ingest new data into the AI's vector memory.
@@ -48,7 +48,7 @@ export const ingestionService = {
    */
   async ingestDocument(documentId: string) {
     try {
-      const doc = await db.customerDocument.findUnique({
+      const doc = await db.vehicleDocument.findUnique({
         where: { id: documentId },
         include: { vehicle: true },
       });

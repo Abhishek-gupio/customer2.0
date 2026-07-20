@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Platform,
   Animated,
+  Image,
 } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,21 +18,29 @@ import type { MainTabParamList } from './types';
 import Home from '../screens/Main/Home';
 import { ServiceNavigator } from './ServiceNavigator';
 import AIAssistant from '../screens/Main/AIAssistant';
-import Alerts from '../screens/Main/Alerts';
 import Odometer from '../screens/Main/Odometer';
-import HeyGupioOverlay from '../components/HeyGupioOverlay';
+import GupioGarageApp from '../screens/Vehicles/GupioGarageApp';
+import { withErrorBoundary } from '../components/withErrorBoundary';
+
+const GupioLogoAI = require('../assets/images/gupio-logo-ai.png') as any;
 
 const AI_GRADIENT = ['#4f46e5', '#7c3aed', '#06b6d4', '#4f46e5'] as const;
 const FLOW_DURATION_MS = 3000;
-const AGENT_PULSE_MS = 5600;
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+const AIAssistantScreen = withErrorBoundary(AIAssistant, {
+  boundaryName: 'chat-ai-assistant-tab',
+  fallbackTitle: 'AI assistant could not load',
+  fallbackMessage:
+    'Retry the assistant or refresh this section. If the issue keeps happening, report it with the correlation id.',
+});
+
 const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   Home: 'home',
+  my_garage: 'car',
   Services: 'th-large',
   AIAssistant: 'robot',
-  Alerts: 'bell',
   Odometer: 'tachometer-alt',
 };
 
@@ -43,7 +52,6 @@ function CenterTabButton({
   accessibilityState?: { selected?: boolean };
 }) {
   const flowAnim = useRef(new Animated.Value(0)).current;
-  const agentPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -57,31 +65,7 @@ function CenterTabButton({
     return () => loop.stop();
   }, [flowAnim]);
 
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(agentPulse, {
-          toValue: 1,
-          duration: AGENT_PULSE_MS / 2,
-          useNativeDriver: true,
-        }),
-        Animated.timing(agentPulse, {
-          toValue: 0,
-          duration: AGENT_PULSE_MS / 2,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [agentPulse]);
-
   const rotate = flowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const rotateY = agentPulse.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
@@ -110,19 +94,13 @@ function CenterTabButton({
               end={{ x: 1, y: 1 }}
             />
           </Animated.View>
-          <Animated.View
-            style={[
-              styles.centerButtonIconWrap,
-              {
-                transform: [
-                  { perspective: 400 },
-                  { rotateY },
-                ],
-              },
-            ]}
-          >
-            <Icon name="robot" size={wp(5.2)} color="#fff" />
-          </Animated.View>
+          <View style={styles.centerButtonIconWrap}>
+            <Image 
+              source={GupioLogoAI} 
+              style={{ width: wp(7.5), height: wp(7.5) }} 
+              resizeMode="contain"
+            />
+          </View>
         </View>
       </TouchableOpacity>
     </View>
@@ -154,23 +132,18 @@ export function MainBottomTabs() {
           }}
         />
         <Tab.Screen
-          name="Services"
-          component={ServiceNavigator}
+          name="my_garage"
+          component={GupioGarageApp}
           options={{
-            tabBarLabel: 'Services',
+            tabBarLabel: 'My Garage',
             tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Services} size={18} color={color} />
+              <Icon name={TAB_ICONS.my_garage} size={18} color={color} />
             ),
           }}
-          listeners={({ navigation }) => ({
-            tabPress: () => {
-              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
-            },
-          })}
         />
         <Tab.Screen
           name="AIAssistant"
-          component={AIAssistant}
+          component={AIAssistantScreen}
           options={{
             tabBarLabel: () => null,
             tabBarIcon: () => null,
@@ -186,14 +159,19 @@ export function MainBottomTabs() {
           }}
         />
         <Tab.Screen
-          name="Alerts"
-          component={Alerts}
+          name="Services"
+          component={ServiceNavigator}
           options={{
-            tabBarLabel: 'Alerts',
+            tabBarLabel: 'Services',
             tabBarIcon: ({ color }) => (
-              <Icon name={TAB_ICONS.Alerts} size={18} color={color} />
+              <Icon name={TAB_ICONS.Services} size={18} color={color} />
             ),
           }}
+          listeners={({ navigation }) => ({
+            tabPress: () => {
+              (navigation as any).navigate('Services', { screen: 'ServicesHome' });
+            },
+          })}
         />
         <Tab.Screen
           name="Odometer"
@@ -206,7 +184,6 @@ export function MainBottomTabs() {
           }}
         />
       </Tab.Navigator>
-      <HeyGupioOverlay />
     </View>
   );
 }

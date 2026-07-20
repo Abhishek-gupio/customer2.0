@@ -3,12 +3,26 @@ const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 const USER_ID_KEY = 'auth_user_id';
 const AUTH_PERSISTED_AT_KEY = 'auth_persisted_at_ms';
 const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
+const TELEMATICS_PROVIDER_KEY = 'telematics_provider';
+const TELEMATICS_AUTO_MODE_KEY = 'telematics_auto_mode_enabled';
+const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
+const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
+const LAST_RECEIVED_OTP_KEY = 'last_received_otp';
+const LAST_RECEIVED_OTP_AT_KEY = 'last_received_otp_at_ms';
 
 const AUTH_KEYS = new Set([
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   USER_ID_KEY,
   AUTH_PERSISTED_AT_KEY,
+]);
+
+const SHARED_PERSISTED_KEYS = new Set([
+  ...AUTH_KEYS,
+  AUTO_EXPENSE_ENABLED_KEY,
+  PRIMARY_VEHICLE_ID_KEY,
+  LAST_RECEIVED_OTP_KEY,
+  LAST_RECEIVED_OTP_AT_KEY,
 ]);
 
 /** Serialize auth AsyncStorage I/O (async-auth only) so login/refresh can await durability. */
@@ -31,6 +45,7 @@ type StorageImpl = {
 };
 
 type AsyncStorageModule = {
+  getItem: (key: string) => Promise<string | null>;
   setItem: (key: string, value: string) => Promise<unknown>;
   removeItem: (key: string) => Promise<unknown>;
   multiGet: (keys: readonly string[]) => Promise<Array<[string, string | null]>>;
@@ -41,7 +56,7 @@ let storageBackend: 'mmkv' | 'async-auth' | 'memory' = 'memory';
 let mmkvLoadError: unknown = null;
 let asyncStorageLoadError: unknown = null;
 
-const authAsyncCache: Record<string, string> = {};
+const persistedAsyncCache: Record<string, string> = {};
 const miscMem: Record<string, string> = {};
 
 function getAsyncStorage(): AsyncStorageModule | null {
@@ -66,14 +81,14 @@ try {
   storageBackend = asyncStorage ? 'async-auth' : 'memory';
   storage = {
     set(k: string, v: string) {
-      if (AUTH_KEYS.has(k)) {
+      if (SHARED_PERSISTED_KEYS.has(k)) {
         if (v === '') {
-          delete authAsyncCache[k];
+          delete persistedAsyncCache[k];
           enqueueAuthAsyncDisk(() =>
             asyncStorage ? asyncStorage.removeItem(k).then(() => {}) : Promise.resolve(),
           );
         } else {
-          authAsyncCache[k] = v;
+          persistedAsyncCache[k] = v;
           enqueueAuthAsyncDisk(() =>
             asyncStorage ? asyncStorage.setItem(k, v).then(() => {}) : Promise.resolve(),
           );
@@ -83,12 +98,12 @@ try {
       }
     },
     getString(k: string) {
-      if (AUTH_KEYS.has(k)) return authAsyncCache[k];
+      if (SHARED_PERSISTED_KEYS.has(k)) return persistedAsyncCache[k];
       return miscMem[k];
     },
     remove(k: string) {
-      if (AUTH_KEYS.has(k)) {
-        delete authAsyncCache[k];
+      if (SHARED_PERSISTED_KEYS.has(k)) {
+        delete persistedAsyncCache[k];
         enqueueAuthAsyncDisk(() =>
           asyncStorage ? asyncStorage.removeItem(k).then(() => {}) : Promise.resolve(),
         );
@@ -125,10 +140,10 @@ export async function hydrateAuthFromPersistedStorage(): Promise<void> {
   try {
     const asyncStorage = getAsyncStorage();
     if (!asyncStorage) return;
-    const keys = [...AUTH_KEYS];
+    const keys = [...SHARED_PERSISTED_KEYS];
     const pairs = await asyncStorage.multiGet(keys);
     for (const [k, v] of pairs) {
-      if (v != null && v !== '') authAsyncCache[k] = v;
+      if (v != null && v !== '') persistedAsyncCache[k] = v;
     }
   } catch {
     // keep empty cache
@@ -219,11 +234,27 @@ export function setVoiceLanguageIndex(index: number): void {
   storage.set(VOICE_LANGUAGE_INDEX_KEY, String(index));
 }
 
-const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
-const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
+export function setStorageValue(key: string, value: string): void {
+  storage.set(key, value);
+}
+
+export function getStorageValue(key: string): string | undefined {
+  return storage.getString(key);
+}
+
+export function removeStorageValue(key: string): void {
+  if (storage.remove) {
+    storage.remove(key);
+    return;
+  }
+  storage.set(key, '');
+}
+
+
 
 export function getAutoExpenseEnabled(): boolean {
   const s = storage.getString(AUTO_EXPENSE_ENABLED_KEY);
+  if (s == null || s === '') return true;
   return s === 'true';
 }
 
@@ -248,6 +279,63 @@ export function getPrimaryVehicleId(): string | null {
   return s && s.length > 0 ? s : null;
 }
 
+export function setLastReceivedOtp(otp: string, receivedAt = Date.now()): void {
+  storage.set(LAST_RECEIVED_OTP_KEY, otp);
+  storage.set(LAST_RECEIVED_OTP_AT_KEY, String(Math.floor(receivedAt)));
+}
+
+export function getLastReceivedOtp():
+  | { otp: string; receivedAt: number }
+  | null {
+  const otp = storage.getString(LAST_RECEIVED_OTP_KEY);
+  const receivedAtRaw = storage.getString(LAST_RECEIVED_OTP_AT_KEY);
+  if (!otp || !/^\d{4,8}$/.test(otp)) return null;
+  const receivedAt = receivedAtRaw ? parseInt(receivedAtRaw, 10) : 0;
+  return {
+    otp,
+    receivedAt: Number.isFinite(receivedAt) && receivedAt > 0 ? receivedAt : 0,
+  };
+}
+
+export async function getLastReceivedOtpAsync():
+  Promise<{ otp: string; receivedAt: number } | null> {
+  if (storageBackend === 'async-auth') {
+    try {
+      const asyncStorage = getAsyncStorage();
+      if (asyncStorage) {
+        const [otp, receivedAtRaw] = await Promise.all([
+          asyncStorage.getItem(LAST_RECEIVED_OTP_KEY),
+          asyncStorage.getItem(LAST_RECEIVED_OTP_AT_KEY),
+        ]);
+        if (!otp || !/^\d{4,8}$/.test(otp)) return null;
+        const receivedAt = receivedAtRaw ? parseInt(receivedAtRaw, 10) : 0;
+        persistedAsyncCache[LAST_RECEIVED_OTP_KEY] = otp;
+        if (receivedAtRaw) {
+          persistedAsyncCache[LAST_RECEIVED_OTP_AT_KEY] = receivedAtRaw;
+        }
+        return {
+          otp,
+          receivedAt: Number.isFinite(receivedAt) && receivedAt > 0 ? receivedAt : 0,
+        };
+      }
+    } catch {
+      // fall back to in-memory/cache path below
+    }
+  }
+
+  return getLastReceivedOtp();
+}
+
+export function clearLastReceivedOtp(): void {
+  if (storage.remove) {
+    storage.remove(LAST_RECEIVED_OTP_KEY);
+    storage.remove(LAST_RECEIVED_OTP_AT_KEY);
+  } else {
+    storage.set(LAST_RECEIVED_OTP_KEY, '');
+    storage.set(LAST_RECEIVED_OTP_AT_KEY, '');
+  }
+}
+
 export function getTelematicsLinked(vehicleId: string | null | undefined): boolean {
   if (!vehicleId) return false;
   const s = storage.getString(`telematics_linked_${vehicleId}`);
@@ -268,4 +356,25 @@ export function getLastOdometerUpdate(vehicleId: string): number | undefined {
 
 export function setLastOdometerUpdate(vehicleId: string, msSinceEpoch: number): void {
   storage.set(`last_odometer_update_${vehicleId}`, String(Math.floor(msSinceEpoch)));
+}
+
+export type TelematicsProvider = 'damoov' | 'inhouse';
+
+export function getTelematicsProvider(): TelematicsProvider {
+  const provider = storage.getString(TELEMATICS_PROVIDER_KEY);
+  return provider === 'inhouse' ? 'inhouse' : 'damoov';
+}
+
+export function setTelematicsProvider(provider: TelematicsProvider): void {
+  storage.set(TELEMATICS_PROVIDER_KEY, provider);
+}
+
+export function getTelematicsAutoModeEnabled(): boolean {
+  const value = storage.getString(TELEMATICS_AUTO_MODE_KEY);
+  if (value == null || value === '') return true;
+  return value === 'true';
+}
+
+export function setTelematicsAutoModeEnabled(enabled: boolean): void {
+  storage.set(TELEMATICS_AUTO_MODE_KEY, enabled ? 'true' : 'false');
 }

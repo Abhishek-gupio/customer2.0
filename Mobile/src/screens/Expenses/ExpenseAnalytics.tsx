@@ -10,6 +10,7 @@ import {
   RefreshControl,
   NativeModules,
   PermissionsAndroid,
+  InteractionManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -42,6 +43,8 @@ if (!RNHTMLtoPDF?.convert) {
 import { api } from "../../services/api";
 import { vehicleService } from "../../services/vehicleService";
 import BackButton from '../../components/BackButton';
+import { getPrimaryVehicleId } from "../../services/storage";
+import { getCachedValue, getStaleCachedValue, setCachedValue } from "../../services/cache";
 
 type AnalyticsTrend = {
   labels: string[];
@@ -73,6 +76,11 @@ type CostPerKmSummary = {
 
 type TimeFrame = "Day" | "Week" | "Month" | "Quarter" | "Year";
 
+const EXPENSES_CACHE_KEY = "cache:expenses:list";
+const ANALYTICS_INSIGHTS_CACHE_KEY = "cache:expenses:analytics:insights";
+const ANALYTICS_COST_PER_KM_CACHE_PREFIX = "cache:expenses:analytics:cost-per-km";
+const ANALYTICS_CACHE_TTL_MS = 3 * 60 * 1000;
+
 const CATEGORY_COLORS: Record<string, string> = {
   FUEL: "#2196f3",
   SERVICE: "#ff6d00",
@@ -82,6 +90,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   PARKING: "#ffeb3b",
   CHALLAN: "#f44336",
   EMI: "#4caf50",
+  REPAIR: "#ff5722",
   OTHER: "#00c853",
 };
 
@@ -368,12 +377,19 @@ const buildTopSpending = (expenses: any[], timeFrame: TimeFrame): TopSpendingIte
     .slice(0, 5);
 };
 
+const getExpensesCacheKey = (vehicleId: string | null) =>
+  vehicleId ? `${EXPENSES_CACHE_KEY}:${vehicleId}` : EXPENSES_CACHE_KEY;
+
+const getCostPerKmCacheKey = (vehicleId: string) =>
+  `${ANALYTICS_COST_PER_KM_CACHE_PREFIX}:${vehicleId}`;
+
 export default function ExpenseAnalytics() {
   const navigation = useNavigation();
   const spendingAnalysisRef = useRef<SpendingAnalysisHandle>(null);
   const baseExpensesRef = useRef<any[]>([]);
   const insightsRef = useRef<string[]>([]);
   const costPerKmRef = useRef<number>(0);
+  const costPerKmSummaryRef = useRef<CostPerKmSummary | null>(null);
   const isRefreshingRef = useRef(false);
   const pendingRefreshRef = useRef(false);
   const vehicleIdRef = useRef<string | null>(null);
@@ -381,10 +397,21 @@ export default function ExpenseAnalytics() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>("Month");
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
-  const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [vehicleId, setVehicleId] = useState<string | null>(() => getPrimaryVehicleId());
+  const [vehicleLookupDone, setVehicleLookupDone] = useState(() => Boolean(getPrimaryVehicleId()));
   const [costPerKmSummary, setCostPerKmSummary] = useState<CostPerKmSummary | null>(null);
+  const [showHeavyCharts, setShowHeavyCharts] = useState(false);
+  const [enableChartExport, setEnableChartExport] = useState(false);
 
-  const computeAnalyticsForTimeFrame = (timeFrame: TimeFrame, expenses: any[]) => {
+  const computeAnalyticsForTimeFrame = (
+    timeFrame: TimeFrame,
+    expenses: any[],
+    options?: {
+      insights?: string[];
+      costPerKm?: number;
+      costPerKmSummary?: CostPerKmSummary | null;
+    }
+  ) => {
     const { start, end } = getTimeFrameRange(timeFrame);
     const filtered = expenses.filter((e: any) => {
       const d = toDate(e.date);
@@ -395,23 +422,63 @@ export default function ExpenseAnalytics() {
       (sum: number, e: any) => sum + toNumber(e.amount),
       0
     );
+    const effectiveCostPerKmSummary =
+      options?.costPerKmSummary ?? costPerKmSummaryRef.current;
     const totalSpent =
-      costPerKmSummary && Number.isFinite(costPerKmSummary.totalExpenses)
-        ? toNumber(costPerKmSummary.totalExpenses)
+      effectiveCostPerKmSummary &&
+      Number.isFinite(effectiveCostPerKmSummary.totalExpenses)
+        ? toNumber(effectiveCostPerKmSummary.totalExpenses)
         : computedTotalSpent;
     const avgMonthly = getTotalThisMonth(expenses);
 
     return {
       totalSpent,
       avgMonthly,
-      costPerKm: costPerKmRef.current,
-      insights: insightsRef.current,
+      costPerKm: options?.costPerKm ?? costPerKmRef.current,
+      insights: options?.insights ?? insightsRef.current,
       trend: buildTrendSeries(filtered, timeFrame),
       breakdown: buildBreakdown(filtered),
     };
   };
 
-  const refreshAnalytics = async () => {
+  const applyCachedAnalytics = (targetVehicleId: string | null) => {
+    const cachedExpenses =
+      getStaleCachedValue<any[]>(getExpensesCacheKey(targetVehicleId)) ??
+      (!targetVehicleId ? null : getStaleCachedValue<any[]>(EXPENSES_CACHE_KEY)) ??
+      [];
+    const cachedInsights =
+      getCachedValue<string[]>(ANALYTICS_INSIGHTS_CACHE_KEY) ??
+      getStaleCachedValue<string[]>(ANALYTICS_INSIGHTS_CACHE_KEY) ??
+      [];
+    const cachedCostSummary =
+      targetVehicleId
+        ? getCachedValue<CostPerKmSummary>(getCostPerKmCacheKey(targetVehicleId)) ??
+          getStaleCachedValue<CostPerKmSummary>(getCostPerKmCacheKey(targetVehicleId))
+        : null;
+
+    if (!Array.isArray(cachedExpenses) || cachedExpenses.length === 0) {
+      insightsRef.current = cachedInsights;
+      costPerKmRef.current = toNumber(cachedCostSummary?.costPerKm);
+      costPerKmSummaryRef.current = cachedCostSummary ?? null;
+      setCostPerKmSummary(cachedCostSummary ?? null);
+      return;
+    }
+
+    baseExpensesRef.current = cachedExpenses;
+    insightsRef.current = cachedInsights;
+    costPerKmRef.current = toNumber(cachedCostSummary?.costPerKm);
+    costPerKmSummaryRef.current = cachedCostSummary ?? null;
+    setCostPerKmSummary(cachedCostSummary ?? null);
+    setAnalytics(
+      computeAnalyticsForTimeFrame(selectedTimeFrame, cachedExpenses, {
+        insights: cachedInsights,
+        costPerKm: toNumber(cachedCostSummary?.costPerKm),
+        costPerKmSummary: cachedCostSummary ?? null,
+      })
+    );
+  };
+
+  const refreshAnalytics = async (targetVehicleId = vehicleIdRef.current) => {
     if (isRefreshingRef.current) {
       pendingRefreshRef.current = true;
       return;
@@ -420,62 +487,85 @@ export default function ExpenseAnalytics() {
     setLoadingAnalytics(true);
     setAnalyticsError(null);
     try {
-      const expensesRes = await getWithRetry(() =>
-        api.get<any>(
-          vehicleIdRef.current
-            ? `/v1/expenses?vehicleId=${vehicleIdRef.current}`
-            : "/v1/expenses"
-        )
-      );
-
-      const items =
-        expensesRes?.data?.expenses ??
-        expensesRes?.data?.data?.expenses ??
-        expensesRes?.data?.data ??
-        expensesRes?.expenses ??
-        expensesRes?.data ??
-        [];
-      baseExpensesRef.current = Array.isArray(items) ? items : [];
-
-      const [insightsResult, vehiclesResult] = await Promise.allSettled([
-        api.get<any>("/v1/expenses/insights"),
-        vehicleService.getVehicles(),
+      const [expensesResult, insightsResult, costResult] = await Promise.allSettled([
+        getWithRetry(() =>
+          api.get<any>(
+            targetVehicleId
+              ? `/v1/expenses?vehicleId=${targetVehicleId}`
+              : "/v1/expenses"
+          )
+        ),
+        getWithRetry(() => api.get<any>("/v1/expenses/insights")),
+        targetVehicleId
+          ? getWithRetry(() =>
+              api.get<any>(`/v1/expenses/vehicles/${targetVehicleId}/cost-per-km`)
+            )
+          : Promise.resolve(null),
       ]);
 
-      const insightsPayload =
-        insightsResult.status === "fulfilled"
-          ? (insightsResult.value as any)?.data ?? insightsResult.value
-          : null;
-      insightsRef.current =
-        insightsPayload?.smartTips ??
-        insightsPayload?.weeklyDigest?.tips ??
-        [];
+      if (expensesResult.status === "fulfilled") {
+        const expensesRes = expensesResult.value;
+        const items =
+          expensesRes?.data?.expenses ??
+          expensesRes?.data?.data?.expenses ??
+          expensesRes?.data?.data ??
+          expensesRes?.expenses ??
+          expensesRes?.data ??
+          [];
+        baseExpensesRef.current = Array.isArray(items) ? items : [];
+        setCachedValue(
+          getExpensesCacheKey(targetVehicleId ?? null),
+          baseExpensesRef.current,
+          ANALYTICS_CACHE_TTL_MS,
+        );
+      }
 
-      const vehicleList =
-        vehiclesResult.status === "fulfilled" ? vehiclesResult.value : [];
-      const primaryVehicle = Array.isArray(vehicleList)
-        ? vehicleList.find((v) => v?.isPrimary) || vehicleList[0]
-        : null;
-      const costVehicleId = vehicleIdRef.current ?? primaryVehicle?.id ?? null;
-      if (costVehicleId) {
-        try {
-          const costRes = await api.get<any>(
-            `/v1/expenses/vehicles/${costVehicleId}/cost-per-km`
+      if (insightsResult.status === "fulfilled") {
+        const insightsPayload =
+          (insightsResult.value as any)?.data ?? insightsResult.value;
+        insightsRef.current =
+          insightsPayload?.smartTips ??
+          insightsPayload?.weeklyDigest?.tips ??
+          [];
+        setCachedValue(
+          ANALYTICS_INSIGHTS_CACHE_KEY,
+          insightsRef.current,
+          ANALYTICS_CACHE_TTL_MS,
+        );
+      }
+
+      if (costResult.status === "fulfilled" && costResult.value) {
+        const costPayload = (costResult.value as any)?.data ?? costResult.value;
+        costPerKmRef.current = toNumber(costPayload?.costPerKm);
+        costPerKmSummaryRef.current = costPayload ?? null;
+        setCostPerKmSummary(costPayload ?? null);
+        if (targetVehicleId) {
+          setCachedValue(
+            getCostPerKmCacheKey(targetVehicleId),
+            costPayload,
+            ANALYTICS_CACHE_TTL_MS,
           );
-          const costPayload = (costRes as any)?.data ?? costRes;
-          costPerKmRef.current = toNumber(costPayload?.costPerKm);
-          setCostPerKmSummary(costPayload ?? null);
-        } catch {
-          costPerKmRef.current = 0;
-          setCostPerKmSummary(null);
         }
-      } else {
+      } else if (!targetVehicleId) {
         costPerKmRef.current = 0;
+        costPerKmSummaryRef.current = null;
         setCostPerKmSummary(null);
       }
 
+      if (
+        expensesResult.status !== "fulfilled" &&
+        insightsResult.status !== "fulfilled" &&
+        (costResult.status !== "fulfilled" || !costResult.value)
+      ) {
+        throw new Error("No analytics responses available");
+      }
+
       setAnalytics(
-        computeAnalyticsForTimeFrame(selectedTimeFrame, baseExpensesRef.current)
+        computeAnalyticsForTimeFrame(selectedTimeFrame, baseExpensesRef.current, {
+          insights: insightsRef.current,
+          costPerKm: costPerKmRef.current,
+          costPerKmSummary: costPerKmSummaryRef.current,
+        })
       );
     } catch (error) {
       console.log("Analytics fetch error:", error);
@@ -485,7 +575,7 @@ export default function ExpenseAnalytics() {
       isRefreshingRef.current = false;
       if (pendingRefreshRef.current) {
         pendingRefreshRef.current = false;
-        refreshAnalytics();
+        refreshAnalytics(targetVehicleId);
       }
     }
   };
@@ -517,6 +607,15 @@ export default function ExpenseAnalytics() {
   }, [analytics, costPerKmSummary?.totalKm]);
 
   useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      setShowHeavyCharts(true);
+    });
+    return () => {
+      task.cancel?.();
+    };
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     (async () => {
       try {
@@ -527,9 +626,14 @@ export default function ExpenseAnalytics() {
             ? (res as any).data
             : [];
         const primary = list.find((v: any) => v?.isPrimary) || list[0];
-        if (mounted) setVehicleId(primary?.id ?? null);
+        if (mounted) {
+          setVehicleId(primary?.id ?? null);
+          setVehicleLookupDone(true);
+        }
       } catch {
-        if (mounted) setVehicleId(null);
+        if (mounted) {
+          setVehicleLookupDone(true);
+        }
       }
     })();
     return () => {
@@ -542,8 +646,12 @@ export default function ExpenseAnalytics() {
   }, [vehicleId]);
 
   useEffect(() => {
-    refreshAnalytics();
-  }, [vehicleId]);
+    if (!vehicleId && !vehicleLookupDone) {
+      return;
+    }
+    applyCachedAnalytics(vehicleId);
+    refreshAnalytics(vehicleId);
+  }, [vehicleId, vehicleLookupDone]);
 
   const escapeHtml = (value: string) =>
     value
@@ -608,12 +716,23 @@ export default function ExpenseAnalytics() {
       if (!analytics) {
         throw new Error("Analytics are not ready yet");
       }
+      if (!showHeavyCharts) {
+        setShowHeavyCharts(true);
+      }
+      if (!enableChartExport) {
+        setEnableChartExport(true);
+        await wait(350);
+      }
+
+      await new Promise((resolve) =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => resolve(null))
+        )
+      );
+
       if (!spendingAnalysisRef.current) {
         throw new Error("Charts are not ready yet");
       }
-
-      // Allow charts to render before capture
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
       const { lineChartPath, pieChartPath } = await spendingAnalysisRef.current.captureCharts();
       const linePath = normalizePath(lineChartPath);
@@ -771,25 +890,37 @@ export default function ExpenseAnalytics() {
         />
       </View>
 
-      <SpendingAnalysis
-        ref={spendingAnalysisRef}
-        analytics={analytics}
-        loading={loadingAnalytics}
-        onTimeFrameChange={handleTimeFrameChange}
-      />
-      <CostPerKmCard
-        labels={costPerKmTrend.labels}
-        monthlyData={costPerKmTrend.data}
-        avgCost={costPerKmSummary?.costPerKm}
-        totalDistance={costPerKmSummary?.totalKm}
-        avgMonthly={
-          costPerKmTrend.labels.length
-            ? toNumber(costPerKmSummary?.totalKm) / costPerKmTrend.labels.length
-            : undefined
-        }
-        period={costPerKmSummary?.period}
-      />
-      <TopSpendingCard items={topSpending} loading={loadingAnalytics} />
+      {showHeavyCharts ? (
+        <>
+          <SpendingAnalysis
+            ref={spendingAnalysisRef}
+            analytics={analytics}
+            loading={loadingAnalytics}
+            onTimeFrameChange={handleTimeFrameChange}
+            enableExportCapture={enableChartExport}
+          />
+          <CostPerKmCard
+            labels={costPerKmTrend.labels}
+            monthlyData={costPerKmTrend.data}
+            avgCost={costPerKmSummary?.costPerKm}
+            totalDistance={costPerKmSummary?.totalKm}
+            avgMonthly={
+              costPerKmTrend.labels.length
+                ? toNumber(costPerKmSummary?.totalKm) / costPerKmTrend.labels.length
+                : undefined
+            }
+            period={costPerKmSummary?.period}
+          />
+          <TopSpendingCard items={topSpending} loading={loadingAnalytics} />
+        </>
+      ) : (
+        <View style={styles.preparingCard}>
+          <Text style={styles.preparingTitle}>Preparing charts...</Text>
+          <Text style={styles.preparingText}>
+            Summary data is ready first, then the detailed charts load in.
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
 
     <View style={styles.keyInsights}>
@@ -976,6 +1107,27 @@ const styles = StyleSheet.create({
     // backgroundColor: "rgba(255,255,255,0.1)",
     borderWidth: wp(0.2),
     borderColor: "rgba(255,255,255,0.3)",
+  },
+  preparingCard: {
+    marginHorizontal: wp(4),
+    marginTop: hp(1),
+    marginBottom: hp(2),
+    padding: wp(5),
+    borderRadius: wp(6),
+    backgroundColor: "#151515",
+    borderWidth: wp(0.1),
+    borderColor: "#999",
+  },
+  preparingTitle: {
+    color: "#fff",
+    fontSize: hp(2),
+    fontWeight: "700",
+    marginBottom: hp(0.7),
+  },
+  preparingText: {
+    color: "#9ca3af",
+    fontSize: hp(1.7),
+    lineHeight: hp(2.3),
   },
   keyInsights: {
     backgroundColor: "#151515",

@@ -96,9 +96,9 @@ export const contextService = {
                 `Member since: ${new Date(customer.createdAt).toLocaleDateString("en-IN")}`,
             );
 
-            // --- Vehicles ---
+            // --- Vehicles (app label: "My Garage") ---
             if (vehicles.length > 0) {
-                lines.push("\n=== VEHICLES ===");
+                lines.push("\n=== MY GARAGE (saved vehicles) ===");
                 for (const v of vehicles) {
                     const health = v.healthScore
                         ? ` | Health: ${v.healthScore.overallScore}/100`

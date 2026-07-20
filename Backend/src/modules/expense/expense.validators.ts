@@ -9,6 +9,7 @@ export const ExpenseCategory = {
   INSURANCE: "INSURANCE",
   CHALLAN: "CHALLAN",
   EMI: "EMI",
+  REPAIR: "REPAIR",
   OTHER: "OTHER",
 } as const;
 
@@ -36,6 +37,7 @@ export const createExpenseSchema = z.object({
     "INSURANCE",
     "CHALLAN",
     "EMI",
+    "REPAIR",
     "OTHER",
   ]),
   date: z.string().datetime().optional(),
@@ -82,6 +84,7 @@ export const updateExpenseSchema = z.object({
       "INSURANCE",
       "CHALLAN",
       "EMI",
+      "REPAIR",
       "OTHER",
     ])
     .optional(),
@@ -94,6 +97,7 @@ export const updateExpenseSchema = z.object({
 export const parseExpenseSchema = z.object({
   text: z.string().min(1, "Text is required"),
   vehicleId: z.string().optional(),
+  registrationNumber: z.string().optional(),
   source: z
     .enum(["MANUAL", "SMS", "NOTIFICATION", "VOICE", "RECEIPT", "UPI"])
     .optional()
@@ -110,6 +114,7 @@ export const expenseBudgetSchema = z.object({
     "INSURANCE",
     "CHALLAN",
     "EMI",
+    "REPAIR",
     "OTHER",
   ]),
   amount: z.number().positive(),

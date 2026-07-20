@@ -14,7 +14,7 @@ export const documentService = {
   ) {
     // 1. Check for duplicates (Simple version)
     if (input.documentNumber) {
-      const existing = await dbInstances.customerDocument.findFirst({
+      const existing = await dbInstances.vehicleDocument.findFirst({
         where: {
           customerId,
           documentNumber: input.documentNumber,
@@ -31,12 +31,12 @@ export const documentService = {
     // 2. Save to Storage (S3 or Local per env)
     const { url: storageUrl } = await storageService.uploadFile(
       file,
-      `documents/${customerId}`,
+      `customers/${customerId}/documents`,
       true
     );
 
     // 3. Save to DB (Primary Storage in DB + metadata)
-    const document = await dbInstances.customerDocument.create({
+    const document = await dbInstances.vehicleDocument.create({
       data: {
         customerId,
         vehicleId: input.vehicleId || null,
@@ -61,6 +61,15 @@ export const documentService = {
       }
     });
 
+    if (document.vehicleId) {
+      void vehicleService.calculateHealthScore(document.vehicleId).catch((err) =>
+        logger.warn(
+          { err, vehicleId: document.vehicleId, documentId: document.id },
+          "Health recalculation failed after document upload",
+        ),
+      );
+    }
+
     return {
       ...document,
       fileUrl: (await storageService.ensureReadableUrl(document.fileUrl || "")) || `/api/v1/documents/${document.id}/image`,
@@ -68,7 +77,7 @@ export const documentService = {
   },
 
   async listDocuments(customerId: string) {
-    const docs = await dbInstances.customerDocument.findMany({
+    const docs = await dbInstances.vehicleDocument.findMany({
       where: {
         OR: [
           { customerId },
@@ -95,7 +104,7 @@ export const documentService = {
   },
 
   async getDocument(customerId: string, documentId: string) {
-    const document = await dbInstances.customerDocument.findUnique({
+    const document = await dbInstances.vehicleDocument.findUnique({
       where: { id: documentId },
       include: {
         vehicle: {
@@ -126,9 +135,18 @@ export const documentService = {
   async deleteDocument(customerId: string, documentId: string) {
     const document = await this.getDocument(customerId, documentId);
 
-    await dbInstances.customerDocument.delete({
+    await dbInstances.vehicleDocument.delete({
       where: { id: documentId },
     });
+
+    if (document.vehicleId) {
+      void vehicleService.calculateHealthScore(document.vehicleId).catch((err) =>
+        logger.warn(
+          { err, vehicleId: document.vehicleId, documentId },
+          "Health recalculation failed after document delete",
+        ),
+      );
+    }
 
     return { success: true };
   },
@@ -143,7 +161,7 @@ export const documentService = {
     const threshold = new Date();
     threshold.setDate(threshold.getDate() + days);
 
-    const docs = await dbInstances.customerDocument.findMany({
+    const docs = await dbInstances.vehicleDocument.findMany({
       where: {
         customerId,
         expiryDate: {
@@ -167,5 +185,90 @@ export const documentService = {
         ...d,
         fileUrl: (await storageService.ensureReadableUrl(d.fileUrl || "")) || `/api/v1/documents/${d.id}/image`
     })));
+  },
+
+  async storeVerifiedDL(customerId: string, dlData: any, manualNumber?: string) {
+    logger.info({ customerId }, "Storing verified DL in DB");
+
+    // Extract basic info
+    // IDSPay/DigiLocker responses often come in a 'documents' or 'files' array
+    const root = dlData.documents?.[0] || dlData.files?.[0] || dlData;
+    const details = root.details_of_driving_licence || root.details_of_driving_license || root;
+    const validity = root.dl_validity || details.dl_validity || root.validity;
+    
+    // Attempt to find number in various possible fields
+    const dlNumber = manualNumber || details.dl_number || details.dl_no || details.doc_no || root.documentNumber;
+    
+    // Try to link to primary vehicle for better visibility in vehicle-related views (Legacy)
+    const primaryVehicleId = await vehicleService.resolveVehicleId(customerId);
+
+    return (dbInstances as any).drivingLicense.upsert({
+        where: { customerId },
+        update: {
+            dlNumber,
+            fullName: details.name || root.name,
+            dob: root.dob || details.dob,
+            referenceNumber: root.reference_no || details.last_transacted_at || root.last_transacted_at,
+            dateOfIssue: details.date_of_issue || root.date_of_issue,
+            originalLA: details.ola_name || root.ola_name,
+            dateOfFirstIssue: details.date_of_first_issue || root.date_of_first_issue,
+            validityNonTransport: validity?.non_transport?.to || root.expiry_date,
+            validityTransport: validity?.transport?.to,
+            registeredAddress: details.address || root.address,
+            rawResponse: dlData as any,
+            updatedAt: new Date(),
+        },
+        create: {
+            customerId,
+            dlNumber,
+            fullName: details.name || root.name,
+            dob: root.dob || details.dob,
+            referenceNumber: root.reference_no || details.last_transacted_at || root.last_transacted_at,
+            dateOfIssue: details.date_of_issue || root.date_of_issue,
+            originalLA: details.ola_name || root.ola_name,
+            dateOfFirstIssue: details.date_of_first_issue || root.date_of_first_issue,
+            validityNonTransport: validity?.non_transport?.to || root.expiry_date,
+            validityTransport: validity?.transport?.to,
+            registeredAddress: details.address || root.address,
+            rawResponse: dlData as any,
+        },
+    });
+  },
+
+  async storeFastagVerification(customerId: string, fastagData: any) {
+    const root = fastagData.data?.beneValidationResp || fastagData;
+    const resourceData = root.resourceData || {};
+
+    logger.info({ customerId, creditorName: resourceData.creditorName }, "Storing verified Fastag/Bank result");
+
+    const db = dbInstances as any;
+    if (!db.fastagDocument) {
+        logger.error({ customerId }, "Cannot store Fastag: fastagDocument model missing from Prisma client");
+        return null;
+    }
+
+    return db.fastagDocument.upsert({
+      where: { customerId },
+      update: {
+        creditorAccountId: resourceData.creditorAccountId,
+        ifscCode: resourceData.ifscCode || "", // Fallback
+        creditorName: resourceData.creditorName,
+        transactionReferenceNumber: resourceData.transactionReferenceNumber,
+        transactionId: resourceData.transactionId,
+        status: root.metaData?.status || "SUCCESS",
+        rawResponse: fastagData as any,
+        updatedAt: new Date(),
+      },
+      create: {
+        customerId,
+        creditorAccountId: resourceData.creditorAccountId,
+        ifscCode: resourceData.ifscCode || "", // Fallback
+        creditorName: resourceData.creditorName,
+        transactionReferenceNumber: resourceData.transactionReferenceNumber,
+        transactionId: resourceData.transactionId,
+        status: root.metaData?.status || "SUCCESS",
+        rawResponse: fastagData as any,
+      },
+    });
   },
 };

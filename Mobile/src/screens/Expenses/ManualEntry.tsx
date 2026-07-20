@@ -9,17 +9,31 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  PermissionsAndroid,
   Alert,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
+import StatusModal from "../../components/common/Modals/StatusModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { api } from "../../services/api";
+import { api, getNetworkOnlineState } from "../../services/api";
 import { parse, isValid, format } from "date-fns";
-import { setExpenseListNeedsRefresh, setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
+import { setWarrantyStatusNeedsRefresh } from "../../utils/refreshManager";
+import { useExpenseStore } from "../../store/expenseStore";
 import { vehicleService, Vehicle } from "../../services/vehicleService";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { PART_TYPE_OPTIONS, getPartTypeLabel } from "../../constants/partTypes";
+import { googleMapsService } from "../../services/googleMapsService";
+import { queueExpenseCreate } from "../../services/offlineMutationQueue";
+import { clearCachedValue } from '../../services/cache';
+import LoaderButton from "../../components/Button";
+
+let Geolocation: any = null;
+try {
+  const geoModule = require("@react-native-community/geolocation") as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
 
 interface ManualEntryData {
   amount?: string;
@@ -96,12 +110,14 @@ const normalizeSelectedPartTypes = (partTypes: string[]): string[] => {
   return Array.from(normalized);
 };
 
+const formatManualDate = (value: Date) => format(value, "dd-MM-yyyy");
+
 export default function ManualEntryOverlay({ visible, onClose, onSuccess, initialData }: ManualEntryOverlayProps) {
   const [category, setCategory] = useState("Fuel");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [odometer, setOdometer] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(formatManualDate(new Date()));
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
@@ -116,8 +132,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const [placeSearch, setPlaceSearch] = useState("");
-  const [showPlaceInput, setShowPlaceInput] = useState(false);
+  const [placeSearch, setPlaceSearch] = useState("Fetching...");
   const [selectedPlace, setSelectedPlace] = useState<{
     placeId: string;
     name: string;
@@ -125,6 +140,16 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     lat?: number;
     lng?: number;
   } | null>(null);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const fetchVehicles = async () => {
     try {
@@ -145,14 +170,108 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   React.useEffect(() => {
     if (visible) {
       fetchVehicles();
+      fetchCurrentPlace();
     }
   }, [visible]);
+
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === "ios") {
+      try {
+          if (Geolocation?.requestAuthorization) {
+          const status = await Geolocation.requestAuthorization("whenInUse");
+          return (
+            status === "granted" ||
+            status === "authorized" ||
+            status === "authorizedWhenInUse"
+          );
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    try {
+      const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+      const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      const fineHas = await PermissionsAndroid.check(fine);
+      const coarseHas = await PermissionsAndroid.check(coarse);
+      if (fineHas || coarseHas) return true;
+
+      const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+      return (
+        results[fine] === PermissionsAndroid.RESULTS.GRANTED ||
+        results[coarse] === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
+
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+  };
+
+  const fetchCurrentPlace = async () => {
+    try {
+      setPlaceSearch("Fetching...");
+      setSelectedPlace(null);
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(
+        coords.latitude,
+        coords.longitude,
+      );
+
+      setPlaceSearch(address);
+      setSelectedPlace({
+        placeId: `current-${coords.latitude},${coords.longitude}`,
+        name: address,
+        address,
+        lat: coords.latitude,
+        lng: coords.longitude,
+      });
+    } catch (error) {
+      console.log("Place detection failed:", error);
+      setPlaceSearch("Location not available");
+    }
+  };
 
   React.useEffect(() => {
     if (visible && initialData) {
       if (initialData.amount) setAmount(initialData.amount);
       if (initialData.category) {
-        // Simple case matching or default
         const cat = initialData.category.charAt(0).toUpperCase() + initialData.category.slice(1).toLowerCase();
         setCategory(cat);
       }
@@ -165,6 +284,8 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       } else if (initialData.partType) {
         setSelectedPartTypes([initialData.partType]);
       }
+    } else if (visible) {
+      setDate(formatManualDate(new Date()));
     }
   }, [visible, initialData]);
 
@@ -194,7 +315,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   }, [visible]);
   const [loading, setLoading] = useState(false);
 
-  const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Insurance', 'Challan', 'Emi', 'Other'];
+  const categories = ['Fuel', 'Toll', 'Parking', 'Service', 'Repair', 'Insurance', 'Challan', 'Emi', 'Other'];
   const isValid = amount.trim().length > 0;
 
   const openDatePicker = () => {
@@ -226,39 +347,26 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
   const handleSave = async () => {
     if (!isValid) return;
 
+    let payload: any = null;
     setLoading(true);
     try {
-      // Parse date from supported text formats.
-      let parsedDate: string;
-
-      if (date && date.trim().length > 0) {
-        const parsed = parseManualDate(date);
-        if (!parsed) {
-          Alert.alert("Invalid date", "Enter date as dd-mm-yyyy (example: 05-03-2026).");
-          setLoading(false);
-          return;
-        }
-        const now = new Date();
-        parsed.setHours(
-          now.getHours(),
-          now.getMinutes(),
-          now.getSeconds(),
-          now.getMilliseconds(),
-        );
-        parsedDate = parsed.toISOString();
-      } else {
-        parsedDate = new Date().toISOString();
+      let parsedDate: string | undefined;
+      if (date) {
+        try {
+          const d = parse(date, "dd-MM-yyyy", new Date());
+          if (!isNaN(d.getTime())) parsedDate = d.toISOString();
+        } catch (_) { }
       }
 
-      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'other';
+      const isPartCategory = category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other';
       const targetVehicleId = isPartCategory
         ? (vehicleId ?? selectedVehicleId ?? undefined)
         : (selectedVehicleId ?? vehicleId ?? undefined);
       const normalizedPartTypes = normalizeSelectedPartTypes(selectedPartTypes);
 
-      const payload: any = {
+      payload = {
         amount: parseFloat(amount),
-        category: category.toUpperCase(), // Backend expects uppercase
+        category: category.toUpperCase(),
         vehicleId: targetVehicleId,
         notes: description,
         date: parsedDate,
@@ -268,7 +376,6 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         odometerReading: odometer ? parseFloat(odometer) : undefined,
       };
 
-      // Attach structured Google Places info if driver selected a place
       if (selectedPlace) {
         payload.placeId = selectedPlace.placeId;
         payload.placeName = selectedPlace.name;
@@ -279,7 +386,6 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         if (typeof selectedPlace.lng === "number") {
           payload.placeLng = selectedPlace.lng;
         }
-        // Keep free-text location aligned for older analytics
         if (!payload.location && selectedPlace.address) {
           payload.location = selectedPlace.address;
         }
@@ -293,6 +399,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
       }
 
       const response = await api.post<CreateExpenseResponse>('/v1/expenses', payload);
+      clearCachedValue('cache:expenses:list');
       const responseData = response?.data;
       const serviceRecord = responseData?.serviceRecord ?? null;
       const failedParts = response?.data?.failedParts ?? [];
@@ -319,26 +426,24 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         });
       }
 
-      // Mark expense list for refresh
-      setExpenseListNeedsRefresh();
+      useExpenseStore.getState().notifyCreated();
       if (isPartCategory) {
         setWarrantyStatusNeedsRefresh();
       }
 
-      // Reset Form
       setCategory("Fuel");
       setAmount("");
       setDescription("");
-      setDate("");
+      setDate(formatManualDate(new Date()));
       setOdometer("");
       setReceiptUrl(null);
       setMimeType(null);
       setSelectedPartTypes(["ENGINE_OIL"]);
+      setPlaceSearch("Fetching...");
+      setSelectedPlace(null);
 
-      // Close modal first
       onClose();
 
-      // Show success and trigger callback after modal closes
       setTimeout(() => {
         const failedPartText = failedParts.length
           ? `\n\nThese selected parts could not be updated: ${failedParts
@@ -348,12 +453,34 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
         const warrantySyncText = warrantySyncError
           ? `\n\nWarranty status was not updated: ${warrantySyncError}`
           : "";
-        Alert.alert("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
+        showStatus("Success", `Expense added successfully${failedPartText}${warrantySyncText}`);
         if (onSuccess) onSuccess();
       }, 300);
     } catch (error: any) {
       console.error("Add Expense Error:", error);
-      Alert.alert("Error", error?.message || "Failed to add expense");
+      const message = String(error?.message ?? "");
+      const isNetworkError =
+        !getNetworkOnlineState() ||
+        /network error|network request failed|failed to fetch|server unreachable/i.test(message);
+
+      if (!isNetworkError) {
+        Alert.alert("Error", message || "Failed to add expense");
+        return;
+      }
+
+      try {
+        if (payload) {
+          await queueExpenseCreate(payload as any);
+        } else {
+          throw new Error(message || "Failed to add expense");
+        }
+        onClose();
+        Alert.alert("Saved offline", "Expense will sync automatically when the network returns.");
+        if (onSuccess) onSuccess();
+      } catch {
+        Alert.alert("Error", message || "Failed to add expense");
+      }
+      showStatus("Error", error?.message || "Failed to add expense", "error");
     } finally {
       setLoading(false);
     }
@@ -363,7 +490,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
     <>
 
       <Modal transparent visible={visible} animationType="fade">
-        <Pressable style={styles.backdrop} onPress={onClose}>
+        <Pressable style={styles.backdrop} onPress={() => { if (!loading) onClose(); }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={{ width: "100%", alignItems: "center" }}
@@ -372,13 +499,13 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
 
               <View style={styles.header}>
                 <Text style={styles.title}>Add Manual Entry</Text>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity onPress={onClose} disabled={loading}>
                   <Ionicons name="close" size={22} color="#fff" />
                 </TouchableOpacity>
               </View>
 
               <Label text="Vehicle" />
-              <TouchableOpacity onPress={() => setShowVehiclePicker(true)}>
+              <TouchableOpacity onPress={() => setShowVehiclePicker(true)} disabled={loading}>
                 <Input
                   value={vehicles.find(v => v.id === selectedVehicleId)?.registrationNumber || "Select Vehicle"}
                   icon="chevron-down"
@@ -387,14 +514,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
               </TouchableOpacity>
 
               <Label text="Category" />
-              <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
+              <TouchableOpacity onPress={() => setShowCategoryPicker(true)} disabled={loading}>
                 <Input value={category} icon="chevron-down" editable={false} />
               </TouchableOpacity>
 
-              {(category.toLowerCase() === 'service' || category.toLowerCase() === 'other') && (
+              {(category.toLowerCase() === 'service' || category.toLowerCase() === 'repair' || category.toLowerCase() === 'other') && (
                 <>
                   <Label text="Part Serviced" />
-                  <TouchableOpacity onPress={() => setShowPartPicker(true)}>
+                  <TouchableOpacity onPress={() => setShowPartPicker(true)} disabled={loading}>
                     <Input
                       value={
                         selectedPartTypes.length > 0
@@ -418,6 +545,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"
+                editable={!loading}
               />
 
               <Label text="Odometer Reading (km)" />
@@ -426,6 +554,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={odometer}
                 onChangeText={setOdometer}
                 keyboardType="numeric"
+                editable={!loading}
               />
 
 
@@ -434,6 +563,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 placeholder="Enter description"
                 value={description}
                 onChangeText={setDescription}
+                editable={!loading}
               />
 
               <Label text="Place (Google Maps)" />
@@ -444,6 +574,7 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                   setPlaceSearch(text);
                   setSelectedPlace(null);
                 }}
+                editable={!loading}
               />
 
 
@@ -453,23 +584,19 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
                 value={date}
                 onChangeText={setDate}
                 icon="calendar-outline"
-                onIconPress={openDatePicker}
+                onIconPress={loading ? undefined : openDatePicker}
+                editable={!loading}
               />
 
 
-              <TouchableOpacity
-                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
-                disabled={!isValid || loading}
+              <LoaderButton
+                title="Save Entry"
+                loading={loading}
+                loadingTitle="Saving..."
                 onPress={handleSave}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.saveText, isValid && styles.saveTextActive]}>
-                    Save Entry
-                  </Text>
-                )}
-              </TouchableOpacity>
+                disabled={!isValid}
+                style={[styles.saveBtn, (isValid && !loading) ? styles.saveBtnActive : {}]}
+              />
             </Pressable>
           </KeyboardAvoidingView>
         </Pressable>
@@ -646,6 +773,14 @@ export default function ManualEntryOverlay({ visible, onClose, onSuccess, initia
           </Pressable>
         </Pressable>
       </Modal>
+
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
     </>
   );
 }

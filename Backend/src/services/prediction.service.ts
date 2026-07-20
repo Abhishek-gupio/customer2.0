@@ -1,6 +1,83 @@
 import { dbInstances } from "@repo/db-customer";
 import { logger } from "../config/logger";
 
+const parseExpiryDate = (value: unknown): Date | null => {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value !== "string") return null;
+  const raw = value.trim();
+  if (!raw) return null;
+
+  const direct = new Date(raw);
+  if (!Number.isNaN(direct.getTime())) return direct;
+
+  // Support common Indian date formats like DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+  const dmy = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if (dmy) {
+    const day = Number(dmy[1]);
+    const month = Number(dmy[2]) - 1;
+    let year = Number(dmy[3]);
+    if (year < 100) year += 2000;
+
+    const parsed = new Date(year, month, day);
+    if (
+      !Number.isNaN(parsed.getTime()) &&
+      parsed.getFullYear() === year &&
+      parsed.getMonth() === month &&
+      parsed.getDate() === day
+    ) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
+const hasExplicitExpiryValue = (value: unknown): boolean => {
+  if (value instanceof Date) {
+    return !Number.isNaN(value.getTime());
+  }
+
+  if (typeof value !== "string") return false;
+  const raw = value.trim();
+  if (!raw) return false;
+
+  const normalized = raw.toUpperCase();
+  const placeholders = new Set([
+    "N/A",
+    "NA",
+    "NONE",
+    "NIL",
+    "UNKNOWN",
+    "NOT AVAILABLE",
+    "NOT APPLICABLE",
+    "--",
+    "-",
+  ]);
+
+  return !placeholders.has(normalized);
+};
+
+const latestExpiryByType = (
+  docs: Array<{ type: string; expiryDate: Date | null }>,
+  targetType: "INSURANCE" | "PUC",
+): Date | null => {
+  let latest: Date | null = null;
+
+  for (const doc of docs) {
+    if ((doc.type || "").toUpperCase() !== targetType) continue;
+    const expiry = parseExpiryDate(doc.expiryDate);
+    if (!expiry) continue;
+    if (!latest || expiry > latest) latest = expiry;
+  }
+
+  return latest;
+};
+
 export const predictionService = {
   /**
    * Calculates the Average Daily Running (ADR) in KM
@@ -91,6 +168,8 @@ export const predictionService = {
         id: true,
         currentOdometer: true,
         registrationDate: true,
+        insuranceUpto: true,
+        pollutionUpto: true,
         healthScore: true,
         serviceRecords: {
           orderBy: { serviceDate: "desc" },
@@ -103,10 +182,9 @@ export const predictionService = {
 
     let documents: Array<{ type: string; expiryDate: Date | null }> = [];
     try {
-      documents = await (dbInstances as any).customerDocument.findMany({
+      documents = await (dbInstances as any).vehicleDocument.findMany({
         where: {
           vehicleId,
-          verificationStatus: "VERIFIED",
         },
         select: {
           type: true,
@@ -114,32 +192,70 @@ export const predictionService = {
         },
       });
     } catch (err) {
-      logger.warn({ err, vehicleId }, "CustomerDocument table unavailable; skipping compliance document check");
+      logger.warn({ err, vehicleId }, "VehicleDocument table unavailable; skipping compliance document check");
     }
 
     let complianceScore = 100;
     let maintenanceScore = 100;
     const explanations: string[] = [];
     const recommendations: string[] = [];
+    const penalties = {
+      insuranceExpired: 50,
+      insuranceMissing: 25,
+      pucExpired: 20,
+      pucMissing: 10,
+    };
 
     // 1. Compliance Audit (20% Weight)
+    // Priority:
+    // 1) Garage vehicle details (insuranceUpto/pollutionUpto)
+    // 2) Uploaded documents (INSURANCE/PUC)
+    // 3) If still unavailable, continue health prediction without forcing compliance penalty
     const now = new Date();
-    const activeInsurance = documents.find(
-      (d) => d.type === "INSURANCE" && d.expiryDate && d.expiryDate > now,
-    );
-    const activePUC = documents.find(
-      (d) => d.type === "PUC" && d.expiryDate && d.expiryDate > now,
-    );
+    const hasGarageInsuranceExpiry = hasExplicitExpiryValue(vehicle.insuranceUpto);
+    const hasGaragePucExpiry = hasExplicitExpiryValue(vehicle.pollutionUpto);
 
-    if (!activeInsurance) {
-      complianceScore -= 50;
-      explanations.push("Critical: Valid Insurance not found.");
+    const insuranceExpiry = hasGarageInsuranceExpiry
+      ? parseExpiryDate(vehicle.insuranceUpto)
+      : latestExpiryByType(documents, "INSURANCE");
+    const pucExpiry = hasGaragePucExpiry
+      ? parseExpiryDate(vehicle.pollutionUpto)
+      : latestExpiryByType(documents, "PUC");
+
+    if (insuranceExpiry && insuranceExpiry <= now) {
+      complianceScore -= penalties.insuranceExpired;
+      explanations.push("Critical: Insurance is expired.");
       recommendations.push("Renew insurance immediately to avoid fines.");
+    } else if (!insuranceExpiry) {
+      complianceScore -= penalties.insuranceMissing;
+      if (hasGarageInsuranceExpiry) {
+        explanations.push(
+          "Compliance: Insurance expiry exists in garage details but date format is invalid.",
+        );
+      } else {
+        explanations.push(
+          "Compliance: Insurance expiry not found in garage details or uploaded documents.",
+        );
+      }
+      recommendations.push("Add/update insurance expiry in Garage details or upload insurance document.");
     }
-    if (!activePUC) {
-      complianceScore -= 20;
-      explanations.push("Warning: Valid PUC not found.");
+
+    if (pucExpiry && pucExpiry <= now) {
+      complianceScore -= penalties.pucExpired;
+      explanations.push("Warning: PUC is expired.");
       recommendations.push("Get a pollution check done.");
+    } else if (!pucExpiry) {
+      complianceScore -= penalties.pucMissing;
+      if (hasGaragePucExpiry) {
+        explanations.push(
+          "Compliance: PUC expiry exists in garage details but date format is invalid.",
+        );
+      } else {
+        explanations.push(
+          "Compliance: PUC expiry not found in garage details or uploaded documents.",
+        );
+      }
+      recommendations.push("Add/update PUC expiry in Garage details or upload PUC document.");
     }
 
     // 2. Maintenance Audit - Age, Mileage, Service + Individual Parts (Heavily Weighted)
@@ -147,6 +263,10 @@ export const predictionService = {
       (await this.predictCurrentOdometer(vehicleId)) ||
       vehicle.currentOdometer ||
       0;
+
+    const ageYears = vehicle.registrationDate
+      ? (now.getTime() - vehicle.registrationDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
+      : null;
 
     let partHealthSum = 0;
     let partsWithData = 0;
@@ -180,6 +300,13 @@ export const predictionService = {
         maintenanceScore = Math.round(avgPartHealth);
 
         explanations.push(`Maintenance: Average part health is ${maintenanceScore}%.`);
+        const verifiedIntervalCount = partStatus.filter(
+          (p: any) => p.intervalSource && p.intervalSource !== "FALLBACK",
+        ).length;
+        explanations.push(
+          "Data confidence: " + verifiedIntervalCount + "/" + partStatus.length +
+          " part service intervals are from OEM/verified data; the rest use generic estimates.",
+        );
         if (partExplanations.length > 0) {
           explanations.push(...partExplanations.slice(0, 3));
         }
@@ -198,12 +325,21 @@ export const predictionService = {
         : predictedKM <= 150000 ? 40
         : Math.max(20, 40 - Math.floor((predictedKM - 150000) / 10000));
 
-    // Secondary Penalties (Mileage/Age) — still apply to maintenanceScore for overall
-    if (predictedKM > 100000) maintenanceScore -= 10;
-    if (vehicle.registrationDate) {
-      const ageYears = (now.getTime() - vehicle.registrationDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
-      if (ageYears > 15) maintenanceScore -= 15;
+    // Age score: gradual scale based on vehicle age (0–3y=100%, 3–6y=90%, 6–10y=75%, 10–15y=55%, 15y+ tapering down; unknown age=neutral 90)
+    const ageScore =
+      ageYears === null ? 90
+        : ageYears <= 3 ? 100
+        : ageYears <= 6 ? 90
+        : ageYears <= 10 ? 75
+        : ageYears <= 15 ? 55
+        : Math.max(20, 55 - Math.round((ageYears - 15) * 5));
+
+    if (ageYears === null) {
+      explanations.push("Vehicle age unknown (no registration date on file) -- using a neutral age score.");
+    } else {
+      explanations.push("Vehicle age: " + ageYears.toFixed(1) + " years -> age score " + ageScore + "%.");
     }
+    explanations.push("Mileage: " + predictedKM.toLocaleString() + " km driven -> mileage score " + mileageScore + "%.");
 
     // 3. Driving Score (Telematics)
     const drivingScore = vehicle.healthScore?.drivingScore || null;
@@ -211,16 +347,31 @@ export const predictionService = {
     let overallScore = 0;
 
     if (drivingScore !== null) {
-      // 50% Parts/Maintenance, 30% Driving, 20% Compliance
+      // 40% Maintenance (Parts), 20% Driving, 15% Compliance, 15% Mileage, 10% Age
       overallScore =
-        drivingScore * 0.3 + complianceScore * 0.2 + maintenanceScore * 0.5;
+        drivingScore * 0.2 +
+        complianceScore * 0.15 +
+        maintenanceScore * 0.4 +
+        mileageScore * 0.15 +
+        ageScore * 0.1;
     } else {
-      // 80% Maintenance (Parts), 20% Compliance
-      overallScore = maintenanceScore * 0.8 + complianceScore * 0.2;
+      // 55% Maintenance (Parts), 15% Compliance, 20% Mileage, 10% Age
+      overallScore =
+        complianceScore * 0.15 +
+        maintenanceScore * 0.55 +
+        mileageScore * 0.2 +
+        ageScore * 0.1;
     }
 
     // Predict next service to add as recommendation
-    const nextServiceDate = await this.predictNextServiceDate(vehicleId);
+    const { warrantyService: warrantyServiceForInterval } = await import("./warranty.service");
+    const engineOilLifecycle = await warrantyServiceForInterval
+      .getLifecycleForVehiclePart(vehicleId, "ENGINE_OIL")
+      .catch(() => null);
+    const nextServiceDate = await this.predictNextServiceDate(
+      vehicleId,
+      engineOilLifecycle?.km || 10000,
+    );
     if (nextServiceDate) {
       recommendations.push(
         `Next service predicted: ${nextServiceDate.toLocaleDateString()}`,
@@ -231,10 +382,7 @@ export const predictionService = {
       where: { vehicleId },
       update: {
         overallScore: Math.round(overallScore),
-        ageScore: Math.max(
-          0,
-          100 - (maintenanceScore < 100 ? 100 - maintenanceScore : 0),
-        ), // Simplified
+        ageScore,
         mileageScore,
         maintenanceScore: Math.max(0, maintenanceScore),
         explanations: explanations as any,
@@ -246,6 +394,9 @@ export const predictionService = {
         vehicleId,
         overallScore: Math.round(overallScore),
         maintenanceScore: Math.max(0, maintenanceScore),
+        ageScore,
+        mileageScore,
+        nextDueDate: nextServiceDate,
         explanations: explanations as any,
         recommendations: recommendations as any,
         lastCalculated: now,

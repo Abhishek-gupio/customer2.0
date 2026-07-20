@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -30,15 +30,19 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { useNavigation, CommonActions } from '../../lib/react-navigation-native';
+import { useNavigation, CommonActions, useFocusEffect } from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { useDispatch } from 'react-redux';
 import { logoutStorage } from '../../services/authService';
 import { logout } from '../../store/slices/authSlice';
 import { getProfile, getProfileStats, updateProfile, uploadProfilePicture, type ProfileResponse, type ProfileStatsResponse } from '../../services/profileService';
-import { getAbsoluteUrl, GEO } from '../../config';
+import { getAbsoluteUrl } from '../../config';
+import { googleMapsService } from '../../services/googleMapsService';
 import BackButton from '../../components/BackButton';
+import LoaderButton from '../../components/Button';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import ConfirmModal from '../../components/common/Modals/ConfirmModal';
 
 // GPS-based location (same pattern as SOSButton)
 let Geolocation: any = null;
@@ -101,25 +105,42 @@ export default function MyProfile() {
   const [avatarModal, setAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [infoModal, setInfoModal] = useState(false);
-  const dispatch = useDispatch();
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'default' as 'default' | 'delete' | 'logout',
+    onConfirm: () => { },
+  });
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
 
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
+
+  const dispatch = useDispatch();
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logoutStorage();
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Signin' }],
-            })
-          );
-        },
-      },
-    ]);
+    setConfirmModal({
+      visible: true,
+      title: 'Logout',
+      message: 'Are you sure you want to logout? You will need to sign in again to access your garage.',
+      type: 'logout',
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        logoutStorage();
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Signin' }],
+          })
+        );
+      }
+    });
   };
 
   const handleMenuPress = (route?: keyof RootStackParamList, onPress?: () => void) => {
@@ -147,6 +168,40 @@ export default function MyProfile() {
       }).start();
     }
   };
+
+  const avatarKeyExtractor = useCallback((item: typeof AVATAR_LIST[number]) => item.id, []);
+
+  const renderAvatarItem = useCallback(
+    ({ item }: { item: typeof AVATAR_LIST[number] }) => {
+      const isSelected = selectedAvatar === item.url;
+      return (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setSelectedAvatar(item.url)}
+          style={[
+            styles.avatarGridItem,
+            isSelected && styles.avatarGridItemSelected,
+          ]}
+        >
+          <Image
+            source={{ uri: item.url }}
+            style={styles.avatarGridImage}
+            resizeMode="cover"
+          />
+          {isSelected && (
+            <View style={styles.avatarSelectedBadge}>
+              <MaterialIcon name="check" size={16} color="#fff" />
+            </View>
+          )}
+          <Text style={[
+            styles.avatarGridLabel,
+            isSelected && styles.avatarGridLabelSelected,
+          ]}>{item.label}</Text>
+        </TouchableOpacity>
+      );
+    },
+    [selectedAvatar]
+  );
 
 
   const validate = () => {
@@ -191,6 +246,12 @@ export default function MyProfile() {
     fetchProfile();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfile();
+    }, []),
+  );
+
   // Request location permission (Android + iOS)
   const requestLocationPermission = async (): Promise<boolean> => {
     if (Platform.OS === 'android') {
@@ -217,51 +278,78 @@ export default function MyProfile() {
     return true;
   };
 
-  // Reverse-geocode lat/long to locality/city. Prefer exact area (e.g. Srirampura, Mysore); avoid generic state-capital (e.g. Bengaluru, Karnataka) when display_name is more specific.
-  const reverseGeocode = async (lat: number, lon: number): Promise<string | null> => {
+  const requestCameraPermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
     try {
-      const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
-      const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': GEO.userAgent },
-      });
-      const text = await res.text();
-      const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
-      const addr = data?.address;
-      if (!addr) return null;
-      // Prefer most specific place first: suburb/locality then town, not just city (often state capital)
-      const primary =
-        addr.suburb ||
-        addr.neighbourhood ||
-        addr.locality ||
-        addr.village ||
-        addr.county ||
-        addr.town ||
-        addr.city ||
-        addr.state_district;
-      const townOrCity = addr.town || addr.city;
-      const stateOrCountry = addr.state || addr.region || addr.country;
-      const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
-      let result = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || null;
-
-      // When result is generic (only city + state, e.g. Bengaluru, Karnataka) but display_name has more specific start (e.g. Srirampura, Mysore), use that so location is consistent with exact area
-      const displayName = data?.display_name;
-      if (displayName && typeof displayName === 'string') {
-        const parts = displayName.split(',').map((p: string) => p.trim()).filter(Boolean);
-        if (parts.length >= 2) {
-          const fromDisplay = `${parts[0]}, ${parts[1]}`;
-          const isGenericCityState = result && (primary === addr.city || primary === addr.state) && addr.city && addr.state;
-          if (isGenericCityState && fromDisplay !== result) result = fromDisplay;
-          else if (!result) result = fromDisplay;
-        }
-      }
-      return result || null;
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs camera access to capture your profile picture',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch {
-      return null;
+      return false;
     }
   };
 
-  // 1) Try GPS (lat/long) + reverse geocode. 2) Fallback to IP-based. Client-only, not stored on server.
+  const requestStoragePermission = async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    try {
+      const permission = Platform.Version >= 33
+        ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+        : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+      const granted = await PermissionsAndroid.request(permission, {
+        title: 'Photo Library Permission',
+        message: 'App needs access to your photo library to select a profile picture',
+        buttonPositive: 'OK',
+        buttonNegative: 'Cancel',
+      });
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch {
+      return false;
+    }
+  };
+
+  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
+
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+  };
+
   const fetchUserLocation = async () => {
     const applyLocation = (locationStr: string) => {
       setProfile((prev) => (prev ? { ...prev, location: locationStr } : prev));
@@ -269,45 +357,13 @@ export default function MyProfile() {
     };
 
     try {
-      // 1. GPS path (accurate, like big companies)
-      if (Geolocation) {
-        const permitted = await requestLocationPermission();
-        if (permitted) {
-          const coords = await new Promise<{ lat: number; lon: number } | null>((resolve) => {
-            Geolocation.getCurrentPosition(
-              (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-              () => resolve(null),
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-            );
-          });
-          if (coords) {
-            const locationStr = await reverseGeocode(coords.lat, coords.lon);
-            if (locationStr) {
-              applyLocation(locationStr);
-              return;
-            }
-          }
-        }
-      }
-
-      // 2. Fallback: IP-based geo (URLs from config)
-      let geo: any = null;
-      const headers = { 'User-Agent': GEO.userAgent };
-      for (const ipUrl of GEO.ipProviders) {
-        if (geo) break;
-        try {
-          const res = await fetch(ipUrl, { headers });
-          const text = await res.text();
-          const data = typeof text === 'string' && text.trim().startsWith('{') ? JSON.parse(text) : null;
-          if (data?.city && data?.region) geo = data;
-        } catch { /* ignore */ }
-      }
-
-      if (geo?.city && geo?.region) {
-        applyLocation(`${geo.city}, ${geo.region}`);
-        return;
-      }
-      applyLocation('Location not available');
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(
+        coords.latitude,
+        coords.longitude,
+      );
+      applyLocation(address);
     } catch (error) {
       console.log('Location detection failed:', error);
       applyLocation('Location not available');
@@ -325,7 +381,7 @@ export default function MyProfile() {
       setStats(statsData);
       fetchUserLocation();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch profile');
+      showStatus('Error', error.message || 'Failed to fetch profile', 'error');
     } finally {
       setLoading(false);
     }
@@ -336,7 +392,7 @@ export default function MyProfile() {
       fullName: data.fullName ?? '',
       email: data.email ?? '',
       phone: data.phoneNumber ?? '',
-      location: 'Detecting...',
+      location: profile?.location || 'Detecting...',
       profilePic: data.profilePic || undefined,
       memberSince: data.createdAt
         ? new Date(data.createdAt).toLocaleDateString('default', {
@@ -375,7 +431,7 @@ export default function MyProfile() {
 
       mapProfileData(updated);
       setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
+      showStatus('Profile Updated', 'Your changes have been saved successfully.');
     } catch (error: any) {
       let errorMessage = error.response?.data?.message || error.message || 'Could not save changes';
       if (Array.isArray(errorMessage)) {
@@ -383,7 +439,7 @@ export default function MyProfile() {
       } else if (typeof errorMessage === 'object') {
         errorMessage = JSON.stringify(errorMessage);
       }
-      Alert.alert('Update Failed', errorMessage);
+      showStatus('Update Failed', errorMessage, 'error');
     } finally {
       setSaving(false);
     }
@@ -409,6 +465,11 @@ export default function MyProfile() {
 
   const handleCameraOption = async () => {
     setProfilePicModal(false);
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+      return;
+    }
     const result = await launchCamera({
       mediaType: 'photo',
       quality: 0.7,
@@ -418,6 +479,11 @@ export default function MyProfile() {
 
   const handleGalleryOption = async () => {
     setProfilePicModal(false);
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Storage access is required to pick a photo.');
+      return;
+    }
     const result = await launchImageLibrary({
       mediaType: 'photo',
       quality: 0.7,
@@ -437,9 +503,9 @@ export default function MyProfile() {
       setAvatarModal(false);
       const updated = await updateProfile({ profilePic: avatarUrl });
       mapProfileData(updated);
-      mapProfileData(updated);
+      showStatus('Avatar Set', 'Your new avatar has been applied.');
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to set avatar');
+      showStatus('Error', err.message || 'Failed to set avatar', 'error');
     } finally {
       setSaving(false);
     }
@@ -448,33 +514,35 @@ export default function MyProfile() {
   const handleDeleteProfilePic = async () => {
     setProfilePicModal(false);
     if (!currentPic) return;
-    Alert.alert(
-      'Remove Profile Picture',
-      'Are you sure you want to remove your profile picture?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setSaving(true);
-              const updated = await updateProfile({ profilePic: '' });
-              mapProfileData(updated);
-              mapProfileData(updated);
-              Alert.alert('Success', 'Profile picture removed!');
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to remove picture');
-            } finally {
-              setSaving(false);
-            }
-          },
-        },
-      ]
-    );
+    setConfirmModal({
+      visible: true,
+      title: 'Remove Picture',
+      message: 'Are you sure you want to remove your profile picture?',
+      type: 'delete',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, visible: false }));
+        try {
+          setSaving(true);
+          const updated = await updateProfile({ profilePic: '' });
+          mapProfileData(updated);
+          showStatus('Removed', 'Profile picture removed successfully.');
+        } catch (err: any) {
+          showStatus('Error', err.message || 'Failed to remove picture', 'error');
+        } finally {
+          setSaving(false);
+        }
+      }
+    });
   };
 
   const processImageResult = async (result: any) => {
+    if (result.didCancel) return;
+
+    if (result.errorCode) {
+      showStatus('Error', result.errorMessage || 'An error occurred while picking the image', 'error');
+      return;
+    }
+
     if (result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
       const selectedImage = asset.uri;
@@ -482,6 +550,7 @@ export default function MyProfile() {
         if (isEditing && editData) {
           setEditData({ ...editData, profilePic: selectedImage });
         } else {
+          if (saving) return; // prevent duplicate upload if already in progress
           try {
             setSaving(true);
             const formData = new FormData();
@@ -492,9 +561,19 @@ export default function MyProfile() {
             } as any);
             const updated = await uploadProfilePicture(formData);
             mapProfileData(updated);
-            Alert.alert('Success', 'Profile picture updated!');
+            showStatus('Picture Updated', 'Your profile photo has been updated.');
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to update picture');
+            const isNetworkError =
+              err?.message?.toLowerCase().includes('network') ||
+              err?.code === 'ECONNREFUSED' ||
+              err?.code === 'ERR_NETWORK';
+            showStatus(
+              'Upload Failed',
+              isNetworkError
+                ? 'Could not upload photo. Please check your internet connection and try again.'
+                : err.message || 'Failed to update picture',
+              'error'
+            );
           } finally {
             setSaving(false);
           }
@@ -503,15 +582,31 @@ export default function MyProfile() {
     }
   };
 
-  if (loading && !profile) {
+  if (!profile || !editData) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#e5e5e5" />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.topBar}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+              <Icon name="arrow-left" size={wp(4.8)} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
+          </View>
+        </View>
+        <View style={styles.fallbackState}>
+          {loading ? (
+            <>
+              <ActivityIndicator size="small" color="#e5e5e5" />
+              <Text style={styles.fallbackText}>Loading your profile...</Text>
+            </>
+          ) : (
+            <Text style={styles.fallbackText}>Unable to load your profile right now.</Text>
+          )}
+        </View>
       </SafeAreaView>
     );
   }
-
-  if (!profile || !editData) return null;
 
   const currentPic = isEditing ? editData?.profilePic : profile?.profilePic;
   const profilePicUri = currentPic ? getAbsoluteUrl(currentPic) : undefined;
@@ -519,6 +614,12 @@ export default function MyProfile() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
+      {loading ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#e5e5e5" />
+          <Text style={styles.loadingBannerText}>Refreshing profile...</Text>
+        </View>
+      ) : null}
 
 
       {/* ── Full-screen Photo Preview Modal ── */}
@@ -561,7 +662,6 @@ export default function MyProfile() {
         </GestureHandlerRootView>
       </Modal>
 
-      {/* ── Profile Picture Bottom Sheet Modal ── */}
       <Modal
         visible={profilePicModal}
         transparent
@@ -570,63 +670,66 @@ export default function MyProfile() {
         statusBarTranslucent
       >
         <TouchableWithoutFeedback onPress={() => setProfilePicModal(false)}>
-          <View style={styles.bottomSheetOverlay}>
+          <View style={styles.premiumModalOverlay}>
             <TouchableWithoutFeedback>
-              <View style={styles.bottomSheet}>
-                {/* Header */}
-                <View style={styles.bottomSheetHeader}>
-                  <TouchableOpacity
-                    onPress={() => setProfilePicModal(false)}
-                    activeOpacity={0.7}
-                    style={styles.bottomSheetHeaderBtn}
-                  >
-                    <MaterialIcon name="close" size={24} color="#fff" />
-                  </TouchableOpacity>
-                  <Text style={[styles.bottomSheetTitle, { fontFamily: 'Outfit-Bold' }]}>Profile picture</Text>
-                  <TouchableOpacity
-                    onPress={handleDeleteProfilePic}
-                    activeOpacity={0.7}
-                    style={styles.bottomSheetHeaderBtn}
-                  >
-                    <MaterialIcon name="delete-outline" size={24} color="#fff" />
+              <View style={styles.premiumModalContent}>
+                <View style={styles.premiumModalHeader}>
+                  <Text style={styles.premiumModalTitle}>Profile Picture</Text>
+                  <TouchableOpacity onPress={() => setProfilePicModal(false)} style={styles.premiumCloseBtn}>
+                    <MaterialIcon name="close" size={24} color="#666" />
                   </TouchableOpacity>
                 </View>
 
-                {/* Options */}
-                <View style={styles.bottomSheetOptions}>
+                <View style={styles.premiumOptions}>
                   <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
+                    style={styles.premiumOption}
                     onPress={handleCameraOption}
                   >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-camera" size={22} color="#FFFFFF" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(255, 191, 0, 0.1)' }]}>
+                      <MaterialIcon name="photo-camera" size={22} color="#FFBF00" />
                     </View>
-                    <Text style={styles.bottomSheetOptionText}>Camera</Text>
+                    <Text style={styles.premiumOptionText}>Take Photo</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
+                    style={styles.premiumOption}
                     onPress={handleGalleryOption}
                   >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialIcon name="photo-library" size={22} color="#FFFFFF" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(33, 150, 243, 0.1)' }]}>
+                      <MaterialIcon name="photo-library" size={22} color="#2196F3" />
                     </View>
-                    <Text style={styles.bottomSheetOptionText}>Gallery</Text>
+                    <Text style={styles.premiumOptionText}>Choose from Gallery</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.bottomSheetOption}
-                    activeOpacity={0.7}
+                    style={styles.premiumOption}
                     onPress={handleAvatarOption}
                   >
-                    <View style={styles.bottomSheetIconWrap}>
-                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#FFFFFF" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(76, 175, 80, 0.1)' }]}>
+                      <MaterialCommunityIcon name="emoticon-outline" size={22} color="#4CAF50" />
                     </View>
-                    <Text style={styles.bottomSheetOptionText}>Avatar</Text>
+                    <Text style={styles.premiumOptionText}>Pick an Avatar</Text>
                   </TouchableOpacity>
+
+                  {currentPic && (
+                    <TouchableOpacity
+                      style={[styles.premiumOption, { borderColor: 'rgba(255, 69, 58, 0.3)' }]}
+                      onPress={handleDeleteProfilePic}
+                    >
+                      <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
+                        <MaterialIcon name="delete-outline" size={22} color="#FF453A" />
+                      </View>
+                      <Text style={[styles.premiumOptionText, { color: '#FF453A' }]}>Remove Photo</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
+
+                <TouchableOpacity
+                  style={styles.premiumCancelBtn}
+                  onPress={() => setProfilePicModal(false)}
+                >
+                  <Text style={styles.premiumCancelText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -652,54 +755,26 @@ export default function MyProfile() {
           <FlatList
             data={AVATAR_LIST}
             numColumns={AVATAR_GRID_COLS}
-            keyExtractor={(item) => item.id}
+            keyExtractor={avatarKeyExtractor}
             contentContainerStyle={styles.avatarGrid}
             columnWrapperStyle={styles.avatarRow}
             showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const isSelected = selectedAvatar === item.url;
-              return (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setSelectedAvatar(item.url)}
-                  style={[
-                    styles.avatarGridItem,
-                    isSelected && styles.avatarGridItemSelected,
-                  ]}
-                >
-                  <Image
-                    source={{ uri: item.url }}
-                    style={styles.avatarGridImage}
-                    resizeMode="cover"
-                  />
-                  {isSelected && (
-                    <View style={styles.avatarSelectedBadge}>
-                      <MaterialIcon name="check" size={16} color="#fff" />
-                    </View>
-                  )}
-                  <Text style={[
-                    styles.avatarGridLabel,
-                    isSelected && styles.avatarGridLabelSelected,
-                  ]}>{item.label}</Text>
-                </TouchableOpacity>
-              );
-            }}
+            renderItem={renderAvatarItem}
           />
 
           {/* Confirm Button */}
           {selectedAvatar && (
             <View style={styles.avatarConfirmWrap}>
-              <TouchableOpacity
-                style={styles.avatarConfirmBtn}
-                activeOpacity={0.85}
+              <LoaderButton
+                title="Set as Profile Picture"
+                loading={saving}
+                loadingTitle="Saving..."
                 onPress={() => handleAvatarSelect(selectedAvatar)}
-              >
-                {saving ? (
-                  <ActivityIndicator size="small" color="#000" />
-                ) : (
-                  <Text style={styles.avatarConfirmText}>Set as Profile Picture</Text>
-                )}
-              </TouchableOpacity>
+                style={styles.avatarConfirmBtn}
+                titleStyle={styles.avatarConfirmText}
+                loadingTitleStyle={styles.avatarConfirmText}
+                indicatorColor="#000"
+              />
             </View>
           )}
         </View>
@@ -716,21 +791,17 @@ export default function MyProfile() {
         }}
         statusBarTranslucent
       >
-        <View style={styles.advancedModalOverlay}>
-          <TouchableWithoutFeedback onPress={() => {
-            if (!isEditing) setInfoModal(false);
-          }}>
-            <View style={styles.advancedModalBlur} />
-          </TouchableWithoutFeedback>
 
-          <Animated.View style={styles.advancedModalContent}>
-            {/* Modal Pull Handle */}
-            <View style={styles.modalHandle} />
+        <Animated.View style={[styles.advancedModalContent, { borderTopLeftRadius: 0, borderTopRightRadius: 0, minHeight: '100%', borderWidth: 0 }]}>
+          <SafeAreaView edges={['top']} style={{ flex: 1 }}>
 
             <View style={styles.advancedModalHeader}>
-              <View>
-                <Text style={styles.advancedModalTitle}>Account Details</Text>
-                <Text style={styles.advancedModalSubtitle}>Personal information & settings</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(3) }}>
+                <BackButton onPress={() => setInfoModal(false)} />
+                <View>
+                  <Text style={styles.advancedModalTitle}>Account Details</Text>
+                  <Text style={styles.advancedModalSubtitle}>Personal information & settings</Text>
+                </View>
               </View>
               <View style={styles.headerActions}>
                 {!isEditing ? (
@@ -740,23 +811,16 @@ export default function MyProfile() {
                   </TouchableOpacity>
                 ) : (
                   <>
-                    <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-                      <Icon name="times" size={12} color="#ff4444" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.savePill, saving && { opacity: 0.6 }]}
+                    <LoaderButton
+                      title="Save"
+                      loading={saving}
+                      loadingTitle="Saving..."
                       onPress={handleSave}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator size="small" color="#000" />
-                      ) : (
-                        <>
-                          <Icon name="save" size={12} color="#000" />
-                          <Text style={styles.savePillText}>Save</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
+                      style={styles.savePill}
+                      titleStyle={styles.savePillText}
+                      loadingTitleStyle={styles.savePillText}
+                      indicatorColor="#000"
+                    />
                   </>
                 )}
               </View>
@@ -816,17 +880,19 @@ export default function MyProfile() {
                 />
 
                 <VerticalInfoRow
-                  icon="map-marker-alt"
-                  label="Location"
-                  value={profile.location}
-                  isEditing={false}
-                />
-
-                <VerticalInfoRow
                   icon="calendar-alt"
                   label="Member Since"
                   value={profile.memberSince}
                   isEditing={false}
+                />
+
+                <VerticalInfoRow
+                  icon="map-marker-alt"
+                  label="Location"
+                  value={profile.location}
+                  isEditing={false}
+                  numberOfLines={2}
+                  fixedHeight
                 />
               </View>
 
@@ -841,8 +907,8 @@ export default function MyProfile() {
                 <Text style={styles.modalCloseText}>Done</Text>
               </TouchableOpacity>
             </ScrollView>
-          </Animated.View>
-        </View>
+          </SafeAreaView>
+        </Animated.View>
       </Modal>
 
       <ScrollView
@@ -889,9 +955,10 @@ export default function MyProfile() {
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.cameraBtn}
+                style={[styles.cameraBtn, saving && { opacity: 0.6 }]}
                 activeOpacity={0.9}
-                onPress={handleImagePick}
+                onPress={saving ? undefined : handleImagePick}
+                disabled={saving}
               >
                 {saving ? (
                   <ActivityIndicator size="small" color="#000" />
@@ -906,6 +973,7 @@ export default function MyProfile() {
               <Text style={styles.profileName}>{profile.fullName?.toUpperCase() || 'USER'}</Text>
               <Text style={styles.memberSinceText}>Member since {profile.memberSince.split(' ').pop()}</Text>
             </View>
+
           </View>
         </View>
 
@@ -941,31 +1009,44 @@ export default function MyProfile() {
 
           <View style={styles.integratedGroupCard}>
             <MenuRow
+              icon="user-circle"
+              label="My Account"
+              onPress={() => setInfoModal(true)}
+              color="#00F2FF"
+              bgColor="rgba(0, 242, 255, 0.1)"
+            />
+            <MenuRow
               icon="shield-alt"
               label="Emergency Contacts"
               onPress={() => handleMenuPress('SOS')}
               color="#FF4D4D"
               bgColor="rgba(255, 77, 77, 0.1)"
+              borderColor="#FF4D4D"
+            />
+
+            <MenuRow
+              icon="file-alt"
+              label="Terms & Conditions"
+              onPress={() => navigation.navigate('TermsConditions')}
+              color="#FFFFFF"
+              bgColor="rgba(255, 255, 255, 0.1)"
+              borderColor="#FFFFFF"
             />
             <MenuRow
-              icon="bell"
-              label="Notifications"
-              onPress={() => { }}
-            />
-            <MenuRow
-              icon="shield-alt"
-              label="Privacy & Security"
-              onPress={() => { }}
-            />
-            <MenuRow
-              icon="ellipsis-h"
-              label="App Settings"
-              onPress={() => { }}
+              icon="user-shield"
+              label="Privacy Policy"
+              onPress={() => navigation.navigate('PrivacyPolicy')}
+              color="#7B61FF"
+              bgColor="rgba(123, 97, 255, 0.1)"
+              borderColor="#7B61FF"
             />
             <MenuRow
               icon="question-circle"
               label="Help & Support"
               onPress={() => handleMenuPress('HelpSupport')}
+              color="#FFBF00"
+              bgColor="rgba(255, 191, 0, 0.1)"
+              borderColor="#FFBF00"
             />
             <MenuRow
               icon="sign-out-alt"
@@ -979,6 +1060,26 @@ export default function MyProfile() {
 
         <View style={{ height: hp(10) }} />
       </ScrollView>
+
+      {/* ── Status Feedback Modal (Success/Delete/Error) ── */}
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+      />
+
+      {/* ── Confirmation Modal (Logout/Delete) ── */}
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+        confirmText={confirmModal.type === 'logout' ? 'Logout' : 'Remove'}
+      />
     </SafeAreaView>
   );
 }
@@ -991,6 +1092,8 @@ function VerticalInfoRow({
   onChange,
   keyboardType = 'default',
   error,
+  numberOfLines,
+  fixedHeight,
 }: any) {
   return (
     <View style={styles.verticalRow}>
@@ -1002,7 +1105,8 @@ function VerticalInfoRow({
         <View style={[
           styles.inputContainer,
           isEditing ? styles.inputContainerActive : undefined,
-          (isEditing && error) ? styles.inputContainerError : undefined
+          (isEditing && error) ? styles.inputContainerError : undefined,
+          fixedHeight ? styles.inputContainerFixed : undefined,
         ]}>
           {isEditing && onChange ? (
             <TextInput
@@ -1015,7 +1119,7 @@ function VerticalInfoRow({
               style={styles.vInput}
             />
           ) : (
-            <Text style={styles.vValue}>{value || 'Not provided'}</Text>
+            <Text style={styles.vValue} numberOfLines={numberOfLines}>{value || 'Not provided'}</Text>
           )}
         </View>
         {isEditing && error ? (
@@ -1033,6 +1137,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.82)',
+    zIndex: 20,
+  },
+  loadingBannerText: {
+    color: '#b8b8b8',
+    fontSize: wp(3.4),
+    fontFamily: 'Outfit-Medium',
+    marginTop: hp(1.4),
+    textAlign: 'center',
+  },
+  fallbackState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: wp(10),
+  },
+  fallbackText: {
+    color: '#8a8a8a',
+    fontSize: wp(3.6),
+    textAlign: 'center',
+    fontFamily: 'Outfit-Medium',
   },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: hp(4) },
@@ -1164,7 +1295,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-
   /* ── Personal Info Card ── */
   infoCard: {
     backgroundColor: '#121212',
@@ -1267,6 +1397,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0A0A',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+  },
+  inputContainerFixed: {
+    minHeight: 44,
+    justifyContent: 'flex-start',
   },
   inputContainerActive: {
     borderColor: '#FFFFFF',
@@ -1391,6 +1525,21 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
     color: '#fff',
+  },
+  menuBadge: {
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFBF00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  menuBadgeText: {
+    color: '#000',
+    fontFamily: 'Outfit-Black',
+    fontSize: 11,
   },
 
   /* ── Modals & Previews ── */
@@ -1639,12 +1788,8 @@ const styles = StyleSheet.create({
   },
   advancedModalContent: {
     backgroundColor: '#0a0b0e',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    minHeight: hp(85),
-    paddingTop: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    flex: 1,
+    paddingTop: hp(2),
   },
   modalHandle: {
     width: 40,
@@ -1659,6 +1804,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: wp(6),
+    paddingVertical: hp(2),
     marginBottom: hp(2),
   },
   advancedModalTitle: {
@@ -1718,14 +1864,87 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   modalCloseText: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(4),
     color: '#fff',
+    fontSize: wp(4),
+  },
+
+  // Premium Modal Styles
+  premiumModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  premiumModalContent: {
+    backgroundColor: '#121212',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  premiumModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  premiumModalTitle: {
+    fontSize: 22,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  premiumCloseBtn: {
+    padding: 4,
+  },
+  premiumOptions: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  premiumOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0A0A0A',
+    padding: 18,
+    borderRadius: 16,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#1A1A1A',
+  },
+  premiumOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumOptionText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#fff',
+  },
+  premiumCancelBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    backgroundColor: '#1A1A1A',
+    borderRadius: 16,
+  },
+  premiumCancelText: {
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+    color: '#888',
+  },
+
+  confirmConfirmText: {
+    fontSize: wp(4),
+    fontFamily: 'Outfit-Bold',
+    color: '#FFF',
   },
 });
 
 /* ── Menu Row Sub-component with Animation ── */
-function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", isLast = false }: any) {
+function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borderColor = "rgba(255,255,255,0.1)", isLast = false, badgeCount = 0 }: any) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -1754,10 +1973,15 @@ function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", isLas
         !isLast && styles.menuRowBorder,
         { transform: [{ scale: scaleAnim }] }
       ]}>
-        <View style={[styles.menuIconWrap, { backgroundColor: bgColor }]}>
+        <View style={[styles.menuIconWrap, { backgroundColor: bgColor, borderColor: borderColor }]}>
           <Icon name={icon} size={wp(4.2)} color={color} />
         </View>
         <Text style={[styles.menuLabel, label === 'Logout' && { color: '#F44336' }]}>{label}</Text>
+        {badgeCount > 0 ? (
+          <View style={styles.menuBadge}>
+            <Text style={styles.menuBadgeText}>{badgeCount}</Text>
+          </View>
+        ) : null}
         <Icon name="chevron-right" size={wp(3)} color="#333" />
       </Animated.View>
     </TouchableOpacity>

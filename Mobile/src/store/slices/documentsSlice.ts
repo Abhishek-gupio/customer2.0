@@ -7,6 +7,9 @@ import {
   BACKEND_TYPE_MAP,
 } from '../../services/documentService';
 import { getAbsoluteUrl } from '../../config';
+import { getStaleCachedValue } from '../../services/cache';
+
+const DOCUMENTS_CACHE_KEY = 'cache:documents:list';
 
 export interface DocumentItem {
   id: string;
@@ -51,11 +54,11 @@ function toDocumentItem(doc: DocumentResponse): DocumentItem {
     vehicle: doc.vehicle?.registrationNumber || '',
     imageUri: getAbsoluteUrl(doc.fileUrl),
     documentNumber: doc.documentNumber,
-    issueDate: doc.issueDate,
-    expiryDate: expiryDate,
-    issuerName: doc.issuerName,
-    verificationStatus: doc.verificationStatus,
-    source: doc.source,
+    issueDate: doc.issueDate ?? null,
+    expiryDate: expiryDate ?? null,
+    issuerName: doc.issuerName ?? null,
+    verificationStatus: doc.verificationStatus || 'PENDING',
+    source: doc.source || 'UNKNOWN',
     extractedFields: doc.extractedFields,
     status: mapStatus(doc),
     createdAt: doc.createdAt,
@@ -70,7 +73,7 @@ interface DocumentsState {
 }
 
 const initialState: DocumentsState = {
-  documents: [],
+  documents: getStaleCachedValue<DocumentItem[]>(DOCUMENTS_CACHE_KEY) ?? [],
   loading: false,
   error: null,
 };

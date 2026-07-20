@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -29,13 +30,13 @@ interface PartStatusCardProps {
     lastReplacedAt?: string;
     currentOdo?: number;
     overdueByKm?: number;
-    /** OEM_WEBSITE = from OEM manual; else not from OEM, may be incorrect */
     intervalSource?: string;
+    dataQuality?: string;
     onPressHistory?: () => void;
     onPressUpdate?: () => void;
 }
 
-export const PartStatusCard = ({
+export const PartStatusCard = React.memo(({
     title,
     subtitle,
     percentage,
@@ -55,12 +56,15 @@ export const PartStatusCard = ({
     currentOdo,
     overdueByKm,
     intervalSource,
+    dataQuality,
     onPressHistory,
     onPressUpdate,
 }: PartStatusCardProps) => {
     const [expanded, setExpanded] = useState(false);
-    const isCritical = urgency === 'OVERDUE';
     const displayPercentage = Math.max(0, Math.min(100, percentage));
+    const normalizedQuality = (dataQuality || '').toUpperCase();
+    const isOemIntervalSource = normalizedQuality === 'VERIFIED' || (!normalizedQuality && ['OEM_WEBSITE', 'OEM'].includes((intervalSource || '').toUpperCase()));
+    const isAiSource = normalizedQuality === 'AI_PREDICTED' || (!normalizedQuality && (intervalSource || '').toUpperCase() === 'AI_SUGGESTED');
 
     const toggleExpand = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -70,288 +74,277 @@ export const PartStatusCard = ({
     const kmRemaining = lifecycleKm && kmSinceReplacement !== undefined ? Math.max(0, lifecycleKm - kmSinceReplacement) : null;
 
     return (
-        <View style={styles.card}>
-            <View style={styles.cardPressable}>
-            <View style={styles.topRow}>
-                <View style={styles.leftInfo}>
-                    <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
-                        <Icon name={icon} size={wp(6)} color={color} />
-                    </View>
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title}>{title}</Text>
-                        <Text style={styles.subtitle}>{subtitle || statusText}</Text>
-                    </View>
-                </View>
-
-                <View style={styles.rightScore}>
-                    <TouchableOpacity
-                        onPress={onPressHistory}
-                        activeOpacity={0.8}
-                        style={styles.historyButton}
-                    >
-                        <Icon name="history" size={wp(4.5)} color="#FFBF00" />
-                    </TouchableOpacity>
-                    <Text style={[styles.scoreText, { color }]}>{displayPercentage}%</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: `${color}20` }]}>
-                        <Text style={[styles.statusBadgeText, { color }]}>{statusText}</Text>
-                    </View>
-                </View>
-            </View>
-
-            <View style={styles.progressSection}>
-                <View style={styles.progressBarContainer}>
-                    <View
-                        style={[
-                            styles.progressBar,
-                            { width: `${displayPercentage}%`, backgroundColor: color },
-                        ]}
-                    />
-                </View>
-            </View>
-            </View>
-
-            <View style={styles.bottomRow}>
-                <View style={styles.bottomInfo}>
-                    {overdueByKm != null && overdueByKm > 0 ? (
-                        <Text style={styles.predictionText}>
-                            Interval <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. Overdue by <Text style={{ color: '#EF4444', fontWeight: '800' }}>{overdueByKm.toLocaleString()} km</Text>
-                        </Text>
-                    ) : kmRemaining !== null ? (
-                        <Text style={styles.predictionText}>
-                            Due at <Text style={{ color: '#fff', fontWeight: '800' }}>{lifecycleKm?.toLocaleString()} km</Text>. <Text style={{ color: '#fff', fontWeight: '800' }}>{kmRemaining} km</Text> more
-                        </Text>
-                    ) : predictedDate ? (
-                        <Text style={styles.predictionText}>
-                            Estimated: <Text style={{ color: '#fff', fontWeight: '600' }}>{predictedDate}</Text>
-                        </Text>
-                    ) : (
-                        <Text style={styles.predictionText}>Status: {statusText}</Text>
-                    )}
-                    {isCritical && (
-                        <View style={styles.criticalNotice}>
-                            <Icon name="alert-circle" size={wp(3.5)} color="#EF4444" />
-                            <Text style={styles.criticalText}>REPLACE</Text>
+        <View style={styles.cardWrapper}>
+            <View style={styles.card}>
+                <TouchableOpacity activeOpacity={0.9} onPress={toggleExpand} style={styles.mainAction}>
+                    <View style={styles.topRow}>
+                        <View style={styles.leftInfo}>
+                            <View style={styles.iconBox}>
+                                <Icon name={icon} size={wp(5.5)} color="#FFF" />
+                            </View>
+                            <View style={styles.titleArea}>
+                                <Text style={styles.title}>{title}</Text>
+                                <View style={styles.statusRow}>
+                                    <View style={[styles.dot, { backgroundColor: color || '#FFBF00' }]} />
+                                    <Text style={styles.statusLabel}>{statusText}</Text>
+                                    {warrantyMonths != null && warrantyMonths > 0 && (
+                                        <Text style={styles.warrantyTag}>• WARRANTY</Text>
+                                    )}
+                                    {isOemIntervalSource ? (
+                                        <Text style={styles.verifiedTag}>• VERIFIED</Text>
+                                    ) : isAiSource ? (
+                                        <Text style={styles.aiTag}>• AI PREDICTED</Text>
+                                    ) : null}
+                                </View>
+                            </View>
                         </View>
-                    )}
-                </View>
-                <TouchableOpacity onPress={toggleExpand} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#444" />
-                </TouchableOpacity>
-            </View>
-
-            {expanded && (
-                <View style={styles.detailsContainer}>
-                    <View style={styles.divider} />
-
-                    <View style={styles.detailRow}>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Last Service Odo</Text>
-                            <Text style={styles.detailValue}>{lastReplacedOdo || 0} km</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Current Odo</Text>
-                            <Text style={styles.detailValue}>{currentOdo || 0} km</Text>
-                        </View>
+                        <Text style={styles.percentageVal}>{displayPercentage}%</Text>
                     </View>
 
-                    <View style={styles.detailRow}>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Last Service Date</Text>
-                            <Text style={styles.detailValue}>{lastReplacedAt ? new Date(lastReplacedAt).toLocaleDateString('en-IN') : 'N/A'}</Text>
+                    <View style={styles.progressContainer}>
+                        <View style={styles.track}>
+                            <View style={[styles.bar, { width: `${displayPercentage}%`, backgroundColor: color || '#FFBF00' }]} />
                         </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Warranty</Text>
-                            <Text style={styles.detailValue}>{warrantyMonths || 0} Months</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Garage</Text>
-                            <Text style={styles.detailValue}>{garageName || 'Owner DIY'}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Type</Text>
-                            <Text style={styles.detailValue}>{serviceType ? serviceType.replace(/_/g, ' ') : 'General'}</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Interval</Text>
-                            <Text style={styles.detailValue}>{lifecycleKm || 0} km / {lifecycleMonths || 0} mo</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.detailLabel}>Source</Text>
-                            <Text style={[styles.detailValue, (intervalSource || '').toUpperCase() !== 'OEM_WEBSITE' && styles.detailValueWarning]}>
-                                {(intervalSource || '').toUpperCase() === 'OEM_WEBSITE' ? 'From OEM manual' : 'Not from OEM — may be incorrect'}
+                        <View style={styles.dueRow}>
+                            <Text style={styles.odoText}>
+                                {overdueByKm != null && overdueByKm > 0 ? (
+                                    <Text style={styles.alertText}>{overdueByKm.toLocaleString()} KM OVERDUE</Text>
+                                ) : kmRemaining !== null ? (
+                                    <Text>{kmRemaining.toLocaleString()} KM REMAINING</Text>
+                                ) : null}
                             </Text>
+                            <Text style={styles.intervalLab}>{lifecycleKm?.toLocaleString()} KM INTERVAL</Text>
                         </View>
                     </View>
+                </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.bookButton} onPress={onPressUpdate} activeOpacity={0.85}>
-                        <Text style={styles.bookButtonText}>Update Part</Text>
+                <View style={styles.actionRow}>
+                    <TouchableOpacity style={styles.secondaryBtn} onPress={onPressHistory}>
+                        <Icon name="history" size={wp(4.2)} color="#444" />
+                        <Text style={styles.secondaryBtnText}>HISTORY</Text>
+                    </TouchableOpacity>
+                    
+                    <View style={styles.divider} />
+                    
+                    <TouchableOpacity style={styles.secondaryBtn} onPress={onPressUpdate}>
+                        <Icon name="plus-circle" size={wp(4.2)} color="#FFBF00" />
+                        <Text style={styles.updateBtnText}>UPDATE</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.expandBtn} onPress={toggleExpand}>
+                        <Icon name={expanded ? "chevron-up" : "chevron-down"} size={wp(5)} color="#222" />
                     </TouchableOpacity>
                 </View>
-            )}
+
+                {expanded && (
+                    <View style={styles.detailsArea}>
+                        <View style={styles.grid}>
+                            <View style={styles.gridItem}>
+                                <Text style={styles.lab}>LAST REPLACED</Text>
+                                <Text style={styles.val}>{lastReplacedOdo || 0} km</Text>
+                                <Text style={styles.subVal}>{lastReplacedAt ? new Date(lastReplacedAt).toLocaleDateString() : '-'}</Text>
+                            </View>
+                            <View style={styles.gridItem}>
+                                <Text style={styles.lab}>EXPECTED LIFE</Text>
+                                <Text style={styles.val}>{lifecycleKm || 0} km</Text>
+                                <Text style={styles.subVal}>{lifecycleMonths || 0} months</Text>
+                            </View>
+                            <View style={styles.gridItem}>
+                                <Text style={styles.lab}>LAST GARAGE</Text>
+                                <Text style={styles.val} numberOfLines={1}>{garageName || 'Owner DIY'}</Text>
+                                <Text style={styles.subVal}>{serviceType?.replace(/_/g, ' ') || 'General'}</Text>
+                            </View>
+                            <View style={styles.gridItem}>
+                                <Text style={styles.lab}>SPEC SOURCE</Text>
+                                <Text style={styles.val}>
+                                    {isOemIntervalSource ? 'VERIFIED' : isAiSource ? 'PREDICTED (AI)' : 'ESTIMATED'}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                )}
+            </View>
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: '#111',
-        borderRadius: wp(5),
-        overflow: 'hidden',
+    cardWrapper: {
         marginBottom: hp(2),
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
     },
-    cardPressable: {
-        padding: wp(4.5),
+    card: {
+        backgroundColor: '#0a0a0a',
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: '#111',
+        overflow: 'hidden',
+    },
+    mainAction: {
+        padding: wp(5),
     },
     topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: hp(1.5),
+        marginBottom: hp(2),
     },
     leftInfo: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
     },
-    iconContainer: {
+    iconBox: {
         width: wp(11),
         height: wp(11),
-        borderRadius: wp(3),
-        justifyContent: 'center',
+        borderRadius: 14,
+        backgroundColor: '#111',
         alignItems: 'center',
-        marginRight: wp(3.5),
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#1a1a1a',
     },
-    titleContainer: {
+    titleArea: {
+        marginLeft: wp(3.5),
         flex: 1,
     },
     title: {
         color: '#fff',
-        fontSize: wp(4.2),
-        fontWeight: '700',
-        marginBottom: 2,
+        fontSize: wp(3.8),
+        fontFamily: 'Outfit-Bold',
     },
-    subtitle: {
-        color: '#888',
-        fontSize: wp(3.2),
-    },
-    rightScore: {
-        alignItems: 'flex-end',
-    },
-    historyButton: {
-        width: wp(9),
-        height: wp(9),
-        borderRadius: wp(4.5),
-        backgroundColor: 'rgba(255,191,0,0.12)',
+    statusRow: {
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: hp(1),
+        marginTop: 2,
     },
-    scoreText: {
-        fontSize: wp(4.5),
-        fontWeight: '800',
-        marginBottom: 4,
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginRight: 6,
     },
-    statusBadge: {
-        paddingHorizontal: wp(2.5),
-        paddingVertical: hp(0.4),
-        borderRadius: wp(2),
-    },
-    statusBadgeText: {
-        fontSize: wp(2.8),
-        fontWeight: '700',
+    statusLabel: {
+        color: '#444',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Black',
         textTransform: 'uppercase',
     },
-    progressSection: {
-        marginBottom: hp(1.5),
+    warrantyTag: {
+        color: '#22C55E',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        marginLeft: 6,
     },
-    progressBarContainer: {
-        height: hp(0.8),
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: hp(0.4),
+    verifiedTag: {
+        color: '#22C55E',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        marginLeft: 6,
+    },
+    aiTag: {
+        color: '#F59E0B',
+        fontSize: wp(2.2),
+        fontFamily: 'Outfit-Black',
+        marginLeft: 6,
+    },
+    percentageVal: {
+        color: '#fff',
+        fontSize: wp(5),
+        fontFamily: 'Outfit-Black',
+    },
+    progressContainer: {
+        marginTop: hp(0.5),
+    },
+    track: {
+        height: 6,
+        backgroundColor: '#111',
+        borderRadius: 3,
         overflow: 'hidden',
     },
-    progressBar: {
+    bar: {
         height: '100%',
-        borderRadius: hp(0.4),
+        borderRadius: 3,
     },
-    bottomRow: {
+    dueRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: wp(4.5),
-        paddingBottom: wp(4.5),
-        gap: wp(2),
-    },
-    bottomInfo: {
-        flex: 1,
-    },
-    predictionText: {
-        color: '#666',
-        fontSize: wp(3.2),
-        flex: 1,
-    },
-    criticalNotice: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        paddingHorizontal: wp(2),
-        paddingVertical: hp(0.4),
-        borderRadius: wp(1.5),
-        gap: wp(1),
-    },
-    criticalText: {
-        color: '#EF4444',
-        fontSize: wp(2.8),
-        fontWeight: '700',
-    },
-    detailsContainer: {
-        marginTop: hp(2),
-        paddingTop: hp(1),
-    },
-    divider: {
-        height: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        marginBottom: hp(2),
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: hp(1.5),
-    },
-    detailItem: {
-        flex: 1,
-    },
-    detailLabel: {
-        color: '#666',
-        fontSize: wp(3),
-        marginBottom: 2,
-    },
-    detailValue: {
-        color: '#fff',
-        fontSize: wp(3.5),
-        fontWeight: '600',
-    },
-    detailValueWarning: {
-        color: '#F59E0B',
-    },
-    bookButton: {
-        backgroundColor: '#FFBF00',
-        paddingVertical: hp(1.2),
-        borderRadius: wp(2),
-        alignItems: 'center',
         marginTop: hp(1),
     },
-    bookButtonText: {
-        color: '#000',
-        fontSize: wp(3.5),
-        fontWeight: '700',
+    odoText: {
+        color: '#555',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Bold',
+    },
+    alertText: {
+        color: '#EF4444',
+    },
+    intervalLab: {
+        color: '#333',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Bold',
+    },
+    actionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: hp(1.5),
+        paddingHorizontal: wp(5),
+        backgroundColor: '#050505',
+        borderTopWidth: 1,
+        borderTopColor: '#111',
+    },
+    secondaryBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    secondaryBtnText: {
+        color: '#444',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Black',
+    },
+    updateBtnText: {
+        color: '#FFBF00',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Black',
+    },
+    divider: {
+        width: 1,
+        height: hp(1.5),
+        backgroundColor: '#111',
+        marginHorizontal: wp(4),
+    },
+    expandBtn: {
+        marginLeft: 'auto',
+    },
+    detailsArea: {
+        padding: wp(5),
+        backgroundColor: '#030303',
+        borderTopWidth: 1,
+        borderTopColor: '#111',
+    },
+    grid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: hp(2.5),
+    },
+    gridItem: {
+        width: '45%',
+    },
+    lab: {
+        color: '#333',
+        fontSize: wp(2.5),
+        fontFamily: 'Outfit-Black',
+    },
+    val: {
+        color: '#fff',
+        fontSize: wp(3.4),
+        fontFamily: 'Outfit-Bold',
+        marginTop: 1,
+    },
+    subVal: {
+        color: '#444',
+        fontSize: wp(2.8),
+        fontFamily: 'Outfit-Medium',
+        marginTop: 1,
     },
 });

@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ override: true });
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -17,12 +18,24 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v === "" ? undefined : v)),
+  REDIS_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => (v == null ? undefined : v === "true")),
   JWT_SECRET: z.string().min(1).default("dev-secret-change-in-production"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
   JWT_REFRESH_EXPIRY: z.string().default("30d"),
   ADMIN_JWT_EXPIRY: z.string().default("24h"),
+  DEALER_JWT_EXPIRY: z.string().default("24h"),
+  WASH_PARTNER_JWT_EXPIRY: z.string().default("24h"),
+  WASH_TECHNICIAN_JWT_EXPIRY: z.string().default("24h"),
   OTP_EXPIRY_SEC: z.coerce.number().default(300),
-  OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(60),
+  OTP_RATE_LIMIT_WINDOW_SEC: z.coerce.number().default(30),
+
+  // Razorpay (Customer Payments)
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
   // SMS Service
   SMS_SERVICE: z
@@ -67,13 +80,18 @@ const envSchema = z.object({
   PUBLIC_BASE_URL: z.string().optional().transform((v) => (v === "" ? undefined : v)),
   // AI Features
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_TEXT_MODEL: z.string().default("gemini-2.5-flash-lite"),
   /** Model for voice expense parsing; use gemini-1.5-pro for best accuracy. */
-  GEMINI_VOICE_MODEL: z.string().default("gemini-1.5-flash"),
+  GEMINI_VOICE_MODEL: z.string().default("gemini-2.5-flash-lite"),
+  /** Groq is tried first for plain-text AI calls (fast, small free-tier quota); falls back to Gemini when unset or on error. */
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default("llama-3.1-8b-instant"),
 
   // Weather
   WEATHER_API_KEY: z.string().optional(),
 
   // Telematics
+  TELEMATICS_DEFAULT_PROVIDER: z.enum(["damoov", "inhouse"]).default("damoov"),
   DAMOOV_WEBHOOK_SECRET: z.string().optional(),
   DAMOOV_INSTANCE_ID: z.string().optional(),
   DAMOOV_INSTANCE_KEY: z.string().optional(),

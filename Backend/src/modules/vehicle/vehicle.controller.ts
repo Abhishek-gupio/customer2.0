@@ -8,6 +8,7 @@ import {
   addOdometerSchema,
 } from "./vehicle.validators";
 import { AppError } from "../../utils/AppError";
+import { timelineService } from "../carwash/timeline.service";
 
 function parseBody<T>(
   req: Request,
@@ -152,5 +153,11 @@ export const vehicleController = {
       req.params.id as string,
     );
     success(res, data);
+  }),
+
+  getTimeline: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const timeline = await timelineService.getVehicleTimeline(req.customer.id, req.params.id as string);
+    success(res, timeline);
   }),
 };

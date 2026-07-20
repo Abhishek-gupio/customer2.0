@@ -1,19 +1,24 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Platform,
-  TextInput,
+  Animated,
+  BackHandler,
+  Dimensions,
   FlatList,
-  ActivityIndicator,
-  Modal,
   Linking,
-  Image,
-  type ImageSourcePropType,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -21,123 +26,303 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import QuickServicesGrid from '../../components/QuickServicesGrid';
-import { useNavigation, useFocusEffect } from '../../lib/react-navigation-native';
+import {
+  useNavigation,
+  useFocusEffect,
+} from '../../lib/react-navigation-native';
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
+import QuickServicesGrid from '../../components/QuickServicesGrid';
 import ServiceOptionsOverlay from '../ServiceAndWarrenty/OptionModal';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
-import { api } from '../../services/api';
+import { api, getNetworkOnlineState, subscribeNetworkState } from '../../services/api';
+import { getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { GEO } from '../../config';
-import { PermissionsAndroid } from 'react-native';
+
 import { getLastOdometerUpdate } from '../../services/storage';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchDocuments } from '../../store/slices/documentsSlice';
+import { styles } from './homeStyles';
+import {
+  ComingSoonSection,
+  ChallanBanner,
+  FloatingVideoPlayer,
+  FuelPricesSection,
+  NumberPlateSearchBar,
+  OwnershipTimeline,
+  StateSelectionModal,
+  TrendingNewsSection,
+  TrendingVideosSection,
+} from './HomeSections';
+import {
+  DrivingBehaviorSlide,
+  ExpenseSlide,
+  OdometerSlide,
+  ServicesSlide,
+  SocialSlide,
+  TripPlannerSlide,
+  VehicleSlide,
+} from './HomeSlides';
+import { useHomeCarousel } from './hooks/useHomeCarousel';
+import { useHomeDiscovery } from './hooks/useHomeDiscovery';
+import { useHomeFuel } from './hooks/useHomeFuel';
+import { useHomeLocation } from './hooks/useHomeLocation';
+import { useHomeVehicle } from './hooks/useHomeVehicle';
+import { useFloatingVideo } from './hooks/useFloatingVideo';
+import {
+  HOME_STATES,
+  type HomeCarouselSlide,
+  type TimelineItem,
+} from './types/home';
+import {
+  buildYouTubeEmbedUrl,
+  getYouTubeVideoId,
+} from './utils/youtubeHelpers';
 
-// GPS-based location
-let Geolocation: any = null;
-try {
-  const geoModule = require('@react-native-community/geolocation') as any;
-  Geolocation = geoModule?.default ?? geoModule;
-} catch {
-  Geolocation = null;
-}
-
-const STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Puducherry', 'Chandigarh', 'Ladakh', 'Jammu and Kashmir'];
+const PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
 export default function Home() {
-  const [serviceModalVisible, setServiceModalVisible] = useState(false);
-  const [numberPlate, setNumberPlate] = useState('');
-  const [fuelPrices, setFuelPrices] = useState<{ petrol: number; diesel: number; cng?: number } | null>(null);
-  const [selectedState, setSelectedState] = useState('Kerala');
-  const [userLocationDisplay, setUserLocationDisplay] = useState('Detecting...');
-  const [showStateModal, setShowStateModal] = useState(false);
-  const [stateSearchQuery, setStateSearchQuery] = useState('');
-  const [fuelLoading, setFuelLoading] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [vehicleLoading, setVehicleLoading] = useState(true);
-  const [serviceDueText, setServiceDueText] = useState('Checking...');
-  const [trendingVideos, setTrendingVideos] = useState<any[]>([]);
-  const [trendingNews, setTrendingNews] = useState<any[]>([]);
-  const [discoveryLoading, setDiscoveryLoading] = useState(false);
-  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const [showOdometerSlide, setShowOdometerSlide] = useState(false);
-  const carouselRef = useRef<FlatList>(null);
-  const autoScrollStoppedRef = useRef(false);
-  const placeholders = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
+  const dispatch = useAppDispatch();
+  const documents = useAppSelector(state => state.documents.documents);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [serviceModalVisible, setServiceModalVisible] = useState(false);
+  const [showStateModal, setShowStateModal] = useState(false);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const fetchPrimaryVehicleRef = useRef<(() => void) | null>(null);
+  const lastKnownNetworkStateRef = useRef(getNetworkOnlineState());
+  const reconnectRefreshInFlightRef = useRef(false);
+  const timelineEntranceAnim = useRef(new Animated.Value(0)).current;
 
-  // Initial load
-  useEffect(() => {
-    fetchDiscoveryContent();
-    fetchUserLocation();
-  }, []);
+  const {
+    selectedState,
+    setSelectedState,
+    userLocationDisplay,
+    locationLoading,
+    fetchUserLocationWithRetry,
+    fuelStateLockedByUserRef,
+  } = useHomeLocation();
+  const { fuelPrices, fuelLoading, fetchFuelPrices } =
+    useHomeFuel(selectedState);
+  const {
+    vehicle,
+    vehicleLoading,
+    serviceDueText,
+    serviceAlertCount,
+    serviceDueSoonCount,
+    monthlySpendTotal,
+    monthlyExpenseCount,
+    expenseAlertCount,
+    expenseHeadline,
+    showOdometerSlide,
+    fetchPrimaryVehicle,
+  } = useHomeVehicle();
+  const {
+    trendingVideos,
+    trendingNews,
+    discoveryLoading,
+    fetchDiscoveryContent,
+  } = useHomeDiscovery();
+  const {
+    selectedVideo,
+    setSelectedVideo,
+    closeSelectedVideo,
+    isVideoDragging,
+    isVideoExpanded,
+    miniBaseLeft,
+    miniBaseTop,
+    miniVideoCardWidth,
+    expandedBaseLeft,
+    expandedBaseTop,
+    expandedVideoCardWidth,
+    videoBaseX,
+    videoBaseY,
+    videoDragX,
+    videoDragY,
+    videoDragGestureEvent,
+    handleVideoGestureStateChange,
+    toggleVideoExpanded,
+  } = useFloatingVideo();
 
-  // Fetch fuel prices when state changes
+  const bannerWidth = Dimensions.get('window').width;
+  const carouselSlides = useMemo<HomeCarouselSlide[]>(() => {
+    const slides: HomeCarouselSlide[] = [
+      'vehicle',
+      'expenses',
+      'services',
+      'social',
+      'drivingBehavior',
+      'tripPlanner',
+    ];
+
+    if (showOdometerSlide) {
+      slides.push('odometer');
+    }
+
+    return slides;
+  }, [showOdometerSlide]);
+  const {
+    carouselIndex,
+    carouselRef,
+    handleBannerMomentumEnd,
+    pauseAutoScrollTemporarily,
+  } = useHomeCarousel({
+    bannerWidth,
+    slideCount: carouselSlides.length,
+  });
+
+  const getBannerVehicleShortName = useCallback(
+    (currentVehicle: typeof vehicle): string => {
+      if (!currentVehicle) {
+        return 'Vehicle';
+      }
+
+      const makeWords = (currentVehicle.make || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const modelWords = (currentVehicle.model || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const makeFirst = makeWords[0] || '';
+      let modelFirst = modelWords[0] || '';
+
+      if (
+        makeFirst &&
+        modelFirst &&
+        makeFirst.toLowerCase() === modelFirst.toLowerCase()
+      ) {
+        modelFirst = modelWords[1] || modelFirst;
+      }
+
+      const shortName = [makeFirst, modelFirst]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      return (
+        shortName || currentVehicle.model || currentVehicle.make || 'Vehicle'
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
-    fetchFuelPrices();
-  }, [selectedState]);
+    void fetchDiscoveryContent();
+    void fetchUserLocationWithRetry(0);
+    dispatch(fetchDocuments());
+  }, [dispatch, fetchDiscoveryContent, fetchUserLocationWithRetry]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchPrimaryVehicle();
-    }, [])
+      void fetchPrimaryVehicle();
+      void fetchDiscoveryContent();
+      dispatch(fetchDocuments());
+    }, [dispatch, fetchDiscoveryContent, fetchPrimaryVehicle]),
   );
 
-  // Auto-scroll carousel every 5 seconds
-  // Use a ref to avoid stale closure & re-creating the interval on every slide,
-  // which caused IllegalStateException from conflicting Animated frame timestamps.
-  const carouselIndexRef = useRef(0);
-  useEffect(() => {
-    const totalSlides = showOdometerSlide ? 5 : 4;
-    const timer = setInterval(() => {
-      if (autoScrollStoppedRef.current) return;
-      const nextIndex = (carouselIndexRef.current + 1) % 4;
-      carouselIndexRef.current = nextIndex;
-      setCarouselIndex(nextIndex);
-      try {
-        carouselRef.current?.scrollToIndex({
-          index: nextIndex,
-          animated: true,
-        });
-      } catch (_) {
-        // guard against layout-not-ready race
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.allSettled([
+        fetchPrimaryVehicle(),
+        fetchDiscoveryContent(),
+        fetchUserLocationWithRetry(0),
+        dispatch(fetchDocuments()) as unknown as Promise<unknown>,
+        selectedState &&
+        selectedState !== 'Detecting...' &&
+        HOME_STATES.includes(selectedState as (typeof HOME_STATES)[number])
+          ? fetchFuelPrices()
+          : Promise.resolve(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [
+    dispatch,
+    fetchDiscoveryContent,
+    fetchFuelPrices,
+    fetchPrimaryVehicle,
+    fetchUserLocationWithRetry,
+    selectedState,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') {
+        return undefined;
       }
-    }, 9000);
-    return () => clearInterval(timer);
-  }, [showOdometerSlide]); // ← dependency added to update interval when slides change
+
+      const onBackPress = () => {
+        if (selectedVideo) {
+          closeSelectedVideo();
+          return true;
+        }
+
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [closeSelectedVideo, selectedVideo]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      lastKnownNetworkStateRef.current = getNetworkOnlineState();
+
+      const unsubscribe = subscribeNetworkState((online) => {
+        const wasOnline = lastKnownNetworkStateRef.current;
+        lastKnownNetworkStateRef.current = online;
+
+        if (!wasOnline && online && !reconnectRefreshInFlightRef.current) {
+          reconnectRefreshInFlightRef.current = true;
+          handleRefresh().finally(() => {
+            reconnectRefreshInFlightRef.current = false;
+          });
+        }
+      });
+
+      return () => {
+        unsubscribe();
+        reconnectRefreshInFlightRef.current = false;
+      };
+    }, [handleRefresh])
+  );
+
 
   // Typewriter animation for rotating number plate placeholders
   useEffect(() => {
     let currentIdx = 0;
     let placeholderIdx = 0;
     let isDeleting = false;
-    let timeout: any;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
 
     const animatePlaceholder = () => {
-      const fullText = placeholders[placeholderIdx];
+      const fullText = PLACEHOLDERS[placeholderIdx];
 
       if (!isDeleting) {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx + 1));
-        currentIdx++;
+        currentIdx += 1;
         if (currentIdx === fullText.length) {
           isDeleting = true;
-          timeout = setTimeout(animatePlaceholder, 2000); // Wait before deleting
+          timeout = setTimeout(animatePlaceholder, 2000);
         } else {
           timeout = setTimeout(animatePlaceholder, 150);
         }
       } else {
         setAnimatedPlaceholder(fullText.substring(0, currentIdx - 1));
-        currentIdx--;
+        currentIdx -= 1;
         if (currentIdx === 0) {
           isDeleting = false;
-          // Move to next placeholder in the list
-          placeholderIdx = (placeholderIdx + 1) % placeholders.length;
-          timeout = setTimeout(animatePlaceholder, 500); // Wait before typing next
+          placeholderIdx = (placeholderIdx + 1) % PLACEHOLDERS.length;
+          timeout = setTimeout(animatePlaceholder, 500);
         } else {
           timeout = setTimeout(animatePlaceholder, 100);
         }
@@ -145,1703 +330,797 @@ export default function Home() {
     };
 
     animatePlaceholder();
-    return () => clearTimeout(timeout);
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, []);
 
-  const fetchPrimaryVehicle = async () => {
-    try {
-      setVehicleLoading(true);
-      const vehicles = await vehicleService.getVehicles();
-      const primary = vehicles.find(v => v.isPrimary) || vehicles[0];
-
-      if (primary) {
-        setVehicle(primary);
-        // Show odometer reminder slider ONLY if not updated in the last 24 hours
-        const lastUpdate = getLastOdometerUpdate(primary.id);
-        const now = Date.now();
-        const DayMs = 24 * 60 * 60 * 1000;
-        if (!lastUpdate || (now - lastUpdate) > DayMs) {
-          setShowOdometerSlide(true);
+  const navigateToRootScreen = useCallback(
+    (screenName: keyof RootStackParamList, params?: any) => {
+      const rootNav =
+        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      if (rootNav) {
+        if (params) {
+          rootNav.navigate(screenName as any, params);
         } else {
-          setShowOdometerSlide(false);
+          rootNav.navigate(screenName as any);
         }
-
-        // Also fetch upcoming service to show in header footer
-        try {
-          const upcoming = await api.get<any[]>(`/v1/expenses/warranty/vehicles/${primary.id}/upcoming`);
-          const overdue = (upcoming as any).data?.find((p: any) => p.urgency === 'OVERDUE');
-          if (overdue) {
-            setServiceDueText('Overdue!');
-          } else {
-            // Find closest logic... for simplicity using first
-            const first = (upcoming as any).data?.[0];
-            if (first) {
-              const kmLeft = first.lifecycleKm - first.kmSinceReplacement;
-              setServiceDueText(`${kmLeft > 0 ? kmLeft : 0} km`);
-            } else {
-              setServiceDueText('Healthy');
-            }
-          }
-        } catch (err) {
-          console.warn('Could not fetch upcoming service for home', err);
-          setServiceDueText('N/A');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching primary vehicle:', error);
-    } finally {
-      setVehicleLoading(false);
-    }
-  };
-
-  const fetchFuelPrices = async () => {
-    try {
-      setFuelLoading(true);
-      const res = await api.get<any>(`/v1/fuel/state?name=${selectedState}`);
-      const data = (res as any).data || res;
-      if (data && (data.PETROL || data.petrol)) {
-        setFuelPrices({
-          petrol: data.PETROL || data.petrol,
-          diesel: data.DIESEL || data.diesel,
-          cng: data.CNG || data.cng
-        });
-      } else {
-        console.warn('No fuel data available for', selectedState);
-      }
-    } catch (error) {
-      console.error('Error fetching fuel prices:', error);
-    } finally {
-      setFuelLoading(false);
-    }
-  };
-
-  const requestLocationPermission = async (): Promise<boolean> => {
-    if (Platform.OS === 'android') {
-      try {
-        const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
-        const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
-        const fineHas = await PermissionsAndroid.check(fine);
-        const coarseHas = await PermissionsAndroid.check(coarse);
-        if (fineHas || coarseHas) return true;
-        const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
-        return results[fine] === PermissionsAndroid.RESULTS.GRANTED || results[coarse] === PermissionsAndroid.RESULTS.GRANTED;
-      } catch {
-        return false;
-      }
-    }
-    if (Platform.OS === 'ios' && Geolocation?.requestAuthorization) {
-      try {
-        const status = await Geolocation.requestAuthorization('whenInUse');
-        return status === 'granted' || status === 'authorized' || status === 'authorizedWhenInUse';
-      } catch {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const reverseGeocode = async (lat: number, lon: number): Promise<{ display: string; state: string } | null> => {
-    try {
-      const base = GEO.reverseGeocodeBase.replace(/\/$/, '');
-      const url = `${base}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': GEO.userAgent },
-      });
-      const data = await res.json();
-      const addr = data?.address;
-      if (!addr) return null;
-
-      const primary = addr.suburb || addr.neighbourhood || addr.locality || addr.village || addr.town || addr.city || addr.state_district;
-      const townOrCity = addr.town || addr.city;
-      const stateOrCountry = addr.state || addr.region || addr.country;
-      const secondary = townOrCity && townOrCity !== primary ? townOrCity : stateOrCountry;
-      const display = primary && secondary ? `${primary}, ${secondary}` : primary || secondary || 'Unknown Location';
-
-      return { display, state: addr.state || '' };
-    } catch {
-      return null;
-    }
-  };
-
-  const fetchUserLocation = async () => {
-    try {
-      setLocationLoading(true);
-
-      // try GPS
-      if (Geolocation) {
-        const permitted = await requestLocationPermission();
-        if (permitted) {
-          const coords = await new Promise<{ lat: number; lon: number } | null>((resolve) => {
-            Geolocation.getCurrentPosition(
-              (pos: any) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-              () => resolve(null),
-              { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-            );
-          });
-          if (coords) {
-            const geo = await reverseGeocode(coords.lat, coords.lon);
-            if (geo) {
-              setUserLocationDisplay(geo.display);
-              if (geo.state && STATES.includes(geo.state)) {
-                setSelectedState(geo.state);
-              }
-              return;
-            }
-          }
-        }
+        return;
       }
 
-      // fallback to IP
-      let geo: any = null;
-      for (const ipUrl of GEO.ipProviders) {
-        try {
-          const res = await fetch(ipUrl, { headers: { 'User-Agent': GEO.userAgent } });
-          const data = await res.json();
-          if (data?.city && data?.region) {
-            geo = data;
-            break;
-          }
-        } catch { /* ignore */ }
-      }
-
-      if (geo) {
-        setUserLocationDisplay(`${geo.city}, ${geo.region}`);
-        if (geo.region && STATES.includes(geo.region)) {
-          setSelectedState(geo.region);
-        } else if (geo.region_name && STATES.includes(geo.region_name)) {
-          setSelectedState(geo.region_name);
-        }
-      } else {
-        setUserLocationDisplay('Location not available');
-      }
-    } catch (error) {
-      console.error('Location detection failed:', error);
-      setUserLocationDisplay('Location not available');
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
-  const handleProfilePress = () => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    if (rootNav) {
-      rootNav.navigate('MyProfile');
-    } else {
-      navigation.navigate('MyProfile');
-    }
-  };
-
-  const handleSOSPress = () => {
-    // Force navigation to the SOS route in the Root Navigator
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    if (rootNav) {
-      rootNav.navigate('SOS');
-    } else {
-      (navigation as any).navigate('SOS');
-    }
-  };
-
-  const handleHelpPress = () => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    if (rootNav) {
-      rootNav.navigate('HelpSupport');
-    } else {
-      navigation.navigate('HelpSupport');
-    }
-  };
-
-  const navigateToRootScreen = (screenName: keyof RootStackParamList, params?: any) => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    if (rootNav) {
-      if (params) {
-        rootNav.navigate(screenName as any, params);
-      } else {
-        rootNav.navigate(screenName as any);
-      }
-    } else {
       if (params) {
         navigation.navigate(screenName as any, params);
       } else {
         navigation.navigate(screenName as any);
       }
-    }
-  };
+    },
+    [navigation],
+  );
 
-  const fetchDiscoveryContent = async () => {
+  const navigateToServicesScreen = useCallback(
+    (
+      screen:
+        | 'ServicesHome'
+        | 'NearbyPlaces'
+        | 'CheckChallan'
+        | 'ServiceHistory'
+        | 'WarrantyStatus',
+      params?: any,
+    ) => {
+      if (params) {
+        navigation.navigate('Services' as any, { screen, params });
+        return;
+      }
+      navigation.navigate('Services' as any, { screen });
+    },
+    [navigation],
+  );
+
+  const navigateToGarageTab = useCallback(() => {
+    const rootNav =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Main', { screen: 'my_garage' });
+      return;
+    }
+
+    navigation.navigate('my_garage' as any);
+  }, [navigation]);
+
+  const handleProfilePress = useCallback(() => {
+    const rootNav =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('MyProfile');
+    } else {
+      navigation.navigate('MyProfile');
+    }
+  }, [navigation]);
+
+  const handleSOSPress = useCallback(() => {
+    const rootNav =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('SOS');
+    } else {
+      (navigation as any).navigate('SOS');
+    }
+  }, [navigation]);
+
+  const handleAlertsPress = useCallback(() => {
+    const rootNav =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('Alerts');
+    } else {
+      navigation.navigate('Alerts');
+    }
+  }, [navigation]);
+
+  const handleHelpPress = useCallback(() => {
+    const rootNav =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (rootNav) {
+      rootNav.navigate('HelpSupport');
+    } else {
+      navigation.navigate('HelpSupport');
+    }
+  }, [navigation]);
+
+  const handleVehicleSearchPress = useCallback(() => {
+    navigation.navigate('VehicleSearch');
+  }, [navigation]);
+  const handleExpenseSlidePress = useCallback(() => {
+    navigateToRootScreen('Expenses');
+  }, [navigateToRootScreen]);
+  const handleServicesSlidePress = useCallback(() => {
+    setServiceModalVisible(true);
+  }, []);
+  const handleDrivingBehaviorSlidePress = useCallback(() => {
+    navigateToRootScreen('DrivingSummary');
+  }, [navigateToRootScreen]);
+  const handleTripPlannerSlidePress = useCallback(() => {
+    navigateToRootScreen('TripExpense');
+  }, [navigateToRootScreen]);
+  const handleChallanPress = useCallback(() => {
+    navigateToServicesScreen('CheckChallan');
+  }, [navigateToServicesScreen]);
+  const handleStateModalOpen = useCallback(() => {
+    setShowStateModal(true);
+  }, []);
+  const handleStateModalClose = useCallback(() => {
+    setShowStateModal(false);
+  }, []);
+
+  const handleQuickServicePress = useCallback(
+    (id: string) => {
+      if (id === 'document') {
+        navigateToRootScreen('DocumentList');
+      } else if (id === 'garage') {
+        navigateToRootScreen('VehicleList');
+      } else if (id === 'expense') {
+        navigateToRootScreen('Expenses');
+      } else if (id === 'valet') {
+        navigateToRootScreen('Valet');
+      } else if (id === 'service') {
+        navigateToServicesScreen('ServicesHome');
+      } else if (id === 'driving') {
+        navigateToRootScreen('DrivingSummary');
+      } else if (id === 'nearby') {
+        navigation.navigate('Services' as any, {
+          screen: 'NearbyPlaces',
+          params: { fromHome: true },
+        });
+      } else if (id === 'support') {
+        handleHelpPress();
+      } else if (id === 'tripcost' || id === 'trip_planner') {
+        navigateToRootScreen('TripExpense');
+      }
+    },
+    [
+      handleHelpPress,
+      navigateToRootScreen,
+      navigateToServicesScreen,
+      navigation,
+    ],
+  );
+
+  const openAiAssistant = useCallback(
+    (userMessage?: string) => {
+      if (userMessage) {
+        (navigation as any).navigate('AIAssistant', { userMessage });
+        return;
+      }
+      (navigation as any).navigate('AIAssistant');
+    },
+    [navigation],
+  );
+
+  const handleVideoPress = useCallback(
+    (url: unknown, title: unknown) => {
+      const videoId = getYouTubeVideoId(url);
+      if (videoId) {
+        setSelectedVideo({
+          id: videoId,
+          embedUrl: buildYouTubeEmbedUrl(videoId),
+          title:
+            typeof title === 'string' && title.trim()
+              ? title
+              : 'Trending Video',
+        });
+      } else {
+        console.warn(
+          'Unable to extract YouTube video ID for trending video:',
+          url,
+        );
+      }
+    },
+    [setSelectedVideo],
+  );
+
+  const handleNewsPress = useCallback(async (url: string) => {
     try {
-      setDiscoveryLoading(true);
-      const res = await api.get<any>('/v1/discovery/trending');
-      const data = (res as any).data || res;
-      if (data) {
-        if (data.news) setTrendingNews(data.news);
-        if (data.videos) setTrendingVideos(data.videos);
+      if (url) {
+        await Linking.openURL(url);
       }
     } catch (error) {
-      console.error('Error fetching discovery content:', error);
-    } finally {
-      setDiscoveryLoading(false);
-    }
-  };
-
-  const handleVideoPress = async (url: string) => {
-    try {
-      if (url) await Linking.openURL(url);
-    } catch (error) {
       console.error('Error opening URL:', error);
     }
-  };
+  }, []);
 
-  const handleNewsPress = async (url: string) => {
-    try {
-      if (url) await Linking.openURL(url);
-    } catch (error) {
-      console.error('Error opening URL:', error);
-    }
+
+  const handleStateSelect = useCallback(
+    (state: string) => {
+      fuelStateLockedByUserRef.current = true;
+      setSelectedState(state);
+      setShowStateModal(false);
+    },
+    [setSelectedState, fuelStateLockedByUserRef],
+  );
+
+  const lastOdometerUpdate = vehicle?.id
+    ? getLastOdometerUpdate(vehicle.id)
+    : null;
+  const currentTimeMs = Date.now();
+  const dayMs = 24 * 60 * 60 * 1000;
+  const odometerAgeDays = lastOdometerUpdate
+    ? Math.floor((currentTimeMs - lastOdometerUpdate) / dayMs)
+    : null;
+  const odometerSummary = !lastOdometerUpdate
+    ? 'No reading saved yet. Keeping odometer updated improves health and expense accuracy.'
+    : odometerAgeDays === 0
+      ? 'Odometer was updated today. Keep logging consistently to sharpen insights.'
+      : `Last reading was ${odometerAgeDays} day${odometerAgeDays === 1 ? '' : 's'} ago.`;
+
+  const healthScore = vehicle?.healthScore?.overallScore ?? null;
+  const fuelSummary = fuelPrices
+    ? `Petrol \u20B9${fuelPrices.petrol} \u2022 Diesel \u20B9${fuelPrices.diesel}${
+        fuelPrices.cng ? ` \u2022 CNG \u20B9${fuelPrices.cng}` : ''
+      }`
+    : selectedState === 'Detecting...'
+      ? 'We are finding fuel prices for your current state.'
+      : `Fuel prices for ${selectedState} will appear here when available.`;
+  const requiredDocumentTypes = ['RC', 'Insurance', 'PUC', 'DL'];
+  const requiredDocumentLabels: Record<string, string> = {
+    RC: 'RC',
+    Insurance: 'insurance',
+    PUC: 'PUC',
+    DL: 'license',
   };
+  const requiredDocuments = requiredDocumentTypes.map(type =>
+    documents.find(doc => doc.type === type),
+  );
+  const missingDocumentTypes = requiredDocumentTypes.filter(
+    type => !documents.find(doc => doc.type === type),
+  );
+  const documentsNeedingReview = requiredDocuments.filter(
+    doc => doc && doc.status !== 'verified',
+  );
+  const documentBadge =
+    missingDocumentTypes.length > 0
+      ? `${missingDocumentTypes.length} missing`
+      : documentsNeedingReview.length > 0
+        ? `${documentsNeedingReview.length} review`
+        : 'Ready';
+  const documentAccent =
+    missingDocumentTypes.length > 0
+      ? '#f59e0b'
+      : documentsNeedingReview.length > 0
+        ? '#fb7185'
+        : '#22c55e';
+  const documentTitle =
+    missingDocumentTypes.length > 0
+      ? 'Complete your glovebox'
+      : documentsNeedingReview.length > 0
+        ? 'Review document expiry'
+        : 'Documents look healthy';
+  const documentSummary =
+    missingDocumentTypes.length > 0
+      ? `Add ${missingDocumentTypes
+          .slice(0, 2)
+          .map(type => requiredDocumentLabels[type])
+          .join(' and ')} so you have the essentials for daily driving.`
+      : documentsNeedingReview.length > 0
+        ? 'One or more stored documents are expiring or expired. Review them before your next trip.'
+        : 'RC, insurance, PUC and license are already stored in your glovebox.';
+  const serviceBadge =
+    serviceAlertCount > 0
+      ? `${serviceAlertCount} overdue`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} due soon`
+        : vehicle
+          ? 'Live'
+          : 'Start here';
+  const serviceAccent =
+    serviceAlertCount > 0
+      ? '#fb7185'
+      : serviceDueSoonCount > 0
+        ? '#f59e0b'
+        : '#4ade80';
+  const serviceTitle = vehicle
+    ? serviceAlertCount > 0
+      ? `${serviceAlertCount} service alert${serviceAlertCount === 1 ? '' : 's'}`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} parts need attention`
+        : `${healthScore ?? 100}% health score`
+    : 'Add your first vehicle';
+  const serviceSummary = vehicle
+    ? serviceAlertCount > 0
+      ? `${serviceAlertCount} part${serviceAlertCount === 1 ? '' : 's'} are overdue. Open health to review the most urgent replacements.`
+      : serviceDueSoonCount > 0
+        ? `${serviceDueSoonCount} part${serviceDueSoonCount === 1 ? '' : 's'} are due soon. Your next checkpoint is ${serviceDueText}.`
+        : `Your next service checkpoint is ${serviceDueText}.`
+    : 'Connect your vehicle to unlock service, trip and document insights.';
+  const spendTitle =
+    monthlySpendTotal !== null
+      ? `\u20B9${Math.round(monthlySpendTotal).toLocaleString('en-IN')} this month`
+      : 'Track every rupee';
+  const spendBadge =
+    expenseAlertCount > 0
+      ? `${expenseAlertCount} alert${expenseAlertCount === 1 ? '' : 's'}`
+      : monthlyExpenseCount > 0
+        ? 'Monthly spend'
+        : 'Cost view';
+  const spendAccent = expenseAlertCount > 0 ? '#f59e0b' : '#60a5fa';
+  const spendSummary =
+    monthlySpendTotal !== null && monthlyExpenseCount > 0
+      ? `${expenseHeadline} ${fuelSummary}`
+      : expenseHeadline;
+
+  const handleOdometerPress = useCallback(() => {
+    (navigation as any).navigate('Odometer');
+  }, [navigation]);
+
+  const ownershipTimelineItems = useMemo<TimelineItem[]>(
+    () => [
+      {
+        id: 'health',
+        eyebrow: vehicle ? 'Vehicle health' : 'Garage setup',
+        title: serviceTitle,
+        description: serviceSummary,
+        icon: vehicle ? 'shield-check' : 'car-plus',
+        iconSet: 'mc',
+        accent: serviceAccent,
+        badge: serviceBadge,
+        cta: vehicle ? 'Open health' : 'Go to garage',
+        stage:
+          serviceAlertCount > 0
+            ? 'Now'
+            : serviceDueSoonCount > 0
+              ? 'Next'
+              : 'Later',
+        priority:
+          serviceAlertCount > 0
+            ? 'urgent'
+            : serviceDueSoonCount > 0
+              ? 'normal'
+              : 'good',
+        priorityScore:
+          serviceAlertCount > 0 ? 100 : serviceDueSoonCount > 0 ? 80 : 40,
+        onPress: () =>
+          vehicle
+            ? navigateToRootScreen('WarrantyStatus')
+            : navigateToRootScreen('VehicleList'),
+      },
+      {
+        id: 'documents',
+        eyebrow: 'Document readiness',
+        title: documentTitle,
+        description: documentSummary,
+        icon: 'file-document-check-outline',
+        iconSet: 'mc',
+        accent: documentAccent,
+        badge: documentBadge,
+        cta: 'Open glovebox',
+        stage:
+          missingDocumentTypes.length > 0
+            ? 'Now'
+            : documentsNeedingReview.length > 0
+              ? 'Next'
+              : 'Later',
+        priority:
+          missingDocumentTypes.length > 0
+            ? 'urgent'
+            : documentsNeedingReview.length > 0
+              ? 'normal'
+              : 'good',
+        priorityScore:
+          missingDocumentTypes.length > 0
+            ? 90
+            : documentsNeedingReview.length > 0
+              ? 75
+              : 35,
+        onPress: () => navigateToRootScreen('DocumentList'),
+      },
+      {
+        id: 'odometer',
+        eyebrow: 'Daily upkeep',
+        title: !lastOdometerUpdate
+          ? 'Update odometer'
+          : odometerAgeDays && odometerAgeDays > 7
+            ? 'Odometer is stale'
+            : 'Keep readings fresh',
+        description: odometerSummary,
+        icon: 'speedometer-outline',
+        iconSet: 'ion',
+        accent:
+          !lastOdometerUpdate ||
+          (odometerAgeDays !== null && odometerAgeDays > 7)
+            ? '#f59e0b'
+            : '#38bdf8',
+        badge: !lastOdometerUpdate
+          ? 'Missing'
+          : odometerAgeDays === 0
+            ? 'Updated today'
+            : `${odometerAgeDays ?? 0}d ago`,
+        cta: 'Update reading',
+        stage:
+          !lastOdometerUpdate ||
+          (odometerAgeDays !== null && odometerAgeDays > 7)
+            ? 'Now'
+            : 'Later',
+        priority:
+          !lastOdometerUpdate ||
+          (odometerAgeDays !== null && odometerAgeDays > 7)
+            ? 'urgent'
+            : 'good',
+        priorityScore: !lastOdometerUpdate
+          ? 92
+          : odometerAgeDays !== null && odometerAgeDays > 7
+            ? 88
+            : 28,
+        onPress: handleOdometerPress,
+      },
+      {
+        id: 'costs',
+        eyebrow: 'Running costs',
+        title: spendTitle,
+        description: spendSummary,
+        icon: 'wallet',
+        iconSet: 'fa',
+        accent: spendAccent,
+        badge: fuelLoading ? 'Updating' : spendBadge,
+        cta: 'Open expenses',
+        stage:
+          expenseAlertCount > 0
+            ? 'Now'
+            : monthlyExpenseCount > 0
+              ? 'Next'
+              : 'Later',
+        priority:
+          expenseAlertCount > 0
+            ? 'urgent'
+            : monthlyExpenseCount > 0
+              ? 'normal'
+              : 'good',
+        priorityScore:
+          expenseAlertCount > 0 ? 85 : monthlyExpenseCount > 0 ? 60 : 25,
+        onPress: () => navigateToRootScreen('Expenses'),
+      },
+      {
+        id: 'trip',
+        eyebrow: 'Trip ready',
+        title: 'Plan the next drive',
+        description: userLocationDisplay.includes(',')
+          ? `Estimate route costs, stops and trip spend around ${userLocationDisplay}.`
+          : 'Build a route budget before your next long drive.',
+        icon: 'map-search-outline',
+        iconSet: 'mc',
+        accent: '#a78bfa',
+        badge: 'Planner',
+        cta: 'Plan trip',
+        stage: 'Later',
+        priority: 'normal',
+        priorityScore: 20,
+        onPress: () => navigateToRootScreen('TripExpense'),
+      },
+      {
+        id: 'ai',
+        eyebrow: 'AI copilot',
+        title: 'Ask what needs attention',
+        description: vehicle
+          ? `Get a quick summary for your ${getBannerVehicleShortName(vehicle)} with service, spend and support suggestions.`
+          : 'Use AI to set up your garage, expenses and support faster.',
+        icon: 'sparkles',
+        iconSet: 'mc',
+        accent: '#22d3ee',
+        badge: 'Action ready',
+        cta: 'Open AI',
+        stage: 'Next',
+        priority: 'normal',
+        priorityScore: 50,
+        onPress: () =>
+          openAiAssistant(
+            vehicle
+              ? `Give me a quick ownership summary for my ${getBannerVehicleShortName(vehicle)} and tell me what I should do next.`
+              : 'Help me set up my garage and tell me the first three things I should complete in the app.',
+          ),
+      },
+    ],
+    [
+      documentAccent,
+      documentBadge,
+      documentSummary,
+      documentTitle,
+      documentsNeedingReview.length,
+      expenseAlertCount,
+      fuelLoading,
+      getBannerVehicleShortName,
+      handleOdometerPress,
+      lastOdometerUpdate,
+      missingDocumentTypes.length,
+      monthlyExpenseCount,
+      navigateToRootScreen,
+      odometerAgeDays,
+      odometerSummary,
+      openAiAssistant,
+      serviceAccent,
+      serviceAlertCount,
+      serviceBadge,
+      serviceDueSoonCount,
+      serviceSummary,
+      serviceTitle,
+      spendBadge,
+      spendSummary,
+      spendTitle,
+      userLocationDisplay,
+      vehicle,
+    ],
+  );
+
+  const sortedOwnershipTimelineItems = useMemo(
+    () =>
+      [...ownershipTimelineItems].sort(
+        (a, b) => b.priorityScore - a.priorityScore,
+      ),
+    [ownershipTimelineItems],
+  );
+  const recommendedTimelineItemId = sortedOwnershipTimelineItems[0]?.id;
+
+  useEffect(() => {
+    timelineEntranceAnim.setValue(0);
+    Animated.timing(timelineEntranceAnim, {
+      toValue: 1,
+      duration: 550,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [recommendedTimelineItemId, timelineEntranceAnim]);
+
+  const renderCarouselSlide = useCallback(
+    ({ item }: { item: HomeCarouselSlide }) => {
+      if (item === 'vehicle') {
+        return (
+          <VehicleSlide
+            bannerWidth={bannerWidth}
+            vehicleLoading={vehicleLoading}
+            vehicle={vehicle}
+            serviceDueText={serviceDueText}
+            navigateToGarageTab={navigateToGarageTab}
+            getBannerVehicleShortName={getBannerVehicleShortName}
+          />
+        );
+      }
+
+      if (item === 'expenses') {
+        return (
+          <ExpenseSlide
+            bannerWidth={bannerWidth}
+            onPress={handleExpenseSlidePress}
+          />
+        );
+      }
+
+      if (item === 'services') {
+        return (
+          <ServicesSlide
+            bannerWidth={bannerWidth}
+            onPress={handleServicesSlidePress}
+          />
+        );
+      }
+
+      if (item === 'social') {
+        return <SocialSlide bannerWidth={bannerWidth} />;
+      }
+
+      if (item === 'drivingBehavior') {
+        return (
+          <DrivingBehaviorSlide
+            bannerWidth={bannerWidth}
+            onPress={handleDrivingBehaviorSlidePress}
+          />
+        );
+      }
+
+      if (item === 'tripPlanner') {
+        return (
+          <TripPlannerSlide
+            bannerWidth={bannerWidth}
+            onPress={handleTripPlannerSlidePress}
+          />
+        );
+      }
+
+      if (item === 'odometer') {
+        return (
+          <OdometerSlide
+            bannerWidth={bannerWidth}
+            vehicle={vehicle}
+            onPress={handleOdometerPress}
+          />
+        );
+      }
+
+      return null;
+    },
+    [
+      bannerWidth,
+      getBannerVehicleShortName,
+      handleDrivingBehaviorSlidePress,
+      handleExpenseSlidePress,
+      handleOdometerPress,
+      handleServicesSlidePress,
+      handleTripPlannerSlidePress,
+      navigateToGarageTab,
+      serviceDueText,
+      vehicle,
+      vehicleLoading,
+    ],
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar
         barStyle="light-content"
         backgroundColor={Platform.OS === 'android' ? '#000000' : undefined}
       />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#FFBF00"
+            colors={['#FFBF00']}
+          />
+        }
       >
-        {/* PREMIUM VEHICLE CAROUSEL HEADER */}
         <View style={styles.headerWrapper}>
           <FlatList
             ref={carouselRef}
             horizontal
             pagingEnabled
+            decelerationRate="fast"
+            snapToInterval={bannerWidth}
+            snapToAlignment="start"
+            disableIntervalMomentum
+            bounces={false}
+            getItemLayout={(_: any, index: number) => ({
+              length: bannerWidth,
+              offset: bannerWidth * index,
+              index,
+            })}
+            onScrollToIndexFailed={info => {
+              carouselRef.current?.scrollToOffset({
+                offset: info.index * bannerWidth,
+                animated: true,
+              });
+            }}
+            initialNumToRender={1}
+            maxToRenderPerBatch={2}
+            windowSize={3}
             showsHorizontalScrollIndicator={false}
-            onTouchStart={() => {
-              autoScrollStoppedRef.current = true;
-            }}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / wp(100));
-              carouselIndexRef.current = index;
-              setCarouselIndex(index);
-            }}
-            data={showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]}
-            keyExtractor={(item) => item.toString()}
-            renderItem={({ item }) => {
-              const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
-              const fallbackHeroImage = (vehicle?.vehicleType === 'BIKE'
-                ? require('../../assets/images/bike.png')
-                : require('../../assets/images/car_vehicle_demo.png')) as ImageSourcePropType;
-              const heroImageSource: ImageSourcePropType =
-                typeof vehicleImageUrl === 'string' && vehicleImageUrl.length > 0
-                  ? ({ uri: vehicleImageUrl } as ImageSourcePropType)
-                  : fallbackHeroImage;
+            onScrollBeginDrag={pauseAutoScrollTemporarily}
+            onMomentumScrollEnd={handleBannerMomentumEnd}
+            data={carouselSlides}
+            keyExtractor={item => item}
+            onTouchStart={pauseAutoScrollTemporarily}
+            renderItem={renderCarouselSlide}
+          />
 
-              if (item === 0) {
-                return (
-                  <View style={styles.slideFull}>
-                    <View style={styles.primaryImageWrap}>
-                      <Image
-                        source={heroImageSource}
-                        style={styles.primaryImageFull}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.primaryImageOverlay}>
-                        {vehicleLoading ? (
-                          <ActivityIndicator color="#fff" style={{ alignSelf: 'flex-start' }} />
-                        ) : vehicle ? (
-                          <>
-                            <Text style={styles.headerNumberPlate}>{vehicle.registrationNumber}</Text>
-                            <Text style={styles.headerCarModel}>{vehicle.make} {vehicle.model}</Text>
-                            <View style={styles.healthSection}>
-                              <Text style={styles.healthText}>
-                                {vehicle.healthScore?.overallScore || 100}% <Text style={styles.healthLabel}>Health</Text>
-                              </Text>
-                              <View style={styles.healthBarBg}>
-                                <View style={[styles.healthBarFill, { width: `${vehicle.healthScore?.overallScore || 100}%` }]} />
-                              </View>
-                            </View>
-                          </>
-                        ) : (
-                          <View>
-                            <Text style={styles.headerNumberPlate}>Add Vehicle</Text>
-                            <Text style={styles.headerCarModel}>Tap to get started</Text>
-                          </View>
-                        )}
-
-                        <View style={styles.headerFooterOverlay}>
-                          <View style={styles.footerItem}>
-                            <Text style={styles.footerLabel}>Service due in</Text>
-                            <Text style={styles.footerValue}>{serviceDueText}</Text>
-                          </View>
-                          <View style={[styles.footerItem, { alignItems: 'flex-end' }]}>
-                            <Text style={styles.footerLabel}>FASTag</Text>
-                            <Text style={styles.footerValue}>₹ ---</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                );
-              }
-              if (item === 1) {
-                return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => navigateToRootScreen('Expenses')}
-                  >
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>Smart Tracking</Text>
-                        <Text style={styles.promoTitle}>Expense Tracker</Text>
-                        <Text style={styles.promoDesc}>Monitor your fuel, service and other vehicle costs easily.</Text>
-                        <View style={styles.promoAction}>
-                          <Text style={styles.promoActionText}>Try Now</Text>
-                          <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
-                        </View>
-                      </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/expense_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              }
-              if (item === 2) {
-                return (
-                  <TouchableOpacity
-                    style={styles.slideFull}
-                    activeOpacity={0.9}
-                    onPress={() => setServiceModalVisible(true)}
-                  >
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={[styles.promoSubtitle, { color: '#4ade80' }]}>Premium Care</Text>
-                        <Text style={styles.promoTitle}>Featured Services</Text>
-                        <Text style={styles.promoDesc}>Book maintenance, car wash, and emergency repairs instantly.</Text>
-                        <View style={styles.promoAction}>
-                          <Text style={[styles.promoActionText, { color: '#4ade80' }]}>Explore</Text>
-                          <MaterialIcon name="chevron-right" size={18} color="#4ade80" />
-                        </View>
-                      </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/vehicle_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              }
-              if (item === 3) {
-                return (
-                  <View style={styles.slideFull}>
-                    <View style={styles.promoSlide}>
-                      <View style={styles.promoLeft}>
-                        <Text style={styles.promoSubtitle}>Stay Connected</Text>
-                        <Text style={styles.promoTitle}>Follow Us on Instagram</Text>
-                        <View style={styles.promoButtons}>
-                          <TouchableOpacity
-                            style={styles.promoBtn}
-                            onPress={() => Linking.openURL('https://www.instagram.com/gupio.in/')}
-                          >
-                            <Icon name="instagram" size={14} color="#000" />
-                            <Text style={styles.promoBtnText}>Instagram</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.promoBtn, { backgroundColor: '#333' }]}
-                            onPress={() => Linking.openURL('https://gupio.in/')}
-                          >
-                            <MaterialIcon name="earth" size={14} color="#fff" />
-                            <Text style={[styles.promoBtnText, { color: '#fff' }]}>Website</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      <View style={styles.promoRight}>
-                        <Image
-                          source={require('../../assets/images/insta&website_AD.png') as any}
-                          style={styles.adImage}
-                          resizeMode="contain"
-                        />
-                      </View>
-                    </View>
-                  </View>
-                );
-              }
-            const lastUpdate = (vehicle as any)?.id ? getLastOdometerUpdate((vehicle as any).id) : undefined;
-            const now = Date.now();
-            const weekMs = 7 * 24 * 60 * 60 * 1000;
-            const isOverAWeek = lastUpdate && (now - lastUpdate) > weekMs;
-            const daysSince = lastUpdate ? Math.floor((now - lastUpdate) / (24 * 60 * 60 * 1000)) : null;
-
-            return (
-              <TouchableOpacity
-                style={styles.slideFull}
-                activeOpacity={0.9}
-                onPress={() => (navigation as any).navigate('Odometer')}
-              >
-                <View style={[styles.promoSlide, isOverAWeek ? styles.odometerAlertSlide : { backgroundColor: '#1A1A1A' }]}>
-                  <View style={styles.promoLeft}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: wp(2), marginBottom: hp(1) }}>
-                      {isOverAWeek && <Ionicons name="alert-circle" size={18} color="#ff4d4d" />}
-                      <Text style={[styles.promoTitle, { marginBottom: 0 }, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                        {isOverAWeek ? 'ODOMETER ALERT' : 'Update Odometer'}
-                      </Text>
-                    </View>
-                    
-                    {lastUpdate ? (
-                      <View>
-                        <View style={styles.odometerInfoRow}>
-                          <MaterialIcon name="calendar-month" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} />
-                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                            {new Date(lastUpdate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                          </Text>
-                          <MaterialIcon name="clock-outline" size={14} color={isOverAWeek ? '#ff4d4d' : '#888'} style={{ marginLeft: wp(2) }} />
-                          <Text style={[styles.odometerInfoText, isOverAWeek ? { color: '#ff4d4d' } : undefined]}>
-                            {new Date(lastUpdate).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                          </Text>
-                        </View>
-                        
-                        <View style={[styles.odometerBadge, isOverAWeek ? styles.odometerWarningBadge : undefined]}>
-                          <Text style={[styles.odometerBadgeText, isOverAWeek ? styles.odometerWarningBadgeText : undefined]}>
-                            {isOverAWeek ? `${daysSince} days ago` : 'Last Reading'}
-                          </Text>
-                        </View>
-                      </View>
-                    ) : (
-                      <Text style={styles.promoDesc}>
-                        Start tracking your vehicle health by updating odometer.
-                      </Text>
-                    )}
-                    
-                    <View style={[styles.promoAction, { marginTop: hp(1.5) }]}>
-                      <Text style={[styles.promoActionText, { color: COLORS.primary }]}>Update Now</Text>
-                      <MaterialIcon name="chevron-right" size={18} color={COLORS.primary} />
-                    </View>
-                  </View>
-                  <View style={styles.promoRight}>
-                    <Image
-                      source={require('../../assets/images/odometer.png') as any}
-                      style={styles.adImage}
-                      resizeMode="contain"
-                    />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
-
-          {/* Carousel Indicators */}
           <View style={styles.indicatorContainer}>
-            {(showOdometerSlide ? [0, 1, 2, 3, 4] : [0, 1, 2, 3]).map((i) => (
+            {carouselSlides.map((_, index) => (
               <View
-                key={i}
+                key={index}
                 style={[
                   styles.dot,
-                  carouselIndex === i ? styles.dotActive : styles.dotInactive
+                  carouselIndex === index
+                    ? styles.dotActive
+                    : styles.dotInactive,
                 ]}
               />
             ))}
           </View>
 
-          {/* Top Overlays - Fixed on top of carousel */}
           <View style={styles.headerOverlay}>
-            <TouchableOpacity onPress={handleProfilePress} style={styles.overlayIconButton}>
+            <TouchableOpacity
+              onPress={handleProfilePress}
+              style={styles.overlayIconButton}
+            >
               <Icon name="user" size={wp(5.2)} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSOSPress} style={styles.sosOverlayButton}>
-              <Icon name="shield-alt" size={wp(4)} color="#fff" />
-              <Text style={styles.sosOverlayText}>SOS</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity
+                onPress={handleAlertsPress}
+                style={styles.overlayIconButton}
+              >
+                <Icon name="bell" size={wp(4.6)} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSOSPress}
+                style={styles.sosOverlayButton}
+              >
+                <Icon name="shield-alt" size={wp(4)} color="#fff" />
+                <Text style={styles.sosOverlayText}>SOS</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* NUMBER PLATE SECTION */}
-        <View style={styles.numberPlateSection}>
-          <TouchableOpacity 
-            style={styles.numberPlateContainer}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('VehicleSearch')}
-          >
-            <View style={styles.indContainer}>
-              <View style={styles.greenDot} />
-              <Text style={styles.indText}>IND</Text>
-            </View>
-            <View style={styles.numberPlatePlaceholderContainer}>
-              <Text style={styles.numberPlatePlaceholderText}>
-                {animatedPlaceholder || 'MH01CH4322'}
-              </Text>
-            </View>
-            <View style={styles.searchButton}>
-              <MaterialIcon name="magnify" size={22} color="#fff" />
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* QUICK SERVICES GRID */}
-        <QuickServicesGrid
-          onServicePress={label => {
-            if (label === 'Document') {
-              navigateToRootScreen('DocumentList');
-            } else if (label === 'My Garage') {
-              navigateToRootScreen('VehicleList');
-            } else if (label === 'Expense') {
-              navigateToRootScreen('Expenses');
-            } else if (label === 'Valet') {
-              navigateToRootScreen('Valet');
-            } else if (label === 'Service') {
-              navigation.navigate('Services' as any, { screen: 'ServicesHome' });
-            } else if (label === 'Driving') {
-              navigateToRootScreen('DrivingSummary');
-            } else if (label === 'Near By') {
-              navigation.navigate('Services' as any, { screen: 'NearbyPlaces' });
-            } else if (label === 'Support') {
-              handleHelpPress();
-            }
-          }}
+        <NumberPlateSearchBar
+          animatedPlaceholder={animatedPlaceholder}
+          onPress={handleVehicleSearchPress}
         />
 
-        {/* INSURANCE BANNER */}
-        <View style={styles.bannerSection}>
-          <View style={styles.insuranceBanner}>
-            <Image
-              source={require('../../assets/images/challan.png') as any}
-              style={styles.bannerImage}
-              resizeMode="contain"
-            />
-            <View style={styles.bannerContent}>
-              <Text style={styles.bannerTitle}>Check Your Challans & Avoid Trouble!</Text>
-              <Text style={styles.bannerDesc}>Settle now to avoid late fees and skip the hassle of going to court.</Text>
-              <TouchableOpacity
-                style={styles.payNowButton}
-                onPress={() => navigation.navigate('Services' as any, { screen: 'CheckChallan' })}
-              >
-                <Text style={styles.payNowText}>Check Now</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+        <QuickServicesGrid onServicePress={handleQuickServicePress} />
 
-        {/* TRENDING CAR VIDEOS */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Trending Videos</Text>
-          </View>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={trendingVideos}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.videoListContent}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.videoCard}
-                onPress={() => handleVideoPress(item.url)}
-              >
-                {item.tag && <View style={styles.videoTag}><Text style={styles.tagText}>{item.tag}</Text></View>}
-                <View style={styles.videoThumbnail}>
-                  <Image
-                    source={{ uri: item.thumbnail }}
-                    style={styles.thumbnailImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.playButtonOverlay}>
-                    <MaterialIcon name="play-circle" size={50} color="#fff" />
-                  </View>
-                  <Text style={styles.viewCount}>{item.views}</Text>
-                </View>
-                <Text style={styles.videoTitle} numberOfLines={2}>{item.title}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
+        <OwnershipTimeline
+          items={sortedOwnershipTimelineItems}
+          recommendedId={recommendedTimelineItemId}
+          entranceAnim={timelineEntranceAnim}
+        />
 
-        <View style={styles.fuelSection}>
-          <View style={styles.fuelHeaderBanner}>
-            <View style={styles.fuelHeaderLeft}>
-              <Text style={styles.fuelHeaderTitle}>Current Fuel Prices in</Text>
-              <View style={styles.locationTrackRow}>
-                <Ionicons name="location" size={wp(3)} color="#333" />
-                <Text style={styles.locationTrackText} numberOfLines={1}>
-                  {locationLoading ? 'Detecting...' : userLocationDisplay}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.stateButton}
-              onPress={() => setShowStateModal(true)}
-            >
-              <Text style={styles.stateButtonText}>{selectedState.split(' ')[0]}</Text>
-              <MaterialIcon name="chevron-down" size={14} color="#0a0a0a" />
-            </TouchableOpacity>
-          </View>
+        <ChallanBanner onPress={handleChallanPress} />
 
-          {fuelLoading ? (
-            <View style={styles.fuelContentCard}>
-              <ActivityIndicator size="large" color="#fff" style={styles.fuelLoader} />
-            </View>
-          ) : fuelPrices ? (
-            <View style={styles.fuelContentCard}>
-              <View style={styles.fuelInlineContainer}>
-                <View style={styles.fuelInlineItem}>
-                  <Text style={styles.fuelInlineLabel}>Petrol:</Text>
-                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.petrol}</Text>
-                </View>
-                <View style={styles.fuelInlineSpacer} />
-                <View style={styles.fuelInlineItem}>
-                  <Text style={styles.fuelInlineLabel}>Diesel:</Text>
-                  <Text style={styles.fuelInlineValue}>₹ {fuelPrices.diesel}</Text>
-                </View>
-                {fuelPrices.cng && (
-                  <>
-                    <View style={styles.fuelInlineSpacer} />
-                    <View style={styles.fuelInlineItem}>
-                      <Text style={styles.fuelInlineLabel}>CNG:</Text>
-                      <Text style={styles.fuelInlineValue}>₹ {fuelPrices.cng}</Text>
-                    </View>
-                  </>
-                )}
-              </View>
-            </View>
-          ) : (
-            <View style={styles.fuelContentCard}>
-              <Text style={styles.loadingText}>Unable to load fuel prices</Text>
-            </View>
-          )}
-        </View>
+        <TrendingVideosSection
+          videos={trendingVideos}
+          loading={discoveryLoading}
+          selectedVideoId={selectedVideo?.id}
+          onVideoPress={handleVideoPress}
+          getYouTubeVideoId={getYouTubeVideoId}
+        />
 
-        {/* TRENDING CAR NEWS */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Car News</Text>
-          </View>
-          {trendingNews.map((news) => (
-            <TouchableOpacity
-              key={news.id}
-              style={styles.newsCard}
-              onPress={() => handleNewsPress(news.url)}
-            >
-              <View style={styles.newsContent}>
-                <Text style={styles.newsTitle}>{news.title}</Text>
-                <Text style={styles.newsSnippet} numberOfLines={1}>{news.snippet}</Text>
-                <Text style={styles.newsTime}>{news.time}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FuelPricesSection
+          fuelPrices={fuelPrices}
+          fuelLoading={fuelLoading}
+          selectedState={selectedState}
+          userLocationDisplay={userLocationDisplay}
+          locationLoading={locationLoading}
+          onStateModalOpen={handleStateModalOpen}
+        />
 
-        {/* FULL HEIGHT HOME ADVERTISEMENT */}
-        {/* <View style={styles.fullAdSection}>
-          <Text style={styles.fullAdTitle}>Featured Services</Text>
-          <Image
-            source={require('../../assets/images/Home_AD.png') as any}
-            style={styles.fullAdImage}
-            resizeMode="contain"
-          />
-          <TouchableOpacity
-            style={styles.exploreAdButton}
-            onPress={() => navigation.navigate('Services' as any, { screen: 'ServicesHome' })}
-          >
-            <Text style={styles.exploreAdButtonText}>Explore</Text>
-          </TouchableOpacity>
-        </View> */}
+        <TrendingNewsSection
+          news={trendingNews}
+          loading={discoveryLoading}
+          onNewsPress={handleNewsPress}
+        />
 
-        {/* COMING SOON FEATURES */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitleCenter}>Coming Soon</Text>
-          <View style={styles.featureRow}>
-            <View style={styles.featureCard}>
-              <MaterialIcon name="car-electric" size={wp(8)} color="#555" />
-              <Text style={styles.featureTitle}>EV Charging</Text>
-            </View>
-            <View style={styles.featureCard}>
-              <MaterialIcon name="car-wash" size={wp(8)} color="#555" />
-              <Text style={styles.featureTitle}>Car Wash</Text>
-            </View>
-            <View style={styles.featureCard}>
-              <MaterialIcon name="tow-truck" size={wp(8)} color="#555" />
-              <Text style={styles.featureTitle}>Emergency</Text>
-            </View>
-          </View>
-          <Image
-            source={require('../../assets/images/coming_soon.png') as any}
-            style={styles.comingSoonBadge}
-            resizeMode="contain"
-          />
-        </View>
+        <ComingSoonSection />
 
         <View style={{ height: hp(3) }} />
       </ScrollView>
 
-      {/* STATE SELECTION MODAL */}
-      <Modal
+      <StateSelectionModal
         visible={showStateModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => {
-          setShowStateModal(false);
-          setStateSearchQuery('');
-        }}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select State</Text>
-              <TouchableOpacity onPress={() => {
-                setShowStateModal(false);
-                setStateSearchQuery('');
-              }}>
-                <MaterialIcon name="close" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
+        selectedState={selectedState}
+        onSelect={handleStateSelect}
+        onClose={handleStateModalClose}
+      />
 
-            {/* SEARCH BAR */}
-            <View style={styles.stateSearchContainer}>
-              <MaterialIcon name="magnify" size={20} color="#999" style={styles.searchIcon} />
-              <TextInput
-                style={styles.stateSearchInput}
-                placeholder="Search state..."
-                placeholderTextColor="#666"
-                value={stateSearchQuery}
-                onChangeText={setStateSearchQuery}
-              />
-              {stateSearchQuery && (
-                <TouchableOpacity onPress={() => setStateSearchQuery('')}>
-                  <MaterialIcon name="close-circle" size={20} color="#999" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <FlatList
-              data={STATES.filter(state =>
-                state.toLowerCase().includes(stateSearchQuery.toLowerCase())
-              )}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.stateOption, selectedState === item && styles.selectedStateOption]}
-                  onPress={() => {
-                    setSelectedState(item);
-                    setShowStateModal(false);
-                    setStateSearchQuery('');
-                  }}
-                >
-                  <Text style={styles.stateOptionText}>{item}</Text>
-                  {selectedState === item && <MaterialIcon name="check" size={20} color="#fff" />}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
+      <FloatingVideoPlayer
+        selectedVideo={selectedVideo}
+        isVideoDragging={isVideoDragging}
+        isVideoExpanded={isVideoExpanded}
+        miniBaseTop={miniBaseTop}
+        miniBaseLeft={miniBaseLeft}
+        miniVideoCardWidth={miniVideoCardWidth}
+        expandedBaseTop={expandedBaseTop}
+        expandedBaseLeft={expandedBaseLeft}
+        expandedVideoCardWidth={expandedVideoCardWidth}
+        videoBaseX={videoBaseX}
+        videoBaseY={videoBaseY}
+        videoDragX={videoDragX}
+        videoDragY={videoDragY}
+        videoDragGestureEvent={videoDragGestureEvent}
+        handleVideoGestureStateChange={handleVideoGestureStateChange}
+        onToggleExpanded={toggleVideoExpanded}
+        onClose={closeSelectedVideo}
+      />
 
       <ServiceOptionsOverlay
         visible={serviceModalVisible}
         onClose={() => setServiceModalVisible(false)}
-        onSelect={(screen) => {
+        onSelect={screen => {
           setServiceModalVisible(false);
-          navigation.navigate(screen);
+          navigateToServicesScreen(screen);
         }}
       />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: hp(2),
-  },
-  section: {
-    paddingHorizontal: wp(5),
-    marginBottom: hp(2.5),
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(2),
-  },
-  sectionTitle: {
-    fontFamily: 'Outfit-Bold',
-    color: '#FFFFFF',
-    fontSize: wp(5),
-  },
-  sectionTitleCenter: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(5),
-    color: '#FFFFFF',
-    marginBottom: hp(2),
-    textAlign: 'center',
-  },
-  viewAllText: {
-    fontFamily: 'Outfit-Medium',
-    color: '#ccc',
-    fontSize: wp(3.5),
-  },
-
-  /* PREMIUM VEHICLE HEADER */
-  headerWrapper: {
-    width: '100%',
-    height: hp(40),
-    backgroundColor: '#0d0f14',
-    paddingTop: 0,
-  },
-  primaryImageWrap: {
-    marginTop: 0,
-    marginHorizontal: 0,
-    height: '100%',
-    borderRadius: 0,
-    overflow: 'hidden',
-    backgroundColor: '#111',
-  },
-  primaryImageFull: {
-    width: '100%',
-    height: '100%',
-  },
-  primaryImageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    paddingHorizontal: wp(6),
-    paddingTop: hp(6),
-    paddingBottom: hp(6),
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.22)',
-  },
-  headerFooterOverlay: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingHorizontal: wp(6),
-    paddingTop: hp(4), // Avoid top overlay
-    alignItems: 'center', // Center vertically
-  },
-  headerLeft: {
-    flex: 1.3,
-    justifyContent: 'center',
-  },
-  headerRight: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  headerNumberPlate: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(5.5),
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  headerCarModel: {
-    fontFamily: 'Outfit-SemiBold',
-    color: '#f4f4f4',
-    fontSize: wp(3.7),
-    fontWeight: '700',
-    marginTop: hp(0.2),
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  healthSection: {
-    marginTop: hp(1.5),
-  },
-  healthText: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(4.5),
-    fontWeight: '700',
-  },
-  healthLabel: {
-    color: '#4ade80', // Greenish
-    fontSize: wp(3.5),
-    fontWeight: '600',
-  },
-  healthBarBg: {
-    width: wp(40),
-    height: hp(0.5),
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 4,
-    marginTop: hp(1),
-    overflow: 'hidden',
-  },
-  healthBarFill: {
-    height: '100%',
-    backgroundColor: '#32D74B',
-    borderRadius: 4,
-  },
-  headerFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(6),
-    paddingBottom: hp(6),
-  },
-  footerItem: {
-    justifyContent: 'center',
-  },
-  footerLabel: {
-    fontFamily: 'Outfit-Medium',
-    color: '#f1f1f1',
-    fontSize: wp(3.1),
-    textShadowColor: 'rgba(0,0,0,0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  footerValue: {
-    fontFamily: 'Outfit-Black',
-    color: '#ffffff',
-    fontSize: wp(4),
-    marginTop: hp(0.2),
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  headerCarImage: {
-    width: wp(40),
-    height: hp(16),
-    transform: [{ scale: 1.1 }, { translateX: wp(5) }],
-  },
-  headerOverlay: {
-    position: 'absolute',
-    top: hp(1),
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: wp(5),
-    zIndex: 10,
-  },
-  overlayIconButton: {
-    width: wp(11),
-    height: wp(11),
-    borderRadius: wp(5.5),
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  sosOverlayButton: {
-    height: hp(4),
-    paddingHorizontal: wp(3.5),
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 77, 77, 0.18)',
-    borderWidth: 1.5,
-    borderColor: '#ff4d4d',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: wp(3),
-    // Premium glow effect
-    shadowColor: '#ff4d4d',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  sosOverlayText: {
-    color: '#fff',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Bold',
-    marginLeft: wp(1.2),
-  },
-
-  /* CAROUSEL SLIDE STYLES */
-  slideFull: {
-    width: wp(100),
-    height: '100%',
-  },
-  promoSlide: {
-    flex: 1,
-    flexDirection: 'row',
-    paddingHorizontal: wp(6),
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: hp(4), // Add space to push content down into the middle
-    paddingBottom: hp(4), // Balanced padding
-  },
-  promoLeft: {
-    flex: 1.4,
-    justifyContent: 'center',
-  },
-  promoRight: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  adImage: {
-    width: wp(35),
-    height: hp(18),
-  },
-  promoSubtitle: {
-    color: '#aaa',
-    fontSize: wp(3.5),
-    fontFamily: 'Outfit-SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: hp(0.5),
-  },
-  promoTitle: {
-    color: '#fff',
-    fontSize: wp(5.5),
-    fontFamily: 'Outfit-Black',
-    marginBottom: hp(1.5),
-  },
-  promoDesc: {
-    color: '#ccc',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Regular',
-    lineHeight: hp(2),
-    marginBottom: hp(2),
-  },
-  promoButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: wp(2),
-    marginTop: hp(1),
-  },
-  promoBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.8),
-    borderRadius: 6,
-    gap: wp(1),
-  },
-  promoBtnText: {
-    color: '#000',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Bold',
-  },
-  promoAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(1),
-  },
-  promoActionText: {
-    color: '#FFBF00',
-    fontSize: wp(4),
-    fontWeight: '700',
-  },
-  odometerSlide: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: wp(10),
-  },
-  odometerImage: {
-    width: wp(40),
-    height: hp(14),
-    marginBottom: hp(1.5),
-  },
-  odometerTitle: {
-    color: '#fff',
-    fontSize: wp(5.5),
-    fontFamily: 'Outfit-Black',
-    textAlign: 'center',
-    marginBottom: hp(0.5),
-  },
-  odometerSubtitle: {
-    color: COLORS.primary,
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Bold',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: hp(1.5),
-  },
-  odometerDesc: {
-    color: '#888',
-    fontSize: wp(3),
-    fontFamily: 'Outfit-Medium',
-    textAlign: 'center',
-    marginTop: hp(0.5),
-  },
-  odometerWarning: {
-    color: '#ff4d4d',
-    fontSize: wp(2.8),
-    fontFamily: 'Outfit-Bold',
-    marginTop: hp(1),
-  },
-
-  odometerInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(1.5),
-    marginTop: hp(0.5),
-  },
-  odometerInfoText: {
-    color: '#8E8E93',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Medium',
-  },
-  odometerBadge: {
-    backgroundColor: 'rgba(255,215,0,0.1)',
-    paddingHorizontal: wp(2.5),
-    paddingVertical: hp(0.4),
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.2)',
-    marginTop: hp(1.2),
-    alignSelf: 'flex-start',
-  },
-  odometerBadgeText: {
-    color: COLORS.primary,
-    fontSize: wp(2.8),
-    fontFamily: 'Outfit-Bold',
-    textTransform: 'uppercase',
-  },
-  odometerWarningBadge: {
-    backgroundColor: 'rgba(255,77,77,0.1)',
-    borderColor: 'rgba(255,77,77,0.2)',
-  },
-  odometerWarningBadgeText: {
-    color: '#ff4d4d',
-  },
-
-  odometerAlertSlide: {
-    backgroundColor: '#0D0D0D',
-    borderWidth: hp('0.2%'),
-    borderColor: 'rgba(255, 77, 77, 0.4)',
-    marginHorizontal: wp(2),
-    marginVertical: hp(1),
-    borderRadius: 20,
-  },
-
-  indicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    position: 'absolute',
-    bottom: hp(5), // Positioned above the overlapping vehicle input
-    left: 0,
-    right: 0,
-    gap: wp(1.5),
-  },
-  dot: {
-    width: wp(1.5),
-    height: wp(1.5),
-    borderRadius: wp(0.75),
-  },
-  dotActive: {
-    backgroundColor: '#fff',
-    width: wp(4),
-  },
-  dotInactive: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
-  },
-
-  /* NUMBER PLATE SECTION */
-  numberPlateSection: {
-    paddingHorizontal: wp(12),
-    marginTop: -hp(2.80), // 50% of the 5.5hp height to overlap header
-    marginBottom: hp(2.0),
-    justifyContent: 'center',
-    zIndex: 10, // Ensure it's above the header
-  },
-  numberPlateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#111111',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    height: hp(5.5),
-    overflow: 'hidden',
-  },
-  indContainer: {
-    backgroundColor: '#003399',
-    height: '100%',
-    paddingHorizontal: wp(2.5),
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: hp(0.5),
-  },
-  greenDot: {
-    width: wp(1.5),
-    height: wp(1.5),
-    borderRadius: wp(0.75),
-    backgroundColor: '#4ade80',
-    marginBottom: hp(0.3),
-  },
-  indText: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(2.6),
-  },
-  numberPlatePlaceholderContainer: {
-    flex: 1,
-    paddingHorizontal: wp(2),
-    justifyContent: 'center',
-  },
-  numberPlatePlaceholderText: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(4.5),
-    letterSpacing: 1.5,
-  },
-  searchButton: {
-    paddingHorizontal: wp(2),
-    paddingVertical: hp(1),
-  },
-
-  /* VEHICLE SECTION */
-  vehicleSection: {
-    paddingHorizontal: wp(5),
-    marginBottom: hp(2.5),
-  },
-  vehicleTitle: {
-    color: '#fff',
-    fontSize: wp(4.5),
-    fontWeight: '700',
-    marginBottom: hp(1.5),
-  },
-  vehicleCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: wp(4),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(3),
-  },
-  vehicleImageContainer: {
-    backgroundColor: 'transparent',
-    borderRadius: 10,
-    padding: wp(1),
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: wp(28),
-    height: wp(28),
-  },
-  vehicleImage: {
-    width: '100%',
-    height: '100%',
-  },
-  vehicleDetails: {
-    flex: 1,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: hp(0.8),
-  },
-  detailLabel: {
-    color: '#999',
-    fontSize: wp(3),
-    fontFamily: 'Outfit-Medium',
-  },
-  detailValue: {
-    color: '#fff',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-SemiBold',
-  },
-  chevronIcon: {
-    alignSelf: 'center',
-  },
-
-  /* BANNER SECTION */
-  bannerSection: {
-    paddingHorizontal: wp(5),
-    marginBottom: hp(2.5),
-  },
-  insuranceBanner: {
-    backgroundColor: '#111111',
-    borderRadius: 16,
-    paddingHorizontal: wp(4),
-    paddingVertical: wp(4),
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    gap: wp(3),
-  },
-  bannerImage: {
-    width: wp(20),
-    height: wp(20),
-    marginRight: wp(1),
-  },
-  bannerContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  bannerTitle: {
-    fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    fontSize: wp(4),
-    marginBottom: hp(0.5),
-  },
-  bannerDesc: {
-    fontFamily: 'Outfit-Regular',
-    color: '#999',
-    fontSize: wp(3.2),
-    lineHeight: hp(2.2),
-  },
-  payNowButton: {
-    backgroundColor: '#FFBF00',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(0.6),
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: hp(1),
-    alignSelf: 'flex-start',
-  },
-  payNowText: {
-    color: '#0a0a0a',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Bold',
-  },
-
-  /* TRENDING VIDEOS */
-  videoListContent: {
-    paddingHorizontal: wp(5),
-  },
-  videoCard: {
-    width: wp(60),
-    marginRight: wp(4),
-    backgroundColor: '#111111',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  videoTag: {
-    position: 'absolute',
-    top: wp(2),
-    left: wp(2),
-    backgroundColor: 'rgba(255,215,0,0.9)',
-    paddingHorizontal: wp(2),
-    paddingVertical: hp(0.4),
-    borderRadius: 4,
-    zIndex: 10,
-  },
-  tagText: {
-    color: '#0a0a0a',
-    fontSize: wp(2.8),
-    fontFamily: 'Outfit-Bold',
-  },
-  videoThumbnail: {
-    width: '100%',
-    height: hp(18),
-    backgroundColor: '#222',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 10,
-  },
-  thumbnailImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  playButtonOverlay: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  viewCount: {
-    position: 'absolute',
-    bottom: wp(2),
-    right: wp(2),
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    color: '#fff',
-    paddingHorizontal: wp(2),
-    paddingVertical: hp(0.3),
-    borderRadius: 4,
-    fontSize: wp(3),
-    fontFamily: 'Outfit-SemiBold',
-    zIndex: 11,
-  },
-  videoTitle: {
-    color: '#fff',
-    fontSize: wp(3.5),
-    fontFamily: 'Outfit-SemiBold',
-    padding: wp(3),
-    lineHeight: hp(2.2),
-  },
-
-  /* NEWS CARDS */
-  newsCard: {
-    backgroundColor: '#111111',
-    borderRadius: 16,
-    padding: wp(4.5),
-    marginBottom: hp(1.5),
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  newsContent: {
-    flex: 1,
-  },
-  newsTitle: {
-    color: '#fff',
-    fontSize: wp(4),
-    fontFamily: 'Outfit-SemiBold',
-    marginBottom: hp(0.5),
-  },
-  newsSnippet: {
-    color: '#999',
-    fontSize: wp(3.5),
-    marginBottom: hp(0.5),
-  },
-  newsTime: {
-    color: '#666',
-    fontSize: wp(3),
-  },
-
-  /* FUEL PRICES */
-  fuelSection: {
-    marginHorizontal: wp(5),
-    marginBottom: hp(2.5),
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#111111',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  fuelHeaderBanner: {
-    backgroundColor: '#FFBF00',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1.5),
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  fuelHeaderTitle: {
-    color: '#333',
-    fontSize: wp(3.5),
-    fontFamily: 'Outfit-Medium',
-  },
-  fuelHeaderLeft: {
-    flex: 1,
-    gap: hp(0.2),
-  },
-  locationTrackRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(1),
-  },
-  locationTrackText: {
-    color: '#333',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Bold',
-    flex: 1,
-  },
-  stateButton: {
-    backgroundColor: '#fff',
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.5),
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(0.8),
-  },
-  stateButtonText: {
-    color: '#0a0a0a',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-Bold',
-  },
-  fuelContentCard: {
-    backgroundColor: '#111111',
-    paddingHorizontal: wp(2),
-    paddingVertical: hp(2.5),
-    gap: hp(1.5),
-  },
-  fuelInlineContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(1.5),
-  },
-  fuelInlineItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(1),
-  },
-  fuelInlineLabel: {
-    color: '#999',
-    fontSize: wp(3.5),
-    fontFamily: 'Outfit-Medium',
-  },
-  fuelInlineValue: {
-    color: '#FFBF00',
-    fontSize: wp(4.2),
-    fontFamily: 'Outfit-Bold',
-  },
-  fuelInlineSpacer: {
-    width: 1,
-    height: hp(3),
-    backgroundColor: '#333',
-  },
-  viewTrendsButton: {
-    backgroundColor: '#1a1a1a',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(0.8),
-    borderRadius: 6,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-  },
-  viewTrendsText: {
-    color: '#fff',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-SemiBold',
-  },
-  fuelLoader: {
-    marginVertical: hp(2),
-  },
-  loadingText: {
-    color: '#888',
-    fontSize: wp(4),
-    textAlign: 'center',
-    paddingVertical: hp(2),
-  },
-
-  /* COMING SOON */
-  featureRow: {
-    flexDirection: 'row',
-    gap: wp(3),
-    justifyContent: 'space-between',
-  },
-  featureCard: {
-    flex: 1,
-    backgroundColor: '#111111',
-    borderRadius: 16,
-    paddingVertical: hp(2.5),
-    paddingHorizontal: wp(2),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  comingSoonBadge: {
-    width: wp(90),
-    height: hp(40),
-    alignSelf: 'center',
-    marginTop: hp(-4),
-    marginBottom: hp(-15),
-  },
-  featureTitle: {
-    color: '#fff',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-SemiBold',
-    marginTop: hp(1),
-    textAlign: 'center',
-  },
-
-  /* STATE SELECTION MODAL */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: hp(80),
-    paddingTop: hp(2),
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingBottom: hp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  modalTitle: {
-    color: '#fff',
-    fontSize: wp(5),
-    fontFamily: 'Outfit-Bold',
-  },
-  stateOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: wp(5),
-    paddingVertical: hp(1.5),
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
-  },
-  selectedStateOption: {
-    backgroundColor: 'rgba(255,215,0,0.1)',
-  },
-  stateOptionText: {
-    color: '#fff',
-    fontSize: wp(4),
-    fontFamily: 'Outfit-Medium',
-  },
-
-  /* STATE SEARCH */
-  stateSearchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2a2a2a',
-    borderRadius: 10,
-    marginHorizontal: wp(5),
-    marginBottom: hp(2),
-    paddingHorizontal: wp(3),
-    height: hp(5),
-    gap: wp(2),
-    borderWidth: 0,
-  },
-  searchIcon: {
-    marginRight: wp(1),
-  },
-  stateSearchInput: {
-    flex: 1,
-    color: '#fff',
-    fontSize: wp(3.8),
-    fontFamily: 'Outfit-Medium',
-    paddingVertical: hp(1),
-  },
-
-  /* FULL HEIGHT AD */
-  fullAdSection: {
-    paddingHorizontal: wp(5),
-    marginBottom: hp(2.5),
-    marginTop: hp(-1), // Reduced top spacing as requested
-    width: wp(100), // Taking full available viewport instead of arbitrary percentage wrapper
-    alignItems: 'center',
-  },
-  fullAdTitle: {
-    color: '#fff',
-    fontSize: wp(5),
-    fontWeight: '700',
-    alignSelf: 'flex-start',
-    marginBottom: hp(1.5),
-  },
-  fullAdImage: {
-    width: wp(90),
-    height: hp(40), // Adjusted to reduce letterbox whitespace and fit closely above the button
-    borderRadius: 12,
-  },
-  exploreAdButton: {
-    backgroundColor: '#FFD700',
-    paddingHorizontal: wp(12),
-    paddingVertical: hp(1.6),
-    borderRadius: 8,
-    marginTop: hp(-2), // Pull the button slightly up against the image bounds
-  },
-  exploreAdButtonText: {
-    color: '#0a0a0a',
-    fontSize: wp(4.5),
-    fontWeight: '800',
-  },
-});

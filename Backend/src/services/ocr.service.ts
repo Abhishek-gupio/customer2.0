@@ -4,11 +4,13 @@ import { logger } from "../config/logger";
 import { env } from "../config/env";
 import { AppError } from "../utils/AppError";
 import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
+import { callAI, isAIConfigured } from "./ai-provider.service";
 
 // Initialize Gemini if API key is present
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
   : null;
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 export const ocrService = {
   /**
@@ -23,7 +25,7 @@ export const ocrService = {
       // return text;
       return "Tesseract OCR Disabled due to runtime environment issues.";
     } catch (error) {
-      logger.error({ error }, "OCR text extraction failed");
+      logger.error({ err: error }, "OCR text extraction failed");
       throw error;
     }
   },
@@ -45,7 +47,7 @@ export const ocrService = {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
 
       const prompt = `
                 You are an expert Indian vehicle document assistant. 
@@ -88,7 +90,7 @@ export const ocrService = {
         rawText: "AI Parsed Structured Data",
       };
     } catch (error) {
-      logger.error({ error }, "Gemini AI parsing failed");
+      logger.error({ err: error }, "Gemini AI parsing failed");
       // Fallback to basic text indexing if AI fails
       let rawText = "";
       try {
@@ -115,7 +117,7 @@ export const ocrService = {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
       const prompt = `
 First, decide if this image is a RECEIPT, BILL, or INVOICE (a document showing a purchase, transaction, or payment — e.g. fuel slip, service bill, restaurant bill, parking slip, toll slip). 
 - If it is NOT a receipt/bill/invoice (e.g. random photo, ID card, screenshot of chat, menu only, advertisement), return exactly: {"isReceipt": false, "error": "Please scan a receipt or bill. This image does not look like a receipt."}
@@ -157,7 +159,7 @@ Rules:
 
       return parsed;
     } catch (error) {
-      logger.error({ error }, "Gemini Receipt parsing failed");
+      logger.error({ err: error }, "Gemini Receipt parsing failed");
       // Fallback to text extraction
       const text = await this.extractText(imageBuffer);
       return { rawText: text, error: "AI parsing failed" };
@@ -189,7 +191,7 @@ Rules:
     if (!genAI) return null;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = genAI.getGenerativeModel({ model: GEMINI_TEXT_MODEL });
       const prompt = `
                 Analyze this car dashboard image and extract ONLY the current odometer reading (total distance traveled).
                 Return ONLY the number. No units (km/miles), no text.
@@ -210,7 +212,7 @@ Rules:
       const reading = parseInt(text.replace(/[^0-9]/g, ""));
       return isNaN(reading) ? null : reading;
     } catch (error) {
-      logger.error({ error }, "AI Odometer parsing failed");
+      logger.error({ err: error }, "AI Odometer parsing failed");
       return null;
     }
   },
@@ -229,7 +231,7 @@ Rules:
     }
 
     try {
-      const voiceModel = env.GEMINI_VOICE_MODEL || "gemini-1.5-flash";
+      const voiceModel = env.GEMINI_VOICE_MODEL || GEMINI_TEXT_MODEL;
       const model = genAI.getGenerativeModel({
         model: voiceModel,
         generationConfig: {
@@ -270,7 +272,7 @@ Return ONLY a JSON object with: transcription, amount, category, merchantName, d
           "GEMINI_RATE_LIMIT"
         );
       }
-      logger.error({ error }, "Gemini Voice Expense parsing failed");
+      logger.error({ err: error }, "Gemini Voice Expense parsing failed");
       return { error: "Voice parsing failed", rawText: "" };
     }
   },
@@ -281,8 +283,8 @@ Return ONLY a JSON object with: transcription, amount, category, merchantName, d
    * structured rules for higher accuracy; model is configurable via GEMINI_VOICE_MODEL.
    */
   async parseVoiceExpenseFromText(transcription: string): Promise<Record<string, any>> {
-    if (!genAI) {
-      logger.warn("Gemini API key missing, cannot parse voice text");
+    if (!isAIConfigured()) {
+      logger.warn("No AI provider configured, cannot parse voice text");
       return { error: "AI not configured", rawText: transcription };
     }
     if (!transcription?.trim()) {
@@ -290,16 +292,6 @@ Return ONLY a JSON object with: transcription, amount, category, merchantName, d
     }
 
     try {
-      const voiceModel = env.GEMINI_VOICE_MODEL || "gemini-1.5-flash";
-      const model = genAI.getGenerativeModel({
-        model: voiceModel,
-        generationConfig: {
-          temperature: 0.1,
-          maxOutputTokens: 1024,
-          topP: 0.95,
-          topK: 40,
-        },
-      });
       const now = new Date();
       const today = now.toISOString().split("T")[0];
       const yesterday = new Date(now);
@@ -351,9 +343,7 @@ User said: "${transcription}"
 
 JSON:`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const text = await callAI(prompt, undefined, { temperature: 0.1, maxOutputTokens: 1024 });
       const parsed = this.parseJsonFromVoiceResponse(text, transcription);
       return parsed;
     } catch (error) {
@@ -363,7 +353,7 @@ JSON:`;
           "GEMINI_RATE_LIMIT"
         );
       }
-      logger.error({ error }, "Gemini Voice Text parsing failed");
+      logger.error({ err: error }, "Voice text parsing failed");
       return { error: "Voice text parsing failed", rawText: transcription };
     }
   },
@@ -416,7 +406,7 @@ JSON:`;
     notes: string | null;
     error?: string;
   }> {
-    if (!genAI) {
+    if (!isAIConfigured()) {
       return {
         amount: 0,
         category: "OTHER",
@@ -429,8 +419,6 @@ JSON:`;
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
       const prompt = `
                 You are an expert Indian financial transaction parser.
                 Parse this notification/SMS text and extract expense details.
@@ -461,9 +449,7 @@ JSON:`;
                 4. If this is a credit/refund (money received), set amount to 0 and note "CREDIT_TXN" in notes.
             `;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text();
+      const responseText = await callAI(prompt);
 
       const jsonStr = responseText.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(jsonStr);
@@ -485,7 +471,7 @@ JSON:`;
 
       return parsed;
     } catch (error) {
-      logger.error({ error }, "Gemini notification parsing failed");
+      logger.error({ err: error }, "AI notification parsing failed");
       return {
         amount: 0,
         category: "OTHER",
@@ -523,14 +509,12 @@ JSON:`;
     confidence: "HIGH" | "MEDIUM" | "LOW";
     notes: string | null;
   }> {
-    if (!genAI) {
+    if (!isAIConfigured()) {
       // Fallback: basic prediction based on amount
       return this.basicServicePrediction(amount, merchantName);
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
       const prompt = `
                 You are an expert Indian vehicle service advisor.
                 A customer just paid for a vehicle service. Based on the information below, predict what was serviced.
@@ -565,9 +549,7 @@ JSON:`;
                 3. Be realistic with Indian market pricing.
             `;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text();
+      const responseText = await callAI(prompt);
 
       const jsonStr = responseText.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(jsonStr);
@@ -598,7 +580,7 @@ JSON:`;
 
       return parsed;
     } catch (error) {
-      logger.error({ error }, "AI service detail extraction failed");
+      logger.error({ err: error }, "AI service detail extraction failed");
       return this.basicServicePrediction(amount, merchantName);
     }
   },

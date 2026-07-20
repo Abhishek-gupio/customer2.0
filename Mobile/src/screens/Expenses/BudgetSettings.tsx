@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,10 +12,14 @@ import {
     ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import { api } from '../../services/api';
 import BackButton from '../../components/BackButton';
+import type { RootStackParamList } from '../../navigation/types';
+
+type BudgetSettingsRouteProp = RouteProp<RootStackParamList, 'BudgetSettings'>;
 
 const CATEGORIES = [
     { id: 'FUEL', label: 'Fuel', icon: 'water-outline' },
@@ -25,6 +29,7 @@ const CATEGORIES = [
     { id: 'PARKING', label: 'Parking', icon: 'car-outline' },
     { id: 'CHALLAN', label: 'Challans/Fines', icon: 'document-text-outline' },
     { id: 'EMI', label: 'Vehicle EMI', icon: 'cash-outline' },
+    { id: 'REPAIR', label: 'Repairs', icon: 'hammer-outline' },
     { id: 'OTHER', label: 'Other', icon: 'ellipsis-horizontal-circle-outline' },
 ];
 
@@ -35,21 +40,44 @@ const PERIODS = [
 
 export default function BudgetSettings() {
     const navigation = useNavigation();
+    const route = useRoute<BudgetSettingsRouteProp>();
     const [loading, setLoading] = useState(false);
 
-    const [selectedCategory, setSelectedCategory] = useState<string>('FUEL');
-    const [amount, setAmount] = useState<string>('');
+    // Display-seed from voice-set params only — the voice-action framework already committed
+    // the budget server-side before navigating here, so this never re-submits on mount.
+    const [selectedCategory, setSelectedCategory] = useState<string>(
+        route.params?.initialCategory || 'FUEL',
+    );
+    const [amount, setAmount] = useState<string>(
+        route.params?.initialAmount != null ? String(route.params.initialAmount) : '',
+    );
     const [period, setPeriod] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [notifyThreshold, setNotifyThreshold] = useState<string>('80');
+    const [statusModal, setStatusModal] = useState({
+        visible: false,
+        type: 'success' as 'success' | 'delete' | 'error',
+        title: '',
+        message: '',
+    });
+    const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+        setStatusModal({ visible: true, type, title, message });
+    };
+
+    useEffect(() => {
+        if (route.params?.justSetViaVoice) {
+            showStatus('Budget updated', 'Set via voice command.', 'success');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSaveBudget = async () => {
         if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-            Alert.alert('Invalid Amount', 'Please enter a valid amount.');
+            showStatus('Invalid Amount', 'Please enter a valid amount.', 'error');
             return;
         }
 
         if (!notifyThreshold || isNaN(Number(notifyThreshold)) || Number(notifyThreshold) < 1 || Number(notifyThreshold) > 100) {
-            Alert.alert('Invalid Threshold', 'Please enter a valid notification threshold between 1 and 100.');
+            showStatus('Invalid Threshold', 'Please enter a valid notification threshold between 1 and 100.', 'error');
             return;
         }
 
@@ -66,15 +94,14 @@ export default function BudgetSettings() {
             const result = resData?.data?.data ?? resData?.data ?? resData;
 
             if (result?.success || result?.id) {
-                Alert.alert('Success', 'Budget saved successfully!', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                showStatus('Success', 'Budget saved successfully!');
+                setTimeout(() => navigation.goBack(), 1500);
             } else {
                 throw new Error(result?.error?.message || 'Unknown error occurred');
             }
         } catch (error: any) {
             console.error('Save budget error:', error);
-            Alert.alert('Error', error?.message || 'Failed to save budget. Please try again.');
+            showStatus('Error', error?.message || 'Failed to save budget. Please try again.', 'error');
         } finally {
             setLoading(false);
         }
@@ -188,6 +215,14 @@ export default function BudgetSettings() {
                     )}
                 </TouchableOpacity>
             </ScrollView>
+
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
         </KeyboardAvoidingView>
     );
 }

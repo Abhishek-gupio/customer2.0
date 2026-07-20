@@ -113,73 +113,76 @@ export const sosService = {
             to: contact.email,
             subject: `🚨 URGENT: SOS EMERGENCY ALERT - ${senderName} (${type})`,
             text: alertMessage,
-             html: `
-<div style="margin:0;padding:20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background-color:#121212">
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color:#121212">
-    <tr>
-      <td align="center">
-        <!-- Main Container with Red Border -->
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color:#000000;border:2px solid #ff4b4b;border-radius:12px;overflow:hidden">
-          <!-- Body -->
+             html: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <title>SOS Emergency Alert</title>
+  <style>
+    body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+    body{margin:0;padding:0;background-color:#121212;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}
+    .wrapper{width:100%;background-color:#121212;padding:20px 0}
+    .card{max-width:560px;width:100%;margin:0 auto;background-color:#0a0a0a;border:2px solid #ff4b4b;border-radius:14px;overflow:hidden}
+    .body-pad{padding:32px 28px}
+    .title{margin:0 0 24px;color:#ff4b4b;font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:1px;text-align:center;line-height:1.2}
+    .subtitle{font-size:16px;line-height:1.6;color:#ffffff;margin:0 0 22px}
+    .name{color:#ff4b4b;font-weight:700}
+    .divider{height:1px;background-color:#2a2a2a;margin-bottom:22px}
+    .info-table{width:100%;border-collapse:collapse}
+    .info-table td{padding:10px 0;vertical-align:top;font-size:14px}
+    .info-label{color:#888888;font-weight:700;width:120px;white-space:nowrap}
+    .info-value{color:#ffffff;padding-left:12px}
+    .info-location{color:#3498db;padding-left:12px;line-height:1.5}
+    .btn-wrap{margin-top:26px}
+    .btn{display:block;width:100%;max-width:240px;background-color:#ff4b4b;color:#ffffff;padding:16px 20px;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;text-transform:uppercase;text-align:center;box-sizing:border-box}
+    .footer-divider{height:1px;background-color:#2a2a2a;margin:32px 0 20px}
+    .footer{color:#555555;font-size:13px;line-height:1.5;margin:0}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="body-pad">
+        <h1 class="title">🚨 SOS Emergency Alert</h1>
+        <p class="subtitle">
+          <span class="name">${senderName}</span> has triggered an SOS alert and needs immediate help.
+        </p>
+        <div class="divider"></div>
+        <table class="info-table">
           <tr>
-            <td style="padding:40px 30px">
-              <!-- Header Text (Red) -->
-              <h1 style="margin:0 0 30px;color:#ff4b4b;font-size:32px;text-transform:uppercase;letter-spacing:1px;text-align:center">🚨 SOS Emergency Alert</h1>
-              
-              <p style="font-size:18px;line-height:1.6;color:#ffffff;margin:0 0 25px">
-                <strong style="color:#ff4b4b">${senderName}</strong> has triggered an SOS alert and needs immediate help.
-              </p>
-              
-              <div style="height:1px;background-color:#333333;margin-bottom:25px"></div>
-
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <td style="padding-bottom:15px;color:#888888;font-size:15px;width:140px;font-weight:bold">Emergency Type:</td>
-                  <td style="padding-bottom:15px;color:#ffffff;font-size:16px">${type}</td>
-                </tr>
-                <tr>
-                  <td style="padding-bottom:15px;color:#888888;font-size:15px;font-weight:bold">Time:</td>
-                  <td style="padding-bottom:15px;color:#ffffff;font-size:16px">${timestamp}</td>
-                </tr>
-                <tr>
-                  <td style="padding-bottom:15px;color:#888888;font-size:15px;vertical-align:top;font-weight:bold">Location:</td>
-                  <td style="padding-bottom:15px;color:#3498db;font-size:16px;line-height:1.4">${finalAddress || 'Coordinates available below'}</td>
-                </tr>
-                <tr>
-                  <td style="padding-bottom:15px;color:#888888;font-size:15px;vertical-align:top;font-weight:bold">Coordinates:</td>
-                  <td style="padding-bottom:15px;color:#ffffff;font-size:14px">${latitude}, ${longitude}</td>
-                </tr>
-              </table>
-
-              ${metadata?.message ? `
-              <div style="margin:25px 0;padding:20px;background-color:#1a1a1a;border-left:4px solid #ff4b4b">
-                <p style="margin:0 0 8px;color:#888;font-size:13px;text-transform:uppercase">User's Message:</p>
-                <p style="margin:0;color:#ffffff;font-size:16px;font-style:italic">"${metadata.message}"</p>
-              </div>
-              ` : ''}
-
-              <!-- Action Button (Solid Red) -->
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top:30px">
-                <tr>
-                  <td align="left">
-                    <a href="${mapUrl}" style="background-color:#ff4b4b;color:#ffffff;padding:18px 40px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;display:inline-block;text-transform:uppercase">View on Google Maps</a>
-                  </td>
-                </tr>
-              </table>
-              
-              <div style="height:1px;background-color:#333333;margin:40px 0 20px"></div>
-              
-              <p style="color:#666666;font-size:14px;line-height:1.5">
-                This is an automated emergency notification from the GUPIO SOS system.
-              </p>
-            </td>
+            <td class="info-label">Emergency Type:</td>
+            <td class="info-value">${type}</td>
+          </tr>
+          <tr>
+            <td class="info-label">Time:</td>
+            <td class="info-value">${timestamp}</td>
+          </tr>
+          <tr>
+            <td class="info-label">Location:</td>
+            <td class="info-location">${finalAddress || 'Coordinates available below'}</td>
+          </tr>
+          <tr>
+            <td class="info-label">Coordinates:</td>
+            <td class="info-value">${latitude.toFixed(6)}, ${longitude.toFixed(6)}</td>
           </tr>
         </table>
-      </td>
-    </tr>
-  </table>
-</div>
-            `
+        ${metadata?.message ? `
+        <div style="margin:20px 0;padding:16px;background-color:#1a1a1a;border-left:4px solid #ff4b4b;border-radius:4px">
+          <p style="margin:0 0 6px;color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">User's Message</p>
+          <p style="margin:0;color:#ffffff;font-size:15px;font-style:italic">"${metadata.message}"</p>
+        </div>` : ''}
+        <div class="btn-wrap">
+          <a href="${mapUrl}" class="btn">View on Google Maps</a>
+        </div>
+        <div class="footer-divider"></div>
+        <p class="footer">This is an automated emergency notification from the GUPIO SOS system.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
           });
           
           if (emailSent) {

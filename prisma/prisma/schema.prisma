@@ -58,11 +58,32 @@ model Customer {
   emergencyContacts EmergencyContact[]
   expenses          Expense[]
   driverExpenses    Expense[]             @relation("DriverExpenses")
+  drivingLicense    DrivingLicense?
+  fastag            FastagDocument?
   budgets           ExpenseBudget[]
   notifications     InAppNotification[]
   sosRequests       SOSRequest[]
   supportTickets    SupportTicket[]
   sharedVehicles    VehicleAccess[]
+  plannedTrips      PlannedTrip[]
+  orders            CustomerOrder[]
+  parkingBookings   ParkingBooking[]
+  waitlistEntries   ParkingWaitlistEntry[]
+  washBookings      WashBooking[]
+  isSuspended       Boolean                @default(false)
+  suspendedReason   String?
+  suspendedAt       DateTime?
+  conversationsAsCustomer Conversation[]   @relation("ConversationAsCustomer")
+  conversationsAsOwner    Conversation[]   @relation("ConversationAsOwner")
+  blockedContacts         BlockedContact[] @relation("BlockedContactAsOwner")
+  guestConversations      GuestConversation[]
+  communityMemberships    CommunityMembership[]
+  posts                   Post[]
+  comments                Comment[]
+  reactions               Reaction[]
+  followerEdges           Follow[]         @relation("FollowerEdge")
+  followingEdges          Follow[]         @relation("FollowingEdge")
+  contentReportsFiled     ContentReport[]  @relation("ContentReportReporter")
 
   @@schema("customer")
 }
@@ -98,6 +119,44 @@ model VehicleDocument {
 
   @@index([customerId])
   @@index([vehicleId])
+  @@schema("customer")
+}
+
+model DrivingLicense {
+  id                   String   @id @default(cuid())
+  customerId           String   @unique
+  dlNumber             String   @unique
+  fullName             String?
+  dob                  String?
+  referenceNumber      String?
+  dateOfIssue          String?
+  originalLA           String?
+  dateOfFirstIssue     String?
+  validityTransport    String?
+  validityNonTransport String?
+  registeredAddress    String?
+  rawResponse          Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  customer             Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+model FastagDocument {
+  id                         String   @id @default(cuid())
+  customerId                 String   @unique
+  creditorAccountId          String
+  ifscCode                    String
+  creditorName               String?
+  transactionReferenceNumber String?
+  transactionId              String?
+  status                     String?
+  rawResponse                Json?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  customer                   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
   @@schema("customer")
 }
 
@@ -160,6 +219,9 @@ model CustomerVehicle {
   telematicsDevice   TelematicsDevice?
   accessList         VehicleAccess[]
   healthScore        VehicleHealthScore?
+  qrToken            VehicleQrToken?
+  conversations      Conversation[]
+  guestConversations GuestConversation[]
 
   @@index([customerId])
   @@schema("customer")
@@ -291,7 +353,7 @@ model InAppNotification {
   updatedAt  DateTime  @updatedAt
   customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-  @@index([customerId])
+  @@index([customerId, isRead, createdAt])
   @@schema("customer")
 }
 
@@ -487,6 +549,7 @@ model PartReplacementInterval {
   intervalKm            Int
   defaultWarrantyMonths Int             @default(0)
   source                String?
+  verifiedAt            DateTime?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
 
@@ -525,13 +588,33 @@ model DrivingTrip {
   safetyScore   Int
   startLocation Json?
   endLocation   Json?
+  scores        Json?
+  statistics    Json?
   status        String
   createdAt     DateTime        @default(now())
   events        DrivingEvent[]
   vehicle       CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
-  @@index([vehicleId])
-  @@index([startTime])
+  @@index([vehicleId, startTime])
+  @@schema("customer")
+}
+
+model PlannedTrip {
+  id              String   @id @default(cuid())
+  customerId      String
+  tripId          String?
+  origin          String
+  destination     String
+  waypoints       Json?    // Array of addresses
+  vehicleType     String?
+  fuelType        String?
+  result          Json     // Full TripExpenseResult
+  planning        Json?    @default("{}") // Planning configuration (hotels, activities, etc)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
   @@schema("customer")
 }
 
@@ -1614,6 +1697,7 @@ enum ExpenseCategory {
   INSURANCE
   CHALLAN
   EMI
+  REPAIR
   OTHER
 
   @@schema("customer")
@@ -1625,6 +1709,7 @@ enum ExpenseSource {
   NOTIFICATION
   VOICE
   RECEIPT
+  UPI
 
   @@schema("customer")
 }
@@ -1645,6 +1730,9 @@ enum ServicePartType {
   AC_FILTER
   WIPER_BLADES
   HEADLIGHT_BULB
+  BRAKE_SHOES
+  CHAIN_SPROCKET_KIT
+  CVT_BELT
   OTHER_PART
 
   @@schema("customer")
@@ -2038,4 +2126,851 @@ enum VehicleStatus {
   RETURNED
 
   @@schema("public")
+}
+
+// Customer Payments (Phase 1 #2) — generic order/payment/refund gateway.
+// `purpose` + `referenceId` keep this decoupled from what it's paying for,
+// so Accessories/Rental checkout can reuse it later without changes here.
+model CustomerOrder {
+  id              String                 @id @default(cuid())
+  customerId      String
+  purpose         PaymentPurpose
+  referenceId     String
+  amountPaise     Int
+  currency        String                 @default("INR")
+  status          OrderStatus            @default(CREATED)
+  razorpayOrderId String?                @unique
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  customer        Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  attempts        CustomerPaymentAttempt[]
+  refunds         CustomerRefund[]
+
+  @@index([customerId])
+  @@index([referenceId])
+  @@schema("customer")
+}
+
+model CustomerPaymentAttempt {
+  id                String               @id @default(cuid())
+  orderId           String
+  razorpayPaymentId String?              @unique
+  razorpaySignature String?
+  method            String?
+  status            PaymentAttemptStatus @default(INITIATED)
+  failureReason     String?
+  paidAt            DateTime?
+  createdAt         DateTime             @default(now())
+  order             CustomerOrder        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@schema("customer")
+}
+
+model CustomerRefund {
+  id               String               @id @default(cuid())
+  orderId          String
+  amountPaise      Int
+  status           CustomerRefundStatus @default(INITIATED)
+  razorpayRefundId String?              @unique
+  reason           String?
+  processedAt      DateTime?
+  createdAt        DateTime             @default(now())
+  order            CustomerOrder        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@schema("customer")
+}
+
+/// Idempotency + audit log for inbound Razorpay webhook events.
+/// `dedupeKey` = "<event>:<razorpay payment/refund entity id>" — Razorpay
+/// redelivers events, so this is what actually prevents double-processing.
+model WebhookEvent {
+  id             String    @id @default(cuid())
+  provider       String    @default("razorpay")
+  eventType      String
+  dedupeKey      String    @unique
+  payload        Json
+  signatureValid Boolean
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([eventType])
+  @@schema("customer")
+}
+
+enum PaymentPurpose {
+  PARKING_BOOKING
+  CAR_WASH_BOOKING
+
+  @@schema("customer")
+}
+
+enum OrderStatus {
+  CREATED
+  ATTEMPTED
+  PAID
+  FAILED
+  CANCELLED
+
+  @@schema("customer")
+}
+
+enum PaymentAttemptStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+
+  @@schema("customer")
+}
+
+enum CustomerRefundStatus {
+  INITIATED
+  PROCESSED
+  FAILED
+
+  @@schema("customer")
+}
+
+// Parking — Locate + Booking (Phase 1 #1). Names avoid the existing
+// public-schema `ParkingSlot`/`Site` models (unrelated B2B valet product).
+model ParkingDealer {
+  id           String       @id @default(cuid())
+  ownerName    String
+  phoneNumber  String       @unique
+  email        String?
+  passwordHash String
+  status       DealerStatus @default(PENDING_VERIFICATION)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  listings     ParkingListing[]
+
+  @@schema("customer")
+}
+
+model ParkingListing {
+  id                  String            @id @default(cuid())
+  dealerId            String
+  name                String
+  addressLine         String
+  city                String
+  latitude            Float
+  longitude           Float
+  fourWheelerCapacity Int               @default(0)
+  twoWheelerCapacity  Int               @default(0)
+  hourlyRatePaise     Int
+  dailyRatePaise      Int?
+  photos              String[]
+  status              ListingStatus     @default(ACTIVE)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  dealer              ParkingDealer     @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  slotWindows         ParkingSlotWindow[]
+  bookings            ParkingBooking[]
+  waitlist            ParkingWaitlistEntry[]
+
+  @@index([dealerId])
+  @@index([latitude, longitude])
+  @@schema("customer")
+}
+
+/// Declared capacity for one hour-block on one date — not a physical bay.
+model ParkingSlotWindow {
+  id        String         @id @default(cuid())
+  listingId String
+  date      DateTime       @db.Date
+  startHour Int
+  endHour   Int
+  capacity  Int
+  booked    Int            @default(0)
+  listing   ParkingListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date, startHour])
+  @@index([listingId, date])
+  @@schema("customer")
+}
+
+model ParkingBooking {
+  id             String         @id @default(cuid())
+  customerId     String
+  listingId      String
+  slotWindowId   String                        // which ParkingSlotWindow capacity was reserved from
+  vehicleId      String?
+  startTime      DateTime
+  endTime        DateTime
+  amountPaise    Int
+  status         BookingStatus  @default(PENDING_PAYMENT)
+  orderId        String?
+  idempotencyKey String?        @unique         // client-generated; retrying the same tap must not double-book
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  listing        ParkingListing @relation(fields: [listingId], references: [id])
+
+  @@index([customerId])
+  @@index([listingId, startTime])
+  @@index([status, createdAt])
+  @@schema("customer")
+}
+
+model ParkingWaitlistEntry {
+  id          String         @id @default(cuid())
+  customerId  String
+  listingId   String
+  desiredDate DateTime       @db.Date
+  notified    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  customer    Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  listing     ParkingListing @relation(fields: [listingId], references: [id])
+
+  @@unique([listingId, customerId, desiredDate])
+  @@index([listingId, desiredDate])
+  @@schema("customer")
+}
+
+enum DealerStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  SUSPENDED
+
+  @@schema("customer")
+}
+
+enum ListingStatus {
+  ACTIVE
+  PAUSED
+  REMOVED
+
+  @@schema("customer")
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+
+  @@schema("customer")
+}
+
+// Vehicle QR Communication Platform — human-to-human messaging between a
+// vehicle owner and whoever scans the vehicle's QR code. Deliberately
+// separate from ChatSession/ChatMessage (the AI assistant) above.
+
+/// Opaque, rotatable token encoded in the printed QR sticker — never the raw
+/// vehicleId, so a compromised/public sticker can be invalidated without
+/// re-registering the vehicle.
+model VehicleQrToken {
+  id        String   @id @default(cuid())
+  vehicleId String   @unique
+  token     String   @unique
+  createdAt DateTime @default(now())
+  rotatedAt DateTime @default(now())
+  vehicle   CustomerVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@schema("customer")
+}
+
+/// One conversation per (vehicle, customer) pair — scanning again or messaging
+/// again about the same vehicle continues the same thread rather than forking.
+model Conversation {
+  id                  String               @id @default(cuid())
+  vehicleId           String
+  customerId          String               // the person who scanned the QR and messaged in
+  ownerId             String               // snapshot of CustomerVehicle.customerId at creation time
+  category            ConversationCategory @default(GENERAL)
+  priority            MessagePriority      @default(NORMAL)
+  status              ConversationStatus   @default(OPEN)
+  lastMessage         String?
+  lastMessageAt       DateTime?
+  lastSenderId        String?
+  unreadCountOwner    Int                  @default(0)
+  unreadCountCustomer Int                  @default(0)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  vehicle  CustomerVehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  customer Customer             @relation("ConversationAsCustomer", fields: [customerId], references: [id], onDelete: Cascade)
+  owner    Customer             @relation("ConversationAsOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  messages Message[]
+  reports  ConversationReport[]
+
+  @@unique([vehicleId, customerId])
+  @@index([customerId, updatedAt])
+  @@index([ownerId, updatedAt])
+  @@index([status])
+  @@schema("customer")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  type           MessageType @default(TEXT)
+  text           String?
+  imageUrls      String[]    @default([])
+  latitude       Float?
+  longitude      Float?
+  quickReplyKey  String?               // which canned quick-reply this was, if any
+  reaction       String?               // single emoji, simple v1 (not a per-user reactions table)
+  /// Escape hatch for FUTURE message types (voice/video/doc duration, transcript, etc.)
+  /// without another migration — see MessageType doc-comment below.
+  metadata       Json?
+  isRead         Boolean     @default(false)
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@schema("customer")
+}
+
+/// Owner-initiated block of a specific customer, persistent across every
+/// vehicle that owner has — not scoped to one Conversation.
+model BlockedContact {
+  id        String   @id @default(cuid())
+  ownerId   String
+  blockedId String
+  reason    String?
+  createdAt DateTime @default(now())
+  owner     Customer @relation("BlockedContactAsOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, blockedId])
+  @@index([blockedId])
+  @@schema("customer")
+}
+
+/// Either party can report the other; admin reviews via the Admin panel.
+model ConversationReport {
+  id             String       @id @default(cuid())
+  conversationId String
+  reporterId     String
+  reportedId     String
+  reason         String
+  status         ReportStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  resolvedAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([status])
+  @@schema("customer")
+}
+
+enum ConversationCategory {
+  PARKING
+  EMERGENCY
+  DAMAGE
+  LOST_ITEM
+  SECURITY
+  GENERAL
+
+  @@schema("customer")
+}
+
+enum MessagePriority {
+  NORMAL
+  URGENT
+  EMERGENCY
+
+  @@schema("customer")
+}
+
+enum ConversationStatus {
+  OPEN
+  WAITING_FOR_OWNER
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+
+  @@schema("customer")
+}
+
+/// v1 ships TEXT/IMAGE/LOCATION/SYSTEM. VOICE/VIDEO/DOCUMENT slot in later as
+/// additional enum values — Message.metadata (Json) already carries whatever
+/// extra shape each new type needs, so adding one is additive, not a rewrite.
+enum MessageType {
+  TEXT
+  IMAGE
+  LOCATION
+  SYSTEM
+
+  @@schema("customer")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  ACTIONED
+
+  @@schema("customer")
+}
+
+// Anonymous web fallback for someone who scans a vehicle's QR without the
+// Gupio app installed. Deliberately a separate model from Conversation/Message
+// — a guest has no Customer row, only a client-held opaque `guestToken` that
+// lets their browser revisit the same thread. Owner replies from the Mobile
+// app; the two model families are merged into one inbox at the service layer.
+model GuestConversation {
+  id            String                  @id @default(cuid())
+  vehicleId     String
+  ownerId       String
+  guestToken    String                  @unique
+  guestName     String?
+  guestContact  String?                 // optional phone/email, for the owner's reference only
+  lastMessage   String?
+  lastMessageAt DateTime?
+  status        GuestConversationStatus @default(OPEN)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  vehicle CustomerVehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  owner   Customer            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  entries GuestMessageEntry[]
+
+  @@index([ownerId, updatedAt])
+  @@schema("customer")
+}
+
+model GuestMessageEntry {
+  id             String             @id @default(cuid())
+  conversationId String
+  sender         GuestMessageSender
+  text           String?
+  imageUrls      String[]           @default([])
+  createdAt      DateTime           @default(now())
+
+  conversation GuestConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@schema("customer")
+}
+
+enum GuestConversationStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+
+  @@schema("customer")
+}
+
+enum GuestMessageSender {
+  GUEST
+  OWNER
+
+  @@schema("customer")
+}
+
+// ---------------------------------------------------------------------------
+// Community Platform — Phase A (core). See docs/gupio-community-platform-plan.md.
+// Phases B-D (clubs/events, reviews/roadside-help, reputation) are deliberately
+// not modeled yet; Marketplace is parked indefinitely per that plan's §9.
+// ---------------------------------------------------------------------------
+
+model Community {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  type        CommunityType
+  localKind   LocalCommunityKind?
+  description String?
+  iconUrl     String?
+  bannerUrl   String?
+  memberCount Int                 @default(0)
+  postCount   Int                 @default(0)
+  isOfficial  Boolean             @default(false)
+  createdBy   String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  members CommunityMembership[]
+  posts   Post[]
+
+  @@index([type])
+  @@index([localKind])
+  @@schema("customer")
+}
+
+model CommunityMembership {
+  id          String        @id @default(cuid())
+  communityId String
+  customerId  String
+  role        CommunityRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  customer  Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, customerId])
+  @@index([customerId])
+  @@schema("customer")
+}
+
+model Hashtag {
+  id        String @id @default(cuid())
+  tag       String @unique
+  postCount Int    @default(0)
+
+  posts PostHashtag[]
+
+  @@schema("customer")
+}
+
+model Post {
+  id            String     @id @default(cuid())
+  authorId      String
+  communityId   String?
+  vehicleId     String?
+  type          PostType
+  text          String?
+  mediaUrls     String[]   @default([])
+  latitude      Float?
+  longitude     Float?
+  pollOptions   Json?
+  isPinned      Boolean    @default(false)
+  status        PostStatus @default(PUBLISHED)
+  commentCount  Int        @default(0)
+  reactionCount Int        @default(0)
+  shareCount    Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  author    Customer      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community Community?    @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  comments  Comment[]
+  reactions Reaction[]
+  hashtags  PostHashtag[]
+
+  @@index([communityId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([vehicleId])
+  @@index([status])
+  @@schema("customer")
+}
+
+model PostHashtag {
+  postId    String
+  hashtagId String
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, hashtagId])
+  @@schema("customer")
+}
+
+/// Nesting is flattened to one parentId self-relation rather than a
+/// materialized path — see docs/gupio-community-platform-plan.md §4.
+model Comment {
+  id               String     @id @default(cuid())
+  postId           String
+  authorId         String
+  parentId         String?
+  text             String?
+  imageUrl         String?
+  isPinned         Boolean    @default(false)
+  isAcceptedAnswer Boolean    @default(false)
+  reactionCount    Int        @default(0)
+  status           PostStatus @default(PUBLISHED)
+  createdAt        DateTime   @default(now())
+
+  post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    Customer   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]  @relation("CommentReplies")
+  reactions Reaction[]
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+  @@schema("customer")
+}
+
+/// One row per (customer, target, emoji) — covers post AND comment reactions
+/// via nullable targets rather than two near-identical tables.
+///
+/// NOTE: the @@unique below does NOT actually stop duplicate reactions on the
+/// DB side — Postgres treats each NULL as distinct, so (customerId, postId,
+/// NULL) can repeat. Real enforcement is two partial unique indexes applied
+/// directly via SQL (not expressible in Prisma's schema language):
+///   CREATE UNIQUE INDEX "Reaction_customer_post_unique"
+///     ON "customer"."Reaction" ("customerId", "postId") WHERE "commentId" IS NULL;
+///   CREATE UNIQUE INDEX "Reaction_customer_comment_unique"
+///     ON "customer"."Reaction" ("customerId", "commentId") WHERE "postId" IS NULL;
+/// Future `prisma migrate diff` runs won't know about these — don't let a
+/// generated diff drop them.
+model Reaction {
+  id         String   @id @default(cuid())
+  customerId String
+  postId     String?
+  commentId  String?
+  emoji      String
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  post     Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment  Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, postId, commentId])
+  @@index([postId])
+  @@index([commentId])
+  @@schema("customer")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  Customer @relation("FollowerEdge", fields: [followerId], references: [id], onDelete: Cascade)
+  following Customer @relation("FollowingEdge", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@schema("customer")
+}
+
+/// Mirrors ConversationReport's shape, generalized to any content type.
+/// Reuses ReportStatus (already defined above for Vehicle Messaging) rather
+/// than introducing a second near-identical enum.
+model ContentReport {
+  id         String            @id @default(cuid())
+  reporterId String
+  targetType ContentReportTarget
+  targetId   String
+  reason     String
+  status     ReportStatus      @default(PENDING)
+  createdAt  DateTime          @default(now())
+  resolvedAt DateTime?
+
+  reporter Customer @relation("ContentReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId])
+  @@index([status])
+  @@schema("customer")
+}
+
+enum CommunityType {
+  TOPIC
+  LOCAL
+
+  @@schema("customer")
+}
+
+enum LocalCommunityKind {
+  CITY
+  DISTRICT
+  COLLEGE
+  COMPANY
+  APARTMENT
+  HIGHWAY
+  PARKING_AREA
+
+  @@schema("customer")
+}
+
+enum CommunityRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+
+  @@schema("customer")
+}
+
+enum PostType {
+  TEXT
+  IMAGE
+  VIDEO
+  POLL
+  QUESTION
+  LOCATION
+
+  @@schema("customer")
+}
+
+enum PostStatus {
+  PUBLISHED
+  REMOVED
+  SHADOW_HIDDEN
+
+  @@schema("customer")
+}
+
+enum ContentReportTarget {
+  POST
+  COMMENT
+
+  @@schema("customer")
+}
+
+// ---------------------------------------------------------------------------
+// Car Wash / Vehicle Care — Phase A (core booking). See
+// docs/gupio-carwash-platform-plan.md. Mirrors the Parking/Dealer/Payments
+// model shape directly. Phases B-D (subscriptions, pickup&drop, reviews) are
+// deliberately not modeled yet; Marketplace is parked indefinitely per that
+// plan's §17.
+// ---------------------------------------------------------------------------
+
+model WashPartner {
+  id          String            @id @default(cuid())
+  name        String
+  phoneNumber String            @unique
+  passwordHash String
+  status      WashPartnerStatus @default(PENDING)
+  rating      Float?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  centers      WashCenter[]
+  technicians  WashTechnician[]
+  bookings     WashBooking[]
+
+  @@schema("customer")
+}
+
+/// A technician is a person; WashPartner is the business entity that employs them.
+/// Doorstep jobs assign a WashTechnician, not just a WashPartner.
+model WashTechnician {
+  id           String   @id @default(cuid())
+  partnerId    String
+  name         String
+  phoneNumber  String   @unique
+  passwordHash String
+  photoUrl     String?
+  isActive     Boolean  @default(true)
+  rating       Float?
+  createdAt    DateTime @default(now())
+
+  partner  WashPartner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  bookings WashBooking[]
+
+  @@index([partnerId])
+  @@schema("customer")
+}
+
+model WashCenter {
+  id           String   @id @default(cuid())
+  partnerId    String
+  name         String
+  address      String
+  latitude     Float
+  longitude    Float
+  supportsBike Boolean  @default(true)
+  supportsCar  Boolean  @default(true)
+  supportsEV   Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  partner WashPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  slots   WashSlot[]
+  bookings WashBooking[]
+
+  @@index([partnerId])
+  @@index([latitude, longitude])
+  @@schema("customer")
+}
+
+model WashSlot {
+  id           String   @id @default(cuid())
+  centerId     String
+  startsAt     DateTime
+  endsAt       DateTime
+  capacity     Int      @default(1)
+  bookedCount  Int      @default(0)
+
+  center   WashCenter    @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  bookings WashBooking[]
+
+  @@index([centerId, startsAt])
+  @@schema("customer")
+}
+
+model WashBooking {
+  id            String            @id @default(cuid())
+  customerId    String
+  vehicleId     String?
+  partnerId     String
+  centerId      String?                              // null for doorstep — no fixed center
+  slotId        String?                               // null for doorstep — no fixed slot
+  technicianId  String?                               // set once a doorstep job is assigned
+  serviceModel  WashServiceModel
+  washType      WashType
+  addressLine   String?                                // doorstep only
+  latitude      Float?
+  longitude     Float?
+  status        WashBookingStatus @default(PENDING_PAYMENT)
+  amountPaise   Int
+  orderId       String?
+  beforePhotoUrls String[]        @default([])
+  afterPhotoUrls  String[]        @default([])
+  scheduledAt   DateTime?
+  completedAt   DateTime?
+  idempotencyKey String?          @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  partner    WashPartner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  center     WashCenter?     @relation(fields: [centerId], references: [id])
+  slot       WashSlot?       @relation(fields: [slotId], references: [id])
+  technician WashTechnician? @relation(fields: [technicianId], references: [id])
+
+  @@index([customerId, createdAt])
+  @@index([partnerId, status])
+  @@index([technicianId])
+  @@schema("customer")
+}
+
+enum WashPartnerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+
+  @@schema("customer")
+}
+
+enum WashServiceModel {
+  VISIT_CENTER
+  DOORSTEP
+
+  @@schema("customer")
+}
+
+enum WashType {
+  EXTERIOR
+  INTERIOR
+  FOAM
+  PRESSURE
+  STEAM
+  WATERLESS
+  DETAILING
+  CERAMIC_COATING
+  WAX_POLISH
+  ENGINE_CLEAN
+  TYRE_POLISH
+  GLASS_TREATMENT
+  UNDERCARRIAGE
+  SANITIZATION
+  BIKE_WASH
+  EV_SAFE_WASH
+
+  @@schema("customer")
+}
+
+enum WashBookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  TECHNICIAN_ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+
+  @@schema("customer")
 }

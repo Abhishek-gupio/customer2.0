@@ -1,13 +1,9 @@
 import { dbInstances } from "@repo/db-customer";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { env } from "../config/env";
 import { logger } from "../config/logger";
 import { notificationService } from "./notification.service";
+import { callAI, isAIConfigured } from "./ai-provider.service";
 
 const db = dbInstances as any;
-const genAI = env.GEMINI_API_KEY
-    ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
-    : null;
 
 /**
  * PROACTIVE CHAT SERVICE
@@ -100,7 +96,7 @@ export const proactiveChatService = {
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + 7);
 
-        const expiringDocs = await db.customerDocument.findMany({
+        const expiringDocs = await db.vehicleDocument.findMany({
             where: {
                 customerId,
                 expiryDate: { lte: expiryDate, gte: now },
@@ -142,9 +138,7 @@ export const proactiveChatService = {
         userName: string,
         alerts: string[],
     ): Promise<string | null> {
-        if (!genAI || alerts.length === 0) return null;
-
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        if (!isAIConfigured() || alerts.length === 0) return null;
 
         const prompt = `You are Gupio, a friendly AI car assistant. Generate a SHORT notification message (2-3 sentences max) for ${userName}.
 
@@ -160,8 +154,8 @@ Rules:
 - No greetings like "Hey" or "Hi"`;
 
         try {
-            const result = await model.generateContent(prompt);
-            return result.response.text().trim();
+            const text = await callAI(prompt);
+            return text.trim();
         } catch (error) {
             logger.error({ error }, "Proactive AI message generation failed");
             return alerts[0]; // Fallback to raw alert text

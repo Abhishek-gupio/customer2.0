@@ -1,0 +1,26 @@
+diff --git a/src/node-haste/DependencyGraph.js b/src/node-haste/DependencyGraph.js
+index 342bbce6374a9cfdf338ba72ca3d2afad4b50dd4..c91d1988809b40dec48f542d557be510e0156753 100644
+--- a/src/node-haste/DependencyGraph.js
++++ b/src/node-haste/DependencyGraph.js
+@@ -38,6 +38,7 @@ class DependencyGraph extends _events.default {
+   constructor(config, options) {
+     super();
+     this._config = config;
++    this._resolutionCache = new Map();
+     const { hasReducedPerformance, watch } = options ?? {};
+     const initializingMetroLogEntry = log(
+       createActionStartEntry("Initializing Metro"),
+@@ -239,7 +240,12 @@ class DependencyGraph extends _events.default {
+     const targetKey =
+       to + (dependency.data.isESMImport === true ? "\0esm" : "\0cjs");
+     const platformKey = platform ?? NULL_PLATFORM;
+-    const mapByResolverOptions = this._resolutionCache;
++    // Metro can receive a bundle request before the file map has fully
++    // finished initializing on some workspace + pnpm setups. Keep the
++    // resolution cache defensively initialized so dependency resolution
++    // never crashes while initialization settles.
++    const mapByResolverOptions = this._resolutionCache ?? new Map();
++    this._resolutionCache = mapByResolverOptions;
+     const mapByOrigin = getOrCreateMap(
+       mapByResolverOptions,
+       resolverOptionsKey,

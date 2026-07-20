@@ -7,7 +7,7 @@ import type {
   RegisterDeviceInput,
 } from "./customer.validators";
 
-type ProfileWithPic = { profilePic: string | null; [k: string]: unknown };
+type ProfileWithPic = { profilePic: string | null;[k: string]: unknown };
 type RequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "COMPLETED" | "RETURNED";
 type VehicleStatus = "PARKED" | "PICKED_UP" | "IN_TRANSIT" | "RETURNED";
 type LocationInput = { latitude: number; longitude: number; timestamp?: number };
@@ -42,7 +42,23 @@ function requestMessage(status: string): string {
   }
 }
 
+import { getRedis, runRedisCommand } from "../../config/redis";
+
 async function getPublicCustomerForCustomerId(customerId: string) {
+  const redis = getRedis();
+  const cacheKey = `customer_link:${customerId}`;
+  
+  if (redis) {
+    const cached = await runRedisCommand((client) => client.get(cacheKey));
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {
+        // malformed cache; proceed to DB
+      }
+    }
+  }
+
   const customer = await dbInstances.customer.findUnique({
     where: { id: customerId },
     select: { id: true, phoneNumber: true, email: true, fullName: true },
@@ -50,59 +66,65 @@ async function getPublicCustomerForCustomerId(customerId: string) {
   if (!customer) throw AppError.notFound("Customer not found");
 
   const normalizedPhone = normalizePhone(customer.phoneNumber);
-  const publicCustomer = await dbInstances.public_Customer.findFirst({
-    where: {
-      OR: [
-        customer.phoneNumber ? { phoneNumber: customer.phoneNumber } : undefined,
-        normalizedPhone ? { phoneNumber: { endsWith: normalizedPhone } } : undefined,
-        customer.email ? { email: customer.email } : undefined,
-      ].filter(Boolean) as any[],
-    },
-    select: { id: true, fullName: true, phoneNumber: true },
-  });
-  if (publicCustomer) return publicCustomer;
-
-  // Auto-link fallback: if no mapping exists in public.Customer, create one on demand.
-  // This keeps valet flow working even when legacy public data is missing.
-  const fallbackEmail =
-    customer.email && customer.email.trim().length > 0
-      ? customer.email.trim().toLowerCase()
-      : `customer_${customer.id}@gupio.local`;
-  const fallbackName =
-    customer.fullName && customer.fullName.trim().length > 0
-      ? customer.fullName.trim()
-      : "Customer";
-
-  try {
-    return await dbInstances.public_Customer.create({
-      data: {
-        id: randomUUID(),
-        fullName: fallbackName,
-        email: fallbackEmail,
-        phoneNumber: customer.phoneNumber,
-        password: `migrated_${randomUUID()}`,
-        updatedAt: new Date(),
-        isActive: true,
-      },
-      select: { id: true, fullName: true, phoneNumber: true },
-    });
-  } catch {
-    // If create fails due to unique races, re-read and return existing record.
-    const retry = await dbInstances.public_Customer.findFirst({
+  
+  const findPublic = async () => {
+    return dbInstances.public_Customer.findFirst({
       where: {
         OR: [
-          { phoneNumber: customer.phoneNumber },
+          customer.phoneNumber ? { phoneNumber: customer.phoneNumber } : undefined,
           normalizedPhone ? { phoneNumber: { endsWith: normalizedPhone } } : undefined,
           customer.email ? { email: customer.email } : undefined,
         ].filter(Boolean) as any[],
       },
       select: { id: true, fullName: true, phoneNumber: true },
     });
-    if (retry) return retry;
-    throw AppError.badRequest(
-      "Unable to link customer with public schema. Please retry.",
+  };
+
+  let publicCustomer = await findPublic();
+
+  if (!publicCustomer) {
+    // Auto-link fallback: if no mapping exists in public.Customer, create one on demand.
+    // This keeps valet flow working even when legacy public data is missing.
+    const fallbackEmail =
+      customer.email && customer.email.trim().length > 0
+        ? customer.email.trim().toLowerCase()
+        : `customer_${customer.id}@gupio.local`;
+    const fallbackName =
+      customer.fullName && customer.fullName.trim().length > 0
+        ? customer.fullName.trim()
+        : "Customer";
+
+    try {
+      publicCustomer = await dbInstances.public_Customer.create({
+        data: {
+          id: randomUUID(),
+          fullName: fallbackName,
+          email: fallbackEmail,
+          phoneNumber: customer.phoneNumber,
+          password: `migrated_${randomUUID()}`,
+          updatedAt: new Date(),
+          isActive: true,
+        },
+        select: { id: true, fullName: true, phoneNumber: true },
+      });
+    } catch {
+      // If create fails due to unique races, re-read and return existing record.
+      publicCustomer = await findPublic();
+      if (!publicCustomer) {
+        throw AppError.badRequest(
+          "Unable to link customer with public schema. Please retry.",
+        );
+      }
+    }
+  }
+
+  if (redis && publicCustomer) {
+    await runRedisCommand((client) =>
+      client.setex(cacheKey, 3600, JSON.stringify(publicCustomer)),
     );
   }
+
+  return publicCustomer;
 }
 
 async function resolveVehicle(publicCustomerPhone: string, vehicleNumber?: string) {
@@ -175,6 +197,12 @@ export const customerService = {
         updatedAt: true,
       },
     });
+
+    const redis = getRedis();
+    if (redis) {
+      await redis.del(`customer_link:${customerId}`).catch(() => {});
+    }
+
     return withReadableProfilePic(customer);
   },
 
@@ -185,7 +213,7 @@ export const customerService = {
   ) {
     const { url } = await storageService.uploadFile(
       file,
-      `profile/${customerId}`,
+      `customers/${customerId}/profile`,
       true,
     );
     const customer = await dbInstances.customer.update({
@@ -201,6 +229,12 @@ export const customerService = {
         updatedAt: true,
       },
     });
+
+    const redis = getRedis();
+    if (redis) {
+      await redis.del(`customer_link:${customerId}`).catch(() => {});
+    }
+
     return withReadableProfilePic(customer);
   },
 
@@ -218,27 +252,27 @@ export const customerService = {
 
   /** Counts for profile Quick Stats (vehicles, expenses, documents). Each count is safe: failure returns 0. */
   async getProfileStats(customerId: string) {
-    const db = dbInstances as any;
+    const customer = await dbInstances.customer.findUnique({
+      where: { id: customerId },
+      select: {
+        _count: {
+          select: {
+            vehicles: { where: { isActive: true } },
+            expenses: true,
+            documents: true,
+          },
+        },
+      },
+    });
 
-    const countVehicles = () =>
-      dbInstances.customerVehicle.count({ where: { customerId, isActive: true } }).catch(() => 0);
-
-    const countExpenses = () =>
-      (db.expense?.count?.({ where: { customerId } }) ?? Promise.resolve(0)).catch(() => 0);
-
-    const countDocuments = () =>
-      dbInstances.customerDocument.count({ where: { customerId } }).catch(() => 0);
-
-    const [vehicles, expenses, documents] = await Promise.all([
-      countVehicles(),
-      countExpenses(),
-      countDocuments(),
-    ]);
+    if (!customer) {
+      return { vehicles: 0, expenses: 0, documents: 0 };
+    }
 
     return {
-      vehicles: Number(vehicles) || 0,
-      expenses: Number(expenses) || 0,
-      documents: Number(documents) || 0,
+      vehicles: customer._count.vehicles,
+      expenses: customer._count.expenses,
+      documents: customer._count.documents,
     };
   },
 
@@ -363,14 +397,14 @@ export const customerService = {
 
     const pickupInfo = latestPickup
       ? {
-          pickedBy: latestPickup.User_Pickup_valetIdToUser?.fullName || "Not assigned",
-          valetPhone: latestPickup.User_Pickup_valetIdToUser?.phoneNumber || "N/A",
-          pickupTime: latestPickup.pickupTime.toISOString(),
-          pickupLocation: latestPickup.pickupFrom || "Not available",
-          parkLocation: latestPickup.parkAt || "Not available",
-          notes: latestPickup.notes || "",
-          status: latestPickup.status,
-        }
+        pickedBy: latestPickup.User_Pickup_valetIdToUser?.fullName || "Not assigned",
+        valetPhone: latestPickup.User_Pickup_valetIdToUser?.phoneNumber || "N/A",
+        pickupTime: latestPickup.pickupTime.toISOString(),
+        pickupLocation: latestPickup.pickupFrom || "Not available",
+        parkLocation: latestPickup.parkAt || "Not available",
+        notes: latestPickup.notes || "",
+        status: latestPickup.status,
+      }
       : null;
 
     return {

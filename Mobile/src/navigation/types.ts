@@ -5,7 +5,7 @@ export type RootStackParamList = {
   SigninFirst: undefined;
   Signin: undefined;
   Signup: undefined;
-  OTP: { phone?: string; otp?: string; otpExpiresIn?: number };
+  OTP: { phone?: string; otp?: string; otpExpiresIn?: number; otpRequestedAt?: number; otpResendIn?: number };
   LoginSuccessfull: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   Valet: undefined;
@@ -20,12 +20,17 @@ export type RootStackParamList = {
   ExpenseAnalytics: undefined;
   MyProfile: undefined;
   HelpSupport: undefined;
+  TermsConditions: undefined;
+  PrivacyPolicy: undefined;
   LiveChat: undefined;
   ContactSupport: { category?: string };
   TicketHistory: undefined;
   TicketDetail: { ticketId: string };
+  DigiLockerKYC: { url: string; client_id: string };
   Settings: undefined;
-  BudgetSettings: undefined;
+  BudgetSettings:
+    | { initialCategory?: string; initialAmount?: number; justSetViaVoice?: boolean }
+    | undefined;
   ServiceHistory: { selectedPartType?: string } | undefined;
   WarrantyStatus: undefined;
   AiBotHome: undefined;
@@ -36,17 +41,34 @@ export type RootStackParamList = {
   Alerts: undefined;
   SOS: undefined;
   ActiveSOS: { sosId: string; type: string; lat: number; lon: number };
+  TripExpense: { draftKey?: string; tripId?: string } | undefined;
+  DLVerification: { justVerifiedViaVoice?: boolean } | undefined;
+  Fastag: { justVerifiedViaVoice?: boolean } | undefined;
+
+  TripPlannerInsights: undefined;
+  DIYGuides: undefined;
+
+  VehicleInbox: undefined;
+  ScanQr: undefined;
+  ChatConversation: { conversationId: string };
+  GuestConversation: { conversationId: string };
+  MyVehicleQrCode: { vehicleId?: string; registrationNumber?: string } | undefined;
+
+  CommunityFeed: { communityId?: string; communityName?: string } | undefined;
+  CommunitiesDiscover: undefined;
+  PostComposer: { communityId?: string } | undefined;
+  PostDetail: { postId: string };
 };
 
 export type MainTabParamList = {
   Home: undefined;
+  my_garage: undefined;
   Services: undefined;
   AIAssistant: {
     userMessage?: string;
     sessionId?: string;
   } | undefined;
-  Alerts: undefined;
-  Odometer: undefined;
+  Odometer: { justSetViaVoice?: boolean } | undefined;
 };
 
 declare global {

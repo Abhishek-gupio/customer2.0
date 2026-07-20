@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,11 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { useFocusEffect } from '../../lib/react-navigation-native';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
+import StatusModal from '../../components/common/Modals/StatusModal';
+import { useFocusEffect, useRoute, RouteProp } from '../../lib/react-navigation-native';
+import type { MainTabParamList } from '../../navigation/types';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -24,12 +28,24 @@ import { vehicleService, Vehicle } from '../../services/vehicleService';
 import { setWarrantyStatusNeedsRefresh } from '../../utils/refreshManager';
 import { setLastOdometerUpdate } from '../../services/storage';
 
+type OdometerRouteProp = RouteProp<MainTabParamList, 'Odometer'>;
+
 export default function Odometer() {
+  const route = useRoute<OdometerRouteProp>();
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [reading, setReading] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [photoSubmitting, setPhotoSubmitting] = useState(false);
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+  });
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+    setStatusModal({ visible: true, type, title, message });
+  };
 
   const fetchPrimary = useCallback(async () => {
     try {
@@ -55,14 +71,21 @@ export default function Odometer() {
     }, [fetchPrimary])
   );
 
+  useEffect(() => {
+    if (route.params?.justSetViaVoice) {
+      showStatus('Updated', 'Odometer reading updated via voice command.', 'success');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSaveReading = async () => {
     const value = reading.trim() ? parseInt(reading.replace(/\D/g, ''), 10) : 0;
     if (!vehicle?.id) {
-      Alert.alert('No vehicle', 'Set a primary vehicle first.');
+      showStatus('No vehicle', 'Set a primary vehicle first.', 'error');
       return;
     }
     if (!value || value < 0) {
-      Alert.alert('Invalid reading', 'Enter a valid odometer reading in km.');
+      showStatus('Invalid reading', 'Enter a valid odometer reading in km.', 'error');
       return;
     }
     setSubmitting(true);
@@ -71,8 +94,9 @@ export default function Odometer() {
       setLastOdometerUpdate(vehicle.id, Date.now());
       setWarrantyStatusNeedsRefresh();
       await fetchPrimary();
+      showStatus('Success', 'Odometer updated successfully');
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Failed to update odometer');
+      showStatus('Error', err?.message || 'Failed to update odometer', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -80,7 +104,7 @@ export default function Odometer() {
 
   const handlePhotoUpdate = async () => {
     if (!vehicle?.id) {
-      Alert.alert('No vehicle', 'Set a primary vehicle first.');
+      showStatus('No vehicle', 'Set a primary vehicle first.', 'error');
       return;
     }
     try {
@@ -96,7 +120,7 @@ export default function Odometer() {
           },
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert('Permission denied', 'Camera permission is required to continue.');
+          showStatus('Permission denied', 'Camera permission is required to continue.', 'error');
           return;
         }
       }
@@ -107,7 +131,7 @@ export default function Odometer() {
       });
       if (result?.didCancel) return;
       if (result?.errorCode) {
-        Alert.alert('Camera error', result?.errorMessage || 'Could not open camera.');
+        showStatus('Camera error', result?.errorMessage || 'Could not open camera.', 'error');
         return;
       }
       if (result.assets && result.assets.length > 0) {
@@ -123,7 +147,7 @@ export default function Odometer() {
           const extracted = await vehicleService.extractOdometerViaAI(vehicle.id, fd);
           setReading(String(extracted.reading ?? ''));
         } catch (err: any) {
-          Alert.alert('Error', err?.message || 'Could not read odometer from photo. Try manual entry.');
+          showStatus('Error', err?.message || 'Could not read odometer from photo. Try manual entry.', 'error');
         } finally {
           setPhotoSubmitting(false);
         }
@@ -135,8 +159,11 @@ export default function Odometer() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#FFBF00" />
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <ActivityIndicator size="large" color="#FFBF00" />
+          <Text style={styles.loadingHint}>Loading your vehicle...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -144,7 +171,7 @@ export default function Odometer() {
   if (!vehicle) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+        <View style={styles.headerFallback}>
           <Text style={styles.headerTitle}>Odometer</Text>
         </View>
         <View style={[styles.centered, { flex: 1 }]}>
@@ -163,75 +190,112 @@ export default function Odometer() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboard}
       >
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Odometer</Text>
-          <Text style={styles.vehicleSub}>{vehicle.registrationNumber}</Text>
+        <LinearGradient 
+             colors={['rgba(255, 191, 0, 0.1)', 'transparent']}
+             style={styles.headerGradient}
+        >
+          <Text style={styles.headerTitle}>Vehicle Odometer</Text>
+          <View style={styles.vehicleBadge}>
+            <Text style={styles.vehicleSub}>{vehicle.registrationNumber}</Text>
+          </View>
           {vehicle.make && (
             <Text style={styles.vehicleMeta}>
               {vehicle.make} {vehicle.model || ''} {vehicle.year ? `(${vehicle.year})` : ''}
             </Text>
           )}
-        </View>
+        </LinearGradient>
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.currentCard}>
-            <Text style={styles.currentLabel}>Current reading</Text>
-            <Text style={styles.currentValue}>
-              {vehicle.currentOdometer != null
-                ? `${vehicle.currentOdometer.toLocaleString()} km`
-                : '—'}
-            </Text>
-            <Text style={styles.hint}>
-              Keep this updated so Parts & Warranty can predict when to change parts.
-            </Text>
+          <View style={styles.currentCardWrapper}>
+            <LinearGradient
+                colors={['#171717', '#0A0A0A']}
+                style={styles.currentCard}
+            >
+              <View style={styles.cardHeaderRow}>
+                 <MaterialIcon name="speedometer" size={wp(5)} color="#888" />
+                 <Text style={styles.currentLabel}>LAST RECORDED ODOMETER</Text>
+              </View>
+              
+              <Text style={styles.currentValue}>
+                {vehicle.currentOdometer != null
+                  ? `${vehicle.currentOdometer.toLocaleString()}`
+                  : '—'}
+                {vehicle.currentOdometer != null && <Text style={styles.kmUnit}> KM</Text>}
+              </Text>
+              
+              <View style={styles.hintBox}>
+                <Icon name="info-circle" size={12} color="#666" />
+                <Text style={styles.hint}>
+                  Keeping this updated prevents missing critical maintenance schedules.
+                </Text>
+              </View>
+            </LinearGradient>
           </View>
 
-          <Text style={styles.sectionLabel}>Update reading</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter km (e.g. 45000)"
-            placeholderTextColor="#666"
-            value={reading}
-            onChangeText={setReading}
-            keyboardType="number-pad"
-            editable={!submitting}
-          />
+          <View style={styles.inputSection}>
+            <Text style={styles.sectionLabel}>New Reading</Text>
+            <View style={styles.inputContainer}>
+              <MaterialIcon name="numeric" size={wp(6)} color="#666" style={{marginRight: 8}} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter new km..."
+                placeholderTextColor="#555"
+                value={reading}
+                onChangeText={setReading}
+                keyboardType="number-pad"
+                editable={!submitting}
+                selectionColor="#FFBF00"
+              />
+            </View>
 
-          <TouchableOpacity
-            style={[styles.btn, styles.btnPrimary, (submitting || !reading.trim()) && styles.btnDisabled]}
-            onPress={handleSaveReading}
-            disabled={submitting || !reading.trim()}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#000" size="small" />
-            ) : (
-              <Text style={styles.btnPrimaryText}>Save reading</Text>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.btnPrimaryWrapper, (submitting || !reading.trim()) && styles.btnDisabled]}
+              onPress={handleSaveReading}
+              disabled={submitting || !reading.trim()}
+            >
+              <LinearGradient
+                colors={['#FFBF00', '#D97706']}
+                style={styles.btnPrimaryGradient}
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#000" size="small" />
+                ) : (
+                  <Text style={styles.btnPrimaryText}>Update Odometer</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
           </View>
 
           <TouchableOpacity
-            style={[styles.btn, styles.btnSecondary, photoSubmitting && styles.btnDisabled]}
+            activeOpacity={0.8}
+            style={[styles.btnSecondaryWrapper, photoSubmitting && styles.btnDisabled]}
             onPress={handlePhotoUpdate}
             disabled={photoSubmitting}
           >
-            {photoSubmitting ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Icon name="camera" size={wp(5)} color="#fff" style={styles.btnIcon} />
-                <Text style={styles.btnSecondaryText}>Update from dashboard photo</Text>
-              </>
-            )}
+             <LinearGradient
+                colors={['#171717', '#0A0A0A']}
+                style={styles.btnSecondaryGradient}
+             >
+                {photoSubmitting ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <MaterialIcon name="camera-iris" size={wp(5.5)} color="#FFBF00" style={styles.btnIcon} />
+                    <Text style={styles.btnSecondaryText}>Scan Dashboard Photo</Text>
+                  </>
+                )}
+             </LinearGradient>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -242,7 +306,7 @@ export default function Odometer() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
   },
   centered: {
     justifyContent: 'center',
@@ -251,122 +315,205 @@ const styles = StyleSheet.create({
   keyboard: {
     flex: 1,
   },
-  header: {
+  headerFallback: {
     paddingHorizontal: wp(5),
     paddingTop: hp(2),
     paddingBottom: hp(1),
   },
+  loadingHint: {
+    marginTop: hp(1.2),
+    color: '#888',
+    fontSize: wp(3.5),
+    fontFamily: 'Outfit-Medium',
+  },
+  headerGradient: {
+    paddingHorizontal: wp(6),
+    paddingTop: hp(3),
+    paddingBottom: hp(4),
+  },
   headerTitle: {
-    fontSize: wp(6),
+    fontSize: wp(7.5),
     fontFamily: 'Outfit-Black',
     color: '#fff',
+    letterSpacing: 0.5,
+  },
+  vehicleBadge: {
+    backgroundColor: 'rgba(255, 191, 0, 0.15)',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.5),
+    borderRadius: wp(2),
+    alignSelf: 'flex-start',
+    marginTop: hp(1),
+    borderWidth: 1,
+    borderColor: 'rgba(255, 191, 0, 0.2)',
   },
   vehicleSub: {
-    fontSize: wp(4),
+    fontSize: wp(3.8),
     color: '#FFBF00',
     fontFamily: 'Outfit-Bold',
-    marginTop: 4,
+    letterSpacing: 1,
   },
   vehicleMeta: {
     fontSize: wp(3.5),
     color: '#888',
-    marginTop: 2,
+    fontFamily: 'Outfit-Medium',
+    marginTop: hp(1.5),
   },
   scrollContent: {
     paddingHorizontal: wp(5),
     paddingBottom: hp(4),
+    paddingTop: hp(1),
+  },
+  currentCardWrapper: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 8,
+    marginBottom: hp(4),
+    marginTop: -hp(2), // Pulled up into the header gradient a bit
   },
   currentCard: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: wp(5),
-    marginBottom: hp(3),
+    borderRadius: wp(5),
+    padding: wp(6),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: hp(1.5),
+    gap: 8,
   },
   currentLabel: {
-    fontSize: wp(3.5),
+    fontSize: wp(3.2),
+    fontFamily: 'Outfit-Bold',
     color: '#888',
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   currentValue: {
-    fontSize: wp(8),
+    fontSize: wp(12),
     fontFamily: 'Outfit-Black',
     color: '#fff',
-    marginTop: 4,
+    lineHeight: wp(13),
+  },
+  kmUnit: {
+    fontSize: wp(5),
+    fontFamily: 'Outfit-Medium',
+    color: '#666',
+  },
+  hintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    padding: wp(3),
+    borderRadius: wp(2),
+    marginTop: hp(2),
+    gap: 8,
   },
   hint: {
-    fontSize: wp(3.2),
+    flex: 1,
+    fontSize: wp(3),
+    fontFamily: 'Outfit-Medium',
     color: '#666',
-    marginTop: 8,
-    lineHeight: 18,
+    lineHeight: hp(2),
+  },
+  inputSection: {
+    marginBottom: hp(2),
   },
   sectionLabel: {
-    fontSize: wp(4),
+    fontSize: wp(4.5),
     fontFamily: 'Outfit-Bold',
-    color: '#fff',
-    marginBottom: 8,
+    color: '#eee',
+    marginBottom: hp(1.5),
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111',
+    borderRadius: wp(4),
+    paddingHorizontal: wp(4),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginBottom: hp(2.5),
   },
   input: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
+    flex: 1,
+    height: hp(7),
     fontSize: wp(5),
+    fontFamily: 'Outfit-Bold',
     color: '#fff',
-    marginBottom: hp(2),
   },
-  btn: {
-    borderRadius: 18,
-    height: 62,
+  btnPrimaryWrapper: {
+    borderRadius: wp(4),
+    overflow: 'hidden',
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  btnPrimaryGradient: {
+    height: hp(7),
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  btnPrimary: {
-    backgroundColor: '#FFBF00',
-    marginBottom: hp(2),
   },
   btnPrimaryText: {
-    fontSize: wp(4.2),
+    fontSize: wp(4.5),
     fontFamily: 'Outfit-Black',
     color: '#000',
+    letterSpacing: 0.5,
   },
   btnDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: hp(2),
+    paddingHorizontal: wp(5),
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#333',
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   dividerText: {
-    color: '#666',
-    paddingHorizontal: wp(3),
+    color: '#555',
+    fontFamily: 'Outfit-Medium',
+    paddingHorizontal: wp(4),
     fontSize: wp(3.5),
+    letterSpacing: 2,
   },
-  btnSecondary: {
-    backgroundColor: '#222',
+  btnSecondaryWrapper: {
+    borderRadius: wp(4),
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  btnSecondaryGradient: {
+    flexDirection: 'row',
+    height: hp(7),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   btnSecondaryText: {
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
     color: '#fff',
+    letterSpacing: 0.5,
   },
   emptyText: {
     color: '#888',
     fontSize: wp(4),
+    fontFamily: 'Outfit-Medium',
     textAlign: 'center',
     marginTop: 20,
     paddingHorizontal: wp(6),
+    lineHeight: 24,
   },
 });

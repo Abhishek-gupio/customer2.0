@@ -8,18 +8,23 @@ interface Admin {
   email: string;
   name?: string | null;
   role: AdminRole;
+  canAccessCustomers?: boolean;
 }
+
 
 interface AuthState {
   admin: Admin | null;
   token: string | null;
   loading: boolean;
+  isSplashScreenVisible: boolean;
 }
 
 const AuthContext = createContext<AuthState & {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signup: (data: { email: string; password: string; name?: string; role?: string }) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   hasRole: (...roles: AdminRole[]) => boolean;
+  setSplashScreenVisible: (visible: boolean) => void;
 } | null>(null);
 
 const TOKEN_KEY = 'adminToken';
@@ -30,12 +35,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     admin: null,
     token: localStorage.getItem(TOKEN_KEY),
     loading: true,
+    isSplashScreenVisible: true, // Always show splash on mount
   });
+
+  const setSplashScreenVisible = useCallback((visible: boolean) => {
+    setState(s => ({ ...s, isSplashScreenVisible: visible }));
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(ADMIN_KEY);
-    setState({ admin: null, token: null, loading: false });
+    setState({
+      admin: null,
+      token: null,
+      loading: false,
+      isSplashScreenVisible: true // Show splash in login page after logout
+    });
   }, []);
 
   useEffect(() => {
@@ -74,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const adminTyped: Admin = { ...admin, role: admin.role as AdminRole };
     localStorage.setItem(TOKEN_KEY, accessToken);
     localStorage.setItem(ADMIN_KEY, JSON.stringify(adminTyped));
-    setState({ admin: adminTyped, token: accessToken, loading: false });
+    setState(s => ({ ...s, admin: adminTyped, token: accessToken, loading: false }));
     return { ok: true };
   }, []);
 
@@ -82,8 +97,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return state.admin ? roles.includes(state.admin.role) : false;
   }, [state.admin]);
 
+  const signup = useCallback(async (data: { email: string; password: string; name?: string; role?: string }) => {
+    const res = await adminApi.signup(data);
+    if (!res.success) {
+      return { ok: false, error: res.error.message };
+    }
+    return { ok: true };
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, hasRole }}>
+    <AuthContext.Provider value={{ ...state, login, signup, logout, hasRole, setSplashScreenVisible }}>
       {children}
     </AuthContext.Provider>
   );

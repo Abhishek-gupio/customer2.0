@@ -1,8 +1,9 @@
 import { Queue, QueueOptions, WorkerOptions } from "bullmq";
 import { env } from "./env";
 import { logger } from "./logger";
+import { getRedisStatus } from "./redis";
 
-const redisUrl = env.REDIS_URL;
+const redisUrl = env.REDIS_ENABLED === false ? undefined : env.REDIS_URL;
 let redisConfig:
   | {
       host: string;
@@ -27,7 +28,8 @@ if (redisUrl) {
   }
 }
 
-export const isQueueEnabled = redisConfig !== null;
+export const isQueueEnabled =
+  redisConfig !== null && getRedisStatus() === "ok";
 
 // Queue Definitions
 export const QUEUE_NAMES = {
@@ -35,6 +37,8 @@ export const QUEUE_NAMES = {
   NOTIFICATIONS: "notifications-queue", // For emails, digests, push notifs
   HEALTH_SCORE: "health-score-queue",
   DATA_PROCESSING: "data-processing-queue", // For heavy analytics, OCR post-processing
+  EXPENSE_INGESTION: "expense-ingestion-queue", // AI ingestion for RAG
+  BUDGET_CHECK: "budget-check-queue", // Real-time budget alerts
 } as const;
 
 // Queue Options
@@ -44,7 +48,7 @@ const defaultQueueOptions: QueueOptions = {
     attempts: 3,
     backoff: {
       type: "exponential",
-      delay: 1000,
+      delay: 5000, // Slightly longer backoff for external API calls
     },
     removeOnComplete: {
       age: 24 * 3600, // Keep for 24 hours
@@ -64,6 +68,14 @@ export const queues = isQueueEnabled
       healthScore: new Queue(QUEUE_NAMES.HEALTH_SCORE, defaultQueueOptions),
       dataProcessing: new Queue(
         QUEUE_NAMES.DATA_PROCESSING,
+        defaultQueueOptions,
+      ),
+      expenseIngestion: new Queue(
+        QUEUE_NAMES.EXPENSE_INGESTION,
+        defaultQueueOptions,
+      ),
+      budgetCheck: new Queue(
+        QUEUE_NAMES.BUDGET_CHECK,
         defaultQueueOptions,
       ),
     }

@@ -1,0 +1,247 @@
+[
+  {
+    "make": "Bajaj",
+    "model": "Platina 100",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/bike/assets/bajaj/platina-100/default/hero/0/1774270933300-HERO-0-c4fb2f807f70726fe1f1e3dce151316e4a6152531d53a6031c99b86bc3bac455.jpg"
+  },
+  {
+    "make": "Bajaj",
+    "model": "Pulsar NS200",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/bike/assets/bajaj/pulsar-ns200/default/hero/0/1774270812132-HERO-0-6b87dedcbf81c28015b602b2f47330085eb1f5cd16e1df18b188a0364b35e593.jpg"
+  },
+  {
+    "make": "Hero",
+    "model": "HF Deluxe",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/bike/assets/hero/hf-deluxe/default/hero/0/1774274703318-HERO-0-c85922898647c1c1de7e20955c58ad271037801296890004cfeee5d623f96850.jpg"
+  },
+  {
+    "make": "Hero",
+    "model": "Splendor Plus",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/bike/assets/hero/splendor-plus/default/hero/0/1774261708357-HERO-0-585aedc950b912e4eadee0d90fd3afccffea8d09aab7ceee06b87fa396048d58.jpg"
+  },
+  {
+    "make": "Hyundai",
+    "model": "Alcazar",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/hyundai/alcazar/default/hero/0/1774274436423-HERO-0-cc2be0c5a2f91f3d84865272864081b7417e870de39d6618a0448ef49458814d.png"
+  },
+  {
+    "make": "Hyundai",
+    "model": "Aura",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/hyundai/aura/default/hero/0/1774274487562-HERO-0-1400908d0ae43e309d5ef78cf83f6b39868d46a34f18b3a14c905ecd08c2978a.png"
+  },
+  {
+    "make": "Hyundai",
+    "model": "Exter",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/hyundai/exter/default/hero/0/1774261469727-HERO-0-d7ed2096ea164b1914036f5e7d1f0fcfede02c117eb7137e0a69f12fd05783cb.png"
+  },
+  {
+    "make": "Hyundai",
+    "model": "Tucson",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/hyundai/tucson/default/hero/0/1774274554271-HERO-0-4e84a6ae90ac6055f637ea30e26e5e9562c22164a716db0dee823113ebb7c004.png"
+  },
+  {
+    "make": "Hyundai",
+    "model": "Venue",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/hyundai/venue/default/hero/0/1774270976131-HERO-0-ff2f3c67e6d03c2358d924a567b92fdeed139b29da8487819f6ced830b2bbc4d.jpg"
+  },
+  {
+    "make": "Hyundai",
+    "model": "Verna",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/hyundai/verna/default/hero/0/1774270904040-HERO-0-c78429e0b1783e311f8738225dfbd1a0c16d4b1c1bfe36e019718f2cb2c6a2a2.jpg"
+  },
+  {
+    "make": "Mahindra",
+    "model": "Bolero",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/mahindra/bolero/default/hero/0/1774261595850-HERO-0-83ef4ec4eb5528dff5404b3c18881fb7aefd7770891ef77942f61c9bb768f734.jpg"
+  },
+  {
+    "make": "Mahindra",
+    "model": "XUV300",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/mahindra/xuv300/default/hero/0/1774261559078-HERO-0-0fe54da5f87f291ddeeb436d7e595f12c623084f5d8d8475054c4800cc40609c.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Alto K10",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/alto-k10/default/hero/0/1774270885243-HERO-0-8cfba5496926ecf646620c882228c3b3456f2b4a7563807be7620fb4e443ab40.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Baleno",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/baleno/default/hero/0/1774265568763-HERO-0-8ec2734b35507667b5ed5f9f529f80f6552fbd9ed10b16730b862e864071114f.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Baleno",
+    "type": "ANGLE",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/baleno/default/angle/0/1774265573640-ANGLE-0-59053804b8239a243a681938e40b9841d2d056399bed3d55d136042733224e67.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Dzire",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/dzire/default/hero/0/1774270911432-HERO-0-7d925e5dbc0e4fdb5a7fbaf3ae85d8719b08079eda9c3d7f7520a9196b1537e3.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Grand Vitara",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/grand-vitara/default/hero/0/1774270815377-HERO-0-86d4140cf34e1924cda4caf671bf742f669e2db4bd51adc9ecd43b966cdc9c10.png"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/hero/0/1774271051229-HERO-0-dab082d696bae6d4a7e913056fa7ca588b310cf562df18daa778e22173d65f2c.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/0/1774261845431-ANGLE-0-804a9e58d59f0e988fdb3575ae88b876d6153e264bbf7b34084f4d9459c71ad4.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 2,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/2/1774263603645-ANGLE-2-cef443d0c79097cd6f6d0cf2e1cdd6e81dd5d283a2aec26d7bb19b350da1e463.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 3,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/3/1774263608906-ANGLE-3-2d93fb6f8eb44bd98e437d24f5f031410b319b37ff54bcf4f07b905b547cff9f.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 4,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/4/1774265472732-ANGLE-4-3ac3b9b6cd89f62bdf150903a089484cd2f3a95b31cf35728755e8249864dd22.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 5,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/5/1774263603746-ANGLE-5-2d93fb6f8eb44bd98e437d24f5f031410b319b37ff54bcf4f07b905b547cff9f.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 6,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/6/1774265579492-ANGLE-6-41bae188d5967a102f6085f0744d8a8af9980cb46bbec3ec9bbf2bb180210d75.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 7,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/7/1774265759166-ANGLE-7-bcb7db039cbf98a648e67b1a2d85d225ce8e71d0225cbd823c9575645b4e6761.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 9,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/9/1774265455631-ANGLE-9-1d948df8967ec53f850e0209a9ad885999e59b5b37352c9642592e81eb6cfd0d.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 10,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/10/1774265557167-ANGLE-10-e09f4f09de602d3265337f670b1fd2d93f220e86da6874fce83de6abf2d2b4de.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Swift",
+    "type": "ANGLE",
+    "assetIndex": 11,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/swift/default/angle/11/1774265562625-ANGLE-11-b058c4e3bdfdffbef609f3f300d0cd4de70ca5a48bb6cc496de39881a1897ffc.jpg"
+  },
+  {
+    "make": "Maruti Suzuki",
+    "model": "Wagon R",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/maruti-suzuki/wagon-r/default/hero/0/1774270825766-HERO-0-b62a22a71bef0d5cc3a16e057d2c3884a9055f33191f69d3cc4a0ab6ecfbd899.jpg"
+  },
+  {
+    "make": "Tata",
+    "model": "Harrier",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/tata/harrier/default/hero/0/1774274603466-HERO-0-99eac83a4872436f79848239f0f459cc4fcba1164cc5f7b0f83fea6222b639e6.jpg"
+  },
+  {
+    "make": "Tata",
+    "model": "Nexon",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/tata/nexon/default/hero/0/1774274601549-HERO-0-0e10000f9b81134276aa50b27fb89503030927f1f89dfe4034f94d87fa2a65f5.png"
+  },
+  {
+    "make": "Tata",
+    "model": "Tiago",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/tata/tiago/default/hero/0/1774274468238-HERO-0-7eada34c38428fb6512296046b0e681bccb1bba88bdf72ce87e33f55a1f5c195.jpg"
+  },
+  {
+    "make": "Tata",
+    "model": "Tigor",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/car/assets/tata/tigor/default/hero/0/1774274552291-HERO-0-75ffeda08d8521b54f88771f6e363baaaa8abb846c46d19e28cbda7899f86d33.jpg"
+  },
+  {
+    "make": "TVS",
+    "model": "Apache RTR 200 4V",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/bike/assets/tvs/apache-rtr-200-4v/default/hero/0/1774271067199-HERO-0-00aca8d57b56c91d7a080213fe5ee43a522a892e4c72c5a454906bc482b517d5.png"
+  },
+  {
+    "make": "Yamaha",
+    "model": "MT-15",
+    "type": "HERO",
+    "assetIndex": 0,
+    "assetUrl": "https://gupio-customer-app-bucket.s3.ap-south-1.amazonaws.com/vehicle-catalog/bike/assets/yamaha/mt-15/default/hero/0/1774274703948-HERO-0-0d57e987d3010a88c54641b38c3c7e997de385baf3543555a081e592e03d77a4.jpg"
+  }
+]

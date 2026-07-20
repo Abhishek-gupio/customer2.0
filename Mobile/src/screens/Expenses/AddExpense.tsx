@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import StatusModal from "../../components/common/Modals/StatusModal";
 import ManualEntryOverlay from "./ManualEntry";
 import ReceiptReviewer from "./ReceiptReviewer";
 import { launchCamera, launchImageLibrary } from "react-native-image-picker";
@@ -32,9 +33,58 @@ import DeviceInfo from "react-native-device-info";
 import { useNavigation } from "../../lib/react-navigation-native";
 import { api } from "../../services/api";
 import { checkImageQuality } from "../../services/documentService";
-import { setExpenseListNeedsRefresh } from "../../utils/refreshManager";
+import { googleMapsService } from "../../services/googleMapsService";
+import { useExpenseStore } from "../../store/expenseStore";
 import { getVoiceLanguageIndex, setVoiceLanguageIndex } from "../../services/storage";
 import { VoiceOwnerContext } from "../../context/VoiceOwnerContext";
+
+type ReceiptAsset = { uri?: string; type?: string; fileName?: string };
+
+let Geolocation: any = null;
+try {
+  const geoModule = require("@react-native-community/geolocation") as any;
+  Geolocation = geoModule?.default ?? geoModule;
+} catch {
+  Geolocation = null;
+}
+
+const SUPPORTED_RECEIPT_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+function inferMimeTypeFromName(nameOrUri?: string) {
+  const value = (nameOrUri || "").toLowerCase();
+  if (value.endsWith(".png")) return "image/png";
+  if (value.endsWith(".webp")) return "image/webp";
+  if (value.endsWith(".jpg") || value.endsWith(".jpeg")) return "image/jpeg";
+  if (value.endsWith(".heic")) return "image/heic";
+  if (value.endsWith(".heif")) return "image/heif";
+  return "image/jpeg";
+}
+
+function normalizeReceiptAsset(asset: ReceiptAsset) {
+  const uri = asset.uri || "";
+  const rawType = (asset.type || "").toLowerCase();
+  const inferredType = inferMimeTypeFromName(asset.fileName || uri);
+  const detectedType =
+    !rawType || rawType === "application/octet-stream" || rawType === "image/*"
+      ? inferredType
+      : rawType === "image/jpg"
+        ? "image/jpeg"
+        : rawType;
+  const isUnsupportedAppleFormat = detectedType === "image/heic" || detectedType === "image/heif";
+  const type = isUnsupportedAppleFormat ? detectedType : detectedType || "image/jpeg";
+  const extension =
+    type === "image/png" ? "png" : type === "image/webp" ? "webp" : "jpg";
+  const fileName =
+    asset.fileName && /\.[a-z0-9]+$/i.test(asset.fileName)
+      ? asset.fileName
+      : `receipt_${Date.now()}.${extension}`;
+
+  return { uri, type, fileName, detectedType };
+}
 
 // Option A: device STT → send text only (fast, no upload). User picks default language.
 const VOICE_LANGUAGES: { label: string; locale: string }[] = [
@@ -52,9 +102,10 @@ const VOICE_LANGUAGES: { label: string; locale: string }[] = [
 
 export default function AddExpenseScreen() {
   const navigation = useNavigation();
-  const { setVoiceOwner } = useContext(VoiceOwnerContext);
+  const { voiceOwner, setVoiceOwner } = useContext(VoiceOwnerContext);
   const [showManual, setShowManual] = useState(false);
   const [manualInitialData, setManualInitialData] = useState<any>(null);
+  const [showScanOptions, setShowScanOptions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [voiceText, setVoiceText] = useState("");
@@ -64,16 +115,177 @@ export default function AddExpenseScreen() {
   const [reviewSource, setReviewSource] = useState<"RECEIPT" | "VOICE">("RECEIPT");
   const [voiceLanguageIndex, setVoiceLanguageIndexState] = useState(() => getVoiceLanguageIndex());
   const [showVoiceLangPicker, setShowVoiceLangPicker] = useState(false);
+  const voiceStartInFlightRef = useRef(false);
+  const voiceResultHandledRef = useRef(false);
+  const voiceCleanupRef = useRef(false);
+  const voiceBusyRetryRef = useRef(0);
+  const voicePartialTextRef = useRef("");
+  const voiceEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentLocationRef = useRef("");
+  const [statusModal, setStatusModal] = useState({
+    visible: false,
+    type: 'success' as 'success' | 'delete' | 'error',
+    title: '',
+    message: '',
+    onClose: () => { },
+  });
+
+  const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success', onClose?: () => void) => {
+    setStatusModal({ visible: true, type, title, message, onClose: onClose || (() => { }) });
+  };
+
+  const clearVoiceEndTimeout = () => {
+    if (voiceEndTimeoutRef.current) {
+      clearTimeout(voiceEndTimeoutRef.current);
+      voiceEndTimeoutRef.current = null;
+    }
+  };
+
+  const releaseVoiceSession = async () => {
+    clearVoiceEndTimeout();
+    voiceStartInFlightRef.current = false;
+    voiceCleanupRef.current = true;
+    setIsRecording(false);
+    try {
+      if (typeof (Voice as any)?.stop === "function") {
+        await (Voice as any).stop().catch(() => {});
+      }
+      if (typeof (Voice as any)?.cancel === "function") {
+        await (Voice as any).cancel().catch(() => {});
+      }
+    } catch (_) {}
+    setVoiceOwner(null);
+    setTimeout(() => {
+      voiceCleanupRef.current = false;
+    }, 350);
+  };
+
+  const getPreferredVoiceLocales = () => {
+    const locales: string[] = [];
+    const preferredLocale =
+      voiceLanguageIndex > 0 && VOICE_LANGUAGES[voiceLanguageIndex]?.locale
+        ? VOICE_LANGUAGES[voiceLanguageIndex].locale
+        : "";
+    if (preferredLocale) locales.push(preferredLocale);
+    try {
+      const deviceLocale = (DeviceInfo as any).getDeviceLocale?.();
+      if (deviceLocale && typeof deviceLocale === "string") {
+        locales.push(deviceLocale.replace("_", "-"));
+      }
+    } catch (_) {}
+    locales.push("en-IN", "en-US");
+    return [...new Set(locales.filter(Boolean))];
+  };
+
+  const requestLocationPermission = async (): Promise<boolean> => {
+    if (Platform.OS === "ios") {
+      try {
+        if (Geolocation?.requestAuthorization) {
+          const status = await Geolocation.requestAuthorization("whenInUse");
+          return (
+            status === "granted" ||
+            status === "authorized" ||
+            status === "authorizedWhenInUse"
+          );
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    try {
+      const fine = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+      const coarse = PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      const fineHas = await PermissionsAndroid.check(fine);
+      const coarseHas = await PermissionsAndroid.check(coarse);
+      if (fineHas || coarseHas) return true;
+
+      const results = await PermissionsAndroid.requestMultiple([fine, coarse]);
+      return (
+        results[fine] === PermissionsAndroid.RESULTS.GRANTED ||
+        results[coarse] === PermissionsAndroid.RESULTS.GRANTED
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const getGpsPosition = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (!Geolocation) return null;
+
+    const permitted = await requestLocationPermission();
+    if (!permitted) return null;
+
+    const getPositionOnce = (options: any) =>
+      new Promise<{ latitude: number; longitude: number } | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (position: any) =>
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            }),
+          () => resolve(null),
+          options,
+        );
+      });
+
+    const highAccuracy = await getPositionOnce({
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+    if (highAccuracy) return highAccuracy;
+
+    return getPositionOnce({
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 60000,
+      forceRequestLocation: true,
+    });
+  };
+
+  const getCurrentLocationLabel = async () => {
+    if (currentLocationRef.current) return currentLocationRef.current;
+
+    try {
+      const gpsCoords = await getGpsPosition();
+      const coords = gpsCoords ?? await googleMapsService.getCurrentLocation();
+      const address = await googleMapsService.getAddress(coords.latitude, coords.longitude);
+      currentLocationRef.current = address;
+      return address;
+    } catch {
+      return "";
+    }
+  };
+
+  const handleCapturedSpeech = (speechText: string) => {
+    const normalizedText = speechText.trim();
+    if (!normalizedText || voiceResultHandledRef.current) return;
+    voiceResultHandledRef.current = true;
+    clearVoiceEndTimeout();
+    voicePartialTextRef.current = normalizedText;
+    setVoiceText(normalizedText);
+    setIsRecording(false);
+    setVoiceOwner(null);
+    void processVoiceCommand(normalizedText);
+    void releaseVoiceSession();
+  };
 
   // Voice: only check availability on mount. Handlers are set when user taps "Add by Voice" so Hey Gupio can keep the mic until then.
   useEffect(() => {
     if (!Voice) setVoiceAvailable(false);
     else setVoiceAvailable(true);
+    void getCurrentLocationLabel();
     return () => {
       // Release mic when leaving screen so Hey Gupio can listen again (do not destroy – shared with Hey Gupio)
+      clearVoiceEndTimeout();
       try {
-        if (typeof Voice?.stop === "function") Voice.stop();
+        if (typeof (Voice as any)?.stop === "function") (Voice as any).stop();
+        if (typeof (Voice as any)?.cancel === "function") (Voice as any).cancel();
       } catch (_) {}
+      voiceStartInFlightRef.current = false;
       setVoiceOwner(null);
     };
   }, [setVoiceOwner]);
@@ -81,9 +293,10 @@ export default function AddExpenseScreen() {
   const processVoiceCommand = async (speechText: string) => {
     const trimmed = (speechText || "").trim();
     if (trimmed.length < 2) {
-      Alert.alert(
+      showStatus(
         "No speech detected",
         "Please speak clearly with amount and category (e.g. 500 rupees fuel today).",
+        "error"
       );
       return;
     }
@@ -97,6 +310,19 @@ export default function AddExpenseScreen() {
       const resData = response as any;
       const result = resData?.data ?? resData;
       const expense = result?.expense ?? result?.data?.expense;
+      let parsedLocation =
+        [
+          expense?.location,
+          expense?.address,
+          expense?.merchantAddress,
+          expense?.storeAddress,
+          expense?.vendorAddress,
+          expense?.place,
+          expense?.placeAddress,
+        ].find((value) => typeof value === "string" && value.trim().length > 0) || "";
+      if (!parsedLocation) {
+        parsedLocation = await getCurrentLocationLabel();
+      }
 
       if (expense && (typeof expense.amount === "number" ? expense.amount > 0 : Number(expense.amount) > 0)) {
         const exp = expense;
@@ -115,19 +341,22 @@ export default function AddExpenseScreen() {
           category: exp.category ?? "OTHER",
           description: [exp.merchantName, exp.notes].filter(Boolean).join(" · ") || exp.transcription || trimmed,
           date: dateStr,
+          location: parsedLocation,
           source: "voice",
         });
         setReviewSource("VOICE");
         setShowReviewer(true);
       } else if (result?.error?.message || result?.error) {
-        Alert.alert(
+        showStatus(
           "Voice Processing",
           result.error?.message || result.error || "Could not parse expense from voice command.",
+          "error"
         );
       } else if (!expense) {
-        Alert.alert(
+        showStatus(
           "Couldn't understand",
           "Say amount and category clearly (e.g. 500 rupees fuel today). Or use manual entry.",
+          "error"
         );
       }
     } catch (error: any) {
@@ -140,44 +369,66 @@ export default function AddExpenseScreen() {
         /say the amount clearly/i.test(String(msg));
 
       if (isAiNotConfigured || isNoAmount) {
-        Alert.alert(
+        showStatus(
           "Voice Not Available",
           isAiNotConfigured
             ? "Voice parsing is not set up on the server. We’ll open manual entry with your spoken text."
             : "We couldn't detect the amount from your voice. We'll open manual entry with your spoken text.",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setManualInitialData({ description: trimmed });
-                setShowManual(true);
-              },
-            },
-          ],
+          "error",
+          () => {
+            setManualInitialData({ description: trimmed });
+            setShowManual(true);
+          }
         );
       } else {
-        Alert.alert("Error", msg);
+        showStatus("Error", msg, "error");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const uploadAndParseReceipt = async (asset: { uri?: string; type?: string; fileName?: string }) => {
-    if (!asset.uri) return;
+  const uploadAndParseReceipt = async (asset: ReceiptAsset) => {
+    const normalizedAsset = normalizeReceiptAsset(asset);
+    if (!normalizedAsset.uri) return;
+    if (normalizedAsset.detectedType === "image/heic" || normalizedAsset.detectedType === "image/heif") {
+      showStatus(
+        "Unsupported format",
+        "This receipt photo is in HEIC format. Please retake it as JPG/PNG or choose a compatible image from gallery.",
+        "error"
+      );
+      return;
+    }
+    if (!SUPPORTED_RECEIPT_MIME_TYPES.has(normalizedAsset.type)) {
+      showStatus(
+        "Unsupported format",
+        "Please use a JPG, PNG, or WebP image for receipt scanning.",
+        "error"
+      );
+      return;
+    }
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append('file', {
-        uri: asset.uri,
-        type: asset.type || 'image/jpeg',
-        name: asset.fileName || 'receipt.jpg',
+        uri: normalizedAsset.uri,
+        type: normalizedAsset.type,
+        name: normalizedAsset.fileName,
       } as any);
 
       const res = await api.upload<any>('/v1/expenses/parse/receipt?dryRun=true', formData);
       const result = res?.data ?? res;
 
       if (result.success && result.expense) {
+        const parsedLocation =
+          [
+            result.expense.location,
+            result.expense.address,
+            result.expense.merchantAddress,
+            result.expense.storeAddress,
+            result.expense.vendorAddress,
+            result.expense.place,
+          ].find((value) => typeof value === "string" && value.trim().length > 0) || "";
         let formattedDate = "";
         if (result.expense.date) {
           const d = new Date(result.expense.date);
@@ -188,39 +439,58 @@ export default function AddExpenseScreen() {
           category: result.expense.category,
           description: result.expense.notes || result.expense.merchantName || "",
           date: formattedDate,
+          location: parsedLocation,
           receiptUrl: result.expense.receiptUrl,
           mimeType: result.expense.mimeType,
         });
         setReviewSource("RECEIPT");
         setShowReviewer(true);
       } else if (result.receiptUrl) {
+        const parsedLocation =
+          [
+            result.location,
+            result.address,
+            result.merchantAddress,
+            result.storeAddress,
+            result.vendorAddress,
+            result.place,
+          ].find((value) => typeof value === "string" && value.trim().length > 0) || "";
         setScannedData({
           amount: "",
           category: "Other",
           description: "",
           date: "",
+          location: parsedLocation,
           receiptUrl: result.receiptUrl,
           mimeType: result.mimeType || undefined,
         });
         setReviewSource("RECEIPT");
         setShowReviewer(true);
       } else {
-        Alert.alert("Scan Failed", result.error?.message || "Could not read receipt. Please try again or enter manually.");
+        showStatus("Scan Failed", result.error?.message || "Could not read receipt. Please try again or enter manually.", "error");
       }
     } catch (e: any) {
-      const msg = e?.message ?? "";
+      const msg = String(e?.message ?? "").trim();
       const isParseFailed = msg.includes("Could not detect expense amount");
+      const isReceiptMismatch =
+        /does not look like a receipt|please scan a receipt or bill/i.test(msg);
+      const isAiNotConfigured = /ai not configured|gemini|not configured/i.test(msg);
+      const isTooLarge = /request entity too large|payload too large|file too large|413/i.test(msg);
       if (isParseFailed) {
-        Alert.alert(
+        showStatus(
           "Couldn't Read Amount",
-          "We couldn't detect the amount from the receipt. Would you like to enter it manually?",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Enter Manually", onPress: () => { setScannedData(null); setShowReviewer(false); setShowManual(true); } },
-          ]
+          "We couldn't detect the amount from the receipt. We'll open manual entry for you.",
+          "error",
+          () => { setScannedData(null); setShowReviewer(false); setShowManual(true); }
         );
+      } else if (isReceiptMismatch) {
+        showStatus("Not a receipt", "Please upload a clear receipt or bill photo.", "error");
+      } else if (isAiNotConfigured) {
+        showStatus("扫描不可用", "Receipt scanning is not configured on the server right now.", "error");
+      } else if (isTooLarge) {
+        showStatus("Receipt too large", "Please retake the receipt a bit closer or use a smaller JPG/PNG image.", "error");
       } else {
-        Alert.alert("Upload Error", msg || "Failed to upload receipt");
+        showStatus("Scan Error", msg || "Could not scan this receipt.", "error");
       }
     } finally {
       setLoading(false);
@@ -253,40 +523,42 @@ export default function AddExpenseScreen() {
         { title: "Camera Permission", message: "App needs camera access to scan bills", buttonPositive: "OK" }
       );
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert("Permission needed", "Camera access is required to scan bills.");
+        showStatus("Permission needed", "Camera access is required to scan bills.", "error");
         return;
       }
     }
     try {
       const response = await (launchCamera as any)({
         mediaType: "photo",
-        quality: 0.5,
+        quality: 0.7,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        selectionLimit: 1,
+        assetRepresentationMode: "compatible",
       });
       if (response.errorCode) {
-        Alert.alert("Camera Error", response.errorMessage || "Could not capture image.");
+        showStatus("Camera Error", response.errorMessage || "Could not capture image.", "error");
         return;
       }
       if (!response.didCancel && response.assets?.[0]) {
-        const asset = response.assets[0];
+        const asset = normalizeReceiptAsset(response.assets[0]);
         setLoading(true);
         const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || "image/jpeg");
         if (result.ok) {
           uploadAndParseReceipt(asset);
         } else {
           setLoading(false);
-          Alert.alert(
+          showStatus(
             "Image quality",
             result.hints.join("\n\n") + "\n\nYou can retake or use this image anyway.",
-            [
-              { text: "Retake", style: "cancel" },
-              { text: "Use anyway", onPress: () => uploadAndParseReceipt(asset) },
-            ]
+            "error",
+            () => uploadAndParseReceipt(asset)
           );
         }
       }
     } catch (error: any) {
       setLoading(false);
-      Alert.alert("Camera Error", error?.message || "Could not open camera.");
+      showStatus("Camera Error", error?.message || "Could not open camera.", "error");
     }
   };
 
@@ -294,68 +566,57 @@ export default function AddExpenseScreen() {
     if (Platform.OS === "android") {
       const granted = await requestStoragePermission();
       if (!granted) {
-        Alert.alert("Permission needed", "Photo library access is required to select receipts.");
+        showStatus("Permission needed", "Photo library access is required to select receipts.", "error");
         return;
       }
     }
     try {
       const response = await (launchImageLibrary as any)({
         mediaType: "photo",
-        quality: 0.5,
+        quality: 0.7,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        selectionLimit: 1,
+        assetRepresentationMode: "compatible",
       });
       if (response.errorCode) {
-        Alert.alert("Error", response.errorMessage || "Could not pick image.");
+        showStatus("Error", response.errorMessage || "Could not pick image.", "error");
         return;
       }
       if (!response.didCancel && response.assets?.[0]) {
-        const asset = response.assets[0];
+        const asset = normalizeReceiptAsset(response.assets[0]);
         setLoading(true);
         const result = await checkImageQuality(asset.uri, asset.fileName, asset.type || "image/jpeg");
         if (result.ok) {
           uploadAndParseReceipt(asset);
         } else {
           setLoading(false);
-          Alert.alert(
+          showStatus(
             "Image quality",
             result.hints.join("\n\n") + "\n\nYou can pick another or use this image anyway.",
-            [
-              { text: "Pick another", style: "cancel" },
-              { text: "Use anyway", onPress: () => uploadAndParseReceipt(asset) },
-            ]
+            "error",
+            () => uploadAndParseReceipt(asset)
           );
         }
       }
     } catch (error: any) {
       setLoading(false);
-      Alert.alert("Error", error?.message || "Could not pick image.");
+      showStatus("Error", error?.message || "Could not pick image.", "error");
     }
   };
 
   const showScanBillsPicker = () => {
-    const run = (fn: () => void) => {
-      InteractionManager.runAfterInteractions(() => setTimeout(fn, 100));
-    };
-    if (Platform.OS === "ios" && ActionSheetIOS) {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: ["Take Photo", "Upload from Gallery", "Cancel"], cancelButtonIndex: 2 },
-        (i) => { if (i === 0) run(handleTakePhoto); else if (i === 1) run(handlePickFromGallery); }
-      );
-    } else {
-      Alert.alert(
-        "Scan Receipt",
-        "Use a receipt or bill (e.g. fuel slip, service bill). Choose source:",
-        [
-          { text: "Take Photo", onPress: () => run(handleTakePhoto) },
-          { text: "Upload from Gallery", onPress: () => run(handlePickFromGallery) },
-          { text: "Cancel", style: "cancel" },
-        ]
-      );
-    }
+    setShowScanOptions(true);
   };
 
   const startVoiceRecording = async () => {
     if (!voiceAvailable) {
-      Alert.alert("Voice Not Available", "Please use manual entry or scan bills instead.");
+      showStatus("Voice Not Available", "Please use manual entry or scan bills instead.", "error");
+      return;
+    }
+    if (voiceStartInFlightRef.current) return;
+    if (voiceOwner && voiceOwner !== "addExpense" && voiceOwner !== "heyGupio") {
+      showStatus("Mic In Use", "Another feature is using the microphone right now.", "error");
       return;
     }
     try {
@@ -367,10 +628,7 @@ export default function AddExpenseScreen() {
             { title: "Microphone", message: "Needed for voice expense.", buttonPositive: "OK" }
           );
           if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            Alert.alert("Permission", "Enable microphone in settings.", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Settings", onPress: () => Linking.openSettings() },
-            ]);
+            showStatus("Permission", "Enable microphone in settings.", "error", () => Linking.openSettings());
             return;
           }
         }
@@ -378,28 +636,67 @@ export default function AddExpenseScreen() {
 
       if (!Voice || typeof Voice.start !== "function") {
         setVoiceAvailable(false);
-        Alert.alert("Voice Not Available", "Use manual entry or scan bills.");
+        showStatus("Voice Not Available", "Use manual entry or scan bills.", "error");
         return;
       }
+      voiceStartInFlightRef.current = true;
+      voiceResultHandledRef.current = false;
+      voiceCleanupRef.current = false;
+      voiceBusyRetryRef.current = 0;
+      voicePartialTextRef.current = "";
+      clearVoiceEndTimeout();
       // Claim mic so Hey Gupio stops listening, then stop any current session
       setVoiceOwner("addExpense");
+      await new Promise((resolve) => setTimeout(resolve, 250));
       try {
+        await (Voice as any).cancel?.().catch(() => {});
         if (typeof Voice.stop === "function") await Voice.stop();
+        await (Voice as any).destroy?.().catch(() => {});
+        (Voice as any).removeAllListeners?.();
       } catch (_) {}
       setVoiceText("");
 
-      // Set our handlers only while we own the mic (Hey Gupio will re-register when we release)
-      Voice.onSpeechStart = () => setIsRecording(true);
-      Voice.onSpeechEnd = () => setIsRecording(false);
-      Voice.onSpeechResults = (results: { value?: string[] }) => {
-        if (results?.value?.length) {
-          const speechText = results.value[0];
-          setVoiceText(speechText);
-          processVoiceCommand(speechText);
+      // Set our handlers only while we own the mic.
+      Voice.onSpeechStart = () => {
+        clearVoiceEndTimeout();
+        voiceStartInFlightRef.current = false;
+        voiceCleanupRef.current = false;
+        voiceBusyRetryRef.current = 0;
+        setIsRecording(true);
+      };
+      (Voice as any).onSpeechPartialResults = (results: { value?: string[] }) => {
+        const partialText = results?.value?.find((item) => item?.trim())?.trim();
+        if (!partialText || voiceResultHandledRef.current) return;
+        if (partialText.length >= voicePartialTextRef.current.length) {
+          voicePartialTextRef.current = partialText;
+          setVoiceText(partialText);
         }
       };
-      (Voice as any).onSpeechError = (error: any) => {
+      Voice.onSpeechEnd = () => {
         setIsRecording(false);
+        clearVoiceEndTimeout();
+        voiceEndTimeoutRef.current = setTimeout(() => {
+          if (voiceResultHandledRef.current) return;
+          const fallbackText = voicePartialTextRef.current.trim();
+          if (fallbackText.length >= 2) {
+            handleCapturedSpeech(fallbackText);
+            return;
+          }
+          void releaseVoiceSession();
+          showStatus(
+            "Couldn't hear you",
+            "We didn't catch any speech. Try again closer to the mic.",
+            "error"
+          );
+        }, 900);
+      };
+      Voice.onSpeechResults = (results: { value?: string[] }) => {
+        const speechText = results?.value?.find((item) => item?.trim())?.trim();
+        if (speechText) handleCapturedSpeech(speechText);
+      };
+      (Voice as any).onSpeechError = (error: any) => {
+        clearVoiceEndTimeout();
+        voiceStartInFlightRef.current = false;
         const rawMsg =
           typeof error?.error?.message === "string"
             ? error.error.message
@@ -407,92 +704,111 @@ export default function AddExpenseScreen() {
             ? error.message
             : String(error?.error || error || "");
         const msg = rawMsg.toLowerCase();
+        const code = Number(error?.error?.code ?? error?.code);
         console.log("Speech Error:", rawMsg);
+        const isExpectedCleanupError =
+          voiceCleanupRef.current || voiceResultHandledRef.current;
+        if (
+          isExpectedCleanupError &&
+          (msg.includes("cancel") || msg.includes("stopped") || msg.includes("busy") || code === 5 || code === 8)
+        ) {
+          return;
+        }
+
+        const fallbackText = voicePartialTextRef.current.trim();
+        if (
+          !voiceResultHandledRef.current &&
+          fallbackText.length >= 2 &&
+          (msg.includes("no match") || msg.includes("timeout") || msg.includes("didn't understand") || code === 6 || code === 7)
+        ) {
+          handleCapturedSpeech(fallbackText);
+          return;
+        }
 
         // Common benign cases: no speech / user canceled / no match / low confidence
         if (
           msg.includes("no speech") ||
           msg.includes("no match") ||
           msg.includes("timeout") ||
+          msg.includes("cancel") ||
           msg.includes("didn't understand") ||
           msg.startsWith("7/") || // 7/No match on some devices
           msg.startsWith("11/") // 11/Didn't understand, please try again.
         ) {
-          Alert.alert(
+          void releaseVoiceSession();
+          showStatus(
             "Couldn’t hear you",
-            "We didn’t catch any speech. Try again closer to the mic and speak clearly.",
+            "We didn’t catch any speech. Try again closer to the mic.",
+            "error"
           );
           return;
         }
 
         // Permission / privacy
         if (msg.includes("permission") || msg.includes("denied") || msg.includes("record audio")) {
-          Alert.alert(
+          void releaseVoiceSession();
+          showStatus(
             "Microphone blocked",
-            "Microphone permission is off. Please enable it in system settings for this app.",
+            "Microphone permission is off. Please enable it in system settings.",
+            "error"
           );
+          return;
+        }
+
+        if (msg.includes("busy")) {
+          if (voiceBusyRetryRef.current < 1) {
+            voiceBusyRetryRef.current += 1;
+            setTimeout(() => {
+              startVoiceRecording().catch(() => {});
+            }, 450);
+            return;
+          }
+          void releaseVoiceSession();
+          showStatus("Microphone busy", "Please wait a moment and try again.", "error");
           return;
         }
 
         // Recognizer / engine not present on device
         if (msg.includes("recognizer not present") || msg.includes("service not available") || msg.includes("not available")) {
-          Alert.alert(
+          void releaseVoiceSession();
+          showStatus(
             "Voice not available",
-            "This device doesn’t have a working speech recognizer. Please use manual entry or scan receipt.",
+            "This device doesn’t have a working speech recognizer.",
+            "error"
           );
           return;
         }
 
         // Fallback: generic error
-        Alert.alert(
+        void releaseVoiceSession();
+        showStatus(
           "Voice Error",
-          rawMsg || "There was a problem with voice recognition. Please try again or use manual entry.",
+          rawMsg || "There was a problem with voice recognition.",
+          "error"
         );
       };
 
-      // Use saved default language (or Auto = device locale)
-      let locale = "en-US";
-      if (voiceLanguageIndex > 0 && VOICE_LANGUAGES[voiceLanguageIndex]?.locale) {
-        locale = VOICE_LANGUAGES[voiceLanguageIndex].locale;
-      } else {
+      let started = false;
+      for (const locale of getPreferredVoiceLocales()) {
         try {
-          const deviceLocale = (DeviceInfo as any).getDeviceLocale?.();
-          if (deviceLocale && typeof deviceLocale === "string") locale = deviceLocale.replace("_", "-");
-        } catch (_) { }
+          await Voice.start(locale);
+          started = true;
+          break;
+        } catch (_) {
+          continue;
+        }
       }
-
-      try {
-        await Voice.start(locale);
-      } catch (nativeErr: any) {
-        if (locale !== "en-US") {
-          try {
-            await Voice.start("en-US");
-          } catch (_) {
-            throw nativeErr;
-          }
-        } else throw nativeErr;
-      }
+      if (!started) throw new Error("Voice recognition failed to start.");
       setIsRecording(true);
-      Alert.alert(
-        "Voice",
-        `Speak your expense in ${VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "your language"} (amount, category, date).`,
-        [{ text: "Stop", onPress: stopVoiceRecording }]
-      );
     } catch (e: any) {
-      setIsRecording(false);
-      setVoiceAvailable(false);
-      Alert.alert("Voice Error", e?.message ?? "Try again or use manual entry.");
+      await releaseVoiceSession();
+      showStatus("Voice Error", e?.message ?? "Try again or use manual entry.", "error");
     }
   };
 
   const stopVoiceRecording = async () => {
-    setIsRecording(false);
-    if (Voice && typeof Voice.stop === "function") {
-      try {
-        await Voice.stop();
-      } catch (_) {}
-    }
-    setVoiceOwner(null);
+    voiceResultHandledRef.current = true;
+    await releaseVoiceSession();
   };
 
   return (
@@ -533,6 +849,16 @@ export default function AddExpenseScreen() {
             </Text>
           </TouchableOpacity>
 
+          {voiceAvailable && (
+            <Text style={styles.voiceStatusText}>
+              {isRecording
+                ? `Listening in ${VOICE_LANGUAGES[voiceLanguageIndex]?.label ?? "Auto"}. Say amount, category, date, and location.`
+                : voiceText
+                  ? `Last voice input: ${voiceText}`
+                  : "Say something like 500 rupees fuel today at Shell Banjara Hills."}
+            </Text>
+          )}
+
           <ActionCard
             icon="create-outline"
             label="Enter Manually"
@@ -552,7 +878,7 @@ export default function AddExpenseScreen() {
           setShowManual(false);
         }}
         onSuccess={() => {
-          setExpenseListNeedsRefresh();
+          useExpenseStore.getState().notifyCreated();
           setShowManual(false);
           navigation.goBack();
         }}
@@ -567,12 +893,70 @@ export default function AddExpenseScreen() {
           setScannedData(null);
         }}
         onSuccess={() => {
-          setExpenseListNeedsRefresh();
+          useExpenseStore.getState().notifyCreated();
           setShowReviewer(false);
           setScannedData(null);
           navigation.goBack();
         }}
       />
+      <StatusModal
+        visible={statusModal.visible}
+        type={statusModal.type}
+        title={statusModal.title}
+        message={statusModal.message}
+        onClose={() => {
+          const cb = statusModal.onClose;
+          setStatusModal(prev => ({ ...prev, visible: false, onClose: () => { } }));
+          cb();
+        }}
+      />
+
+      <Modal
+        visible={showScanOptions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowScanOptions(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowScanOptions(false)}>
+          <View style={styles.optionsContainer}>
+            <Text style={styles.optionsTitle}>Scan Receipt</Text>
+            <Text style={styles.optionsSubtitle}>Choose a source for your bill or receipt</Text>
+            
+            <TouchableOpacity 
+              style={styles.optionItem} 
+              onPress={() => { setShowScanOptions(false); setTimeout(handleTakePhoto, 300); }}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                <Ionicons name="camera-outline" size={24} color="#10B981" />
+              </View>
+              <View style={styles.optionText}>
+                <Text style={styles.optionLabel}>Take Photo</Text>
+                <Text style={styles.optionDesc}>Capture a clear photo of your receipt</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionItem} 
+              onPress={() => { setShowScanOptions(false); setTimeout(handlePickFromGallery, 300); }}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                <Ionicons name="image-outline" size={24} color="#3B82F6" />
+              </View>
+              <View style={styles.optionText}>
+                <Text style={styles.optionLabel}>Upload from Gallery</Text>
+                <Text style={styles.optionDesc}>Pick an existing photo from your device</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.optionsCancel} 
+              onPress={() => setShowScanOptions(false)}
+            >
+              <Text style={styles.optionsCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
 
       <Modal
         visible={showVoiceLangPicker}
@@ -646,7 +1030,90 @@ function ActionCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end', // Align panel to bottom or center? The original was centered.
+    justifyContent: 'flex-end',
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.92)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  loadingText: {
+    color: "#fff",
+    marginTop: 20,
+    fontSize: 18,
+    fontFamily: "Outfit-Bold",
+    letterSpacing: 0.5,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  optionsContainer: {
+    width: '100%',
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 48 : 32,
+  },
+  optionsTitle: {
+    color: '#FFF',
+    fontSize: 22,
+    fontFamily: 'Outfit-Bold',
+    marginBottom: 4,
+  },
+  optionsSubtitle: {
+    color: '#8E8E93',
+    fontSize: 15,
+    fontFamily: 'Outfit-Regular',
+    marginBottom: 24,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+  },
+  optionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  optionText: {
+    flex: 1,
+  },
+  optionLabel: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: 'Outfit-Bold',
+  },
+  optionDesc: {
+    color: '#8E8E93',
+    fontSize: 13,
+    fontFamily: 'Outfit-Regular',
+  },
+  optionsCancel: {
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  optionsCancelText: {
+    color: '#FFF',
+    fontSize: 17,
+    fontFamily: 'Outfit-Bold',
   },
   backdrop: {
     flex: 1,
@@ -724,6 +1191,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  voiceStatusText: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 13,
+    textAlign: "center",
+    marginTop: -4,
+    marginBottom: 14,
+    paddingHorizontal: 16,
+    lineHeight: 18,
   },
   langPickerBackdrop: {
     flex: 1,

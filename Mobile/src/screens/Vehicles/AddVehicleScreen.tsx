@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, ScrollView,
-    StyleSheet, Dimensions, ActivityIndicator, Alert,
+    StyleSheet, Dimensions, Alert,
     KeyboardAvoidingView, Platform
 } from 'react-native';
+import StatusModal from '../../components/common/Modals/StatusModal';
 import {
     ArrowLeft, ArrowRight, Car, Bike, Check, Calendar, Hash, Type,
     ShieldCheck, ClipboardCheck, Info, Gauge, Bookmark
 } from 'lucide-react-native';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
+import LoaderButton from '../../components/Button';
 
 const { width } = Dimensions.get('window');
 
@@ -27,19 +29,27 @@ const VEHICLE_TYPES = ['CAR', 'BIKE'];
 
 export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationNumber }: AddVehicleScreenProps) => {
     const [step, setStep] = useState<Step>('INPUT');
+    const [verifyLoading, setVerifyLoading] = useState(false);
+    const [saveLoading, setSaveLoading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [statusModal, setStatusModal] = useState({
+        visible: false,
+        type: 'success' as 'success' | 'delete' | 'error',
+        title: '',
+        message: '',
+    });
+    const showStatus = (title: string, message: string, type: 'success' | 'delete' | 'error' = 'success') => {
+        setStatusModal({ visible: true, type, title, message });
+    };
     const [form, setForm] = useState({
         registrationNumber: '',
         make: '',
         model: '',
-        variant: '',
-        year: '',
         fuelType: 'PETROL' as const,
         vehicleType: 'CAR' as 'CAR' | 'BIKE',
         registrationDate: '',
         chassisNumber: '',
         engineNumber: '',
-        currentOdometer: '',
         rtoDetails: null as any,
     });
 
@@ -51,7 +61,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
     }, [initialRegistrationNumber]);
 
     const autoVerify = async (plate: string) => {
-        setLoading(true);
+        setVerifyLoading(true);
         try {
             const rtoData = await vehicleService.verifyVehicle(plate);
             setForm(prev => ({
@@ -64,7 +74,6 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                 chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
                 engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
                 registrationDate: rtoData.regDate || rtoData.registrationDate || '',
-                year: rtoData.year ? String(rtoData.year) : prev.year,
                 rtoDetails: rtoData,
             }));
             setStep('CONFIRM');
@@ -72,7 +81,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
             console.warn('[AddVehicleScreen] autoVerify failed:', error);
             // Fallback to manual input stage if auto-verify fails, but pre-fill plate
         } finally {
-            setLoading(false);
+            setVerifyLoading(false);
         }
     };
 
@@ -82,24 +91,52 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
 
     const handleProceedToConfirm = () => {
         if (!form.registrationNumber || !form.make || !form.model) {
-            Alert.alert("Required Fields", "Please fill Registration Number, Brand, and Model.");
+            showStatus("Required Fields", "Please fill Registration Number, Brand, and Model.", "error");
             return;
         }
         setStep('CONFIRM');
     };
 
+    const handleVerifyVehicle = async () => {
+        if (form.registrationNumber.length < 7 || verifyLoading || saveLoading) {
+            return;
+        }
+
+        setVerifyLoading(true);
+        try {
+            const rtoData = await vehicleService.verifyVehicle(form.registrationNumber);
+            setForm(prev => ({
+                ...prev,
+                make: rtoData.make || rtoData.brand || '',
+                model: rtoData.model || '',
+                vehicleType: (rtoData.vehicleType as any) || prev.vehicleType,
+                fuelType: (rtoData.fuelType as any) || prev.fuelType,
+                chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
+                engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
+                registrationDate: rtoData.regDate || rtoData.registrationDate || '',
+                rtoDetails: rtoData,
+            }));
+            setStep('CONFIRM');
+        } catch (error: any) {
+            Alert.alert("Verification Failed", error?.message || "Could not verify vehicle details.");
+        } finally {
+            setVerifyLoading(false);
+        }
+    };
+
     const handleSave = async () => {
-        setLoading(true);
+        if (saveLoading || verifyLoading) {
+            return;
+        }
+
+        setSaveLoading(true);
         try {
             const vehicleData = {
                 registrationNumber: form.registrationNumber.toUpperCase().replace(/\s/g, ''),
                 make: form.make,
                 model: form.model,
-                variant: form.variant,
-                year: form.year ? Number(form.year) : undefined,
                 fuelType: form.fuelType,
                 vehicleType: form.vehicleType,
-                currentOdometer: form.currentOdometer ? Number(form.currentOdometer) : undefined,
                 registrationDate: form.registrationDate ? new Date(form.registrationDate).toISOString() : undefined,
                 chassisNumber: form.chassisNumber,
                 engineNumber: form.engineNumber,
@@ -111,9 +148,9 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
             onDone(result);
         } catch (error: any) {
             console.error('[AddVehicleScreen] handleSave error:', error);
-            Alert.alert('Error', error?.message || 'Failed to save vehicle.');
+            showStatus('Error', error?.message || 'Failed to save vehicle.', 'error');
         } finally {
-            setLoading(false);
+            setSaveLoading(false);
         }
     };
 
@@ -158,7 +195,7 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                 <View style={styles.inputGroup}>
                                     <View style={styles.plateInputContainer}>
                                         <View style={styles.indStrip}>
-                                            <View style={styles.indDot} />
+                                            <Text style={styles.flagEmoji}>🇮🇳</Text>
                                             <Text style={styles.indText}>IND</Text>
                                         </View>
                                         <TextInput
@@ -169,49 +206,27 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                             onChangeText={t => updateForm('registrationNumber', t.toUpperCase())}
                                             autoCapitalize="characters"
                                             maxLength={15}
+                                            editable={!verifyLoading && !saveLoading}
                                         />
                                     </View>
                                     
                                     {/* Inline Proceed Button */}
-                                    <TouchableOpacity 
+                                    <LoaderButton
+                                        title="Verify Vehicle"
+                                        loading={verifyLoading}
+                                        loadingTitle="Verifying..."
+                                        titleStyle={[
+                                            styles.inlineProceedText,
+                                            (form.registrationNumber.length < 7 || verifyLoading || saveLoading) && styles.inlineProceedTextDisabled,
+                                        ]}
+                                        loadingTitleStyle={styles.inlineProceedText}
                                         style={[
                                             styles.inlineProceedBtn, 
-                                            (form.registrationNumber.length < 7 || loading) && styles.inlineProceedBtnDisabled
+                                            (form.registrationNumber.length < 7 || verifyLoading || saveLoading) && styles.inlineProceedBtnDisabled
                                         ]}
-                                        onPress={async () => {
-                                            setLoading(true);
-                                            try {
-                                                const rtoData = await vehicleService.verifyVehicle(form.registrationNumber);
-                                                setForm(prev => ({
-                                                    ...prev,
-                                                    make: rtoData.make || rtoData.brand || '',
-                                                    model: rtoData.model || '',
-                                                    vehicleType: (rtoData.vehicleType as any) || prev.vehicleType,
-                                                    fuelType: (rtoData.fuelType as any) || prev.fuelType,
-                                                    chassisNumber: rtoData.chassisNo || rtoData.chassisNumber || '',
-                                                    engineNumber: rtoData.engineNo || rtoData.engineNumber || '',
-                                                    registrationDate: rtoData.regDate || rtoData.registrationDate || '',
-                                                    year: rtoData.year ? String(rtoData.year) : prev.year,
-                                                    rtoDetails: rtoData,
-                                                }));
-                                                setStep('CONFIRM');
-                                            } catch (error: any) {
-                                                Alert.alert("Verification Failed", error?.message || "Could not verify vehicle details.");
-                                            } finally {
-                                                setLoading(false);
-                                            }
-                                        }}
-                                        disabled={form.registrationNumber.length < 7 || loading}
-                                    >
-                                        {loading ? (
-                                            <ActivityIndicator color="#000" />
-                                        ) : (
-                                            <Text style={[
-                                                styles.inlineProceedText,
-                                                form.registrationNumber.length < 7 && styles.inlineProceedTextDisabled
-                                            ]}>Verify Vehicle</Text>
-                                        )}
-                                    </TouchableOpacity>
+                                        onPress={handleVerifyVehicle}
+                                        disabled={form.registrationNumber.length < 7 || saveLoading}
+                                    />
                                 </View>
                         </>
                     ) : (
@@ -231,13 +246,13 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                 <Divider />
                                 <ConfirmRow label="BRAND & MODEL" value={`${form.make} ${form.model}` || '—'} />
                                 <Divider />
-                                <ConfirmRow label="VARIANT" value={form.variant || '—'} />
+                                <ConfirmRow label="RTO" value={form.rtoDetails?.rto || '—'} />
                                 <Divider />
-                                <ConfirmRow label="YEAR" value={form.year || '—'} />
+                                <ConfirmRow label="RC EXPIRED" value={form.rtoDetails?.fitnessUpto || form.rtoDetails?.rc_expiry_date || '—'} />
+                                <Divider />
+                                <ConfirmRow label="VEHICLE CLASS" value={form.rtoDetails?.vehicleClass || '—'} />
                                 <Divider />
                                 <ConfirmRow label="FUEL TYPE" value={form.fuelType || '—'} />
-                                <Divider />
-                                <ConfirmRow label="CURRENT ODOMETER" value={form.currentOdometer ? `${form.currentOdometer} KM` : '—'} />
                                 <Divider />
                                 <ConfirmRow label="REGISTRATION DATE" value={form.registrationDate || 'NOT PROVIDED'} />
                                 <Divider />
@@ -253,25 +268,19 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                                 </Text>
                             </View>
 
-                            <TouchableOpacity
-                                style={[styles.saveBtn, loading && styles.saveBtnLoading]}
+                            <LoaderButton
+                                title="CONFIRM & SAVE VEHICLE"
+                                loading={saveLoading}
+                                loadingTitle="Saving..."
+                                style={[styles.saveBtn, saveLoading && styles.saveBtnLoading]}
                                 onPress={handleSave}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#000" />
-                                ) : (
-                                    <>
-                                        <ClipboardCheck size={20} color="#000" style={{ marginRight: 8 }} />
-                                        <Text style={styles.saveText}>CONFIRM & SAVE VEHICLE</Text>
-                                    </>
-                                )}
-                            </TouchableOpacity>
+                                disabled={verifyLoading}
+                            />
 
                             <TouchableOpacity
                                 style={styles.editBtn}
                                 onPress={() => setStep('INPUT')}
-                                disabled={loading}
+                                disabled={saveLoading || verifyLoading}
                             >
                                 <Text style={styles.editBtnText}>EDIT DETAILS</Text>
                             </TouchableOpacity>
@@ -281,6 +290,14 @@ export const AddVehicleScreen = ({ onBack, onDone, isFirst, initialRegistrationN
                     <View style={{ height: 40 }} />
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <StatusModal
+                visible={statusModal.visible}
+                type={statusModal.type}
+                title={statusModal.title}
+                message={statusModal.message}
+                onClose={() => setStatusModal(prev => ({ ...prev, visible: false }))}
+            />
         </View>
     );
 };
@@ -330,9 +347,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', height: 68,
         borderWidth: 1, borderColor: '#333'
     },
-    indStrip: { backgroundColor: '#003399', width: 44, height: '100%', alignItems: 'center', justifyContent: 'center' },
-    indDot: { width: 5, height: 5, backgroundColor: '#8BC34A', borderRadius: 2.5, marginBottom: 4 },
-    indText: { color: '#FFF', fontSize: 11, fontWeight: '900' },
+    indStrip: { backgroundColor: '#003399', width: 44, height: '100%', alignItems: 'center', justifyContent: 'center', gap: 2 },
+    flagEmoji: { fontSize: 14, lineHeight: 18 },
+    indText: { color: '#FFF', fontSize: 10, fontFamily: 'Outfit-Black', letterSpacing: 0.5 },
     plateInput: { flex: 1, paddingHorizontal: 16, fontSize: 26, fontWeight: '900', color: '#FFF', letterSpacing: 2 },
 
     // Inline Proceed
@@ -431,10 +448,9 @@ const styles = StyleSheet.create({
     saveBtn: {
         backgroundColor: COLORS.primary, height: 64, borderRadius: 32,
         alignItems: 'center', justifyContent: 'center', marginTop: 32,
-        flexDirection: 'row', elevation: 5
+        elevation: 5
     },
     saveBtnLoading: { backgroundColor: '#333' },
-    saveText: { color: '#000', fontSize: 16, fontWeight: '900', fontStyle: 'italic' },
     editBtn: { paddingVertical: 16, alignItems: 'center', marginTop: 8 },
     editBtnText: { color: '#888', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 }
 });

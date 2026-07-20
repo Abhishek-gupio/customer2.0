@@ -4,14 +4,54 @@ import { vectorService } from "./vector.service";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAICacheManager } from "@google/generative-ai/server";
 import { env } from "../config/env";
+import { callAI, callAIForLargeContent, isAIConfigured } from "./ai-provider.service";
 import { toolRegistry } from "./tools.service";
 import { voiceService } from "./voice.service";
 import { contextService } from "./context.service";
 import { analyticsService } from "./analytics.service";
 import { AppError } from "../utils/AppError";
 import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
+import { Intent } from "../utils/intentSchema";
 
 const db = dbInstances as any;
+
+// Debug logging for AI tool-call path analysis.
+// #region agent log
+const DEBUG_LOG_ENDPOINT =
+  "http://127.0.0.1:7317/ingest/c1ee2c59-97af-43c3-b8e6-f54db6b420fe";
+const DEBUG_SESSION_ID = "3a03a4";
+function debugLog(
+  location: string,
+  hypothesisId: string,
+  message: string,
+  data: Record<string, unknown>,
+) {
+  try {
+    const _fetch = (globalThis as any).fetch as
+      | ((url: string, init: any) => Promise<any>)
+      | undefined;
+    if (!_fetch) return;
+    _fetch(DEBUG_LOG_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": DEBUG_SESSION_ID,
+      },
+      body: JSON.stringify({
+        sessionId: DEBUG_SESSION_ID,
+        runId: "ai-doc-access-debug",
+        hypothesisId,
+        location,
+        message,
+        data,
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  } catch {
+    // ignore debug failures
+  }
+}
+// #endregion
 
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
@@ -19,6 +59,7 @@ const genAI = env.GEMINI_API_KEY
 const cacheManager = env.GEMINI_API_KEY
   ? new GoogleAICacheManager(env.GEMINI_API_KEY)
   : null;
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 // Global singleton to store the current cache name
 let activeCache: { name: string; expiry: number } | null = null;
@@ -56,6 +97,206 @@ function getSuggestedActionsFromText(text: string): { label: string; prompt: str
   return [...sorted, ...rest].slice(0, 4);
 }
 
+/** Suggested action chip; optional in-app navigation (mobile reads `navigate`). */
+export type AISuggestedAction = {
+  label: string;
+  prompt: string;
+  navigate?: { screen: string; params?: Record<string, unknown> };
+};
+
+function buildNavigationActionsFromToolResults(
+  toolResults: any[] | undefined,
+): AISuggestedAction[] {
+  if (!toolResults?.length) return [];
+  const out: AISuggestedAction[] = [];
+  const add = (a: AISuggestedAction) => {
+    if (out.some((x) => x.label === a.label && !x.navigate && !a.navigate)) return;
+    if (
+      a.navigate &&
+      out.some(
+        (x) =>
+          x.navigate?.screen === a.navigate?.screen &&
+          JSON.stringify(x.navigate?.params) === JSON.stringify(a.navigate?.params),
+      )
+    ) {
+      return;
+    }
+    out.push(a);
+  };
+
+  for (const tr of toolResults) {
+    const tool = tr.tool;
+    const res = tr.result;
+    const args = tr.args;
+    if (!res || res.success === false) continue;
+
+    if (tool === "get_challans" && res.vehicle?.id && !res.summary) {
+      add({
+        label: "Open challans",
+        prompt: `Open challans for ${res.vehicle.registrationNumber}`,
+        navigate: {
+          screen: "Challans",
+          params: { vehicle: res.vehicle },
+        },
+      });
+    }
+    if (tool === "get_challans" && res.summary) {
+      add({
+        label: "My Garage",
+        prompt: "Open my vehicle list",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "sync_challans" && res.vehicle?.id) {
+      add({
+        label: "Open challans",
+        prompt: `Open challans for ${res.vehicle.registrationNumber}`,
+        navigate: {
+          screen: "Challans",
+          params: { vehicle: res.vehicle },
+        },
+      });
+    }
+    if (tool === "get_driving_trips_summary" && res.success && res.vehicleId) {
+      add({
+        label: "Driving summary",
+        prompt: "Show my driving summary",
+        navigate: { screen: "DrivingSummary" },
+      });
+    }
+    if (tool === "get_service_history" && res.success && res.vehicle?.id) {
+      add({
+        label: "Service history",
+        prompt: "Open service history",
+        navigate: { screen: "ServiceHistory" },
+      });
+    }
+    if (tool === "get_upcoming_service_parts" && res.success && res.vehicle?.id) {
+      add({
+        label: "Warranty & parts",
+        prompt: "Open warranty and parts status",
+        navigate: { screen: "WarrantyStatus" },
+      });
+    }
+    if (tool === "add_vehicle_to_garage" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "remove_vehicle_from_garage" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if (tool === "get_expenses_summary" && res.success) {
+      add({
+        label: "Expenses",
+        prompt: "Open expenses",
+        navigate: { screen: "Expenses" },
+      });
+    }
+    if (tool === "set_budget" && res.success) {
+      add({
+        label: "View budget",
+        prompt: "Open budget settings",
+        navigate: { screen: "BudgetSettings" },
+      });
+    }
+    if (tool === "list_my_vehicles" && res.success) {
+      add({
+        label: "My Garage",
+        prompt: "Open my garage",
+        navigate: { screen: "VehicleList" },
+      });
+    }
+    if ((tool === "get_profile" || tool === "update_profile") && res.success) {
+      add({
+        label: "My Profile",
+        prompt: "Open my profile",
+        navigate: { screen: "MyProfile" },
+      });
+    }
+    if ((tool === "list_documents" || tool === "get_document_status") && res.success) {
+      add({
+        label: "My Documents",
+        prompt: "Open my documents",
+        navigate: { screen: "DocumentList" },
+      });
+    }
+    if (tool === "get_or_suggest_parts_interval" && res.success) {
+      add({
+        label: "Warranty & parts",
+        prompt: "Open warranty and parts status",
+        navigate: { screen: "WarrantyStatus" },
+      });
+    }
+    if (tool === "list_support_tickets" && res.success) {
+      add({
+        label: "My tickets",
+        prompt: "Open my support tickets",
+        navigate: { screen: "TicketHistory" },
+      });
+    }
+    if (tool === "get_ticket_details" && res.success && args?.ticketId) {
+      add({
+        label: "Ticket details",
+        prompt: "Open this ticket",
+        navigate: {
+          screen: "TicketDetail",
+          params: { ticketId: args.ticketId },
+        },
+      });
+    }
+    if (tool === "create_support_ticket" && res.success && res.ticketId) {
+      add({
+        label: "Ticket details",
+        prompt: "Open this ticket",
+        navigate: {
+          screen: "TicketDetail",
+          params: { ticketId: res.ticketId },
+        },
+      });
+    }
+    if (tool === "get_trip_detail_by_id" && res.success && res.trip?.id) {
+      add({
+        label: "Trip details",
+        prompt: "Show this trip's route and harsh events",
+        navigate: {
+          screen: "TripDetail",
+          params: { tripId: res.trip.id },
+        },
+      });
+    }
+  }
+  return out;
+}
+
+function mergeSuggestedActionsWithNavigation(
+  textActions: { label: string; prompt: string }[],
+  toolResults: any[] | undefined,
+): AISuggestedAction[] {
+  const nav = buildNavigationActionsFromToolResults(toolResults);
+  const merged: AISuggestedAction[] = [
+    ...nav,
+    ...(textActions || []).map((a) => ({ label: a.label, prompt: a.prompt })),
+  ];
+  const seen = new Set<string>();
+  const deduped: AISuggestedAction[] = [];
+  for (const a of merged) {
+    const key = a.navigate
+      ? `nav:${a.navigate.screen}:${JSON.stringify(a.navigate.params ?? {})}`
+      : `lbl:${a.label}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(a);
+  }
+  return deduped.slice(0, 8);
+}
+
 // ============================================================================
 // SYSTEM PROMPT — Enhanced with agent capabilities
 // ============================================================================
@@ -67,6 +308,7 @@ MASTER SYSTEM CONTEXT:
 You are Gupio AI, an intelligent support assistant for vehicle management and user services. You operate in 4 specialized modes based on user selection or intent. Always access user context (name, vehicle details, history) before responding.
 
 CORE PRINCIPLES FOR ALL MODES:
+- **LANGUAGE SUPPORT**: Reply in the same language and script used by the user. If the user asks/speaks in Hindi, reply in Hindi (Devanagari script). If in Kannada, reply in Kannada (Kannada script). If in Tamil, reply in Tamil (Tamil script). If in Telugu, reply in Telugu (Telugu script). If in Malayalam, reply in Malayalam (Malayalam script). If in Marathi, reply in Marathi (Devanagari script). If in Bengali, reply in Bengali (Bengali script). If in Gujarati, reply in Gujarati (Gujarati script). If in Punjabi, reply in Punjabi (Gurmukhi script). Otherwise, reply in English.
 - Address user by name (available in [USER PROFILE] context)
 - Be concise, specific, and action-oriented.
 - **SKIP PREAMBLES**: Do not say "I understand" or "I am analyzing." Go straight to the answer/action.
@@ -81,12 +323,18 @@ CORE PRINCIPLES FOR ALL MODES:
 MODE 1: VEHICLE ASSISTANT 🚗
 =====================================================
 TRIGGER: User selects "Vehicle Assistant" or asks about car health, mileage, service, or parts.
-CONTEXT ACCESS: [VEHICLES], [RECENT EXPENSES], [PENDING ALERTS]
+CONTEXT ACCESS: [MY GARAGE / VEHICLES], [RECENT EXPENSES], [PENDING ALERTS]
 CAPABILITIES:
-1. Health & Odometer: Use 'get_vehicle_status' and 'get_maintenance_advisor'.
-2. Expense Logging: Use 'add_expense' (Fuel, Service, etc.).
-3. Service Schedule: Use 'get_or_suggest_parts_interval'.
-4. Document Status: Use 'get_document_status' or 'list_documents'.
+1. My Garage / fleet: User phrases like "my garage", "what's in my garage", "how many cars" → ALWAYS call 'list_my_vehicles' first (then 'get_vehicle_status' if they want health/odometer detail).
+2. Health & Odometer: Use 'get_vehicle_status' and 'get_maintenance_advisor'.
+3. Expense Logging: Use 'add_expense' (Fuel, Service, etc.).
+4. Service Schedule: Use 'get_or_suggest_parts_interval'.
+5. Document Status: Use 'get_document_status' or 'list_documents'.
+6. Challans: 'get_challans' (summary or per vehicle); 'sync_challans' only if user asks to refresh from the government/provider API.
+7. Driving: 'get_driving_trips_summary' for recent trips, distance, safety (telematics).
+8. Service & parts: 'get_service_history', 'get_upcoming_service_parts' for due maintenance.
+9. Garage edits: 'add_vehicle_to_garage' when user gives a registration number; 'remove_vehicle_from_garage' ONLY with userConfirmed true after explicit delete confirmation.
+10. After fetching challans, driving, service, or expenses, mention the matching Open … chip when available.
 
 =====================================================
 MODE 2: EXPENSE ANALYSIS 💰
@@ -133,11 +381,21 @@ GUIDELINE: Avoid robotic "analysis" of the situation. Be empathetic, clear, and 
 
 
 =====================================================
+MODE 5: TRIP PLANNER 🗺️
+=====================================================
+TRIGGER: User asks about trip costs, tolls, arrival times, or "my journey".
+CONTEXT ACCESS: [PLANNED TRIPS]
+CAPABILITIES:
+1. Trip Knowledge: Use 'get_current_trip_info' to access the latest calculated trip, including total costs, fuel, and specific toll plazas.
+2. Real-time Queries: Answer "How much is the next toll?" or "What's my estimated fuel cost?" using the tool's 'nextTolls' and 'totalCost' fields.
+3. Suggestion: If no trip is found, politely suggest: "I don't see an active trip. You can plan your journey in the Trip Expense screen, and I'll keep track of it for you."
+
 PATTERN RECOGNITION & PROACTIVE ASSISTANCE
 =====================================================
 - If a document is expired in [PENDING ALERTS], offer to help upload a new one.
 - If health score < 50%, suggest booking a service.
 - If budget exceeded, suggest fuel saving tips.
+- If a trip is planned, mention the "Open Trip" chip to view the interactive map.
 `;
 
 export const aiService = {
@@ -192,7 +450,7 @@ export const aiService = {
       const declarations = this.getFunctionDeclarations();
 
       const cache = await cacheManager.create({
-        model: "gemini-2.0-flash",
+        model: GEMINI_TEXT_MODEL,
         displayName: "gupio-base-logic",
         systemInstruction: SYSTEM_PROMPT,
         contents: [],
@@ -215,6 +473,40 @@ export const aiService = {
   },
 
   /**
+   * Resolves an existing chat session or creates a new one. Falls back to creating a new
+   * session (rather than throwing) when `sessionId` is stale, deleted, or belongs to a
+   * different customer — a client-supplied session id should never be able to crash the
+   * request.
+   */
+  async resolveOrCreateSession(customerId: string, sessionId: string | undefined, message: string) {
+    try {
+      if (sessionId) {
+        const existing = await db.chatSession.findUnique({
+          where: { id: sessionId, customerId },
+          include: { messages: { orderBy: { createdAt: "asc" } } },
+        });
+        if (existing) return existing;
+        logger.warn({ customerId, sessionId }, "[AI] sessionId not found for customer, starting a new session");
+      }
+      return await db.chatSession.create({
+        data: {
+          customerId,
+          title: message.substring(0, 50),
+          messages: { create: [] },
+        },
+        include: { messages: true },
+      });
+    } catch (err: any) {
+      if (err?.code === "P1001") {
+        // Database temporarily unreachable — surface a clean, retryable error instead of a
+        // raw Prisma stack trace bubbling up as an unhandled 500.
+        throw AppError.internal("Our database is temporarily unavailable. Please try again in a moment.", "DB_UNAVAILABLE");
+      }
+      throw err;
+    }
+  },
+
+  /**
    * Get Gemini model — uses cached version if available, otherwise inline system prompt + tools
    */
   getModel(cacheName: string | null) {
@@ -222,7 +514,7 @@ export const aiService = {
 
     if (cacheName) {
       return genAI.getGenerativeModel(
-        { model: "gemini-2.0-flash", cachedContent: cacheName } as any,
+        { model: GEMINI_TEXT_MODEL, cachedContent: cacheName } as any,
         { apiVersion: "v1beta" },
       );
     }
@@ -230,7 +522,7 @@ export const aiService = {
     // Fallback: inline system instructions and tools
     const declarations = this.getFunctionDeclarations();
     return genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: GEMINI_TEXT_MODEL,
       systemInstruction: SYSTEM_PROMPT,
       tools: [{ functionDeclarations: declarations } as any],
     } as any);
@@ -265,21 +557,18 @@ export const aiService = {
       .map((m: any) => `${m.role.toUpperCase()}: ${m.content}`)
       .join("\n");
 
-    if (!genAI) return;
+    if (!isAIConfigured()) return;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const result = await model.generateContent(
-        `Summarize this conversation concisely, keeping key facts, user preferences, and decisions. 
+      const prompt = `Summarize this conversation concisely, keeping key facts, user preferences, and decisions. 
 Previous summary: ${session?.summary || "None"}
 
 Conversation:
 ${conversationText}
 
-Write a concise summary (max 200 words) capturing all important details.`,
-      );
+Write a concise summary (max 200 words) capturing all important details.`;
 
-      const summary = result.response.text().trim();
+      const summary = (await callAIForLargeContent(prompt)).trim();
 
       await db.chatSession.update({
         where: { id: sessionId },
@@ -355,6 +644,16 @@ Write a concise summary (max 200 words) capturing all important details.`,
         (p: any) => p.functionCall,
       );
 
+      debugLog(
+        "ai.service.ts:executeToolLoop",
+        "H1_H5",
+        "function_calls_detected",
+        {
+          iteration: i + 1,
+          functionCallCount: functionCalls?.length || 0,
+        },
+      );
+
       // If no function calls, we have the final text answer
       if (!functionCalls || functionCalls.length === 0) {
         responseText = result.response.text();
@@ -367,6 +666,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
         const call = fc.functionCall!;
         const tool = toolRegistry[call.name as keyof typeof toolRegistry];
         if (tool) {
+          debugLog(
+            "ai.service.ts:executeToolLoop",
+            "H2_H4",
+            "tool_execute_start",
+            {
+              tool: call.name,
+              argsKeys: call.args ? Object.keys(call.args).slice(0, 8) : [],
+            },
+          );
           logger.info(
             { tool: call.name, args: call.args, iteration: i + 1 },
             "Executing Tool (multi-turn)",
@@ -375,11 +683,34 @@ Write a concise summary (max 200 words) capturing all important details.`,
             const result = await tool.execute(customerId, call.args);
             toolResults.push({ tool: call.name, args: call.args, result });
             const res = result as any;
+
+            debugLog(
+              "ai.service.ts:executeToolLoop",
+              "H2_H4",
+              "tool_execute_success",
+              {
+                tool: call.name,
+                success: (res as any)?.success,
+                error: (res as any)?.error,
+                documentsCount:
+                  call.name === "get_document_status" && Array.isArray((res as any)?.documents)
+                    ? (res as any).documents.length
+                    : undefined,
+              },
+            );
+
             callResults.push(
               `Tool ${call.name} result: ${res?.message || JSON.stringify(result)}`,
             );
           } catch (err) {
             callResults.push(`Tool ${call.name} failed: ${err}`);
+
+            debugLog(
+              "ai.service.ts:executeToolLoop",
+              "H2_H4",
+              "tool_execute_error",
+              { tool: call.name, error: String(err) },
+            );
           }
         }
       }
@@ -415,22 +746,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
     const [cacheName, sessionData, contextDocs, userContext] =
       await Promise.all([
         this.getOrUpdateCache(),
-        sessionId
-          ? db.chatSession.findUnique({
-            where: { id: sessionId, customerId },
-            include: {
-              messages: { orderBy: { createdAt: "asc" } },
-            },
-            // Select summary for memory
-          })
-          : db.chatSession.create({
-            data: {
-              customerId,
-              title: message.substring(0, 50),
-              messages: { create: [] },
-            },
-            include: { messages: true },
-          }),
+        this.resolveOrCreateSession(customerId, sessionId, message),
         vectorService.hybridSearch(customerId, message, 5).catch(() => []),
         contextService.buildUserContext(customerId),
       ]);
@@ -461,61 +777,103 @@ Write a concise summary (max 200 words) capturing all important details.`,
       message,
     });
 
+    let navigate: any = null;
+    let isVoiceIntentProcessed = false;
+    let responseText = "";
+    let allToolResults: any[] = [];
+    let agentSteps: any[] = [];
+
+    // Pre-emptively check for voice command/navigation intent
     try {
-      // Build content parts (text + optional image)
-      const parts: any[] = [{ text: userPrompt }];
-
-      // Feature 5: Multimodal — add image if provided
-      if (imageBuffer && mimeType) {
-        parts.push({
-          inlineData: {
-            data: imageBuffer.toString("base64"),
-            mimeType,
-          },
-        });
+      const userRequestIndex = message.indexOf("User request: ");
+      const cleanUserQuery = userRequestIndex !== -1 
+        ? message.substring(userRequestIndex + "User request: ".length).trim() 
+        : message;
+      const voiceIntent = await voiceService.extractIntent(cleanUserQuery);
+      if (voiceIntent && voiceIntent.intent !== "unsupported") {
+        const processed = await this.processIntent(customerId, voiceIntent);
+        if (processed && processed.success !== false) {
+          isVoiceIntentProcessed = true;
+          if (processed.navigate) {
+            navigate = processed.navigate;
+          }
+          if (processed.message) {
+            responseText = processed.message;
+          }
+          if (processed.data) {
+            allToolResults.push({
+              tool: voiceIntent.intent,
+              result: processed.data,
+            });
+          }
+        }
       }
+    } catch (err) {
+      logger.debug({ err }, "Intent extraction in chat failed");
+    }
 
-      let responseText = "";
-      let allToolResults: any[] = [];
-      let agentSteps: any[] = [];
+    try {
+      if (!isVoiceIntentProcessed) {
+        // Build content parts (text + optional image)
+        const parts: any[] = [{ text: userPrompt }];
 
-      if (agentMode) {
-        // Feature 8: Agent Mode (ReAct loop)
-        const agentResult = await this.chatAgent(
-          model,
-          parts,
-          customerId,
-        );
-        responseText = agentResult.responseText;
-        allToolResults = agentResult.toolResults;
-        agentSteps = agentResult.steps;
-      } else {
-        // Feature 2: Multi-turn function calling
-        const result = await model.generateContent(parts);
-        responseText = result.response.text();
+        // Feature 5: Multimodal — add image if provided
+        if (imageBuffer && mimeType) {
+          parts.push({
+            inlineData: {
+              data: imageBuffer.toString("base64"),
+              mimeType,
+            },
+          });
+        }
 
-        const candidate = result.response.candidates?.[0];
-        const functionCalls = candidate?.content.parts.filter(
-          (p: any) => p.functionCall,
-        );
+        try {
+          if (agentMode) {
+            // Feature 8: Agent Mode (ReAct loop)
+            const agentResult = await this.chatAgent(
+              model,
+              parts,
+              customerId,
+            );
+            responseText = agentResult.responseText;
+            allToolResults = agentResult.toolResults;
+            agentSteps = agentResult.steps;
+          } else {
+            // Feature 2: Multi-turn function calling
+            const result = await model.generateContent(parts);
+            responseText = result.response.text();
 
-        if (functionCalls && functionCalls.length > 0) {
-          // Multi-turn tool execution
-          const toolLoopResult = await this.executeToolLoop(
-            model,
-            userPrompt,
-            customerId,
-          );
-          responseText = toolLoopResult.responseText;
-          allToolResults = toolLoopResult.toolResults;
+            const candidate = result.response.candidates?.[0];
+            const functionCalls = candidate?.content.parts.filter(
+              (p: any) => p.functionCall,
+            );
+
+            if (functionCalls && functionCalls.length > 0) {
+              // Multi-turn tool execution
+              const toolLoopResult = await this.executeToolLoop(
+                model,
+                userPrompt,
+                customerId,
+              );
+              responseText = toolLoopResult.responseText;
+              allToolResults = toolLoopResult.toolResults;
+            }
+          }
+        } catch (geminiError: any) {
+          logger.warn({ err: geminiError.message || geminiError }, "[AI] Gemini chat failed, falling back to Groq");
+          responseText = await callAI(userPrompt, SYSTEM_PROMPT);
         }
       }
 
       // 🚀 BACKGROUND SIDE-EFFECTS (fire-and-forget)
       const responseTimeMs = Date.now() - startTime;
 
+      // Generate voice ONCE and reuse it for:
+      // 1) saving the assistant message metadata (background logging)
+      // 2) returning `voiceUrl` to the client
+      const voiceUrl = await voiceService.generateSpeechUrl(responseText);
+
       (async () => {
-        const voiceUrl = await voiceService.generateSpeechUrl(responseText);
         await db.$transaction([
           db.chatMessage.create({
             data: {
@@ -558,18 +916,19 @@ Write a concise summary (max 200 words) capturing all important details.`,
         logger.error({ err }, "Background chat logging failed"),
       );
 
-      const immediateVoiceUrl =
-        await voiceService.generateSpeechUrl(responseText);
-
       return {
         sessionId: finalSessionId,
         message: responseText,
-        voiceUrl: immediateVoiceUrl,
+        voiceUrl,
+        navigate,
         contextUsed: contextDocs.length,
         toolResults:
           allToolResults.length > 0 ? allToolResults : undefined,
         agentSteps: agentSteps.length > 0 ? agentSteps : undefined,
-        suggestedActions: getSuggestedActionsFromText(responseText),
+        suggestedActions: mergeSuggestedActionsWithNavigation(
+          getSuggestedActionsFromText(responseText),
+          allToolResults,
+        ),
       };
     } catch (error) {
       if (isGeminiRateLimitError(error)) {
@@ -599,19 +958,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
     const [cacheName, sessionData, contextDocs, userContext] =
       await Promise.all([
         this.getOrUpdateCache(),
-        sessionId
-          ? db.chatSession.findUnique({
-            where: { id: sessionId, customerId },
-            include: { messages: { orderBy: { createdAt: "asc" } } },
-          })
-          : db.chatSession.create({
-            data: {
-              customerId,
-              title: message.substring(0, 50),
-              messages: { create: [] },
-            },
-            include: { messages: true },
-          }),
+        this.resolveOrCreateSession(customerId, sessionId, message),
         vectorService.hybridSearch(customerId, message, 5).catch(() => []),
         contextService.buildUserContext(customerId),
       ]);
@@ -676,6 +1023,15 @@ Write a concise summary (max 200 words) capturing all important details.`,
             const tool =
               toolRegistry[call.name as keyof typeof toolRegistry];
             if (tool) {
+              debugLog(
+                "ai.service.ts:chatStream",
+                "H1_H5",
+                "tool_execute_start",
+                {
+                  tool: call.name,
+                  argsKeys: call.args ? Object.keys(call.args).slice(0, 8) : [],
+                },
+              );
               yield JSON.stringify({
                 type: "tool_start",
                 tool: call.name,
@@ -696,6 +1052,21 @@ Write a concise summary (max 200 words) capturing all important details.`,
                   res?.message || `Completed ${call.name}`;
                 fullResponse += ` ${toolMessage}`;
 
+                debugLog(
+                  "ai.service.ts:chatStream",
+                  "H2_H4",
+                  "tool_execute_success",
+                  {
+                    tool: call.name,
+                    success: res?.success,
+                    error: res?.error,
+                    documentsCount:
+                      call.name === "get_document_status" && Array.isArray(res?.documents)
+                        ? res.documents.length
+                        : undefined,
+                  },
+                );
+
                 yield JSON.stringify({
                   type: "tool_result",
                   tool: call.name,
@@ -703,6 +1074,12 @@ Write a concise summary (max 200 words) capturing all important details.`,
                   result: toolResult,
                 });
               } catch (err) {
+                debugLog(
+                  "ai.service.ts:chatStream",
+                  "H2_H4",
+                  "tool_execute_error",
+                  { tool: call.name, error: String(err) },
+                );
                 yield JSON.stringify({
                   type: "tool_error",
                   tool: call.name,
@@ -718,7 +1095,10 @@ Write a concise summary (max 200 words) capturing all important details.`,
       const voiceUrl =
         await voiceService.generateSpeechUrl(fullResponse);
 
-      const suggestedActions = getSuggestedActionsFromText(fullResponse);
+      const suggestedActions = mergeSuggestedActionsWithNavigation(
+        getSuggestedActionsFromText(fullResponse),
+        toolResults,
+      );
       yield JSON.stringify({
         type: "done",
         voiceUrl,
@@ -766,17 +1146,57 @@ Write a concise summary (max 200 words) capturing all important details.`,
         logger.error({ err }, "Background stream logging failed"),
       );
     } catch (error) {
-      if (isGeminiRateLimitError(error)) {
-        logger.warn({ error }, "AI Stream hit Gemini rate limit");
-        yield JSON.stringify({
-          type: "error",
-          message: "AI is busy. Please try again in a moment.",
-          code: "GEMINI_RATE_LIMIT",
+      logger.warn({ error: (error as Error).message || error }, "[AI] Gemini stream failed, trying Groq fallback");
+      try {
+        const responseText = await callAI(userPrompt, SYSTEM_PROMPT);
+        yield JSON.stringify({ type: "chunk", text: responseText });
+        
+        // Background side effects
+        const responseTimeMs = Date.now() - startTime;
+        const voiceUrl = await voiceService.generateSpeechUrl(responseText);
+        
+        await db.$transaction([
+          db.chatMessage.create({
+            data: {
+              sessionId: finalSessionId,
+              role: "user",
+              content: message,
+            },
+          }),
+          db.chatMessage.create({
+            data: {
+              sessionId: finalSessionId,
+              role: "assistant",
+              content: responseText,
+              metadata: {
+                voiceUrl,
+              },
+            },
+          }),
+        ]);
+        await this.maybeSummarizeSession(finalSessionId);
+        await analyticsService.trackInteraction({
+          customerId,
+          sessionId: finalSessionId,
+          responseTimeMs,
+          hadToolCall: false,
+          hadImage: !!imageBuffer,
+          wasStreaming: true,
         });
-        return;
+        
+        yield JSON.stringify({
+          type: "done",
+          voiceUrl,
+          contextUsed: contextDocs.length,
+          suggestedActions: mergeSuggestedActionsWithNavigation(
+            getSuggestedActionsFromText(responseText),
+            [],
+          ),
+        });
+      } catch (fallbackError) {
+        logger.error({ error: fallbackError }, "AI Stream fallback failed");
+        yield JSON.stringify({ type: "error", message: "Stream failed" });
       }
-      logger.error({ error }, "AI Stream generation failed");
-      yield JSON.stringify({ type: "error", message: "Stream failed" });
     }
   },
 
@@ -914,9 +1334,7 @@ Write a concise summary (max 200 words) capturing all important details.`,
   // AI DRIVING COACH — unchanged
   // ==========================================================================
   async generateDrivingCoachAdvice(events: any[], context: any) {
-    if (!genAI) throw new Error("AI not configured");
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    if (!isAIConfigured()) throw new Error("AI not configured");
 
     const prompt = `
             You are a friendly, calm driving instructor.
@@ -940,11 +1358,157 @@ Write a concise summary (max 200 words) capturing all important details.`,
         `;
 
     try {
-      const result = await model.generateContent(prompt);
-      return result.response.text().trim();
+      const result = await callAI(prompt);
+      return result.trim();
     } catch (error) {
       logger.error({ error }, "AI Coach generation failed");
       return "Drive safely and maintain a steady speed.";
+    }
+  },
+
+  async processIntent(customerId: string, intent: Intent): Promise<any> {
+    logger.info({ customerId, intent: intent.intent }, "Processing voice assistant intent");
+
+    switch (intent.intent) {
+      case "open_screen":
+        return {
+          success: true,
+          message: `Opening screen ${intent.screenName}...`,
+          navigate: {
+            screen: intent.screenName,
+          },
+        };
+
+      case "add_expense": {
+        try {
+          const expenseTool = toolRegistry.add_expense;
+          const result = await expenseTool.execute(customerId, {
+            amount: intent.amount,
+            category: intent.category,
+            merchantName: intent.merchantName,
+            notes: intent.notes,
+          });
+          return {
+            success: true,
+            message: `Expense of ₹${intent.amount} added successfully.`,
+            data: result,
+            navigate: {
+              screen: "Expenses",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice add_expense failed");
+          return {
+            success: false,
+            error: "Failed to add expense.",
+          };
+        }
+      }
+
+      case "get_challans": {
+        try {
+          const challanTool = toolRegistry.get_challans;
+          const result = await challanTool.execute(customerId, {
+            registrationNumber: intent.registrationNumber,
+          });
+          return {
+            success: true,
+            message: "Retrieved challan information.",
+            data: result,
+            navigate: {
+              screen: "Challans",
+              params: {
+                registrationNumber: intent.registrationNumber,
+              },
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_challans failed");
+          return {
+            success: false,
+            error: "Failed to retrieve challans.",
+          };
+        }
+      }
+
+      case "get_expenses_summary": {
+        try {
+          const summaryTool = toolRegistry.get_expenses_summary;
+          const result = await summaryTool.execute(customerId, {});
+          return {
+            success: true,
+            message: "Retrieved expenses summary.",
+            data: result,
+            navigate: {
+              screen: "Expenses",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_expenses_summary failed");
+          return {
+            success: false,
+            error: "Failed to retrieve expenses summary.",
+          };
+        }
+      }
+
+      case "get_vehicle_status": {
+        try {
+          const statusTool = toolRegistry.get_vehicle_status;
+          const result = await statusTool.execute(customerId, {});
+          return {
+            success: true,
+            message: "Retrieved vehicle status details.",
+            data: result,
+            navigate: {
+              screen: "VehicleList",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_vehicle_status failed");
+          return {
+            success: false,
+            error: "Failed to retrieve vehicle status.",
+          };
+        }
+      }
+
+      case "get_driving_trips_summary": {
+        try {
+          const tripsTool = toolRegistry.get_driving_trips_summary;
+          const result = await tripsTool.execute(customerId, {});
+          return {
+            success: true,
+            message: "Retrieved driving trips summary.",
+            data: result,
+            navigate: {
+              screen: "DrivingSummary",
+            },
+          };
+        } catch (error) {
+          logger.error({ error }, "Voice get_driving_trips_summary failed");
+          return {
+            success: false,
+            error: "Failed to retrieve driving trips summary.",
+          };
+        }
+      }
+
+      case "trigger_sos":
+        return {
+          success: true,
+          message: "SOS alert screen triggered.",
+          navigate: {
+            screen: "SOS",
+          },
+        };
+
+      case "unsupported":
+      default:
+        return {
+          success: false,
+          error: (intent as any).message || "This voice command is not supported by the app.",
+        };
     }
   },
 };

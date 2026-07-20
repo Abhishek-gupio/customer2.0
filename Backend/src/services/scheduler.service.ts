@@ -9,7 +9,10 @@ export const schedulerService = {
    */
   async init() {
     if (!isQueueEnabled || !queues) {
-      logger.info("BullMQ scheduler disabled (REDIS_URL not set)");
+      logger.warn(
+        "BullMQ scheduler disabled (REDIS_URL not set) — abandoned parking-booking holds will only be " +
+          "cleared lazily (on the next search/booking touching that slot), not swept proactively every 5 min.",
+      );
       return;
     }
     logger.info("Initializing BullMQ Scheduler Service...");
@@ -109,6 +112,50 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Proactive AI Check (0 8 * * *)");
 
+    // E. Release abandoned parking booking holds (Every 5 min)
+    await queues.maintenance.add(
+      "release-abandoned-parking-bookings",
+      {},
+      {
+        repeat: { pattern: "*/5 * * * *" },
+        jobId: "release-abandoned-parking-bookings-job",
+      },
+    );
+    logger.info("Scheduled: Release Abandoned Parking Bookings (*/5 * * * *)");
+
+    // F. Auto-close idle vehicle-message conversations (Every day at 3:00 AM)
+    await queues.maintenance.add(
+      "auto-close-idle-conversations",
+      {},
+      {
+        repeat: { pattern: "0 3 * * *" },
+        jobId: "auto-close-idle-conversations-job",
+      },
+    );
+    logger.info("Scheduled: Auto-close Idle Conversations (0 3 * * *)");
+
+    // G. Release abandoned car wash booking holds (Every 5 min)
+    await queues.maintenance.add(
+      "release-abandoned-carwash-bookings",
+      {},
+      {
+        repeat: { pattern: "*/5 * * * *" },
+        jobId: "release-abandoned-carwash-bookings-job",
+      },
+    );
+    logger.info("Scheduled: Release Abandoned Car Wash Bookings (*/5 * * * *)");
+
+    // H. Daily AI wash reminder (Every day at 9:30 AM)
+    await queues.maintenance.add(
+      "carwash-daily-reminder",
+      {},
+      {
+        repeat: { pattern: "30 9 * * *" },
+        jobId: "carwash-daily-reminder-job",
+      },
+    );
+    logger.info("Scheduled: Car Wash Daily Reminder (30 9 * * *)");
+
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },
 
@@ -128,5 +175,14 @@ export const schedulerService = {
       type,
       payload,
     });
+  },
+
+  /**
+   * Graceful Shutdown
+   */
+  async shutdown() {
+    if (!queues) return;
+    logger.info("Closing BullMQ queues...");
+    await Promise.all(Object.values(queues).map((q) => q.close()));
   },
 };

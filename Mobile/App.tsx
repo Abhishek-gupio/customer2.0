@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, useColorScheme, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  AppState,
+  Linking,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from './src/lib/react-navigation-native';
@@ -13,7 +23,22 @@ import {
   setUserId,
 } from './src/services/storage';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { navigationRef } from './src/navigation/navigationRef';
+import { initAgentEventHandlers } from './src/agent/eventHandlers';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
+import { setupNotifications } from './src/services/notification';
+import NetworkBanner from './src/components/NetworkBanner';
+import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
+import { initializeInHouseTelematicsAutoEngine } from './src/services/inHouseTelematicsAutoEngine';
+import ErrorBoundary from './src/components/ErrorBoundary';
+
+let RNAndroidNotificationListener: any = null;
+if (Platform.OS === 'android') {
+  try {
+    RNAndroidNotificationListener =
+      (require('react-native-android-notification-listener') as any).default;
+  } catch {}
+}
 
 function tryDecodeUserIdFromJwt(token: string): string | undefined {
   try {
@@ -44,11 +69,28 @@ function bootstrapAuthToRedux() {
   }
 }
 
+const linking = {
+  prefixes: ['gupio://'],
+  config: {
+    screens: {
+      DocumentList: 'document-list',
+    },
+  },
+};
+
+function AppBoundaryTestCrash(): never {
+  throw new Error('app boundary test');
+}
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
+  const [appResetKey, setAppResetKey] = useState(0);
+  const ENABLE_APP_BOUNDARY_TEST = __DEV__ && false;
+  const forceAppBoundaryCrash = ENABLE_APP_BOUNDARY_TEST && appResetKey === 0;
 
   useEffect(() => {
+    initAgentEventHandlers();
     hydrateAuthFromPersistedStorage()
       .catch(() => {
         /* keep going; MMKV path still works */
@@ -56,24 +98,81 @@ function App() {
       .finally(() => {
         bootstrapAuthToRedux();
         setStorageReady(true);
+        setupNotifications().catch(err => {
+          console.error('Error during notification setup:', err);
+        });
+        initializeOfflineQueueAutoSync();
+        initializeInHouseTelematicsAutoEngine();
       });
   }, []);
 
-  if (!storageReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' }}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (!storageReady || Platform.OS !== 'android' || !RNAndroidNotificationListener) {
+      return;
+    }
 
-  return (
+    let promptShown = false;
+
+    const checkAndPromptNotificationPermission = async () => {
+      if (promptShown) return;
+      try {
+        const status = await RNAndroidNotificationListener.getPermissionStatus();
+        if (status === 'authorized') return;
+        promptShown = true;
+        Alert.alert(
+          'Enable notification access',
+          'Turn on notification access now so the app can auto-fetch your OTP from incoming messages and notifications.',
+          [
+            {
+              text: 'Not now',
+              style: 'cancel',
+              onPress: () => {
+                promptShown = false;
+              },
+            },
+            {
+              text: 'Open app settings',
+              onPress: async () => {
+                promptShown = false;
+                try {
+                  await Linking.openSettings();
+                } catch {}
+              },
+            },
+            {
+              text: 'Grant Permission',
+              onPress: () => {
+                promptShown = false;
+                RNAndroidNotificationListener.requestPermission();
+              },
+            },
+          ],
+        );
+      } catch {
+        // no-op
+      }
+    };
+
+    checkAndPromptNotificationPermission().catch(() => {});
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        checkAndPromptNotificationPermission().catch(() => {});
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [storageReady]);
+
+  const appContent = storageReady ? (
     <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.appRoot}>
+        <View style={styles.appContent}>
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <NavigationContainer>
+            <NetworkBanner />
+            <NavigationContainer ref={navigationRef} linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />
               </VoiceOwnerProvider>
@@ -82,7 +181,42 @@ function App() {
         </View>
       </GestureHandlerRootView>
     </Provider>
+  ) : (
+    <View style={styles.bootstrapLoader}>
+      <ActivityIndicator size="large" color="#fff" />
+    </View>
+  );
+  return (
+    <ErrorBoundary
+      level="app"
+      boundaryName="mobile-app-root"
+      fallbackTitle="Gupio could not recover"
+      fallbackMessage="Try restarting this session. If the problem keeps happening, report it with the correlation id."
+      onRetry={() => {
+        setAppResetKey(current => current + 1);
+      }}
+    >
+      <React.Fragment key={`${storageReady ? 'ready' : 'boot'}-${appResetKey}`}>
+        {forceAppBoundaryCrash ? <AppBoundaryTestCrash /> : null}
+        {appContent}
+      </React.Fragment>
+    </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+  },
+  appContent: {
+    flex: 1,
+  },
+  bootstrapLoader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0a0a0a',
+  },
+});
 
 export default App;

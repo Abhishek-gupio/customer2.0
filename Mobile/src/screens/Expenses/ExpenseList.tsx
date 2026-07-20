@@ -7,6 +7,8 @@ import {
   RefreshControl,
   Modal,
   Pressable,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,14 +25,20 @@ import LinearGradient from 'react-native-linear-gradient';
 import { api } from '../../services/api';
 import { getAbsoluteUrl } from '../../config';
 import { getExpenseIcon, getExpenseColor, formatDate } from './expenseUtils';
-import { getAndClearExpenseListRefresh } from '../../utils/refreshManager';
+import { useExpenseStore } from '../../store/expenseStore';
 import NotificationPermission from '../../components/NotificationPermission';
 import Bills from './Bills';
-import { colors }from '../../theme/colors';
-import { fontSizes as FS, fontWeights as FW} from '../../theme/Fontsize';
+import { colors } from '../../theme/colors';
+import { fontSizes as FS, fontWeights as FW } from '../../theme/Fontsize';
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { vehicleService } from '../../services/vehicleService';
-import { setPrimaryVehicleId } from '../../services/storage';
+import { vehicleService, Vehicle } from '../../services/vehicleService';
+import { setPrimaryVehicleId, getPrimaryVehicleId } from '../../services/storage';
+import { FlashList } from "@shopify/flash-list";
+import { clearCachedValue, getCachedValue, getStaleCachedValue, setCachedValue } from '../../services/cache';
+const FlashListAny = FlashList as any;
+const EXPENSES_CACHE_KEY = 'cache:expenses:list';
+const EXPENSES_CACHE_TTL_MS = 3 * 60 * 1000;
+let hasTriggeredPaymentsFeatureBoundaryTest = false;
 
 type DocListNavProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -69,6 +77,36 @@ const toNumber = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const formatServiceType = (value: unknown) => {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  return value
+    .trim()
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char: string) => char.toUpperCase());
+};
+
+const formatPartLabel = (part: any) => {
+  const rawValue =
+    (typeof part?.partName === 'string' && part.partName.trim() && part.partName) ||
+    (typeof part?.partType === 'string' && part.partType.trim() && part.partType) ||
+    '';
+
+  if (!rawValue) return null;
+
+  return rawValue
+    .trim()
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char: string) => char.toUpperCase());
+};
+
+const hasServiceDetails = (item: any) =>
+  Boolean(item?.serviceType) ||
+  Boolean(item?.servicedPart) ||
+  Boolean(item?.location) ||
+  ['SERVICE', 'REPAIR'].includes(String(item?.category || '').toUpperCase());
+
 const toDate = (value: unknown) => {
   if (!value) return null;
   const d = new Date(value as any);
@@ -87,6 +125,11 @@ const toDate = (value: unknown) => {
   return null;
 };
 
+function PaymentsFeatureBoundaryTestCrash(): never {
+  hasTriggeredPaymentsFeatureBoundaryTest = true;
+  throw new Error('payments feature test');
+}
+
 const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
@@ -96,6 +139,10 @@ const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDat
 const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
 const ExpenseFeed = () => {
+  const ENABLE_PAYMENTS_FEATURE_BOUNDARY_TEST = __DEV__ && false;
+  const shouldTriggerPaymentsFeatureBoundaryTest =
+    ENABLE_PAYMENTS_FEATURE_BOUNDARY_TEST &&
+    !hasTriggeredPaymentsFeatureBoundaryTest;
   const navigation = useNavigation<DocListNavProp>();
   const route = useRoute();
 
@@ -110,10 +157,12 @@ const ExpenseFeed = () => {
   const [loading, setLoading] = React.useState(false);
   const [bills, setBills] = React.useState<Bill[]>([]);
   const [showAllExpenses, setShowAllExpenses] = React.useState(false);
+  const [primaryVehicle, setPrimaryVehicle] = React.useState<Vehicle | null>(null);
   const [vehicleId, setVehicleId] = React.useState<string | null>(null);
   const isRefreshingRef = React.useRef(false);
   const pendingRefreshRef = React.useRef(false);
   const vehicleIdRef = React.useRef<string | null>(null);
+  const lastSeenExpenseVersionRef = React.useRef(useExpenseStore.getState().version);
   const [isCalendarVisible, setIsCalendarVisible] = React.useState(false);
   const [calendarMonth, setCalendarMonth] = React.useState(() => {
     const now = new Date();
@@ -122,6 +171,7 @@ const ExpenseFeed = () => {
   const [selectedFromDate, setSelectedFromDate] = React.useState<Date | null>(null);
   const [selectedToDate, setSelectedToDate] = React.useState<Date | null>(null);
   const [calendarSelectionTarget, setCalendarSelectionTarget] = React.useState<'from' | 'to'>('from');
+  const [selectedExpense, setSelectedExpense] = React.useState<any | null>(null);
 
   // ── Computed stats ──
   const [totalThisMonth, setTotalThisMonth] = React.useState(0);
@@ -137,43 +187,117 @@ const ExpenseFeed = () => {
     TOLL: '#9c27b0',
     TOLLS: '#9c27b0',
     INSURANCE: '#00bcd4',
-    PARKING: '#ffeb3b',
+    PARKING: '#C0C0C0',
     CHALLAN: '#f44336',
     EMI: '#4caf50',
     OTHER: '#00c853',
   };
 
-  const fetchExpenses = React.useCallback(async () => {
+  const extractExpenseItems = React.useCallback((response: any) => {
+    const items =
+      response?.data?.expenses ??
+      response?.data?.data?.expenses ??
+      response?.data?.data ??
+      response?.expenses ??
+      response?.data ??
+      [];
+    return Array.isArray(items) ? items : [];
+  }, []);
+
+  const loadPrimaryVehicle = React.useCallback(async (): Promise<Vehicle | null> => {
+    const cachedPrimaryId = getPrimaryVehicleId();
+    if (cachedPrimaryId) {
+      vehicleIdRef.current = cachedPrimaryId;
+      setVehicleId((prev) => prev ?? cachedPrimaryId);
+    }
+
+    try {
+      const res = await vehicleService.getVehicles();
+      const list = Array.isArray(res)
+        ? res
+        : Array.isArray((res as any)?.data)
+          ? (res as any).data
+          : [];
+      const primary: Vehicle | null =
+        list.find((v: any) => v?.isPrimary) ||
+        list.find((v: any) => v?.id === cachedPrimaryId) ||
+        list[0] ||
+        null;
+
+      const nextVehicleId = primary?.id ?? null;
+      setPrimaryVehicleId(nextVehicleId);
+      setPrimaryVehicle(primary);
+      vehicleIdRef.current = nextVehicleId;
+      setVehicleId(nextVehicleId);
+      return primary;
+    } catch {
+      if (!cachedPrimaryId) {
+        setPrimaryVehicle(null);
+        vehicleIdRef.current = null;
+        setVehicleId(null);
+      }
+      return null;
+    }
+  }, []);
+
+  const fetchExpenses = React.useCallback(async (targetVehicleId?: string | null) => {
     if (isRefreshingRef.current) {
       pendingRefreshRef.current = true;
-      return;
-    }
-    if (!vehicleIdRef.current) {
-      setRawExpenses([]);
-      setExpensesList([]);
-      setBills([]);
       return;
     }
     isRefreshingRef.current = true;
     setLoading(true);
     try {
+      const resolvedVehicleId = targetVehicleId ?? primaryVehicle?.id ?? vehicleIdRef.current ?? null;
+      const cachedExpenses = getStaleCachedValue<any[]>(resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY);
+      if (cachedExpenses && expensesList.length === 0) {
+        setRawExpenses(cachedExpenses);
+      }
       const response = await api.get<any>(
-        vehicleIdRef.current ? `/v1/expenses?vehicleId=${vehicleIdRef.current}` : '/v1/expenses'
+        resolvedVehicleId ? `/v1/expenses?vehicleId=${resolvedVehicleId}` : '/v1/expenses'
       );
       console.log("response", response);
-      const items =
-        response?.data?.expenses ??
-        response?.data?.data?.expenses ??
-        response?.data?.data ??
-        response?.expenses ??
-        response?.data ??
-        [];
-      const list = Array.isArray(items) ? items : [];
+      let list = extractExpenseItems(response);
+
+      if (resolvedVehicleId && list.length === 0) {
+        const fallbackResponse = await api.get<any>('/v1/expenses');
+        const fallbackItems = extractExpenseItems(fallbackResponse);
+        list = fallbackItems.filter((item: any) => {
+          const itemVehicleId = typeof item?.vehicleId === 'string' ? item.vehicleId : null;
+          return !itemVehicleId || itemVehicleId === resolvedVehicleId;
+        });
+      }
 
       setRawExpenses(list);
 
       const mappedExpenses = list.map((item: any) => {
         const category = String(item.category || 'OTHER').toUpperCase();
+        const linkedServiceRecord =
+          item.serviceRecord ||
+          (Array.isArray(item.serviceRecords) ? item.serviceRecords[0] : null);
+        const location =
+          item.location ||
+          item.address ||
+          item.merchantAddress ||
+          item.storeAddress ||
+          item.vendorAddress ||
+          item.place ||
+          item.placeName ||
+          item.placeAddress ||
+          item.metadata?.location ||
+          linkedServiceRecord?.garageName ||
+          linkedServiceRecord?.location ||
+          item.merchantName ||
+          null;
+        const serviceType = formatServiceType(
+          item.serviceType ||
+          linkedServiceRecord?.serviceType ||
+          item.metadata?.serviceType,
+        );
+        const servicedPart =
+          (Array.isArray(linkedServiceRecord?.parts)
+            ? linkedServiceRecord.parts.map(formatPartLabel).filter(Boolean).join(', ')
+            : null) || null;
         return {
           id: item.id,
           title: category,
@@ -185,6 +309,9 @@ const ExpenseFeed = () => {
           icon: getExpenseIcon(category),
           color: getExpenseColor(category),
           category,
+          location,
+          serviceType,
+          servicedPart,
         };
       });
       setExpensesList(mappedExpenses);
@@ -207,65 +334,59 @@ const ExpenseFeed = () => {
         });
 
       setBills(recentBills);
+      setCachedValue(
+        resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY,
+        list,
+        EXPENSES_CACHE_TTL_MS,
+      );
     } catch (error) {
       console.error("Fetch Expenses Error:", error);
+      const resolvedVehicleId = targetVehicleId ?? primaryVehicle?.id ?? vehicleIdRef.current ?? null;
+      const cachedExpenses = getCachedValue<any[]>(resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY) || getStaleCachedValue<any[]>(resolvedVehicleId ? `${EXPENSES_CACHE_KEY}:${resolvedVehicleId}` : EXPENSES_CACHE_KEY);
+      if (cachedExpenses) {
+        setRawExpenses(cachedExpenses);
+      }
     } finally {
       setLoading(false);
       isRefreshingRef.current = false;
       if (pendingRefreshRef.current) {
         pendingRefreshRef.current = false;
-        fetchExpenses();
+        fetchExpenses(targetVehicleId);
       }
     }
-  }, []);
+  }, [extractExpenseItems, primaryVehicle?.id]);
 
   React.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await vehicleService.getVehicles();
-        const list = Array.isArray(res)
-          ? res
-          : Array.isArray((res as any)?.data)
-            ? (res as any).data
-            : [];
-        const primary = list.find((v: any) => v?.isPrimary) || list[0];
-        if (mounted) setVehicleId(primary?.id ?? null);
-      } catch {
-        if (mounted) setVehicleId(null);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    loadPrimaryVehicle();
+  }, [loadPrimaryVehicle]);
 
   React.useEffect(() => {
     vehicleIdRef.current = vehicleId;
   }, [vehicleId]);
 
   React.useEffect(() => {
-    if (vehicleId === null) return;
-    fetchExpenses();
-  }, [vehicleId, fetchExpenses]);
+    if (!primaryVehicle?.id) return;
+    fetchExpenses(primaryVehicle.id);
+  }, [primaryVehicle?.id, fetchExpenses]);
 
   React.useEffect(() => {
     const params = route.params as { expense?: any } | undefined;
     
     // Only process if we have an expense object, a primary vehicleId, and it hasn't been processed yet.
-    if (params?.expense && vehicleId && !params.expense._processed) {
+    if (params?.expense && primaryVehicle?.id && !params.expense._processed) {
 
       const saveAndRefresh = async (expenseData: any) => {
         try {
           // 1. Add primary vehicle ID if missing
           const payload = {
             ...expenseData,
-            vehicleId: expenseData.vehicleId || vehicleId,
+            vehicleId: expenseData.vehicleId || primaryVehicle.id,
             source: expenseData.source || 'NOTIFICATION', // Good to have a source
           };
 
           // 2. Save the new expense
           await api.post('/v1/expenses', payload);
+          clearCachedValue(EXPENSES_CACHE_KEY);
 
           // 3. Mark params as processed to avoid re-saving on re-renders
           // By creating a new object for the params, we ensure a re-render
@@ -275,7 +396,7 @@ const ExpenseFeed = () => {
           });
 
           // 4. Refresh the expense list to show the new item
-          fetchExpenses();
+          fetchExpenses(primaryVehicle.id);
 
         } catch (error) {
           console.error('Failed to auto-save expense from params:', error);
@@ -285,29 +406,81 @@ const ExpenseFeed = () => {
 
       saveAndRefresh(params.expense);
     }
-  }, [route.params, vehicleId, navigation, fetchExpenses]);
+  }, [route.params, primaryVehicle?.id, navigation, fetchExpenses]);
 
   useFocusEffect(
     React.useCallback(() => {
-      // Check if refresh was requested and apply appropriate delay
-      const needsRefresh = getAndClearExpenseListRefresh();
+      // Check if a voice/manual add bumped the expense store since we last looked, and apply
+      // appropriate delay for the follow-up fetch.
+      const currentExpenseVersion = useExpenseStore.getState().version;
+      const needsRefresh = currentExpenseVersion !== lastSeenExpenseVersionRef.current;
+      lastSeenExpenseVersionRef.current = currentExpenseVersion;
       const timers: ReturnType<typeof setTimeout>[] = [];
 
-      fetchExpenses();
-      if (needsRefresh) {
-        // Follow-up fetch helps when backend write/indexing is slightly delayed.
-        timers.push(setTimeout(() => {
-          fetchExpenses();
-        }, 1000));
-      }
+      let cancelled = false;
+
+      const refreshCurrentVehicleExpenses = async () => {
+        const resolvedPrimaryVehicle = await loadPrimaryVehicle();
+        if (cancelled) return;
+        fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+        if (needsRefresh) {
+          // Follow-up fetch helps when backend write/indexing is slightly delayed.
+          timers.push(setTimeout(() => {
+            fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+          }, 1000));
+        }
+      };
+
+      refreshCurrentVehicleExpenses();
 
       return () => {
+        cancelled = true;
         timers.forEach(clearTimeout);
       };
-    }, [fetchExpenses])
+    }, [fetchExpenses, loadPrimaryVehicle])
   );
 
-  // ── Compute "Total This Month" ──
+  React.useEffect(() => {
+    let currentAppState: AppStateStatus = AppState.currentState;
+
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      const wasBackgrounded =
+        currentAppState === 'background' || currentAppState === 'inactive';
+
+      currentAppState = nextAppState;
+
+      if (nextAppState !== 'active' || !wasBackgrounded) {
+        return;
+      }
+
+      loadPrimaryVehicle()
+        .then((resolvedPrimaryVehicle) => {
+          fetchExpenses(resolvedPrimaryVehicle?.id ?? vehicleIdRef.current ?? null);
+        })
+        .catch((error) => {
+          console.error('Failed to refresh expenses on app resume:', error);
+        });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [fetchExpenses, loadPrimaryVehicle]);
+
+  // Live-refresh when a voice/manual add bumps the expense store while this screen is already
+  // mounted (useFocusEffect above only catches focus transitions, not this case).
+  React.useEffect(() => {
+    const unsubscribe = useExpenseStore.subscribe((state) => {
+      if (state.version === lastSeenExpenseVersionRef.current) return;
+      lastSeenExpenseVersionRef.current = state.version;
+      loadPrimaryVehicle().then((resolvedPrimaryVehicle) => {
+        fetchExpenses(resolvedPrimaryVehicle?.id ?? null);
+      });
+    });
+
+    return unsubscribe;
+  }, [fetchExpenses, loadPrimaryVehicle]);
+
   React.useEffect(() => {
     if (rawExpenses.length === 0) {
       setTotalThisMonth(0);
@@ -502,218 +675,297 @@ const ExpenseFeed = () => {
     return `₹${val}`;
   };
 
-  return (
-
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={fetchExpenses} tintColor="#fff" />
-        }
+  const renderItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      key={item.id}
+      style={styles.listCard}
+      activeOpacity={0.9}
+      onPress={() => setSelectedExpense(item)}
+    >
+      <View
+        style={[
+          styles.iconCircle,
+          {
+            borderColor: `${item.color}55`,
+            backgroundColor: `${item.color}16`,
+          },
+        ]}
       >
-        <View style={styles.shader}>
-          <View style={styles.header}>
-            <BackButton onPress={() => navigation.goBack()} />
-            <Text style={styles.headerTitle}>Expenses</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('addExpense')}>
-              <Icon name="plus" size={wp(5)} color="#fff" />
-            </TouchableOpacity>
-          </View>
+        <Icon name={item.icon} size={wp(5)} color={item.color} />
+      </View>
 
-          <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
-            <NotificationPermission />
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Total This Month</Text>
-            <Text style={styles.amount}>{formatCurrency(totalThisMonth)}</Text>
-
-            <View style={styles.row}>
-              <Icon
-                name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
-                size={wp(3)}
-                color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
-              />
-              <Text style={[
-                styles.growthText,
-                { color: growthPercent >= 0 ? '#ff5252' : '#00c853' }
-              ]}>
-                {' '}{growthPercent >= 0 ? '+' : ''}{growthPercent}% from last month
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={[styles.card, { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' }]}>
-          <View style={styles.rowBetween}>
-            <Text style={styles.cardLabel}>Total Spent</Text>
-            <View style={styles.percentBadge}>
-              <TouchableOpacity
-                onPress={() => {
-                  setCalendarSelectionTarget(selectedFromDate ? 'to' : 'from');
-                  setIsCalendarVisible(true);
-                }}
-                style={styles.calendarButton}
-              >
-                <Ionicons name="calendar-outline" size={22} color="#FFFFFF" />
-                <Text style={styles.selectedDateText}>{selectedDateLabel}</Text>
-              </TouchableOpacity>
-              
-            </View>
-          </View>
-          <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
-
-          <View style={styles.timelineContainer}>
-            <View style={styles.timelineSubContainer}>
-              {['Daily', 'Weekly', 'Monthly', 'Yearly'].map(item => (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.timelineItem,
-                    timelineFilter === item && styles.activeTimelineItem,
-                  ]}
-                  onPress={() => {
-                  setTimelineFilter(item);
-                  setSelectedFromDate(null);
-                  setSelectedToDate(null);
-                  setCalendarSelectionTarget('from');
-                  setIsCalendarVisible(false)
-                  }
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.timelineText,
-                      timelineFilter === item && styles.activeTimelineText,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {categoryBreakdown.length > 0 ? (
-            categoryBreakdown.map(item => (
-              <ProgressRow
-                key={item.key}
-                label={item.label}
-                percent={item.percent}
-                color={item.color}
-                value={`₹${item.amount.toLocaleString('en-IN')} (${item.percent}%)`}
-              />
-            ))
-          ) : (
-            <View style={{ paddingVertical: hp(2), alignItems: 'center' }}>
-              <Text style={{ color: '#666', fontSize: wp(3.5) }}>No data for this period</Text>
-            </View>
-          )}
+      <View style={styles.itemContent}>
+        <View style={styles.itemHeaderRow}>
+          <Text style={styles.itemTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text style={styles.itemAmount} numberOfLines={1}>
+            ₹{item.amount}
+          </Text>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterRow}>
-            {serviceTypes.map(item => {
-              const isActive = selectedType === item;
+        <Text style={styles.itemMeta}>
+          {item.date} {'\u2022'} {item.source}
+        </Text>
 
-              return (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.filterChip,
-                    isActive && styles.activeChip,
-                  ]}
-                  onPress={() => setSelectedType(item)}
-                >
-                  <Text
-                    style={[
-                      styles.filterText,
-                      isActive && styles.activeText,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-
-        {filteredExpenses.length === 0 && !loading ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No expenses found</Text>
-          </View>
-        ) : (
-          displayedExpenses.map(item => (
-            <View key={item.id} style={styles.listCard}>
-              <View style={[styles.iconCircle, { borderColor: item.color }]}>
-                <Icon name={item.icon} size={wp(5)} color={item.color} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-
-                <Text style={styles.itemSub}>
-                  {item.date} · {item.source}
-                </Text>
-              </View>
-
-              <Text style={styles.itemAmount}>₹{item.amount}</Text>
-            </View>
-          ))
-        )}
-
-        {filteredExpenses.length > 3 && (
-          <TouchableOpacity
-            style={styles.viewMoreBtn}
-            onPress={() => setShowAllExpenses(!showAllExpenses)}
-          >
-            <Text style={styles.viewMoreText}>
-              {showAllExpenses ? 'View Less' : 'View More'}
+        {item.location ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Location</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.location}
             </Text>
-            <Icon
-              name={showAllExpenses ? 'chevron-up' : 'chevron-down'}
-              size={wp(3)}
-              color="#4CAF50"
-              style={{ marginLeft: 6 }}
-            />
-          </TouchableOpacity>
-        )}
+          </View>
+        ) : null}
+        {hasServiceDetails(item) && item.serviceType ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Type</Text>
+            <Text style={styles.detailValue} numberOfLines={1}>
+              {item.serviceType}
+            </Text>
+          </View>
+        ) : null}
+        {hasServiceDetails(item) && item.servicedPart ? (
+          <View style={[styles.detailRow, styles.detailRowTop]}>
+            <Text style={styles.detailLabel}>Part</Text>
+            <Text style={styles.detailValue} numberOfLines={2}>
+              {item.servicedPart}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </TouchableOpacity>
+  );
 
-        <Bills bills={bills} />
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {shouldTriggerPaymentsFeatureBoundaryTest ? (
+        <PaymentsFeatureBoundaryTestCrash />
+      ) : null}
+      <FlashListAny
+        data={displayedExpenses}
+        estimatedItemSize={80}
+        onRefresh={fetchExpenses}
+        refreshing={loading}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: hp(5) }}
+        ListHeaderComponent={
+          <>
+            <View style={styles.shader}>
+              <View style={styles.header}>
+                <BackButton onPress={() => navigation.goBack()} />
+                <Text style={styles.headerTitle}>Expenses</Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('addExpense')}
+                >
+                  <Icon name="plus" size={wp(5)} color="#fff" />
+                </TouchableOpacity>
+              </View>
 
-        <TouchableOpacity
-          style={styles.sectionTitleCentered}
-          onPress={() => navigation.navigate('BudgetSettings')}
-        >
-          <Icon name="wallet" size={wp(5)} color="#fff" />
-          <Text style={{ color: '#fff', marginLeft: wp(2) }}>
-            Set Budget
-          </Text>
-        </TouchableOpacity>
+              <View style={{ paddingHorizontal: wp(4), marginTop: hp(1) }}>
+                <NotificationPermission />
+              </View>
 
-        <TouchableOpacity
-          style={styles.sectionTitleCenteredAnalytics}
-          onPress={() => navigation.navigate('ExpenseAnalytics')}
-        >
-          <Icon name="chart-bar" size={wp(5)} color="#fff" />
-          <Text style={{ color: '#fff', marginLeft: wp(2) }}>
-            View Detailed Analytics
-          </Text>
-        </TouchableOpacity>
+              <View style={styles.card}>
+                <Text style={styles.cardLabel}>Total This Month</Text>
+                <Text style={styles.amount}>
+                  {formatCurrency(totalThisMonth)}
+                </Text>
 
-      </ScrollView>
+                <View style={styles.row}>
+                  <Icon
+                    name={growthPercent >= 0 ? 'arrow-up' : 'arrow-down'}
+                    size={wp(3)}
+                    color={growthPercent >= 0 ? '#ff5252' : '#00c853'}
+                  />
+                  <Text
+                    style={[
+                      styles.growthText,
+                      { color: growthPercent >= 0 ? '#ff5252' : '#00c853' },
+                    ]}
+                  >
+                    {' '}
+                    {growthPercent >= 0 ? '+' : ''}
+                    {growthPercent}% from last month
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.card,
+                { marginTop: hp(-4), backgroundColor: 'rgb(18, 18, 23)' },
+              ]}
+            >
+              <View style={styles.rowBetween}>
+                <Text style={styles.cardLabel}>Total Spent</Text>
+                <View style={styles.percentBadge}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCalendarSelectionTarget(
+                        selectedFromDate ? 'to' : 'from',
+                      );
+                      setIsCalendarVisible(true);
+                    }}
+                    style={styles.calendarButton}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={22}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.selectedDateText}>
+                      {selectedDateLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <Text style={styles.amount}>{formatCurrency(totalFiltered)}</Text>
+
+              <View style={styles.timelineContainer}>
+                <View style={styles.timelineSubContainer}>
+                  {['Daily', 'Weekly', 'Monthly', 'Yearly'].map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      style={[
+                        styles.timelineItem,
+                        timelineFilter === item && styles.activeTimelineItem,
+                      ]}
+                      onPress={() => {
+                        setTimelineFilter(item);
+                        setSelectedFromDate(null);
+                        setSelectedToDate(null);
+                        setCalendarSelectionTarget('from');
+                        setIsCalendarVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.timelineText,
+                          timelineFilter === item && styles.activeTimelineText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {categoryBreakdown.length > 0 ? (
+                categoryBreakdown.map((item) => (
+                  <ProgressRow
+                    key={item.key}
+                    label={item.label}
+                    percent={item.percent}
+                    color={item.color}
+                    value={`₹${item.amount.toLocaleString('en-IN')} (${
+                      item.percent
+                    }%)`}
+                  />
+                ))
+              ) : (
+                <View style={{ paddingVertical: hp(2), alignItems: 'center' }}>
+                  <Text style={{ color: '#666', fontSize: wp(3.5) }}>
+                    No data for this period
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.filterRow}>
+                {serviceTypes.map((item) => {
+                  const isActive = selectedType === item;
+
+                  return (
+                    <TouchableOpacity
+                      key={item}
+                      style={[styles.filterChip, isActive && styles.activeChip]}
+                      onPress={() => setSelectedType(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.filterText,
+                          isActive && styles.activeText,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+
+            {filteredExpenses.length === 0 && !loading && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No expenses found</Text>
+              </View>
+            )}
+          </>
+        }
+        renderItem={renderItem}
+        ListFooterComponent={
+          <>
+            {filteredExpenses.length > 3 && (
+              <TouchableOpacity
+                style={styles.viewMoreBtn}
+                onPress={() => setShowAllExpenses(!showAllExpenses)}
+              >
+                <Text style={styles.viewMoreText}>
+                  {showAllExpenses ? 'View Less' : 'View More'}
+                </Text>
+                <Icon
+                  name={showAllExpenses ? 'chevron-up' : 'chevron-down'}
+                  size={wp(3)}
+                  color="#4CAF50"
+                  style={{ marginLeft: 6 }}
+                />
+              </TouchableOpacity>
+            )}
+
+            <Bills bills={bills} />
+
+            <TouchableOpacity
+              style={styles.sectionTitleCentered}
+              onPress={() => navigation.navigate('BudgetSettings')}
+            >
+              <Icon name="wallet" size={wp(5)} color="#fff" />
+              <Text style={{ color: '#fff', marginLeft: wp(2) }}>
+                Set Budget
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sectionTitleCenteredAnalytics}
+              onPress={() => navigation.navigate('ExpenseAnalytics')}
+            >
+              <Icon name="chart-bar" size={wp(5)} color="#fff" />
+              <Text style={{ color: '#fff', marginLeft: wp(2) }}>
+                View Detailed Analytics
+              </Text>
+            </TouchableOpacity>
+          </>
+        }
+      />
       <Modal
         visible={isCalendarVisible}
         transparent
         animationType="fade"
         onRequestClose={() => setIsCalendarVisible(false)}
       >
-        <Pressable style={styles.calendarModalBackdrop} onPress={() => setIsCalendarVisible(false)}>
+        <Pressable
+          style={styles.calendarModalBackdrop}
+          onPress={() => setIsCalendarVisible(false)}
+        >
           <View style={styles.calendarModalCard}>
             <View style={styles.calendarHeader}>
               <TouchableOpacity
                 onPress={() =>
                   setCalendarMonth(
-                    prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+                    (prev) =>
+                      new Date(prev.getFullYear(), prev.getMonth() - 1, 1),
                   )
                 }
               >
@@ -723,7 +975,8 @@ const ExpenseFeed = () => {
               <TouchableOpacity
                 onPress={() =>
                   setCalendarMonth(
-                    prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+                    (prev) =>
+                      new Date(prev.getFullYear(), prev.getMonth() + 1, 1),
                   )
                 }
               >
@@ -733,27 +986,39 @@ const ExpenseFeed = () => {
 
             <View style={styles.weekHeader}>
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-                <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>{day}</Text>
+                <Text key={`${day}-${idx}`} style={styles.weekHeaderText}>
+                  {day}
+                </Text>
               ))}
             </View>
 
             <View style={styles.rangePickerRow}>
               <TouchableOpacity
-                style={[styles.rangeChip, calendarSelectionTarget === 'from' && styles.rangeChipActive]}
+                style={[
+                  styles.rangeChip,
+                  calendarSelectionTarget === 'from' && styles.rangeChipActive,
+                ]}
                 onPress={() => setCalendarSelectionTarget('from')}
               >
                 <Text style={styles.rangeChipLabel}>From</Text>
                 <Text style={styles.rangeChipValue}>
-                  {selectedFromDate ? formatRangeDate(selectedFromDate) : 'Select date'}
+                  {selectedFromDate
+                    ? formatRangeDate(selectedFromDate)
+                    : 'Select date'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.rangeChip, calendarSelectionTarget === 'to' && styles.rangeChipActive]}
+                style={[
+                  styles.rangeChip,
+                  calendarSelectionTarget === 'to' && styles.rangeChipActive,
+                ]}
                 onPress={() => setCalendarSelectionTarget('to')}
               >
                 <Text style={styles.rangeChipLabel}>To</Text>
                 <Text style={styles.rangeChipValue}>
-                  {selectedToDate ? formatRangeDate(selectedToDate) : 'Select date'}
+                  {selectedToDate
+                    ? formatRangeDate(selectedToDate)
+                    : 'Select date'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -763,11 +1028,16 @@ const ExpenseFeed = () => {
                 if (!day) {
                   return <View key={`empty-${index}`} style={styles.dayCell} />;
                 }
-                const isFrom = selectedFromDate ? sameDay(day, selectedFromDate) : false;
-                const isTo = selectedToDate ? sameDay(day, selectedToDate) : false;
+                const isFrom = selectedFromDate
+                  ? sameDay(day, selectedFromDate)
+                  : false;
+                const isTo = selectedToDate
+                  ? sameDay(day, selectedToDate)
+                  : false;
                 const isInRange =
                   selectedFromDate && selectedToDate
-                    ? day >= startOfDay(selectedFromDate) && day <= endOfDay(selectedToDate)
+                    ? day >= startOfDay(selectedFromDate) &&
+                      day <= endOfDay(selectedToDate)
                     : false;
                 const isSelected = isFrom || isTo;
                 return (
@@ -780,7 +1050,12 @@ const ExpenseFeed = () => {
                     ]}
                     onPress={() => onSelectCalendarDay(day)}
                   >
-                    <Text style={[styles.dayText, isSelected && styles.dayTextSelected]}>
+                    <Text
+                      style={[
+                        styles.dayText,
+                        isSelected && styles.dayTextSelected,
+                      ]}
+                    >
                       {day.getDate()}
                     </Text>
                   </TouchableOpacity>
@@ -811,6 +1086,115 @@ const ExpenseFeed = () => {
         </Pressable>
       </Modal>
 
+      <Modal
+        visible={Boolean(selectedExpense)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedExpense(null)}
+      >
+        <Pressable
+          style={styles.expenseModalBackdrop}
+          onPress={() => setSelectedExpense(null)}
+        >
+          <Pressable style={styles.expenseModalCard} onPress={() => {}}>
+            {selectedExpense ? (
+              <>
+                <View style={styles.expenseModalHeader}>
+                  <View style={styles.expenseModalTitleRow}>
+                    <View
+                      style={[
+                        styles.expenseModalIconWrap,
+                        {
+                          borderColor: `${selectedExpense.color}55`,
+                          backgroundColor: `${selectedExpense.color}16`,
+                        },
+                      ]}
+                    >
+                      <Icon
+                        name={selectedExpense.icon}
+                        size={wp(5)}
+                        color={selectedExpense.color}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.expenseModalTitle}>
+                        {selectedExpense.title}
+                      </Text>
+                      <Text style={styles.expenseModalMeta}>
+                        {selectedExpense.date} {'\u2022'} {selectedExpense.source}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setSelectedExpense(null)}
+                    style={styles.expenseModalClose}
+                  >
+                    <Ionicons name="close" size={22} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.expenseAmountPanel}>
+                  <Text style={styles.expenseAmountLabel}>Amount</Text>
+                  <Text style={styles.expenseAmountValue}>
+                    ₹{selectedExpense.amount}
+                  </Text>
+                </View>
+
+                <View style={styles.expenseDetailList}>
+                  <View style={styles.expenseDetailRow}>
+                    <Text style={styles.expenseDetailLabel}>Category</Text>
+                    <Text style={styles.expenseDetailValue}>
+                      {selectedExpense.type}
+                    </Text>
+                  </View>
+
+                  <View style={styles.expenseDetailRow}>
+                    <Text style={styles.expenseDetailLabel}>Date</Text>
+                    <Text style={styles.expenseDetailValue}>
+                      {selectedExpense.date}
+                    </Text>
+                  </View>
+
+                  <View style={styles.expenseDetailRow}>
+                    <Text style={styles.expenseDetailLabel}>Source</Text>
+                    <Text style={styles.expenseDetailValue}>
+                      {selectedExpense.source || '-'}
+                    </Text>
+                  </View>
+
+                  {selectedExpense.location ? (
+                    <View style={[styles.expenseDetailRow, styles.expenseDetailRowTop]}>
+                      <Text style={styles.expenseDetailLabel}>Location</Text>
+                      <Text style={styles.expenseDetailValue}>
+                        {selectedExpense.location}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {selectedExpense.serviceType ? (
+                    <View style={styles.expenseDetailRow}>
+                      <Text style={styles.expenseDetailLabel}>Type</Text>
+                      <Text style={styles.expenseDetailValue}>
+                        {selectedExpense.serviceType}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {selectedExpense.servicedPart ? (
+                    <View style={[styles.expenseDetailRow, styles.expenseDetailRowTop]}>
+                      <Text style={styles.expenseDetailLabel}>Part</Text>
+                      <Text style={styles.expenseDetailValue}>
+                        {selectedExpense.servicedPart}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              </>
+            ) : null}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -832,6 +1216,7 @@ const styles = StyleSheet.create({
     gap: wp(5),
   },
   card: {
+    backgroundColor: 'rgb(18, 18, 23)',
     marginHorizontal: wp(4),
     marginTop: hp(2),
     borderRadius: wp(8),
@@ -863,12 +1248,10 @@ const styles = StyleSheet.create({
     flexDirection:"row",
     alignItems: 'center',
     gap:wp(1.5)
-    // justifyContent: 'center',
   },
   selectedDateText: {
     color: '#aaa',
     fontSize: wp(3.2),
-    // marginTop: hp(1),
   },
   growthText: { color: '#00c853', fontSize: wp(3.5) },
   percentBadge: {
@@ -902,27 +1285,85 @@ const styles = StyleSheet.create({
   activeText: { color: '#000', fontWeight: '600' },
   listCard: {
     flexDirection: 'row',
-    backgroundColor: '#141414',
+    backgroundColor: '#15181d',
     marginHorizontal: wp(4),
-    marginVertical: hp(1.5),
-    padding: wp(8),
-    borderRadius: wp(6),
-    borderWidth: wp(0.2),
-    borderColor: '#f3efef70',
-    alignItems: 'center',
+    marginVertical: hp(1),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.8),
+    borderRadius: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'flex-start',
   },
   iconCircle: {
-    width: wp(12),
-    height: wp(12),
-    borderRadius: wp(6),
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(3.8),
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: wp(4),
+    marginRight: wp(3.5),
   },
-  itemTitle: { color: '#fff', fontSize: wp(4.5), fontWeight: '600' },
+  itemContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: wp(3),
+    minWidth: 0,
+  },
+  itemTitle: {
+    color: '#fff',
+    fontSize: wp(4.3),
+    fontWeight: '700',
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  itemMeta: {
+    color: '#8f98aa',
+    fontSize: wp(3),
+    marginTop: hp(0.35),
+    marginBottom: hp(0.8),
+  },
   itemSub: { color: '#888', fontSize: wp(3.2) },
-  itemAmount: { color: '#fff', fontSize: wp(5), fontWeight: '700' },
+  itemAmount: {
+    color: '#fff',
+    fontSize: wp(4.6),
+    fontWeight: '700',
+    marginLeft: wp(2),
+    flexShrink: 0,
+    maxWidth: '38%',
+    textAlign: 'right',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(0.35),
+    minWidth: 0,
+  },
+  detailRowTop: {
+    alignItems: 'flex-start',
+  },
+  detailLabel: {
+    width: wp(14),
+    color: '#6f7788',
+    fontSize: wp(3),
+    fontWeight: '600',
+    marginRight: wp(2),
+    flexShrink: 0,
+  },
+  detailValue: {
+    flex: 1,
+    color: '#dce2ec',
+    fontSize: wp(3.15),
+    fontWeight: '500',
+    minWidth: 0,
+    flexShrink: 1,
+  },
   sectionTitleCentered: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -1090,9 +1531,106 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  expenseModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    justifyContent: 'center',
+    paddingHorizontal: wp(5),
+  },
+  expenseModalCard: {
+    backgroundColor: '#161a20',
+    borderRadius: wp(5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: wp(4.5),
+  },
+  expenseModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: hp(1.6),
+    gap: wp(3),
+  },
+  expenseModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    gap: wp(3),
+  },
+  expenseModalIconWrap: {
+    width: wp(11),
+    height: wp(11),
+    borderRadius: wp(3.8),
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expenseModalTitle: {
+    color: '#fff',
+    fontSize: wp(4.6),
+    fontWeight: '700',
+  },
+  expenseModalMeta: {
+    color: '#8f98aa',
+    fontSize: wp(3.1),
+    marginTop: hp(0.3),
+  },
+  expenseModalClose: {
+    width: wp(9),
+    height: wp(9),
+    borderRadius: wp(4.5),
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expenseAmountPanel: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: wp(4),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+    marginBottom: hp(1.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  expenseAmountLabel: {
+    color: '#8f98aa',
+    fontSize: wp(3),
+    marginBottom: hp(0.4),
+  },
+  expenseAmountValue: {
+    color: '#fff',
+    fontSize: wp(7),
+    fontWeight: '700',
+  },
+  expenseDetailList: {
+    gap: hp(0.8),
+  },
+  expenseDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    paddingVertical: hp(0.4),
+  },
+  expenseDetailRowTop: {
+    alignItems: 'flex-start',
+  },
+  expenseDetailLabel: {
+    width: wp(18),
+    color: '#6f7788',
+    fontSize: wp(3.1),
+    fontWeight: '600',
+    marginRight: wp(2.5),
+    flexShrink: 0,
+  },
+  expenseDetailValue: {
+    flex: 1,
+    minWidth: 0,
+    color: '#e4e9f1',
+    fontSize: wp(3.35),
+    fontWeight: '500',
+  },
   Dropcontainer:{
-    // backgroundColor:"#999",
-    // color:"#999"
     padding:wp(3)
   }
 });

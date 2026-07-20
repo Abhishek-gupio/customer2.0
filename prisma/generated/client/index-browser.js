@@ -24,12 +24,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 7.3.0
- * Query Engine version: 9d6ad21cbbceab97458517b147a6a09ff43aa735
+ * Prisma Client JS version: 7.5.0
+ * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
  */
 Prisma.prismaVersion = {
-  client: "7.3.0",
-  engine: "9d6ad21cbbceab97458517b147a6a09ff43aa735"
+  client: "7.5.0",
+  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -147,7 +147,10 @@ exports.Prisma.CustomerScalarFieldEnum = {
   profilePic: 'profilePic',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  googleId: 'googleId'
+  googleId: 'googleId',
+  isSuspended: 'isSuspended',
+  suspendedReason: 'suspendedReason',
+  suspendedAt: 'suspendedAt'
 };
 
 exports.Prisma.CustomerDeviceScalarFieldEnum = {
@@ -171,6 +174,38 @@ exports.Prisma.VehicleDocumentScalarFieldEnum = {
   fileContent: 'fileContent',
   fileUrl: 'fileUrl',
   mimeType: 'mimeType',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DrivingLicenseScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  dlNumber: 'dlNumber',
+  fullName: 'fullName',
+  dob: 'dob',
+  referenceNumber: 'referenceNumber',
+  dateOfIssue: 'dateOfIssue',
+  originalLA: 'originalLA',
+  dateOfFirstIssue: 'dateOfFirstIssue',
+  validityTransport: 'validityTransport',
+  validityNonTransport: 'validityNonTransport',
+  registeredAddress: 'registeredAddress',
+  rawResponse: 'rawResponse',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.FastagDocumentScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  creditorAccountId: 'creditorAccountId',
+  ifscCode: 'ifscCode',
+  creditorName: 'creditorName',
+  transactionReferenceNumber: 'transactionReferenceNumber',
+  transactionId: 'transactionId',
+  status: 'status',
+  rawResponse: 'rawResponse',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -453,6 +488,7 @@ exports.Prisma.PartReplacementIntervalScalarFieldEnum = {
   intervalKm: 'intervalKm',
   defaultWarrantyMonths: 'defaultWarrantyMonths',
   source: 'source',
+  verifiedAt: 'verifiedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -483,8 +519,25 @@ exports.Prisma.DrivingTripScalarFieldEnum = {
   safetyScore: 'safetyScore',
   startLocation: 'startLocation',
   endLocation: 'endLocation',
+  scores: 'scores',
+  statistics: 'statistics',
   status: 'status',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.PlannedTripScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  tripId: 'tripId',
+  origin: 'origin',
+  destination: 'destination',
+  waypoints: 'waypoints',
+  vehicleType: 'vehicleType',
+  fuelType: 'fuelType',
+  result: 'result',
+  planning: 'planning',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.DrivingEventScalarFieldEnum = {
@@ -1148,6 +1201,371 @@ exports.Prisma.RolesScalarFieldEnum = {
   permissionsMask: 'permissionsMask'
 };
 
+exports.Prisma.CustomerOrderScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  purpose: 'purpose',
+  referenceId: 'referenceId',
+  amountPaise: 'amountPaise',
+  currency: 'currency',
+  status: 'status',
+  razorpayOrderId: 'razorpayOrderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CustomerPaymentAttemptScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  razorpayPaymentId: 'razorpayPaymentId',
+  razorpaySignature: 'razorpaySignature',
+  method: 'method',
+  status: 'status',
+  failureReason: 'failureReason',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CustomerRefundScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  amountPaise: 'amountPaise',
+  status: 'status',
+  razorpayRefundId: 'razorpayRefundId',
+  reason: 'reason',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WebhookEventScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  eventType: 'eventType',
+  dedupeKey: 'dedupeKey',
+  payload: 'payload',
+  signatureValid: 'signatureValid',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ParkingDealerScalarFieldEnum = {
+  id: 'id',
+  ownerName: 'ownerName',
+  phoneNumber: 'phoneNumber',
+  email: 'email',
+  passwordHash: 'passwordHash',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingListingScalarFieldEnum = {
+  id: 'id',
+  dealerId: 'dealerId',
+  name: 'name',
+  addressLine: 'addressLine',
+  city: 'city',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  fourWheelerCapacity: 'fourWheelerCapacity',
+  twoWheelerCapacity: 'twoWheelerCapacity',
+  hourlyRatePaise: 'hourlyRatePaise',
+  dailyRatePaise: 'dailyRatePaise',
+  photos: 'photos',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingSlotWindowScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  date: 'date',
+  startHour: 'startHour',
+  endHour: 'endHour',
+  capacity: 'capacity',
+  booked: 'booked'
+};
+
+exports.Prisma.ParkingBookingScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  listingId: 'listingId',
+  slotWindowId: 'slotWindowId',
+  vehicleId: 'vehicleId',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  amountPaise: 'amountPaise',
+  status: 'status',
+  orderId: 'orderId',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingWaitlistEntryScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  listingId: 'listingId',
+  desiredDate: 'desiredDate',
+  notified: 'notified',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.VehicleQrTokenScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  token: 'token',
+  createdAt: 'createdAt',
+  rotatedAt: 'rotatedAt'
+};
+
+exports.Prisma.ConversationScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  customerId: 'customerId',
+  ownerId: 'ownerId',
+  category: 'category',
+  priority: 'priority',
+  status: 'status',
+  lastMessage: 'lastMessage',
+  lastMessageAt: 'lastMessageAt',
+  lastSenderId: 'lastSenderId',
+  unreadCountOwner: 'unreadCountOwner',
+  unreadCountCustomer: 'unreadCountCustomer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderId: 'senderId',
+  receiverId: 'receiverId',
+  type: 'type',
+  text: 'text',
+  imageUrls: 'imageUrls',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  quickReplyKey: 'quickReplyKey',
+  reaction: 'reaction',
+  metadata: 'metadata',
+  isRead: 'isRead',
+  deliveredAt: 'deliveredAt',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BlockedContactScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  blockedId: 'blockedId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ConversationReportScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  reporterId: 'reporterId',
+  reportedId: 'reportedId',
+  reason: 'reason',
+  status: 'status',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+};
+
+exports.Prisma.GuestConversationScalarFieldEnum = {
+  id: 'id',
+  vehicleId: 'vehicleId',
+  ownerId: 'ownerId',
+  guestToken: 'guestToken',
+  guestName: 'guestName',
+  guestContact: 'guestContact',
+  lastMessage: 'lastMessage',
+  lastMessageAt: 'lastMessageAt',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.GuestMessageEntryScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  sender: 'sender',
+  text: 'text',
+  imageUrls: 'imageUrls',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CommunityScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  name: 'name',
+  type: 'type',
+  localKind: 'localKind',
+  description: 'description',
+  iconUrl: 'iconUrl',
+  bannerUrl: 'bannerUrl',
+  memberCount: 'memberCount',
+  postCount: 'postCount',
+  isOfficial: 'isOfficial',
+  createdBy: 'createdBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CommunityMembershipScalarFieldEnum = {
+  id: 'id',
+  communityId: 'communityId',
+  customerId: 'customerId',
+  role: 'role',
+  joinedAt: 'joinedAt'
+};
+
+exports.Prisma.HashtagScalarFieldEnum = {
+  id: 'id',
+  tag: 'tag',
+  postCount: 'postCount'
+};
+
+exports.Prisma.PostScalarFieldEnum = {
+  id: 'id',
+  authorId: 'authorId',
+  communityId: 'communityId',
+  vehicleId: 'vehicleId',
+  type: 'type',
+  text: 'text',
+  mediaUrls: 'mediaUrls',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  pollOptions: 'pollOptions',
+  isPinned: 'isPinned',
+  status: 'status',
+  commentCount: 'commentCount',
+  reactionCount: 'reactionCount',
+  shareCount: 'shareCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PostHashtagScalarFieldEnum = {
+  postId: 'postId',
+  hashtagId: 'hashtagId'
+};
+
+exports.Prisma.CommentScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  authorId: 'authorId',
+  parentId: 'parentId',
+  text: 'text',
+  imageUrl: 'imageUrl',
+  isPinned: 'isPinned',
+  isAcceptedAnswer: 'isAcceptedAnswer',
+  reactionCount: 'reactionCount',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ReactionScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  postId: 'postId',
+  commentId: 'commentId',
+  emoji: 'emoji',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.FollowScalarFieldEnum = {
+  id: 'id',
+  followerId: 'followerId',
+  followingId: 'followingId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ContentReportScalarFieldEnum = {
+  id: 'id',
+  reporterId: 'reporterId',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  reason: 'reason',
+  status: 'status',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+};
+
+exports.Prisma.WashPartnerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  passwordHash: 'passwordHash',
+  status: 'status',
+  rating: 'rating',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WashTechnicianScalarFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  passwordHash: 'passwordHash',
+  photoUrl: 'photoUrl',
+  isActive: 'isActive',
+  rating: 'rating',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WashCenterScalarFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  name: 'name',
+  address: 'address',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  supportsBike: 'supportsBike',
+  supportsCar: 'supportsCar',
+  supportsEV: 'supportsEV',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WashSlotScalarFieldEnum = {
+  id: 'id',
+  centerId: 'centerId',
+  startsAt: 'startsAt',
+  endsAt: 'endsAt',
+  capacity: 'capacity',
+  bookedCount: 'bookedCount'
+};
+
+exports.Prisma.WashBookingScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  vehicleId: 'vehicleId',
+  partnerId: 'partnerId',
+  centerId: 'centerId',
+  slotId: 'slotId',
+  technicianId: 'technicianId',
+  serviceModel: 'serviceModel',
+  washType: 'washType',
+  addressLine: 'addressLine',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  status: 'status',
+  amountPaise: 'amountPaise',
+  orderId: 'orderId',
+  beforePhotoUrls: 'beforePhotoUrls',
+  afterPhotoUrls: 'afterPhotoUrls',
+  scheduledAt: 'scheduledAt',
+  completedAt: 'completedAt',
+  idempotencyKey: 'idempotencyKey',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1219,6 +1637,7 @@ exports.ExpenseCategory = exports.$Enums.ExpenseCategory = {
   INSURANCE: 'INSURANCE',
   CHALLAN: 'CHALLAN',
   EMI: 'EMI',
+  REPAIR: 'REPAIR',
   OTHER: 'OTHER'
 };
 
@@ -1227,7 +1646,8 @@ exports.ExpenseSource = exports.$Enums.ExpenseSource = {
   SMS: 'SMS',
   NOTIFICATION: 'NOTIFICATION',
   VOICE: 'VOICE',
-  RECEIPT: 'RECEIPT'
+  RECEIPT: 'RECEIPT',
+  UPI: 'UPI'
 };
 
 exports.ServicePartType = exports.$Enums.ServicePartType = {
@@ -1246,6 +1666,9 @@ exports.ServicePartType = exports.$Enums.ServicePartType = {
   AC_FILTER: 'AC_FILTER',
   WIPER_BLADES: 'WIPER_BLADES',
   HEADLIGHT_BULB: 'HEADLIGHT_BULB',
+  BRAKE_SHOES: 'BRAKE_SHOES',
+  CHAIN_SPROCKET_KIT: 'CHAIN_SPROCKET_KIT',
+  CVT_BELT: 'CVT_BELT',
   OTHER_PART: 'OTHER_PART'
 };
 
@@ -1540,12 +1963,188 @@ exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
   REJECTED: 'REJECTED'
 };
 
+exports.PaymentPurpose = exports.$Enums.PaymentPurpose = {
+  PARKING_BOOKING: 'PARKING_BOOKING',
+  CAR_WASH_BOOKING: 'CAR_WASH_BOOKING'
+};
+
+exports.OrderStatus = exports.$Enums.OrderStatus = {
+  CREATED: 'CREATED',
+  ATTEMPTED: 'ATTEMPTED',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.PaymentAttemptStatus = exports.$Enums.PaymentAttemptStatus = {
+  INITIATED: 'INITIATED',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+};
+
+exports.CustomerRefundStatus = exports.$Enums.CustomerRefundStatus = {
+  INITIATED: 'INITIATED',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED'
+};
+
+exports.DealerStatus = exports.$Enums.DealerStatus = {
+  PENDING_VERIFICATION: 'PENDING_VERIFICATION',
+  VERIFIED: 'VERIFIED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.ListingStatus = exports.$Enums.ListingStatus = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  REMOVED: 'REMOVED'
+};
+
+exports.BookingStatus = exports.$Enums.BookingStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED',
+  NO_SHOW: 'NO_SHOW'
+};
+
+exports.ConversationCategory = exports.$Enums.ConversationCategory = {
+  PARKING: 'PARKING',
+  EMERGENCY: 'EMERGENCY',
+  DAMAGE: 'DAMAGE',
+  LOST_ITEM: 'LOST_ITEM',
+  SECURITY: 'SECURITY',
+  GENERAL: 'GENERAL'
+};
+
+exports.MessagePriority = exports.$Enums.MessagePriority = {
+  NORMAL: 'NORMAL',
+  URGENT: 'URGENT',
+  EMERGENCY: 'EMERGENCY'
+};
+
+exports.ConversationStatus = exports.$Enums.ConversationStatus = {
+  OPEN: 'OPEN',
+  WAITING_FOR_OWNER: 'WAITING_FOR_OWNER',
+  WAITING_FOR_CUSTOMER: 'WAITING_FOR_CUSTOMER',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.MessageType = exports.$Enums.MessageType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  LOCATION: 'LOCATION',
+  SYSTEM: 'SYSTEM'
+};
+
+exports.ReportStatus = exports.$Enums.ReportStatus = {
+  PENDING: 'PENDING',
+  REVIEWED: 'REVIEWED',
+  DISMISSED: 'DISMISSED',
+  ACTIONED: 'ACTIONED'
+};
+
+exports.GuestConversationStatus = exports.$Enums.GuestConversationStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED'
+};
+
+exports.GuestMessageSender = exports.$Enums.GuestMessageSender = {
+  GUEST: 'GUEST',
+  OWNER: 'OWNER'
+};
+
+exports.CommunityType = exports.$Enums.CommunityType = {
+  TOPIC: 'TOPIC',
+  LOCAL: 'LOCAL'
+};
+
+exports.LocalCommunityKind = exports.$Enums.LocalCommunityKind = {
+  CITY: 'CITY',
+  DISTRICT: 'DISTRICT',
+  COLLEGE: 'COLLEGE',
+  COMPANY: 'COMPANY',
+  APARTMENT: 'APARTMENT',
+  HIGHWAY: 'HIGHWAY',
+  PARKING_AREA: 'PARKING_AREA'
+};
+
+exports.CommunityRole = exports.$Enums.CommunityRole = {
+  MEMBER: 'MEMBER',
+  MODERATOR: 'MODERATOR',
+  ADMIN: 'ADMIN'
+};
+
+exports.PostType = exports.$Enums.PostType = {
+  TEXT: 'TEXT',
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  POLL: 'POLL',
+  QUESTION: 'QUESTION',
+  LOCATION: 'LOCATION'
+};
+
+exports.PostStatus = exports.$Enums.PostStatus = {
+  PUBLISHED: 'PUBLISHED',
+  REMOVED: 'REMOVED',
+  SHADOW_HIDDEN: 'SHADOW_HIDDEN'
+};
+
+exports.ContentReportTarget = exports.$Enums.ContentReportTarget = {
+  POST: 'POST',
+  COMMENT: 'COMMENT'
+};
+
+exports.WashPartnerStatus = exports.$Enums.WashPartnerStatus = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.WashServiceModel = exports.$Enums.WashServiceModel = {
+  VISIT_CENTER: 'VISIT_CENTER',
+  DOORSTEP: 'DOORSTEP'
+};
+
+exports.WashType = exports.$Enums.WashType = {
+  EXTERIOR: 'EXTERIOR',
+  INTERIOR: 'INTERIOR',
+  FOAM: 'FOAM',
+  PRESSURE: 'PRESSURE',
+  STEAM: 'STEAM',
+  WATERLESS: 'WATERLESS',
+  DETAILING: 'DETAILING',
+  CERAMIC_COATING: 'CERAMIC_COATING',
+  WAX_POLISH: 'WAX_POLISH',
+  ENGINE_CLEAN: 'ENGINE_CLEAN',
+  TYRE_POLISH: 'TYRE_POLISH',
+  GLASS_TREATMENT: 'GLASS_TREATMENT',
+  UNDERCARRIAGE: 'UNDERCARRIAGE',
+  SANITIZATION: 'SANITIZATION',
+  BIKE_WASH: 'BIKE_WASH',
+  EV_SAFE_WASH: 'EV_SAFE_WASH'
+};
+
+exports.WashBookingStatus = exports.$Enums.WashBookingStatus = {
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  CONFIRMED: 'CONFIRMED',
+  TECHNICIAN_ASSIGNED: 'TECHNICIAN_ASSIGNED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   AdminUser: 'AdminUser',
   Customer: 'Customer',
   CustomerDevice: 'CustomerDevice',
   VehicleDocument: 'VehicleDocument',
+  DrivingLicense: 'DrivingLicense',
+  FastagDocument: 'FastagDocument',
   DigiLockerConnection: 'DigiLockerConnection',
   CustomerVehicle: 'CustomerVehicle',
   VehicleCatalog: 'VehicleCatalog',
@@ -1568,6 +2167,7 @@ exports.Prisma.ModelName = {
   PartReplacementInterval: 'PartReplacementInterval',
   TelematicsDevice: 'TelematicsDevice',
   DrivingTrip: 'DrivingTrip',
+  PlannedTrip: 'PlannedTrip',
   DrivingEvent: 'DrivingEvent',
   SOSRequest: 'SOSRequest',
   EmergencyContact: 'EmergencyContact',
@@ -1613,7 +2213,37 @@ exports.Prisma.ModelName = {
   fcm_tokens: 'fcm_tokens',
   permissions: 'permissions',
   role_permissions: 'role_permissions',
-  roles: 'roles'
+  roles: 'roles',
+  CustomerOrder: 'CustomerOrder',
+  CustomerPaymentAttempt: 'CustomerPaymentAttempt',
+  CustomerRefund: 'CustomerRefund',
+  WebhookEvent: 'WebhookEvent',
+  ParkingDealer: 'ParkingDealer',
+  ParkingListing: 'ParkingListing',
+  ParkingSlotWindow: 'ParkingSlotWindow',
+  ParkingBooking: 'ParkingBooking',
+  ParkingWaitlistEntry: 'ParkingWaitlistEntry',
+  VehicleQrToken: 'VehicleQrToken',
+  Conversation: 'Conversation',
+  Message: 'Message',
+  BlockedContact: 'BlockedContact',
+  ConversationReport: 'ConversationReport',
+  GuestConversation: 'GuestConversation',
+  GuestMessageEntry: 'GuestMessageEntry',
+  Community: 'Community',
+  CommunityMembership: 'CommunityMembership',
+  Hashtag: 'Hashtag',
+  Post: 'Post',
+  PostHashtag: 'PostHashtag',
+  Comment: 'Comment',
+  Reaction: 'Reaction',
+  Follow: 'Follow',
+  ContentReport: 'ContentReport',
+  WashPartner: 'WashPartner',
+  WashTechnician: 'WashTechnician',
+  WashCenter: 'WashCenter',
+  WashSlot: 'WashSlot',
+  WashBooking: 'WashBooking'
 };
 
 /**

@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    FlatList,
     TouchableOpacity,
     ActivityIndicator,
     ScrollView,
@@ -11,7 +10,11 @@ import {
 import { useFocusEffect } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import ServiceCard from '../../components/ServiceCard';
+import LinearGradient from 'react-native-linear-gradient';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -61,23 +64,23 @@ function mapRecordToCard(record: any): any {
     const serviceLabel = serviceType.replace(/_/g, ' ');
     const partLabels = record.parts?.length
         ? record.parts.map((p: any) => {
-              const partType = p.partType || '';
-              return PART_TYPE_LABELS[partType] || partType.replace(/_/g, ' ') || partType;
-          })
+            const partType = p.partType || '';
+            return PART_TYPE_LABELS[partType] || partType.replace(/_/g, ' ') || partType;
+        })
         : [];
     const date = record.serviceDate
         ? new Date(record.serviceDate).toLocaleDateString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-          })
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        })
         : '';
     const parts = partLabels.join(', ');
     const nextService = record.nextServiceKm
         ? `Next at ${record.nextServiceKm.toLocaleString()} km`
         : record.nextServiceDate
-          ? new Date(record.nextServiceDate).toLocaleDateString('en-IN')
-          : '';
+            ? new Date(record.nextServiceDate).toLocaleDateString('en-IN')
+            : '';
 
     return {
         id: String(record.id),
@@ -116,6 +119,24 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
             Array.isArray(item.partLabels) && item.partLabels.includes(selectedFilter)
         );
     }, [records, selectedFilter]);
+
+    const sortedFilteredRecords = useMemo(
+        () =>
+            [...filteredRecords].sort((a, b) => {
+                const ta = a?.date ? new Date(a.date).getTime() : 0;
+                const tb = b?.date ? new Date(b.date).getTime() : 0;
+                return tb - ta;
+            }),
+        [filteredRecords]
+    );
+
+    const headerFilterLabel = useMemo(() => {
+        return selectedFilter === 'All' ? 'All Parts' : selectedFilter;
+    }, [selectedFilter]);
+
+    const renderServiceHistoryItem = useCallback(({ item }: { item: any }) => {
+        return <ServiceCard item={item} />;
+    }, []);
 
     const fetchData = useCallback(async () => {
         const nextSelectedFilter = getPartLabel(route?.params?.selectedPartType);
@@ -156,73 +177,142 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
 
     return (
         <SafeAreaView style={styles.safe}>
-            <View style={styles.shader}>
-                <View style={styles.header}>
-                    <BackButton onPress={() => navigation?.goBack()} />
-                    <Text style={styles.headerTitle}>Service History</Text>
-                </View>
-                <Text style={styles.vehicle}>
-                    {vehicle?.registrationNumber ?? '-'}
-                </Text>
-            </View>
+            <View style={styles.backgroundGlow} />
             <View style={styles.container}>
+                <LinearGradient
+                    colors={['#1A1A1A', '#101010', '#090909']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.hero}
+                >
+                    <View style={styles.header}>
+                        <BackButton onPress={() => navigation?.goBack()} />
+                        <View style={styles.headerTextWrap}>
+                            <Text style={styles.headerTitle}>Service History</Text>
+                            <Text style={styles.headerSubTitle}>
+                                Track every repair and replacement
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.vehiclePill}>
+                        <MaterialIcon name="car" size={wp(4.5)} color="#FFBF00" />
+                        <Text style={styles.vehicle} numberOfLines={1}>
+                            {vehicle?.registrationNumber ?? 'No primary vehicle selected'}
+                        </Text>
+                    </View>
+
+                    <View style={styles.statsRow}>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statValue}>{records.length}</Text>
+                            <Text style={styles.statLabel}>Total</Text>
+                        </View>
+
+                        <View style={styles.statCard}>
+                            <Text style={styles.statValue}>{filteredRecords.length}</Text>
+                            <Text style={styles.statLabel}>Showing</Text>
+                        </View>
+
+                        <View style={[styles.statCard, styles.statCardWide]}>
+                            <MaterialIcon
+                                name="filter-variant"
+                                size={wp(4)}
+                                color="#FFBF00"
+                            />
+                            <Text style={styles.statFilter} numberOfLines={1}>
+                                {headerFilterLabel}
+                            </Text>
+                        </View>
+                    </View>
+                </LinearGradient>
+
                 {loading ? (
                     <View style={styles.loading}>
                         <ActivityIndicator size="large" color="#FFBF00" />
                     </View>
                 ) : (
-                    <>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            style={styles.filterScroll}
-                            contentContainerStyle={styles.filterRow}
-                        >
-                            {filterOptions.map((item) => {
-                                const isActive = selectedFilter === item;
+                    <FlashListAny
+                        data={sortedFilteredRecords}
+                        keyExtractor={(item: any) => item.id}
+                        renderItem={renderServiceHistoryItem}
+                        showsVerticalScrollIndicator={false}
+                        estimatedItemSize={180}
+                        drawDistance={600}
+                        contentContainerStyle={[
+                            styles.listContent,
+                            filteredRecords.length === 0 &&
+                            styles.listContentEmpty,
+                        ]}
+                        ListHeaderComponent={
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                style={styles.filterScroll}
+                                contentContainerStyle={styles.filterRow}
+                            >
+                                {filterOptions.map((item) => {
+                                    const isActive = selectedFilter === item;
 
-                                return (
-                                    <TouchableOpacity
-                                        key={item}
-                                        style={[
-                                            styles.filterChip,
-                                            isActive &&
-                                                styles.filterChipActive,
-                                        ]}
-                                        onPress={() =>
-                                            setSelectedFilter(item)
-                                        }
-                                        activeOpacity={0.85}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.filterText,
-                                                isActive &&
-                                                    styles.filterTextActive,
-                                            ]}
+                                    return (
+                                        <TouchableOpacity
+                                            key={item}
+                                            style={styles.filterTouchable}
+                                            onPress={() =>
+                                                setSelectedFilter(item)
+                                            }
+                                            activeOpacity={0.85}
                                         >
-                                            {item}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </ScrollView>
-
-                        <FlatList
-                            data={filteredRecords}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => <ServiceCard item={item} />}
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={styles.listContent}
-                            ListEmptyComponent={
+                                            {isActive ? (
+                                                <LinearGradient
+                                                    colors={['#FFD466', '#FFBF00']}
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    style={[
+                                                        styles.filterChip,
+                                                        styles.filterChipActive,
+                                                    ]}
+                                                >
+                                                    <Text
+                                                        style={[
+                                                            styles.filterText,
+                                                            styles.filterTextActive,
+                                                        ]}
+                                                    >
+                                                        {item}
+                                                    </Text>
+                                                </LinearGradient>
+                                            ) : (
+                                                <View style={styles.filterChip}>
+                                                    <Text style={styles.filterText}>
+                                                        {item}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </ScrollView>
+                        }
+                        ListEmptyComponent={
+                            <View style={styles.emptyCard}>
+                                <View style={styles.emptyIconWrap}>
+                                    <MaterialIcon
+                                        name="history"
+                                        size={wp(8)}
+                                        color="#FFBF00"
+                                    />
+                                </View>
+                                <Text style={styles.emptyTitle}>
+                                    No Service Entries
+                                </Text>
                                 <Text style={styles.emptyText}>
                                     {records.length
-                                        ? 'No service records match the selected filter.'
-                                        : 'No records found'}
+                                        ? 'No records match the selected filter.'
+                                        : 'Your service records will appear here after your first visit.'}
                                 </Text>
-                            }
-                        />
-                    </>
+                            </View>
+                        }
+                    />
                 )}
             </View>
         </SafeAreaView>
@@ -232,105 +322,222 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: 'black',
+        backgroundColor: '#050505',
         paddingBottom: hp(5),
+    },
+
+    backgroundGlow: {
+        position: 'absolute',
+        top: -hp(12),
+        left: -wp(18),
+        width: wp(72),
+        height: wp(72),
+        borderRadius: wp(36),
+        backgroundColor: 'rgba(255, 191, 0, 0.08)',
     },
 
     container: {
         flex: 1,
         paddingHorizontal: wp(4),
-        // paddingTop: hp(0),
+    },
+
+    hero: {
+        borderRadius: wp(6),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
+        paddingHorizontal: wp(4.5),
+        paddingTop: hp(1.4),
+        paddingBottom: hp(1.8),
+        marginTop: hp(0.6),
+        marginBottom: hp(1.8),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+        elevation: 14,
     },
 
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: hp(1),
     },
 
-    back: {
-        fontSize: wp(6),
-        fontWeight: '600',
-        marginRight: wp(2),
-        color: '#fff',
-        paddingHorizontal: wp(2),
+    headerTextWrap: {
+        marginLeft: wp(2),
+        flex: 1,
     },
 
     headerTitle: {
-        fontSize: wp(5.5),
+        fontSize: wp(5.4),
         fontFamily: 'Outfit-Bold',
-        color: '#fff',
-        marginLeft: wp(3),
+        color: '#FFFFFF',
+    },
+
+    headerSubTitle: {
+        marginTop: hp(0.2),
+        fontSize: wp(3.2),
+        fontFamily: 'Outfit-Medium',
+        color: '#8F8F8F',
+    },
+
+    vehiclePill: {
+        marginTop: hp(1.6),
+        borderRadius: wp(4),
+        borderWidth: 1,
+        borderColor: 'rgba(255,191,0,0.22)',
+        backgroundColor: 'rgba(255,191,0,0.08)',
+        paddingHorizontal: wp(3.5),
+        paddingVertical: hp(0.9),
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 
     vehicle: {
-        fontSize: wp(4.5),
+        marginLeft: wp(2.4),
+        fontSize: wp(3.8),
+        fontFamily: 'Outfit-SemiBold',
+        color: '#F8F8F8',
+        flex: 1,
+    },
+
+    statsRow: {
+        flexDirection: 'row',
+        marginTop: hp(1.4),
+        gap: wp(2.4),
+    },
+
+    statCard: {
+        flex: 1,
+        minHeight: hp(6.1),
+        borderRadius: wp(4),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        paddingHorizontal: wp(3),
+        paddingVertical: hp(0.9),
+        justifyContent: 'center',
+    },
+
+    statCardWide: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: wp(1.4),
+        flex: 1.35,
+    },
+
+    statValue: {
+        fontSize: wp(5),
+        fontFamily: 'Outfit-Black',
+        color: '#FFFFFF',
+        lineHeight: wp(5.8),
+    },
+
+    statLabel: {
+        fontSize: wp(2.9),
         fontFamily: 'Outfit-Medium',
-        marginBottom: hp('2%'),
-        color: '#fff',
+        color: '#8C8C8C',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+    },
+
+    statFilter: {
+        flex: 1,
+        fontSize: wp(3.25),
+        fontFamily: 'Outfit-SemiBold',
+        color: '#E5E5E5',
+        textTransform: 'capitalize',
     },
 
     loading: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: hp(4),
+        paddingBottom: hp(8),
     },
 
     filterScroll: {
-        marginBottom: hp(2),
-        maxHeight: hp(6),
+        marginBottom: hp(1.5),
     },
 
     filterRow: {
         paddingRight: wp(2),
+        paddingTop: hp(0.4),
+    },
+
+    filterTouchable: {
+        marginRight: wp(2.5),
     },
 
     filterChip: {
+        minHeight: hp(4.6),
         paddingHorizontal: wp(4),
-        paddingVertical: hp(1),
-        borderRadius: wp(6),
-        backgroundColor: '#151515',
+        borderRadius: wp(5),
+        backgroundColor: '#131313',
         borderWidth: 1,
-        borderColor: '#333',
-        marginRight: wp(2.5),
+        borderColor: 'rgba(255,255,255,0.11)',
         justifyContent: 'center',
         alignItems: 'center',
     },
 
     filterChipActive: {
-        backgroundColor: '#FFBF00',
         borderColor: '#FFBF00',
     },
 
     filterText: {
-        color: '#bbb',
-        fontSize: wp(3.6),
+        color: '#BEBEBE',
+        fontSize: wp(3.45),
         fontFamily: 'Outfit-Medium',
         textTransform: 'capitalize',
     },
 
     filterTextActive: {
-        color: '#000',
+        color: '#181818',
         fontFamily: 'Outfit-Bold',
     },
 
     listContent: {
-        paddingBottom: 20,
+        paddingBottom: hp(10),
+    },
+
+    listContentEmpty: {
+        flexGrow: 1,
+        justifyContent: 'center',
+    },
+
+    emptyCard: {
+        borderRadius: wp(6),
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.09)',
+        backgroundColor: '#121212',
+        paddingVertical: hp(3.4),
+        paddingHorizontal: wp(6),
+        alignItems: 'center',
+    },
+
+    emptyIconWrap: {
+        width: wp(16),
+        height: wp(16),
+        borderRadius: wp(8),
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,191,0,0.14)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,191,0,0.3)',
+        marginBottom: hp(1.4),
+    },
+
+    emptyTitle: {
+        color: '#FFFFFF',
+        fontSize: wp(4.6),
+        fontFamily: 'Outfit-Bold',
+        marginBottom: hp(0.6),
     },
 
     emptyText: {
-        color: '#888',
-        fontSize: wp(4),
+        color: '#A3A3A3',
+        fontSize: wp(3.5),
+        fontFamily: 'Outfit-Regular',
         textAlign: 'center',
-        paddingVertical: hp(4),
-        paddingHorizontal: wp(6),
-    },
-
-    shader: {
-        borderBottomLeftRadius: wp('5%'),
-        borderBottomRightRadius: wp('5%'),
-        paddingBottom: hp('2%'),
-        paddingHorizontal: wp('5%'),
+        lineHeight: hp(2.3),
     },
 });

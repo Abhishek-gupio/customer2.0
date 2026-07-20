@@ -8,6 +8,13 @@ import {
   expenseAnalysisController,
 } from "./expense-features.controller";
 
+import { validate } from "../../middlewares/validate.middleware";
+import {
+  createExpenseSchema,
+  parseExpenseSchema,
+  expenseBudgetSchema,
+} from "./expense.validators";
+
 const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -19,30 +26,56 @@ router.use(authMiddleware);
 // ============================================================
 // 1. CORE CRUD
 // ============================================================
-router.post("/", upload.single("receipt"), expenseController.create); // Manual + File
+router.post(
+  "/",
+  upload.single("receipt"),
+  validate(createExpenseSchema),
+  expenseController.create,
+); // Manual + File
 router.get("/", expenseController.list);
 
 // ============================================================
 // 2. PARSER METHODS (4 Ways to Add Expenses)
 // ============================================================
-router.post("/parse/text", expenseController.parse); // SMS/Notification text
+router.post(
+  "/parse/text",
+  validate(parseExpenseSchema),
+  expenseController.parse,
+); // SMS/Notification text
+
 router.post(
   "/parse/receipt",
   upload.single("file"),
   expenseController.parseReceipt,
 ); // Receipt Image (OCR)
+
 router.post(
   "/parse/voice",
   upload.single("audio"),
   expenseController.parseVoice,
 ); // Voice Command (Audio → AI)
-router.post("/parse/voice/text", expenseController.parseVoiceText); // Voice Command (transcribed text → AI)
+
+router.post(
+  "/parse/voice/text",
+  validate(parseExpenseSchema),
+  expenseController.parseVoiceText,
+); // Voice Command (transcribed text → AI)
+
+router.post(
+  "/parse/voice/commit",
+  expenseController.commitVoiceDraft,
+); // Commit an already-parsed voice-expense draft (no second AI call)
 
 // ============================================================
 // 3. ANALYTICS & BUDGETS
 // ============================================================
 router.get("/summary", expenseController.getSummary);
-router.post("/budgets", expenseController.setBudget);
+
+router.post(
+  "/budgets",
+  validate(expenseBudgetSchema),
+  expenseController.setBudget,
+);
 
 // ============================================================
 // 4. FUEL PRICE INTELLIGENCE

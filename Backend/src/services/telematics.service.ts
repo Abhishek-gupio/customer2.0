@@ -1,19 +1,49 @@
 import { dbInstances } from "@repo/db-customer";
+import { Client } from "@googlemaps/google-maps-services-js";
 import { logger } from "../config/logger";
 import { env } from "../config/env";
 import axios from "axios";
 
-const db = dbInstances as any;
+const db = dbInstances;
 
 const DAMOOV_API_BASE = "https://user.telematicssdk.com/v1";
 
-/** Cache admin token to avoid hitting Damoov login rate limit (reuse for 50 min). */
-const ADMIN_TOKEN_CACHE_TTL_MS = 50 * 60 * 1000;
-let adminTokenCache: { token: string; expiresAt: number } | null = null;
+import { getRedis, runRedisCommand } from "../config/redis";
 
-/** After rate limit, skip login attempts for 2 hours so Damoov's limit can reset. */
+const ADMIN_TOKEN_REDIS_KEY = "damoov:admin_token";
+const RATE_LIMIT_BACKOFF_REDIS_KEY = "damoov:rate_limit_backoff";
 const RATE_LIMIT_BACKOFF_MS = 2 * 60 * 60 * 1000;
-let rateLimitBackoffUntil = 0;
+const googleMapsClient = new Client({});
+const LIVE_INHOUSE_SESSION_TTL_SEC = 8 * 60 * 60;
+const liveInHouseSessionsMemory = new Map<string, InHouseLiveSession>();
+const liveInHouseVehicleIndexMemory = new Map<string, string>();
+
+export type TelematicsProvider = "damoov" | "inhouse";
+type InHouseLivePathPoint = {
+  lat: number;
+  lon: number;
+  timestamp: string;
+  speed: number | null;
+  eventType: string;
+};
+type InHouseLiveSession = {
+  sessionId: string;
+  customerId?: string | null;
+  vehicleId: string;
+  vehicleType?: string | null;
+  startedAt: string;
+  updatedAt: string;
+  status: "active";
+  points: InHouseLivePathPoint[];
+};
+
+function normalizeTelematicsProvider(provider?: unknown): TelematicsProvider {
+  const fallback: TelematicsProvider =
+    env.TELEMATICS_DEFAULT_PROVIDER === "inhouse" ? "inhouse" : "damoov";
+  const value = String(provider ?? "").trim().toLowerCase();
+  if (!value) return fallback;
+  return value === "inhouse" ? "inhouse" : "damoov";
+}
 
 function isRateLimitError(err: any): boolean {
   const status = err.response?.status;
@@ -22,18 +52,356 @@ function isRateLimitError(err: any): boolean {
   return status === 429 || /rate limit exceeded/i.test(String(msg));
 }
 
-async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null> {
-  if (adminTokenCache && Date.now() < adminTokenCache.expiresAt) {
-    return adminTokenCache.token;
-  }
-  adminTokenCache = null;
+function parseFiniteNumber(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
-  if (!forceLogin && Date.now() < rateLimitBackoffUntil) {
-    logger.debug(
-      { backoffUntil: new Date(rateLimitBackoffUntil).toISOString() },
-      "Skipping Damoov login (rate limit backoff)"
+function locationLooksLikeCoordinates(full: unknown): boolean {
+  return /^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/.test(String(full ?? "").trim());
+}
+
+function pickAddressComponent(
+  components: any[],
+  ...types: string[]
+): { long_name?: string; short_name?: string } | undefined {
+  return components.find((component: any) =>
+    Array.isArray(component?.types) &&
+    types.some((type) => component.types.includes(type)),
+  );
+}
+
+function extractLatLngFromLocation(location: any): { latitude: number; longitude: number } | null {
+  if (!location || typeof location !== "object") return null;
+
+  const latitude =
+    parseFiniteNumber(location?.Latitude) ??
+    parseFiniteNumber(location?.latitude) ??
+    parseFiniteNumber(location?.lat);
+  const longitude =
+    parseFiniteNumber(location?.Longitude) ??
+    parseFiniteNumber(location?.longitude) ??
+    parseFiniteNumber(location?.lng) ??
+    parseFiniteNumber(location?.lon);
+
+  if (latitude == null || longitude == null) return null;
+  return { latitude, longitude };
+}
+
+function getBoundaryPointsFromEvents(events: any[] | null | undefined): {
+  start: { latitude: number; longitude: number } | null;
+  end: { latitude: number; longitude: number } | null;
+} {
+  const ordered = (Array.isArray(events) ? events : [])
+    .filter(
+      (event) =>
+        parseFiniteNumber(event?.latitude) != null &&
+        parseFiniteNumber(event?.longitude) != null,
+    )
+    .sort(
+      (a, b) =>
+        new Date(a?.timestamp ?? 0).getTime() - new Date(b?.timestamp ?? 0).getTime(),
+    );
+
+  const first = ordered[0];
+  const last = ordered[ordered.length - 1];
+
+  return {
+    start:
+      first && parseFiniteNumber(first.latitude) != null && parseFiniteNumber(first.longitude) != null
+        ? {
+            latitude: Number(first.latitude),
+            longitude: Number(first.longitude),
+          }
+        : null,
+    end:
+      last && parseFiniteNumber(last.latitude) != null && parseFiniteNumber(last.longitude) != null
+        ? {
+            latitude: Number(last.latitude),
+            longitude: Number(last.longitude),
+          }
+        : null,
+  };
+}
+
+function buildFallbackLocation(
+  location: any,
+  coords: { latitude: number; longitude: number } | null,
+): any {
+  const parts =
+    location?.Parts && typeof location.Parts === "object" ? { ...location.Parts } : {};
+
+  return {
+    ...(location && typeof location === "object" ? location : {}),
+    Full:
+      typeof location?.Full === "string" && location.Full.trim().length > 0
+        ? location.Full
+        : coords
+          ? `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`
+          : null,
+    Parts: {
+      City: parts.City || "Unknown",
+      Country: parts.Country || "Unknown",
+      ...parts,
+    },
+    Latitude: coords?.latitude ?? parseFiniteNumber(location?.Latitude) ?? null,
+    Longitude: coords?.longitude ?? parseFiniteNumber(location?.Longitude) ?? null,
+  };
+}
+
+function needsLocationEnrichment(location: any): boolean {
+  const full = String(location?.Full ?? "").trim();
+  const city = String(location?.Parts?.City ?? "").trim().toLowerCase();
+  const country = String(location?.Parts?.Country ?? "").trim().toLowerCase();
+
+  return (
+    !full ||
+    locationLooksLikeCoordinates(full) ||
+    !city ||
+    city === "unknown" ||
+    !country ||
+    country === "unknown"
+  );
+}
+
+async function reverseGeocodeLocation(
+  coords: { latitude: number; longitude: number },
+): Promise<any | null> {
+  if (!env.GOOGLE_MAPS_API_KEY || env.GOOGLE_MAPS_API_KEY === "your-google-maps-key-here") {
+    return null;
+  }
+
+  try {
+    const response = await googleMapsClient.reverseGeocode({
+      params: {
+        latlng: { lat: coords.latitude, lng: coords.longitude },
+        key: env.GOOGLE_MAPS_API_KEY,
+      },
+    });
+
+    const result = response.data?.results?.[0];
+    if (!result) return null;
+
+    const components = Array.isArray(result.address_components)
+      ? result.address_components
+      : [];
+    const city =
+      pickAddressComponent(
+        components,
+        "locality",
+        "postal_town",
+        "sublocality",
+        "administrative_area_level_3",
+      )?.long_name ||
+      pickAddressComponent(components, "administrative_area_level_2")?.long_name;
+    const district = pickAddressComponent(components, "administrative_area_level_2")?.long_name;
+    const state = pickAddressComponent(components, "administrative_area_level_1")?.long_name;
+    const countryComponent = pickAddressComponent(components, "country");
+
+    return {
+      Full:
+        result.formatted_address ||
+        `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`,
+      Parts: {
+        City: city || "Unknown",
+        District: district,
+        State: state,
+        Country: countryComponent?.long_name || "Unknown",
+        CountryCode: countryComponent?.short_name,
+      },
+      Latitude: coords.latitude,
+      Longitude: coords.longitude,
+    };
+  } catch (error: any) {
+    logger.warn(
+      {
+        err: error?.response?.data || error?.message,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      },
+      "Reverse geocoding failed for telematics trip location",
     );
     return null;
+  }
+}
+
+async function normalizeTripLocation(
+  location: any,
+  fallbackCoords: { latitude: number; longitude: number } | null,
+): Promise<any> {
+  const coords = extractLatLngFromLocation(location) ?? fallbackCoords;
+  const base = buildFallbackLocation(location, coords);
+
+  if (!coords || !needsLocationEnrichment(base)) {
+    return base;
+  }
+
+  const resolved = await reverseGeocodeLocation(coords);
+  if (!resolved) {
+    return base;
+  }
+
+  return {
+    ...base,
+    ...resolved,
+    Parts: {
+      ...(base?.Parts && typeof base.Parts === "object" ? base.Parts : {}),
+      ...(resolved?.Parts && typeof resolved.Parts === "object" ? resolved.Parts : {}),
+    },
+    Latitude: coords.latitude,
+    Longitude: coords.longitude,
+  };
+}
+
+function buildLiveVehicleKey(customerId: string | null | undefined, vehicleId: string): string {
+  return `telematics:live:vehicle:${customerId || "anon"}:${vehicleId}`;
+}
+
+function buildLiveSessionKey(sessionId: string): string {
+  return `telematics:live:session:${sessionId}`;
+}
+
+function normalizeLivePathPoints(
+  points: Array<{
+    lat?: number;
+    lon?: number;
+    latitude?: number;
+    longitude?: number;
+    timestamp?: string | number | Date;
+    speed?: number | null;
+    eventType?: string;
+  }>,
+): InHouseLivePathPoint[] {
+  const normalized = (Array.isArray(points) ? points : [])
+    .map((point) => {
+      const lat = parseFiniteNumber(point?.lat) ?? parseFiniteNumber(point?.latitude);
+      const lon = parseFiniteNumber(point?.lon) ?? parseFiniteNumber(point?.longitude);
+      if (lat == null || lon == null || point?.timestamp == null) return null;
+
+      const at = new Date(point.timestamp as any);
+      if (Number.isNaN(at.getTime())) return null;
+
+      return {
+        lat,
+        lon,
+        timestamp: at.toISOString(),
+        speed: point?.speed ?? null,
+        eventType: point?.eventType || "",
+      };
+    })
+    .filter((point): point is InHouseLivePathPoint => point != null);
+
+  const deduped = new Map<string, InHouseLivePathPoint>();
+  for (const point of normalized) {
+    deduped.set(`${point.timestamp}:${point.lat}:${point.lon}:${point.eventType || ""}`, point);
+  }
+
+  return Array.from(deduped.values()).sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  );
+}
+
+async function saveLiveInHouseSession(session: InHouseLiveSession): Promise<void> {
+  liveInHouseSessionsMemory.set(session.sessionId, session);
+  liveInHouseVehicleIndexMemory.set(
+    buildLiveVehicleKey(session.customerId, session.vehicleId),
+    session.sessionId,
+  );
+
+  const redis = getRedis();
+  if (!redis) return;
+
+  await runRedisCommand(async (client) => {
+    await client.setex(
+      buildLiveSessionKey(session.sessionId),
+      LIVE_INHOUSE_SESSION_TTL_SEC,
+      JSON.stringify(session),
+    );
+    await client.setex(
+      buildLiveVehicleKey(session.customerId, session.vehicleId),
+      LIVE_INHOUSE_SESSION_TTL_SEC,
+      session.sessionId,
+    );
+    return "ok";
+  });
+}
+
+async function getLiveInHouseSession(sessionId: string): Promise<InHouseLiveSession | null> {
+  const memory = liveInHouseSessionsMemory.get(sessionId);
+  if (memory) return memory;
+
+  const cached = await runRedisCommand((client) => client.get(buildLiveSessionKey(sessionId)));
+  if (!cached) return null;
+
+  try {
+    const parsed = JSON.parse(cached) as InHouseLiveSession;
+    liveInHouseSessionsMemory.set(sessionId, parsed);
+    liveInHouseVehicleIndexMemory.set(
+      buildLiveVehicleKey(parsed.customerId, parsed.vehicleId),
+      parsed.sessionId,
+    );
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function getActiveLiveInHouseSessionForVehicle(
+  customerId: string | null | undefined,
+  vehicleId: string,
+): Promise<InHouseLiveSession | null> {
+  const key = buildLiveVehicleKey(customerId, vehicleId);
+  const memorySessionId = liveInHouseVehicleIndexMemory.get(key);
+  if (memorySessionId) {
+    return getLiveInHouseSession(memorySessionId);
+  }
+
+  const cachedSessionId = await runRedisCommand((client) => client.get(key));
+  if (!cachedSessionId) return null;
+
+  liveInHouseVehicleIndexMemory.set(key, cachedSessionId);
+  return getLiveInHouseSession(cachedSessionId);
+}
+
+async function deleteLiveInHouseSession(
+  sessionId: string,
+  customerId: string | null | undefined,
+  vehicleId: string,
+): Promise<void> {
+  liveInHouseSessionsMemory.delete(sessionId);
+  liveInHouseVehicleIndexMemory.delete(buildLiveVehicleKey(customerId, vehicleId));
+
+  const redis = getRedis();
+  if (!redis) return;
+
+  await runRedisCommand(async (client) => {
+    await client.del(buildLiveSessionKey(sessionId));
+    await client.del(buildLiveVehicleKey(customerId, vehicleId));
+    return 1;
+  });
+}
+
+async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null> {
+  const redis = getRedis();
+  
+  if (redis) {
+    const cachedToken = await runRedisCommand((client) =>
+      client.get(ADMIN_TOKEN_REDIS_KEY),
+    );
+    if (cachedToken) return cachedToken;
+
+    if (!forceLogin) {
+      const backoffUntil = await runRedisCommand((client) =>
+        client.get(RATE_LIMIT_BACKOFF_REDIS_KEY),
+      );
+      if (backoffUntil && Date.now() < parseInt(backoffUntil, 10)) {
+        logger.debug(
+          { backoffUntil: new Date(parseInt(backoffUntil, 10)).toISOString() },
+          "Skipping Damoov login (rate limit backoff cached in Redis)"
+        );
+        return null;
+      }
+    }
   }
 
   if (!env.DAMOOV_ADMIN_EMAIL || !env.DAMOOV_ADMIN_PASSWORD) {
@@ -53,14 +421,25 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
     );
     const token = authRes.data?.Result?.AccessToken?.Token;
     if (!token) return null;
-    adminTokenCache = { token, expiresAt: Date.now() + ADMIN_TOKEN_CACHE_TTL_MS };
+
+    if (redis) {
+      // TTL set to 50 minutes (3000 seconds)
+      await runRedisCommand((client) =>
+        client.setex(ADMIN_TOKEN_REDIS_KEY, 3000, token),
+      );
+    }
     return token;
   } catch (err: any) {
     if (isRateLimitError(err)) {
-      rateLimitBackoffUntil = Date.now() + RATE_LIMIT_BACKOFF_MS;
+      if (redis) {
+        const backoffTime = Date.now() + RATE_LIMIT_BACKOFF_MS;
+        await runRedisCommand((client) =>
+          client.setex(RATE_LIMIT_BACKOFF_REDIS_KEY, 7200, backoffTime.toString()),
+        );
+      }
       logger.warn(
         { error: err.response?.data || err.message, backoffMinutes: 120 },
-        "Damoov Admin API rate limited on login; skipping login for 2 hours"
+        "Damoov Admin API rate limited on login; set 2-hour backoff in Redis"
       );
     } else {
       logger.error(
@@ -72,7 +451,50 @@ async function getDamoovAdminToken(forceLogin?: boolean): Promise<string | null>
   }
 }
 
+// Recomputes the trip safety score server-side from the submitted GPS events instead of
+// trusting the client-submitted `safetyScore` value verbatim (a client could otherwise submit
+// any number, e.g. 100, with no relationship to actual driving behavior). Mirrors the
+// weighted-penalty formula used by the mobile recorder at
+// Mobile/src/services/inHouseTelematics.ts so both stay consistent.
+function recomputeInHouseSafetyScore(
+  events: Array<{ eventType?: string; severity?: number | null } | null | undefined> | undefined,
+  distanceKm: number,
+): number {
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  let harshBrakingScore = 0;
+  let hardAccelScore = 0;
+  let speedingScore = 0;
+
+  for (const event of safeEvents) {
+    const type = String(event?.eventType ?? "").toUpperCase();
+    const rawSeverity = Number(event?.severity);
+    const severity = Number.isFinite(rawSeverity)
+      ? Math.max(0, Math.min(1, rawSeverity))
+      : 0.5;
+
+    if (type.includes("BRAK")) {
+      harshBrakingScore += severity;
+    } else if (type.includes("ACCEL")) {
+      hardAccelScore += severity;
+    } else if (type.includes("SPEED")) {
+      speedingScore += severity;
+    }
+  }
+
+  const exposureNormalization = Math.max(0.65, Math.min(1.25, (distanceKm || 0) / 8));
+  const weightedPenalty =
+    (harshBrakingScore * 5.2 + hardAccelScore * 4.4 + speedingScore * 3.1) /
+    exposureNormalization;
+
+  return Math.round(Math.max(42, Math.min(100, 100 - weightedPenalty * 3.2)));
+}
+
 export const telematicsService = {
+  resolveProvider(provider?: unknown): TelematicsProvider {
+    return normalizeTelematicsProvider(provider);
+  },
+
   /**
    * Register a user with Damoov explicitly to get a DeviceToken
    */
@@ -106,6 +528,34 @@ export const telematicsService = {
       throw new Error("Failed to register user with Telematics API: " + JSON.stringify(error.response?.data || error.message));
     }
   },
+
+  async registerUser(clientCustomId: string, provider?: unknown) {
+    const selectedProvider = normalizeTelematicsProvider(provider);
+
+    if (selectedProvider === "inhouse") {
+      const safeId = String(clientCustomId || "user")
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "")
+        .slice(0, 24);
+      const ts = Date.now();
+      const inHouseToken = `inhouse-device-${safeId || "user"}-${ts}`;
+
+      logger.info(
+        { clientCustomId, provider: selectedProvider, inHouseToken },
+        "Registering user with in-house telematics (local token)",
+      );
+
+      return {
+        Result: {
+          DeviceToken: inHouseToken,
+          Provider: "inhouse",
+        },
+      };
+    }
+
+    return this.registerUserWithDamoov(clientCustomId);
+  },
+
   /**
    * Link a mobile SDK instance to a vehicle.
    * Schema: one row per vehicleId (unique), one row per instanceId (unique).
@@ -117,26 +567,41 @@ export const telematicsService = {
     instanceId: string,
     deviceToken?: string,
     platform?: string,
+    provider?: unknown,
   ) {
-    logger.info({ vehicleId, instanceId }, "Linking Telematics Device");
+    const selectedProvider = normalizeTelematicsProvider(provider);
+    const resolvedInstanceId =
+      selectedProvider === "inhouse" && !String(instanceId).startsWith("inhouse-")
+        ? `inhouse-${instanceId}`
+        : instanceId;
+    const platformWithProvider = platform ? `${platform}:${selectedProvider}` : selectedProvider;
 
-    const payload = { deviceToken, platform, isActive: true };
+    logger.info(
+      { vehicleId, instanceId: resolvedInstanceId, provider: selectedProvider },
+      "Linking Telematics Device",
+    );
 
-    // 1) If this instanceId is already linked (possibly to another vehicle), move it to this vehicle
-    const byInstance = await db.telematicsDevice.findUnique({ where: { instanceId } });
-    if (byInstance) {
+    const payload = {
+      deviceToken,
+      platform: platformWithProvider,
+      isActive: true,
+    };
+
+    const existing = await db.telematicsDevice.findFirst({
+      where: {
+        OR: [
+          { instanceId: resolvedInstanceId },
+          { vehicleId },
+        ],
+      },
+    });
+
+    if (existing) {
+      // If the row matches instanceId, update it (possibly changing its vehicleId)
+      // If the row matches vehicleId, update it (possibly changing its instanceId)
       return db.telematicsDevice.update({
-        where: { instanceId },
-        data: { vehicleId, ...payload },
-      });
-    }
-
-    // 2) If this vehicle already has a device, update it to this instanceId/token
-    const byVehicle = await db.telematicsDevice.findUnique({ where: { vehicleId } });
-    if (byVehicle) {
-      return db.telematicsDevice.update({
-        where: { vehicleId },
-        data: { instanceId, ...payload },
+        where: { id: existing.id },
+        data: { instanceId: resolvedInstanceId, vehicleId, ...payload },
       });
     }
 
@@ -144,12 +609,329 @@ export const telematicsService = {
     return db.telematicsDevice.create({
       data: {
         vehicleId,
-        instanceId,
+        instanceId: resolvedInstanceId,
         deviceToken,
-        platform,
+        platform: platformWithProvider,
         isActive: true,
       },
     });
+  },
+
+  async ingestInHouseTrip(input: {
+    vehicleId?: string;
+    instanceId?: string;
+    tripId?: string;
+    startTime?: string | number | Date;
+    endTime?: string | number | Date;
+    distanceKm?: number;
+    durationMin?: number;
+    safetyScore?: number;
+    maxSpeed?: number | null;
+    avgSpeed?: number | null;
+    startLocation?: any;
+    endLocation?: any;
+    statistics?: any;
+    scores?: any;
+    path?: Array<{
+      timestamp?: string | number | Date;
+      latitude?: number;
+      longitude?: number;
+      speed?: number | null;
+    }>;
+    events?: Array<{
+      eventType?: string;
+      timestamp?: string | number | Date;
+      latitude?: number;
+      longitude?: number;
+      severity?: number | null;
+      speed?: number | null;
+    }>;
+  }) {
+    const instanceId =
+      input.instanceId && String(input.instanceId).trim().length > 0
+        ? String(input.instanceId)
+        : undefined;
+
+    let vehicleId = input.vehicleId;
+    if (!vehicleId && instanceId) {
+      const linkedDevice = await db.telematicsDevice.findUnique({
+        where: { instanceId },
+      });
+      vehicleId = linkedDevice?.vehicleId;
+    }
+
+    if (!vehicleId) {
+      throw new Error("vehicleId (or linked instanceId) is required for in-house trip ingestion");
+    }
+
+    const start = input.startTime ? new Date(input.startTime) : new Date();
+    const end = input.endTime ? new Date(input.endTime) : new Date();
+    const tripId = input.tripId || `INHOUSE_${Date.now()}`;
+
+    const stats = input.statistics ?? null;
+    const recomputedSafetyScore = recomputeInHouseSafetyScore(
+      input.events,
+      Number(input.distanceKm ?? 0) || 0,
+    );
+    const scores =
+      input.scores && typeof input.scores === "object"
+        ? { ...input.scores, Safety: recomputedSafetyScore }
+        : { Safety: recomputedSafetyScore };
+    const pathRows = Array.isArray(input.path)
+      ? input.path
+          .filter(
+            (point) =>
+              point &&
+              point.timestamp != null &&
+              Number.isFinite(Number(point.latitude)) &&
+              Number.isFinite(Number(point.longitude)),
+          )
+          .map((point) => ({
+            eventType: "",
+            timestamp: new Date(point.timestamp as any),
+            latitude: Number(point.latitude),
+            longitude: Number(point.longitude),
+            severity: null,
+            speed: point.speed ?? null,
+          }))
+      : [];
+    const boundaryPoints = getBoundaryPointsFromEvents(pathRows);
+    const startLocation = await normalizeTripLocation(
+      input.startLocation ?? null,
+      boundaryPoints.start,
+    );
+    const endLocation = await normalizeTripLocation(
+      input.endLocation ?? null,
+      boundaryPoints.end,
+    );
+
+    const trip = await db.drivingTrip.upsert({
+      where: { tripId },
+      update: {
+        vehicleId,
+        startTime: start,
+        endTime: end,
+        distanceKm: Number(input.distanceKm ?? 0) || 0,
+        durationMin: Number(input.durationMin ?? 0) || 0,
+        safetyScore: recomputedSafetyScore,
+        maxSpeed: input.maxSpeed ?? null,
+        avgSpeed: input.avgSpeed ?? null,
+        startLocation,
+        endLocation,
+        scores,
+        statistics: stats,
+        status: "COMPLETED",
+      },
+      create: {
+        vehicleId,
+        tripId,
+        startTime: start,
+        endTime: end,
+        distanceKm: Number(input.distanceKm ?? 0) || 0,
+        durationMin: Number(input.durationMin ?? 0) || 0,
+        safetyScore: recomputedSafetyScore,
+        maxSpeed: input.maxSpeed ?? null,
+        avgSpeed: input.avgSpeed ?? null,
+        startLocation,
+        endLocation,
+        scores,
+        statistics: stats,
+        status: "COMPLETED",
+      },
+    });
+
+    if (pathRows.length > 0 || (Array.isArray(input.events) && input.events.length > 0)) {
+      await db.drivingEvent.deleteMany({ where: { tripId: trip.id } });
+      const eventRows = (Array.isArray(input.events) ? input.events : [])
+        .filter((event) =>
+          event &&
+          event.timestamp != null &&
+          Number.isFinite(Number(event.latitude)) &&
+          Number.isFinite(Number(event.longitude)),
+        )
+        .map((event) => ({
+          tripId: trip.id,
+          eventType: String(event.eventType || "INHOUSE_POINT"),
+          timestamp: new Date(event.timestamp as any),
+          latitude: Number(event.latitude),
+          longitude: Number(event.longitude),
+          severity: event.severity ?? null,
+          speed: event.speed ?? null,
+        }));
+
+      const allRows = [...pathRows, ...eventRows].sort(
+        (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+      );
+
+      if (allRows.length > 0) {
+        await db.drivingEvent.createMany({
+          data: allRows.map((row) => ({
+            ...row,
+            tripId: trip.id,
+          })),
+        });
+      }
+    }
+
+    await this.updateVehicleHealth(vehicleId);
+    return { status: "success", provider: "inhouse", tripId: trip.id };
+  },
+
+  async startInHouseLiveSession(input: {
+    customerId?: string | null;
+    vehicleId?: string;
+    vehicleType?: string | null;
+  }) {
+    const vehicleId = String(input.vehicleId || "").trim();
+    if (!vehicleId) {
+      throw new Error("vehicleId is required to start live in-house tracking");
+    }
+
+    const sessionId = `LIVE_INHOUSE_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    const now = new Date().toISOString();
+    const session: InHouseLiveSession = {
+      sessionId,
+      customerId: input.customerId ?? null,
+      vehicleId,
+      vehicleType: input.vehicleType ?? null,
+      startedAt: now,
+      updatedAt: now,
+      status: "active",
+      points: [],
+    };
+
+    await saveLiveInHouseSession(session);
+    return {
+      sessionId: session.sessionId,
+      vehicleId: session.vehicleId,
+      vehicleType: session.vehicleType,
+      startedAt: session.startedAt,
+      updatedAt: session.updatedAt,
+      pointCount: 0,
+      points: [],
+    };
+  },
+
+  async pushInHouseLivePoints(input: {
+    sessionId?: string;
+    customerId?: string | null;
+    vehicleId?: string;
+    points?: Array<{
+      lat?: number;
+      lon?: number;
+      latitude?: number;
+      longitude?: number;
+      timestamp?: string | number | Date;
+      speed?: number | null;
+      eventType?: string;
+    }>;
+  }) {
+    const sessionId = String(input.sessionId || "").trim();
+    if (!sessionId) {
+      throw new Error("sessionId is required to push live in-house points");
+    }
+
+    const existing = await getLiveInHouseSession(sessionId);
+    if (!existing) {
+      throw new Error("Live in-house session not found");
+    }
+
+    if (input.vehicleId && existing.vehicleId !== input.vehicleId) {
+      throw new Error("Live in-house session vehicle mismatch");
+    }
+    if (existing.customerId && input.customerId && existing.customerId !== input.customerId) {
+      throw new Error("Live in-house session customer mismatch");
+    }
+
+    const mergedPoints = normalizeLivePathPoints([
+      ...existing.points,
+      ...((input.points as any[]) || []),
+    ]);
+    const updated: InHouseLiveSession = {
+      ...existing,
+      updatedAt: new Date().toISOString(),
+      points: mergedPoints,
+    };
+
+    await saveLiveInHouseSession(updated);
+    return {
+      sessionId: updated.sessionId,
+      vehicleId: updated.vehicleId,
+      vehicleType: updated.vehicleType,
+      startedAt: updated.startedAt,
+      updatedAt: updated.updatedAt,
+      pointCount: updated.points.length,
+      points: updated.points,
+    };
+  },
+
+  async getInHouseLiveSessionById(sessionId: string) {
+    const session = await getLiveInHouseSession(sessionId);
+    if (!session) {
+      throw new Error("Live in-house session not found");
+    }
+    return {
+      sessionId: session.sessionId,
+      vehicleId: session.vehicleId,
+      vehicleType: session.vehicleType,
+      startedAt: session.startedAt,
+      updatedAt: session.updatedAt,
+      pointCount: session.points.length,
+      points: session.points,
+    };
+  },
+
+  async getActiveInHouseLiveSessionForVehicle(input: {
+    customerId?: string | null;
+    vehicleId?: string;
+  }) {
+    const vehicleId = String(input.vehicleId || "").trim();
+    if (!vehicleId) {
+      throw new Error("vehicleId is required");
+    }
+
+    const session = await getActiveLiveInHouseSessionForVehicle(input.customerId, vehicleId);
+    if (!session) {
+      return null;
+    }
+
+    return {
+      sessionId: session.sessionId,
+      vehicleId: session.vehicleId,
+      vehicleType: session.vehicleType,
+      startedAt: session.startedAt,
+      updatedAt: session.updatedAt,
+      pointCount: session.points.length,
+      points: session.points,
+    };
+  },
+
+  async stopInHouseLiveSession(input: {
+    sessionId?: string;
+    customerId?: string | null;
+    vehicleId?: string;
+  }) {
+    const sessionId = String(input.sessionId || "").trim();
+    if (!sessionId) {
+      throw new Error("sessionId is required");
+    }
+
+    const session = await getLiveInHouseSession(sessionId);
+    if (!session) {
+      return { stopped: false };
+    }
+
+    if (input.vehicleId && session.vehicleId !== input.vehicleId) {
+      throw new Error("Live in-house session vehicle mismatch");
+    }
+
+    await deleteLiveInHouseSession(sessionId, session.customerId, session.vehicleId);
+    return {
+      stopped: true,
+      sessionId,
+      vehicleId: session.vehicleId,
+      pointCount: session.points.length,
+    };
   },
 
   /**
@@ -315,8 +1097,54 @@ export const telematicsService = {
               Authorization: `Bearer ${accessToken}`,
             };
 
+            const redis = getRedis();
             const enrichTrip = async (trip: any) => {
+              const cacheKey = `damoov:trip_enrichment:${trip.tripId}`;
+              const boundaryPoints = getBoundaryPointsFromEvents(trip.events);
+              
               try {
+                // 1. Check if we already have it in DB
+                if (trip.scores && trip.statistics && trip.distanceKm > 0) {
+                  const startLocation = await normalizeTripLocation(
+                    trip.startLocation ?? null,
+                    boundaryPoints.start,
+                  );
+                  const endLocation = await normalizeTripLocation(
+                    trip.endLocation ?? null,
+                    boundaryPoints.end,
+                  );
+                  return {
+                    ...trip,
+                    startLocation,
+                    endLocation,
+                    damoovStatistics: trip.statistics,
+                    damoovScores: trip.scores
+                  };
+                }
+
+                // 2. Check if we have it in Redis (pending persistence/recent)
+                if (redis) {
+                  const cached = await runRedisCommand((client) =>
+                    client.get(cacheKey),
+                  );
+                  if (cached) {
+                    const parsed = JSON.parse(cached);
+                    return {
+                      ...trip,
+                      ...parsed,
+                      startLocation: await normalizeTripLocation(
+                        parsed?.startLocation ?? trip.startLocation,
+                        boundaryPoints.start,
+                      ),
+                      endLocation: await normalizeTripLocation(
+                        parsed?.endLocation ?? trip.endLocation,
+                        boundaryPoints.end,
+                      ),
+                    };
+                  }
+                }
+
+                // 3. Fetch from Damoov
                 const tripDetailRes = await axios.post(
                   `https://api.telematicssdk.com/trips/get/admin/v1/${trip.tripId}`,
                   {
@@ -337,42 +1165,70 @@ export const telematicsService = {
 
                 const distanceKm = Number(stats?.Mileage ?? trip.distanceKm ?? 0) || 0;
                 const durationMin = Number(stats?.DurationMinutes ?? trip.durationMin ?? 0) || 0;
-                const maxSpeed =
-                  stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : trip.maxSpeed ?? null;
-                const avgSpeed =
-                  stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : trip.avgSpeed ?? null;
-                const safetyScore =
-                  Math.round(Number(scores?.Safety ?? scores?.Overall ?? trip.safetyScore ?? 100)) || 100;
+                const maxSpeed = stats?.MaxSpeed != null ? Number(stats.MaxSpeed) : trip.maxSpeed ?? null;
+                const avgSpeed = stats?.AverageSpeed != null ? Number(stats.AverageSpeed) : trip.avgSpeed ?? null;
+                const safetyScore = Math.round(Number(scores?.Safety ?? scores?.Overall ?? trip.safetyScore ?? 100)) || 100;
+                const startLocation = await normalizeTripLocation(
+                  addresses?.Start ?? trip.startLocation,
+                  boundaryPoints.start,
+                );
+                const endLocation = await normalizeTripLocation(
+                  addresses?.End ?? trip.endLocation,
+                  boundaryPoints.end,
+                );
 
-                return {
-                  ...trip,
+                const enrichedData = {
                   distanceKm,
                   durationMin,
                   maxSpeed,
                   avgSpeed,
                   safetyScore,
-                  startLocation: addresses?.Start ?? trip.startLocation,
-                  endLocation: addresses?.End ?? trip.endLocation,
-                  // These are not persisted fields, but mobile expects these in the response.
+                  startLocation,
+                  endLocation,
                   damoovStatistics: stats,
                   damoovScores: scores,
                 };
+
+                // 4. PERSIST to DB (async to avoid blocking)
+                db.drivingTrip.update({
+                  where: { id: trip.id },
+                  data: {
+                    distanceKm,
+                    durationMin,
+                    maxSpeed,
+                    avgSpeed,
+                    safetyScore,
+                    startLocation: startLocation as any,
+                    endLocation: endLocation as any,
+                    scores: scores as any,
+                    statistics: stats as any,
+                  } as any,
+                }).catch(err => logger.error({ err, tripId: trip.id }, "Background trip persistence failed"));
+
+                // 5. CACHE in Redis (TTL 1 day for recent trips)
+                if (redis) {
+                  await runRedisCommand((client) =>
+                    client.setex(cacheKey, 24 * 3600, JSON.stringify(enrichedData)),
+                  );
+                }
+
+                return { ...trip, ...enrichedData };
               } catch (e: any) {
-                logger.warn(
+                logger.debug(
                   { tripDbId: trip.id, tripId: trip.tripId, err: e?.response?.data || e?.message },
-                  "Failed to enrich trip from Damoov; returning stored trip data"
+                  "Failed to enrich trip from Damoov"
                 );
                 return trip;
               }
             };
 
-            // Enrich in small batches to reduce rate-limit risk.
-            const batchSize = 3;
+            // Parallel enrichment with a slightly larger batch size to optimize throughput
+            const batchSize = 5;
             for (let i = 0; i < trips.length; i += batchSize) {
               const batch = trips.slice(i, i + batchSize);
-              const results = await Promise.all(batch.map(enrichTrip));
-              for (let j = 0; j < results.length; j++) {
-                trips[i + j] = results[j];
+              const batchResults = await Promise.all(batch.map(enrichTrip));
+              for (let j = 0; j < batchResults.length; j++) {
+                trips[i + j] = batchResults[j];
               }
             }
           }
@@ -380,6 +1236,36 @@ export const telematicsService = {
       } catch (e: any) {
         logger.warn({ err: e?.message }, "Trip enrichment skipped (best-effort)");
       }
+    }
+
+    if (trips.length) {
+      const normalizedTrips = await Promise.all(
+        trips.map(async (trip: any) => {
+          const boundaryPoints = getBoundaryPointsFromEvents(trip.events);
+          return {
+            ...trip,
+            startLocation: await normalizeTripLocation(
+              trip.startLocation ?? null,
+              boundaryPoints.start,
+            ),
+            endLocation: await normalizeTripLocation(
+              trip.endLocation ?? null,
+              boundaryPoints.end,
+            ),
+            damoovStatistics: trip.damoovStatistics ?? trip.statistics ?? null,
+            damoovScores: trip.damoovScores ?? trip.scores ?? null,
+          };
+        }),
+      );
+      return {
+        data: normalizedTrips,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     }
 
     return {
@@ -410,7 +1296,7 @@ export const telematicsService = {
       throw new Error("Trip not found");
     }
 
-    return trip.events
+    const eventPath = trip.events
       .filter((e: any) => e.latitude != null && e.longitude != null)
       .map((e: any) => ({
         lat: e.latitude,
@@ -420,6 +1306,32 @@ export const telematicsService = {
         severity: e.severity,
         eventType: e.eventType,
       }));
+
+    if (eventPath.length > 0) {
+      return eventPath;
+    }
+
+    const startCoords = extractLatLngFromLocation(trip.startLocation ?? null);
+    const endCoords = extractLatLngFromLocation(trip.endLocation ?? null);
+
+    if (startCoords && endCoords) {
+      return [
+        {
+          lat: startCoords.latitude,
+          lon: startCoords.longitude,
+          timestamp: trip.startTime,
+          eventType: "",
+        },
+        {
+          lat: endCoords.latitude,
+          lon: endCoords.longitude,
+          timestamp: trip.endTime,
+          eventType: "",
+        },
+      ];
+    }
+
+    return [];
   },
 
   /**
@@ -451,6 +1363,7 @@ export const telematicsService = {
     if (!trip) throw new Error("Trip not found");
 
     const events = (trip as any).events || [];
+    const boundaryPoints = getBoundaryPointsFromEvents(events);
     const harshBraking = events.filter((e: any) => /harsh|brak|brake/i.test(String(e.eventType))).length;
     const hardAccel = events.filter((e: any) => /accel|acceleration|hard.*accel/i.test(String(e.eventType))).length;
     const speeding = events.filter((e: any) => /speed|overspeed/i.test(String(e.eventType))).length;
@@ -460,10 +1373,10 @@ export const telematicsService = {
     let distanceKm = trip.distanceKm ?? 0;
     let maxSpeed = trip.maxSpeed ?? null;
     let avgSpeed = trip.avgSpeed ?? null;
-    let damoovStatistics = (trip as any).damoovStatistics ?? null;
-    let damoovScores = (trip as any).damoovScores ?? null;
-    let startLocation = trip.startLocation ?? null;
-    let endLocation = trip.endLocation ?? null;
+    let damoovStatistics = (trip as any).statistics ?? (trip as any).damoovStatistics ?? null;
+    let damoovScores = (trip as any).scores ?? (trip as any).damoovScores ?? null;
+    let startLocation = await normalizeTripLocation(trip.startLocation ?? null, boundaryPoints.start);
+    let endLocation = await normalizeTripLocation(trip.endLocation ?? null, boundaryPoints.end);
 
     // Best-effort enrichment for full breakdown (Eco scores, Speeding, PhoneUsage, etc.)
     try {
@@ -523,8 +1436,14 @@ export const telematicsService = {
 
             damoovStatistics = stats;
             damoovScores = scores;
-            startLocation = addresses?.Start ?? startLocation;
-            endLocation = addresses?.End ?? endLocation;
+            startLocation = await normalizeTripLocation(
+              addresses?.Start ?? startLocation,
+              boundaryPoints.start,
+            );
+            endLocation = await normalizeTripLocation(
+              addresses?.End ?? endLocation,
+              boundaryPoints.end,
+            );
           }
         }
       }
@@ -584,9 +1503,33 @@ export const telematicsService = {
    * Uses cached admin token to avoid login rate limits; on 429 skips this run and retries next schedule.
    * @param options.forceLogin - If true, attempt login even during rate-limit backoff (for manual/immediate sync).
    */
+  async syncTripsForProvider(
+    provider?: unknown,
+    options?: { forceLogin?: boolean },
+  ) {
+    const selectedProvider = normalizeTelematicsProvider(provider);
+
+    if (selectedProvider === "inhouse") {
+      logger.info(
+        { provider: selectedProvider },
+        "In-house telematics selected: external Damoov sync skipped",
+      );
+      return { provider: selectedProvider, status: "skipped_external_sync" as const };
+    }
+
+    await this.syncTripsForAllDevices(options);
+    return { provider: selectedProvider, status: "synced" as const };
+  },
+
+  /**
+   * Pull trips for all active devices from Damoov API (Cron job Alternative).
+   * Uses cached admin token to avoid login rate limits; on 429 skips this run and retries next schedule.
+   * @param options.forceLogin - If true, attempt login even during rate-limit backoff (for manual/immediate sync).
+   */
   async syncTripsForAllDevices(options?: { forceLogin?: boolean }) {
     logger.info("Starting Damoov API sync for all devices (Admin Method)");
 
+    const redis = getRedis();
     const accessToken = await getDamoovAdminToken(options?.forceLogin);
     if (!accessToken) {
       return;
@@ -705,7 +1648,7 @@ export const telematicsService = {
           );
 
           if (response.status === 401) {
-            adminTokenCache = null;
+            if (redis) await redis.del(ADMIN_TOKEN_REDIS_KEY);
             logger.warn("Damoov admin token expired; will re-login on next sync");
             return;
           }
@@ -992,7 +1935,7 @@ export const telematicsService = {
         });
       } catch (error: any) {
         if (error.response?.status === 401) {
-          adminTokenCache = null;
+          if (redis) await redis.del(ADMIN_TOKEN_REDIS_KEY);
           logger.warn("Damoov admin token rejected; will re-login on next sync");
           return;
         }
@@ -1002,7 +1945,12 @@ export const telematicsService = {
           );
           return;
         }
-        if (error.response?.status === 404) {
+        if (error.response?.status === 403) {
+          logger.warn(
+            { deviceId: device.id, instanceId: device.instanceId },
+            "Damoov returned 403 Forbidden (access denied or inactive user)"
+          );
+        } else if (error.response?.status === 404) {
           logger.warn(
             { deviceId: device.id, instanceId: device.instanceId },
             "Device not found in Damoov Datahub (user hasn't driven yet)"

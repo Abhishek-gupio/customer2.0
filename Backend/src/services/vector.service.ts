@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { dbInstances } from "@repo/db-customer";
 import { logger } from "../config/logger";
 import { env } from "../config/env";
+import { callAI, isAIConfigured } from "./ai-provider.service";
 
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
@@ -9,6 +10,7 @@ const genAI = env.GEMINI_API_KEY
 const db = dbInstances as any;
 
 const EMBED_MODEL = "gemini-embedding-001";
+const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 /** PostgreSQL error code for undefined_column */
 const PG_UNDEFINED_COLUMN = "42703";
@@ -287,7 +289,7 @@ export const vectorService = {
       }));
 
     // If we have enough results and AI is available, rerank
-    if (combined.length > 2 && genAI) {
+    if (combined.length > 2 && isAIConfigured()) {
       return this.rerankWithAI(queryText, combined);
     }
 
@@ -301,11 +303,9 @@ export const vectorService = {
     query: string,
     documents: any[],
   ): Promise<any[]> {
-    if (!genAI || documents.length <= 1) return documents;
+    if (!isAIConfigured() || documents.length <= 1) return documents;
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
       const docList = documents
         .map(
           (d, i) =>
@@ -313,16 +313,14 @@ export const vectorService = {
         )
         .join("\n");
 
-      const result = await model.generateContent(
-        `Given the user query: "${query}"
+      const prompt = `Given the user query: "${query}"
 
 Rerank these documents by relevance (most relevant first). Return ONLY the indices as a comma-separated list, e.g. "2,0,1,3".
 
 Documents:
-${docList}`,
-      );
+${docList}`;
 
-      const response = result.response.text().trim();
+      const response = (await callAI(prompt)).trim();
       const indices = response
         .split(",")
         .map((s: string) => parseInt(s.trim()))

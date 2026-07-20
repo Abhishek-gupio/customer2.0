@@ -1,28 +1,35 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    StatusBar, ActivityIndicator, RefreshControl, Alert, Image
+    StatusBar, ActivityIndicator, Alert, Image,
+    Animated, Easing
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { 
-    AlertTriangle, CheckCircle, RefreshCcw, 
-    Calendar, MapPin, Receipt, ExternalLink, ShieldAlert
+    CheckCircle, RefreshCcw, ShieldAlert
 } from 'lucide-react-native';
 import { COLORS, INDPlate } from '../../components/Vehicles/VehicleUI';
 import { api } from '../../services/api';
 import { useNavigation, useRoute } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
+import { appendCorrelationId, reportHandledError } from '../../lib/sentry';
+import { getNetworkAwareErrorMessage } from '../../utils/errorHandlers';
 
 const ChallansScreen = () => {
     const navigation = useNavigation();
     const route = useRoute<any>();
-    const { vehicle } = route.params;
+    // Default defensively — a caller navigating here without a vehicle (or losing it on an
+    // intermediate re-render) should surface the screen's existing "no vehicle identifier"
+    // error handling below, not crash on vehicle.id before that logic ever runs.
+    const vehicle = route.params?.vehicle || {};
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [challans, setChallans] = useState<any[]>([]);
     const [stats, setStats] = useState({ total: 0, unpaid: 0, amount: 0 });
+    const spinValue = useRef(new Animated.Value(0)).current;
+    const refreshSpinAnim = useRef<Animated.CompositeAnimation | null>(null);
 
     const fetchChallans = useCallback(async (isSync = false) => {
         if (!isSync) setLoading(true);
@@ -31,33 +38,42 @@ const ChallansScreen = () => {
             let method: 'get' | 'post' = isSync ? 'post' : 'get';
 
             if (vehicle.id) {
-                endpoint = isSync 
-                    ? `/v1/vehicles/${vehicle.id}/challans/sync` 
+                endpoint = isSync
+                    ? `/v1/vehicles/${vehicle.id}/challans/sync`
                     : `/v1/vehicles/${vehicle.id}/challans`;
             } else if (vehicle.registrationNumber) {
                 endpoint = `/v1/vehicles/plate/${vehicle.registrationNumber}/challans`;
+                if (isSync) {
+                    endpoint += `?refresh=1&t=${Date.now()}`;
+                }
                 method = 'get'; // Plate endpoint is always GET for now
             } else {
                 throw new Error('No vehicle identifier provided');
             }
-            
+
             const response = await api[method](endpoint);
             const data = (response as any).data || response;
-            
+
             const list = Array.isArray(data) ? data : [];
             setChallans(list);
-            
+
             const unpaid = list.filter((c: any) => c.status !== 'PAID');
             const totalAmount = unpaid.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
-            
+
             setStats({
                 total: list.length,
                 unpaid: unpaid.length,
                 amount: totalAmount
             });
         } catch (error) {
-            console.error('Error fetching challans:', error);
-            Alert.alert('Error', 'Failed to fetch challans. Please try again.');
+            const { correlationId } = reportHandledError(error, { surface: 'payments-challans-fetch', level: 'feature' });
+            Alert.alert(
+                'Challans unavailable',
+                appendCorrelationId(
+                    getNetworkAwareErrorMessage(error, 'Failed to fetch challans. Please try again.'),
+                    correlationId,
+                ),
+            );
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -68,117 +84,151 @@ const ChallansScreen = () => {
         fetchChallans(true);
     }, [fetchChallans]);
 
-    const onRefresh = () => {
+    useEffect(() => {
+        if (refreshing) {
+            spinValue.setValue(0);
+            refreshSpinAnim.current = Animated.loop(
+                Animated.timing(spinValue, {
+                    toValue: 1,
+                    duration: 900,
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                })
+            );
+            refreshSpinAnim.current.start();
+            return () => {
+                refreshSpinAnim.current?.stop();
+            };
+        }
+
+        refreshSpinAnim.current?.stop();
+        spinValue.setValue(0);
+        return undefined;
+    }, [refreshing, spinValue]);
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        fetchChallans(true);
+        await fetchChallans(true);
     };
 
-    const handlePayChallan = (challan: any) => {
+    const spinRotation = spinValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg'],
+    });
+
+    const handlePayChallan = (_challan: any) => {
         Alert.alert(
             'Payment Notice',
             'Redirecting to government portal to pay this challan.',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Proceed', onPress: () => {
-                    // In a real app, open browser with payment URL
-                }}
+                {
+                    text: 'Proceed', onPress: () => {
+                        // In a real app, open browser with payment URL
+                    }
+                }
             ]
         );
     };
 
-const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void }) => {
-    const [expanded, setExpanded] = useState(false);
-    const offences = (item.violationType || '').split(' | ');
-    const hasMore = offences.length > 1;
+    const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void }) => {
+        const [expanded, setExpanded] = useState(false);
+        const offences = (item.violationType || '').split(' | ');
+        const hasMore = offences.length > 1;
 
-    return (
-        <View style={styles.challanCard}>
-            <View style={styles.cardHeader}>
-                <View style={[styles.statusBadge, { backgroundColor: item.status === 'PAID' ? '#1B3921' : '#3D1C1C' }]}>
-                    <Text style={[styles.statusText, { color: item.status === 'PAID' ? '#32D74B' : '#FF453A' }]}>
-                        {item.status === 'PAID' ? 'PAID' : 'UNPAID'}
-                    </Text>
-                </View>
-                <Text style={styles.challanNumber}>#{item.challanNumber}</Text>
-            </View>
-
-            <View style={styles.cardBody}>
-                {/* Vertical Metadata */}
-                <View style={styles.mainInfoList}>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Owner:</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.ownerName || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Date:</Text>
-                        <Text style={styles.infoValue}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>Location:</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>{item.location || 'N/A'}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <Text style={styles.infoLabel}>RTO:</Text>
-                        <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.rtoName || 'N/A'}</Text>
-                    </View>
-                </View>
-
-                <View style={styles.divider} />
-
-                {/* Offence & Amount */}
-                <View style={styles.offenceSection}>
-                    <Text style={styles.offenceTitle}>{offences[0]}</Text>
-                    {expanded && offences.slice(1).map((off: string, idx: number) => (
-                        <Text key={idx} style={[styles.offenceTitle, { marginTop: 8, color: COLORS.primary }]}>
-                            {off}
+        return (
+            <View style={styles.challanCard}>
+                <View style={styles.cardHeader}>
+                    <View style={[styles.statusBadge, { backgroundColor: item.status === 'PAID' ? '#1B3921' : '#3D1C1C' }]}>
+                        <Text style={[styles.statusText, { color: item.status === 'PAID' ? '#32D74B' : '#FF453A' }]}>
+                            {item.status === 'PAID' ? 'PAID' : 'UNPAID'}
                         </Text>
-                    ))}
-                    
-                    <View style={styles.amountContainer}>
-                        <Text style={styles.amountLabel}>Total Fine:</Text>
-                        <Text style={styles.amountValue}>₹{item.amount}</Text>
+                    </View>
+                    <Text style={styles.challanNumber}>#{item.challanNumber}</Text>
+                </View>
+
+                <View style={styles.cardBody}>
+                    {/* Vertical Metadata */}
+                    <View style={styles.mainInfoList}>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Owner:</Text>
+                            <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.ownerName || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Date:</Text>
+                            <Text style={styles.infoValue}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Location:</Text>
+                            <Text style={styles.infoValue} numberOfLines={1}>{item.location || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>RTO:</Text>
+                            <Text style={styles.infoValue} numberOfLines={1}>{item.metadata?.rtoName || 'N/A'}</Text>
+                        </View>
                     </View>
 
-                    <View style={styles.actionRow}>
-                        {hasMore && (
-                            <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.detailsToggle}>
-                                <Text style={styles.detailsToggleText}>
-                                    {expanded ? 'Hide Details' : 'View Details'}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
-                        {item.status !== 'PAID' && (
-                            <TouchableOpacity style={styles.payButton} onPress={() => onPay(item)}>
-                                <Text style={styles.payButtonText}>PAY NOW</Text>
-                            </TouchableOpacity>
-                        )}
+                    <View style={styles.divider} />
+
+                    {/* Offence & Amount */}
+                    <View style={styles.offenceSection}>
+                        <Text style={styles.offenceTitle}>{offences[0]}</Text>
+                        {expanded && offences.slice(1).map((off: string, idx: number) => (
+                            <Text key={idx} style={[styles.offenceTitle, { marginTop: 8, color: COLORS.primary }]}>
+                                {off}
+                            </Text>
+                        ))}
+
+                        <View style={styles.amountContainer}>
+                            <Text style={styles.amountLabel}>Total Fine:</Text>
+                            <Text style={styles.amountValue}>₹{item.amount}</Text>
+                        </View>
+
+                        <View style={styles.actionRow}>
+                            {hasMore && (
+                                <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.detailsToggle}>
+                                    <Text style={styles.detailsToggleText}>
+                                        {expanded ? 'Hide Details' : 'View Details'}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                            {item.status !== 'PAID' && (
+                                <TouchableOpacity style={styles.payButton} onPress={() => onPay(item)}>
+                                    <Text style={styles.payButtonText}>PAY NOW</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
-    );
-};
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="light-content" />
-            
+
             {/* Header */}
             <View style={styles.header}>
                 <BackButton onPress={() => navigation.goBack()} />
                 <View style={styles.titleContainer}>
                     <Text style={styles.headerTitle}>Traffic Challans</Text>
                 </View>
-                <TouchableOpacity onPress={() => fetchChallans(true)} style={styles.syncBtn}>
-                    <RefreshCcw size={20} color={COLORS.primary} />
+                <TouchableOpacity
+                    onPress={onRefresh}
+                    style={[styles.syncBtn, (loading || refreshing) && styles.syncBtnDisabled]}
+                    activeOpacity={0.8}
+                    disabled={loading || refreshing}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                    <Animated.View style={{ transform: [{ rotate: spinRotation }] }}>
+                        <RefreshCcw size={20} color={COLORS.primary} />
+                    </Animated.View>
                 </TouchableOpacity>
             </View>
 
-            <ScrollView 
+            <ScrollView
                 contentContainerStyle={styles.scrollContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
-                }
             >
                 {/* Vehicle Mini Info */}
                 <View style={styles.vehicleInfo}>
@@ -218,10 +268,10 @@ const ChallanCard = ({ item, onPay }: { item: any, onPay: (item: any) => void })
                 ) : (
                     <View style={styles.listContainer}>
                         {challans.map(item => (
-                            <ChallanCard 
-                                key={item.id} 
-                                item={item} 
-                                onPay={handlePayChallan} 
+                            <ChallanCard
+                                key={item.id}
+                                item={item}
+                                onPay={handlePayChallan}
                             />
                         ))}
                     </View>
@@ -260,6 +310,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center',
         borderWidth: 1, borderColor: '#333'
     },
+    syncBtnDisabled: {
+        opacity: 0.7,
+    },
     headerTitle: {
         color: '#FFF', fontSize: hp('2.2%'), fontFamily: 'Outfit-Bold'
     },
@@ -297,7 +350,10 @@ const styles = StyleSheet.create({
         color: '#FFF', fontSize: hp('2.4%'), fontFamily: 'Outfit-Black'
     },
     loaderBox: {
-        paddingVertical: hp('10%'), alignItems: 'center', gap: hp('2%')
+        minHeight: hp('55%'),
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: hp('2%'),
     },
     loaderText: {
         color: '#8E8E93', fontSize: hp('1.6%'), fontFamily: 'Outfit-Medium'
@@ -341,9 +397,9 @@ const styles = StyleSheet.create({
     infoValue: { color: '#FFF', fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', flex: 1, textAlign: 'right', marginLeft: wp('4%') },
     offenceSection: { gap: hp('1%') },
     offenceTitle: { color: COLORS.primary, fontSize: hp('1.7%'), fontFamily: 'Outfit-Bold', lineHeight: hp('2.2%') },
-    amountContainer: { 
-        flexDirection: 'row', alignItems: 'center', gap: wp('2%'), 
-        marginTop: hp('0.5%'), backgroundColor: '#222', padding: wp('3%'), borderRadius: 12 
+    amountContainer: {
+        flexDirection: 'row', alignItems: 'center', gap: wp('2%'),
+        marginTop: hp('0.5%'), backgroundColor: '#222', padding: wp('3%'), borderRadius: 12
     },
     actionRow: {
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp('1%')

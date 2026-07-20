@@ -14,6 +14,7 @@ export function authMiddleware(
 ): void {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
+    console.warn(`[AuthMiddleware] BLOCKED ${req.method} ${req.originalUrl || req.url}`);
     logger.warn({ path: req.path, hasAuth: !!authHeader }, "Unauthenticated request blocked");
     next(AppError.unauthorized("Missing or invalid Authorization header"));
     return;

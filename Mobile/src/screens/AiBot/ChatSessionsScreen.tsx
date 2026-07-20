@@ -3,6 +3,7 @@ import {
     ActivityIndicator,
     FlatList,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,
@@ -12,6 +13,34 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { chatService, type ChatSession } from '../../services/chatService';
 import BackButton from '../../components/BackButton';
+
+const STARTER_PROMPTS = [
+    {
+        id: 'health',
+        icon: 'shield-checkmark-outline',
+        title: 'Health check',
+        subtitle: 'Ask for service and vehicle status',
+        prompt: 'Give me a quick summary of my vehicle health and any service items I should review next.',
+    },
+    {
+        id: 'trip',
+        icon: 'map-outline',
+        title: 'Plan a trip',
+        subtitle: 'Estimate fuel and route costs',
+        prompt: 'Help me plan my next drive with fuel cost, stops and things I should check before leaving.',
+    },
+    {
+        id: 'expenses',
+        icon: 'wallet-outline',
+        title: 'Review expenses',
+        subtitle: 'Track spend and spot anomalies',
+        prompt: 'Help me review my vehicle expenses and tell me if anything looks unusually high.',
+    },
+];
+
+function SessionSeparator() {
+    return <View style={styles.separator} />;
+}
 
 export default function ChatSessionsScreen() {
     const navigation = useNavigation();
@@ -44,11 +73,11 @@ export default function ChatSessionsScreen() {
         });
     };
 
-    const startNewChat = () => {
+    const startNewChat = (initialMessage = '') => {
         (navigation as any).navigate('Main', {
             screen: 'AIAssistant',
             params: {
-                userMessage: '',
+                userMessage: initialMessage,
             },
         });
     };
@@ -89,9 +118,35 @@ export default function ChatSessionsScreen() {
             <View style={styles.header}>
                 <BackButton onPress={() => navigation.goBack()} />
                 <Text style={styles.headerTitle}>Chat History</Text>
-                <Pressable onPress={startNewChat} hitSlop={12}>
+                <Pressable onPress={() => startNewChat()} hitSlop={12}>
                     <Ionicons name="create-outline" size={22} color="#9fb3ff" />
                 </Pressable>
+            </View>
+
+            <View style={styles.starterSection}>
+                <View style={styles.starterHeader}>
+                    <Text style={styles.starterTitle}>Fast starts</Text>
+                    <Text style={styles.starterSubtitle}>Open AI with a ready-made task instead of a blank chat.</Text>
+                </View>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.starterScrollContent}
+                >
+                    {STARTER_PROMPTS.map((item) => (
+                        <Pressable
+                            key={item.id}
+                            style={({ pressed }) => [styles.starterCard, pressed && styles.starterCardPressed]}
+                            onPress={() => startNewChat(item.prompt)}
+                        >
+                            <View style={styles.starterIcon}>
+                                <Ionicons name={item.icon as any} size={20} color="#9fb3ff" />
+                            </View>
+                            <Text style={styles.starterCardTitle}>{item.title}</Text>
+                            <Text style={styles.starterCardSubtitle}>{item.subtitle}</Text>
+                        </Pressable>
+                    ))}
+                </ScrollView>
             </View>
 
             {loading ? (
@@ -103,7 +158,7 @@ export default function ChatSessionsScreen() {
                     <Ionicons name="chatbubbles-outline" size={48} color="#1c2640" />
                     <Text style={styles.emptyTitle}>No conversations yet</Text>
                     <Text style={styles.emptyText}>Start a new chat with Gupio AI</Text>
-                    <Pressable style={styles.newChatBtn} onPress={startNewChat}>
+                    <Pressable style={styles.newChatBtn} onPress={() => startNewChat()}>
                         <Ionicons name="add" size={20} color="#fff" />
                         <Text style={styles.newChatBtnText}>New Chat</Text>
                     </Pressable>
@@ -114,7 +169,7 @@ export default function ChatSessionsScreen() {
                     keyExtractor={(item) => item.id}
                     renderItem={renderSession}
                     contentContainerStyle={styles.listContent}
-                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                    ItemSeparatorComponent={SessionSeparator}
                 />
             )}
         </SafeAreaView>
@@ -139,6 +194,60 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: '700',
+    },
+    starterSection: {
+        paddingTop: 16,
+    },
+    starterHeader: {
+        paddingHorizontal: 16,
+        marginBottom: 12,
+    },
+    starterTitle: {
+        color: '#e8edf5',
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    starterSubtitle: {
+        color: '#66758f',
+        fontSize: 12,
+        marginTop: 4,
+    },
+    starterScrollContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 4,
+    },
+    starterCard: {
+        width: 180,
+        minHeight: 124,
+        marginRight: 12,
+        padding: 14,
+        borderRadius: 16,
+        backgroundColor: '#0d1a30',
+        borderWidth: 1,
+        borderColor: '#1c2640',
+    },
+    starterCardPressed: {
+        backgroundColor: '#11203a',
+    },
+    starterIcon: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        backgroundColor: 'rgba(159,179,255,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 12,
+    },
+    starterCardTitle: {
+        color: '#f5f8ff',
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    starterCardSubtitle: {
+        color: '#7d8aa1',
+        fontSize: 12,
+        lineHeight: 18,
+        marginTop: 6,
     },
     listContent: {
         padding: 16,

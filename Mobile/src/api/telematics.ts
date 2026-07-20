@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { getAccessToken } from '../services/storage';
+import type { TelematicsProvider } from '../services/storage';
 
 const API_URL = `${API_BASE_URL}/api/v1`;
 
@@ -15,10 +16,13 @@ export const telematicsApi = {
      * @param clientCustomId A unique identifier for the user (e.g. user ID or phone number)
      * @returns DeviceToken from Damoov
      */
-    async registerUser(clientCustomId: string): Promise<string> {
+    async registerUser(
+        clientCustomId: string,
+        provider: TelematicsProvider = 'damoov',
+    ): Promise<string> {
         const response = await axios.post(
             `${API_URL}/telematics/register`,
-            { clientCustomId },
+            { clientCustomId, provider },
             { headers: authHeaders() },
         );
 
@@ -37,13 +41,15 @@ export const telematicsApi = {
         vehicleId: string,
         instanceId: string,
         deviceToken: string,
-        platform: string
+        platform: string,
+        provider: TelematicsProvider = 'damoov',
     ): Promise<any> {
         const response = await axios.post(
             `${API_URL}/telematics/link/${vehicleId}`,
-            { instanceId, deviceToken, platform },
+            { instanceId, deviceToken, platform, provider },
             { headers: authHeaders() },
         );
+        return response.data;
     },
 
     /**
@@ -119,11 +125,124 @@ export const telematicsApi = {
     /**
      * Trigger a background sync with Damoov
      */
-    async syncTrips(): Promise<void> {
+    async syncTrips(provider: TelematicsProvider = 'damoov'): Promise<void> {
         await axios.post(
             `${API_URL}/telematics/sync`,
-            {},
+            { provider },
             { headers: authHeaders() },
         );
+    },
+
+    async submitInHouseTrip(payload: InHouseTripPayload): Promise<void> {
+        await axios.post(
+            `${API_URL}/telematics/inhouse/trips`,
+            payload,
+            { headers: authHeaders() },
+        );
+    },
+
+    async startInHouseLiveSession(payload: {
+        vehicleId: string;
+        vehicleType?: string | null;
+    }): Promise<{
+        sessionId: string;
+        vehicleId: string;
+        vehicleType?: string | null;
+        startedAt: string;
+        updatedAt: string;
+        pointCount: number;
+        points: { lat: number; lon: number; timestamp: string; speed?: number | null; eventType?: string }[];
+    }> {
+        const response = await axios.post(
+            `${API_URL}/telematics/inhouse/live/start`,
+            payload,
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data;
+    },
+
+    async pushInHouseLivePoints(
+        sessionId: string,
+        payload: {
+            vehicleId?: string;
+            points: Array<{
+                lat?: number;
+                lon?: number;
+                latitude?: number;
+                longitude?: number;
+                timestamp?: string;
+                speed?: number | null;
+                eventType?: string;
+            }>;
+        },
+    ): Promise<{
+        sessionId: string;
+        vehicleId: string;
+        pointCount: number;
+        updatedAt: string;
+        points: { lat: number; lon: number; timestamp: string; speed?: number | null; eventType?: string }[];
+    }> {
+        const response = await axios.post(
+            `${API_URL}/telematics/inhouse/live/${sessionId}/points`,
+            payload,
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data;
+    },
+
+    async getActiveInHouseLiveSession(vehicleId: string): Promise<{
+        sessionId: string;
+        vehicleId: string;
+        vehicleType?: string | null;
+        startedAt: string;
+        updatedAt: string;
+        pointCount: number;
+        points: { lat: number; lon: number; timestamp: string; speed?: number | null; eventType?: string }[];
+    } | null> {
+        const response = await axios.get(
+            `${API_URL}/telematics/inhouse/live/vehicle/${vehicleId}`,
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data ?? null;
+    },
+
+    async stopInHouseLiveSession(sessionId: string, payload?: { vehicleId?: string }): Promise<{ stopped: boolean }> {
+        const response = await axios.post(
+            `${API_URL}/telematics/inhouse/live/${sessionId}/stop`,
+            payload ?? {},
+            { headers: authHeaders() },
+        );
+        return response.data?.data ?? response.data;
     }
+};
+
+export type InHouseTripPayload = {
+    vehicleId?: string;
+    instanceId?: string;
+    tripId?: string;
+    startTime?: string;
+    endTime?: string;
+    distanceKm?: number;
+    durationMin?: number;
+    safetyScore?: number;
+    maxSpeed?: number | null;
+    avgSpeed?: number | null;
+    startLocation?: any;
+    endLocation?: any;
+    statistics?: any;
+    scores?: any;
+    path?: Array<{
+        timestamp?: string;
+        latitude?: number;
+        longitude?: number;
+        speed?: number | null;
+    }>;
+    events?: Array<{
+        eventType?: string;
+        timestamp?: string;
+        latitude?: number;
+        longitude?: number;
+        severity?: number | null;
+        speed?: number | null;
+    }>;
 };
