@@ -13,6 +13,8 @@ import BackButton from '../../components/BackButton';
 import { qrService, type VehicleQrToken } from '../../services/messagingService';
 import { vehicleService } from '../../services/vehicleService';
 import { getVehicleQrUrl } from '../../config';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface VehicleOption {
   id: string;
@@ -25,6 +27,7 @@ export default function MyQrCodeScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const params = (route.params ?? {}) as { vehicleId?: string; registrationNumber?: string };
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleOption | null>(
     params.vehicleId ? { id: params.vehicleId, registrationNumber: params.registrationNumber ?? '' } : null,
@@ -40,7 +43,10 @@ export default function MyQrCodeScreen() {
     if (params.vehicleId) return;
     vehicleService
       .getVehicles()
-      .then((list) => setVehicles(list as unknown as VehicleOption[]))
+      .then((list) => {
+        const myVehicles = list.filter((v) => v.customerId === user?.id);
+        setVehicles(myVehicles as unknown as VehicleOption[]);
+      })
       .catch((e: any) => Alert.alert('Could not load your vehicles', e?.message || 'Please try again'))
       .finally(() => setLoadingVehicles(false));
   }, [params.vehicleId]);
