@@ -101,6 +101,7 @@ export default function ScanQrScreen() {
             style={StyleSheet.absoluteFill}
             scanBarcode
             showFrame
+            allowedBarcodeTypes={['qr']}
             laserColor="#FFBF00"
             frameColor="#FFBF00"
             onReadCode={handleReadCode}
