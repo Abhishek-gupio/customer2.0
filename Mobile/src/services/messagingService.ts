@@ -21,6 +21,7 @@ export interface ResolvedVehicle {
   model: string | null;
   color: string | null;
   imageUrl: string | null;
+  ownerName?: string;
 }
 
 export interface OtherParty {

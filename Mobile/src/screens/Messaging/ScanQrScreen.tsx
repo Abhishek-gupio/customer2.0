@@ -83,6 +83,7 @@ export default function ScanQrScreen() {
             </View>
             <Text style={styles.resultReg}>{resolved.registrationNumber}</Text>
             {resolved.make ? <Text style={styles.resultMakeModel}>{resolved.make} {resolved.model}</Text> : null}
+            {resolved.ownerName ? <Text style={styles.resultOwnerName}>Owner: {resolved.ownerName}</Text> : null}
           </View>
           <TouchableOpacity style={styles.messageBtn} onPress={handleMessageOwner} disabled={starting} activeOpacity={0.85}>
             <IconMC name="message-text" size={wp(4.5)} color="#111" />
@@ -101,7 +102,6 @@ export default function ScanQrScreen() {
             style={StyleSheet.absoluteFill}
             scanBarcode
             showFrame
-            allowedBarcodeTypes={['qr']}
             laserColor="#FFBF00"
             frameColor="#FFBF00"
             onReadCode={handleReadCode}
@@ -167,7 +167,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   resultReg: { color: '#fff', fontFamily: 'Outfit-Black', fontSize: wp(5.5) },
-  resultMakeModel: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.6), marginTop: hp(0.5) },
+  resultMakeModel: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.8), marginTop: hp(0.5) },
+  resultOwnerName: { color: '#bbb', fontFamily: 'Outfit-Medium', fontSize: wp(4), marginTop: hp(1) },
   messageBtn: {
     flexDirection: 'row',
     alignItems: 'center',
