@@ -3,8 +3,10 @@ import multer from "multer";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { adminAuthMiddleware, requireAdminRole } from "../../middlewares/admin.middleware";
 import { dealerAuthMiddleware } from "../../middlewares/parking-dealer.middleware";
+import { parkingEmployeeAuthMiddleware } from "../../middlewares/parking-employee.middleware";
 import { parkingController } from "./parking.controller";
 import { dealerController } from "./dealer.controller";
+import { employeeController } from "./employee.controller";
 import { adminDealerController } from "./admin-dealer.controller";
 
 const router = Router();
@@ -16,6 +18,10 @@ const adminRouter = Router();
 adminRouter.use(adminAuthMiddleware, requireAdminRole(["SUPER_ADMIN", "ADMIN"]));
 adminRouter.post("/dealers", adminDealerController.create);
 adminRouter.get("/dealers", adminDealerController.list);
+adminRouter.patch("/dealers/:id/commission", adminDealerController.updateCommission);
+adminRouter.get("/live-listings", adminDealerController.listLiveListings);
+adminRouter.get("/listings/:id/live", adminDealerController.getListingLiveStatus);
+adminRouter.get("/listings/:id/walkins/history", adminDealerController.getListingWalkInHistory);
 router.use("/admin", adminRouter);
 
 // ── Dealer-facing (separate auth) — mounted first since /dealer/auth/login
@@ -29,8 +35,34 @@ dealerRouter.post("/listings/:id/photos", upload.array("photos", 6), dealerContr
 dealerRouter.get("/listings", dealerController.listListings);
 dealerRouter.post("/listings/:id/slots", dealerController.createSlotWindows);
 dealerRouter.get("/listings/:id/slots", dealerController.listSlotWindows);
+dealerRouter.post("/listings/:id/slots/:slotId/checkin", dealerController.checkInWalkIn);
+dealerRouter.post("/walkins/:walkInId/checkout", dealerController.checkOutWalkIn);
+dealerRouter.get("/listings/:id/live", dealerController.getListingLiveStatus);
+dealerRouter.get("/listings/:id/walkins/history", dealerController.getListingWalkInHistory);
+dealerRouter.get("/live-listings", dealerController.listLiveListings);
 dealerRouter.get("/bookings", dealerController.listBookings);
+dealerRouter.post("/bookings/:id/checkout", dealerController.checkoutBooking);
+dealerRouter.post("/employees", dealerController.createEmployee);
+dealerRouter.get("/employees", dealerController.listEmployees);
+dealerRouter.patch("/employees/:employeeId", dealerController.setEmployeeActive);
+dealerRouter.patch("/employees/:employeeId/listings", dealerController.setEmployeeListings);
 router.use("/dealer", dealerRouter);
+
+// ── Employee-facing (dealer's on-ground staff — separate, more restricted
+// auth) — mounted first for the same reason as dealerRouter above. ──
+const employeeRouter = Router();
+employeeRouter.post("/auth/login", employeeController.login);
+employeeRouter.use(parkingEmployeeAuthMiddleware);
+employeeRouter.get("/listings", employeeController.listListings);
+employeeRouter.get("/listings/:id/slots", employeeController.listSlotWindows);
+employeeRouter.post("/listings/:id/slots/:slotId/checkin", employeeController.checkInWalkIn);
+employeeRouter.post("/walkins/:walkInId/checkout", employeeController.checkOutWalkIn);
+employeeRouter.get("/listings/:id/live", employeeController.getListingLiveStatus);
+employeeRouter.get("/listings/:id/walkins/history", employeeController.getListingWalkInHistory);
+employeeRouter.get("/live-listings", employeeController.listLiveListings);
+employeeRouter.get("/bookings", employeeController.listBookings);
+employeeRouter.post("/bookings/:id/checkout", employeeController.checkoutBooking);
+router.use("/employee", employeeRouter);
 
 // ── Customer-facing ──────────────────────────────────────────────
 router.get("/search", parkingController.search);
@@ -41,6 +73,7 @@ router.use(authMiddleware);
 router.post("/bookings", parkingController.createBooking);
 router.get("/bookings", parkingController.listMyBookings);
 router.post("/bookings/:id/cancel", parkingController.cancelBooking);
+router.get("/bookings/:id/extra-payment", parkingController.getExtraPayment);
 router.post("/waitlist", parkingController.joinWaitlist);
 
 export const parkingRoutes = router;

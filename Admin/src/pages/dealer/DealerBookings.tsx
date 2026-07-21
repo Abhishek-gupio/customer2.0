@@ -1,76 +1,127 @@
 import { useEffect, useState } from 'react';
-import { CalendarRange } from 'lucide-react';
-import { format } from 'date-fns';
 import { dealerApi, type DealerBooking } from '../../api/dealerClient';
-import { Card, CardContent } from '../../components/ui/Card';
-import { EmptyState } from '../../components/ui/EmptyState';
-import { cn } from '../../lib/cn';
-
-const STATUS_STYLE: Record<DealerBooking['status'], string> = {
-  PENDING_PAYMENT: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  CONFIRMED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  CANCELLED: 'bg-white/5 text-white/40 border-white/10',
-  COMPLETED: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  NO_SHOW: 'bg-red-500/10 text-red-400 border-red-500/20',
-};
+import { ParkingBookingsTable } from '../../components/ParkingBookingsTable';
+import { Search } from 'lucide-react';
 
 export default function DealerBookings() {
   const [bookings, setBookings] = useState<DealerBooking[]>([]);
+  const [listings, setListings] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [checkingOutId, setCheckingOutId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
-  useEffect(() => {
-    dealerApi.listBookings().then((res) => {
+  // Filter states
+  const [selectedListingId, setSelectedListingId] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const load = () => {
+    Promise.all([
+      dealerApi.listBookings(),
+      dealerApi.listListings(),
+    ]).then(([bookingsRes, listingsRes]) => {
       setLoading(false);
-      if (res.success) setBookings(res.data);
-      else setError(res.error.message);
+      if (bookingsRes.success) setBookings(bookingsRes.data);
+      else setError(bookingsRes.error.message);
+
+      if (listingsRes.success) setListings(listingsRes.data.map(l => ({ id: l.id, name: l.name })));
     });
-  }, []);
+  };
+
+  useEffect(load, []);
+
+  const handleCheckout = async (bookingId: string) => {
+    setError('');
+    setCheckingOutId(bookingId);
+    const res = await dealerApi.checkoutBooking(bookingId);
+    setCheckingOutId(null);
+    if (res.success) {
+      setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...res.data } : b)));
+    } else {
+      setError(res.error.message);
+    }
+  };
+
+  const filteredBookings = bookings.filter((b) => {
+    const matchesListing = selectedListingId === 'all' || b.listingId === selectedListingId;
+    const matchesSearch = 
+      (b.vehicleNumber && b.vehicleNumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (b.customerName && b.customerName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (b.customerPhone && b.customerPhone.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      b.listing.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesListing && matchesSearch;
+  });
+
+  const activeBookings = filteredBookings.filter((b) => b.status === 'CONFIRMED' && !b.actualCheckOutTime);
+  const historyBookings = filteredBookings.filter((b) => b.status !== 'CONFIRMED' || !!b.actualCheckOutTime);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Bookings</h1>
-        <p className="text-sm text-white/60">Across all your listings</p>
+        <h1 className="text-2xl font-extrabold tracking-tight">Online Bookings</h1>
+        <p className="text-sm text-white/60">Manage online app reservations and check out vehicles when they leave</p>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {/* Filters Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#18181b]/80 border border-white/[0.04] p-4 rounded-2xl backdrop-blur-xl shadow-lg shadow-black/20">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          {listings.length > 1 && (
+            <select
+              value={selectedListingId}
+              onChange={(e) => setSelectedListingId(e.target.value)}
+              className="h-10 rounded-xl bg-white/[0.02] border border-white/[0.08] px-4 text-sm font-medium text-white focus:border-emerald-500/50 focus:bg-white/[0.04] focus:ring-4 focus:ring-emerald-500/10 focus:outline-none transition-all duration-300 appearance-none min-w-[160px]"
+            >
+              <option value="all" className="bg-zinc-900 text-white">All Lots</option>
+              {listings.map((l) => (
+                <option key={l.id} value={l.id} className="bg-zinc-900 text-white">{l.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div className="w-full md:w-80 relative">
+          <input
+            type="text"
+            placeholder="Search vehicle number or customer..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-10 w-full rounded-xl bg-white/[0.02] border border-white/[0.08] pl-11 pr-4 text-sm font-medium text-white placeholder:text-white/20 focus:border-emerald-500/50 focus:bg-white/[0.04] focus:ring-4 focus:ring-emerald-500/10 focus:outline-none transition-all duration-300"
+          />
+          <Search className="h-4 w-4 text-white/30 absolute left-4 top-3 transition-colors" />
+        </div>
+      </div>
+
+      {/* Tab Selector */}
+      <div>
+        <div className="inline-flex p-1 bg-white/[0.03] border border-white/[0.08] rounded-xl gap-1 shadow-inner">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+              activeTab === 'active'
+                ? 'bg-white/10 text-white shadow-sm'
+                : 'text-white/40 hover:text-white hover:bg-white/[0.02]'
+            }`}
+          >
+            Active Reservations ({activeBookings.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
+              activeTab === 'history'
+                ? 'bg-white/10 text-white shadow-sm'
+                : 'text-white/40 hover:text-white hover:bg-white/[0.02]'
+            }`}
+          >
+            History ({historyBookings.length})
+          </button>
+        </div>
+      </div>
 
       {loading ? (
         <div className="text-sm text-white/40">Loading…</div>
-      ) : bookings.length === 0 ? (
-        <EmptyState icon={<CalendarRange className="h-6 w-6" />} title="No bookings yet" description="Bookings for your listings will show up here." />
+      ) : activeTab === 'active' ? (
+        <ParkingBookingsTable bookings={activeBookings} onCheckout={handleCheckout} checkingOutId={checkingOutId} error={error} />
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/60">
-                  <th className="px-5 py-3">Listing</th>
-                  <th className="px-5 py-3">Window</th>
-                  <th className="px-5 py-3">Amount</th>
-                  <th className="px-5 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookings.map((b) => (
-                  <tr key={b.id} className="border-b border-white/[0.05]">
-                    <td className="px-5 py-3 text-sm font-medium">{b.listing.name}</td>
-                    <td className="px-5 py-3 text-sm text-white/70">
-                      {format(new Date(b.startTime), 'MMM d, h:mm a')} – {format(new Date(b.endTime), 'h:mm a')}
-                    </td>
-                    <td className="px-5 py-3 text-sm text-white/70">₹{(b.amountPaise / 100).toFixed(0)}</td>
-                    <td className="px-5 py-3">
-                      <span className={cn('rounded-lg border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest', STATUS_STYLE[b.status])}>
-                        {b.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        <ParkingBookingsTable bookings={historyBookings} onCheckout={handleCheckout} checkingOutId={checkingOutId} error={error} />
       )}
     </div>
   );

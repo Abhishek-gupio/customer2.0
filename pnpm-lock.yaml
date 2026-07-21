@@ -107,6 +107,9 @@ importers:
       react-icons:
         specifier: ^5.6.0
         version: 5.6.0(react@19.2.0)
+      react-qr-code:
+        specifier: ^2.2.0
+        version: 2.2.0(react@19.2.0)
       react-router-dom:
         specifier: ^6.28.0
         version: 6.30.3(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -116,6 +119,9 @@ importers:
       recharts:
         specifier: ^3.8.0
         version: 3.8.1(@types/react@19.2.0)(react-dom@19.2.0(react@19.2.0))(react-is@19.2.0)(react@19.2.0)(redux@5.0.1)
+      socket.io-client:
+        specifier: ^4.8.3
+        version: 4.8.3
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -7552,6 +7558,9 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
+  qrcode-generator@2.0.4:
+    resolution: {integrity: sha512-mZSiP6RnbHl4xL2Ap5HfkjLnmxfKcPWpWe/c+5XxCuetEenqmNFf1FH/ftXPCtFG5/TDobjsjz6sSNL0Sr8Z9g==}
+
   qrcode@1.5.4:
     resolution: {integrity: sha512-1ca71Zgiu6ORjHqFBDpnSMTR2ReToX4l1Au1VFLyVeBTFavzQnv5JxMFr3ukHVKpSrSA2MCk0lNJSykjUfz7Zg==}
     engines: {node: '>=10.13.0'}
@@ -7843,6 +7852,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-qr-code@2.2.0:
+    resolution: {integrity: sha512-e5nS0UUN22K3Nf8KBRUzemfdJ6OmnN5w+kbnj1lvJaol9RyVRFeGl05bCkxSN2ZegbLxjjYjX1+mmAoX9+fAhw==}
+    peerDependencies:
+      react: 19.2.0
 
   react-redux@9.2.0:
     resolution: {integrity: sha512-ROY9fvHhwOD9ySfrF0wmvu//bKCQ6AeZZq1nJNtbDC+kk5DuSuNX/n6YWYF/SYy7bSba4D4FSz8DJeKY/S/r+g==}
@@ -17821,6 +17835,8 @@ snapshots:
 
   pure-rand@6.1.0: {}
 
+  qrcode-generator@2.0.4: {}
+
   qrcode@1.5.4:
     dependencies:
       dijkstrajs: 1.0.3
@@ -18144,6 +18160,12 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  react-qr-code@2.2.0(react@19.2.0):
+    dependencies:
+      prop-types: 15.8.1
+      qrcode-generator: 2.0.4
+      react: 19.2.0
 
   react-redux@9.2.0(@types/react@19.2.0)(react@19.2.0)(redux@5.0.1):
     dependencies:

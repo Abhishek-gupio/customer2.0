@@ -13,12 +13,16 @@ import ExpenseDetail from './pages/ExpenseDetail';
 import Expenses from './pages/Expenses';
 import ManageAdmins from './pages/ManageAdmins';
 import ParkingDealers from './pages/ParkingDealers';
+import ParkingLive from './pages/ParkingLive';
+import ParkingListingLive from './pages/ParkingListingLive';
 import WashPartners from './pages/WashPartners';
 import PaymentsOps from './pages/PaymentsOps';
 import Messaging from './pages/Messaging';
 import DealerRoutes from './pages/dealer/DealerRoutes';
 import PartnerRoutes from './pages/partner/PartnerRoutes';
 import TechnicianRoutes from './pages/technician/TechnicianRoutes';
+import EmployeeRoutes from './pages/employee/EmployeeRoutes';
+import PartnerPortalRoutes from './pages/partner-portal/PartnerPortalRoutes';
 import CinematicSplashScreen from './components/CinematicSplashScreen';
 import { AnimatePresence } from 'motion/react';
 
@@ -157,6 +161,22 @@ export default function App() {
               }
             />
             <Route
+              path="parking-live"
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+                  <ParkingLive />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="parking-live/:id"
+              element={
+                <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+                  <ParkingListingLive />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
               path="wash-partners"
               element={
                 <RoleProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
@@ -193,6 +213,13 @@ export default function App() {
 
           {/* Wash technician portal — separate auth from admin/partner, not behind ProtectedRoute/Shell */}
           <Route path="/technician/*" element={<TechnicianRoutes />} />
+
+          {/* A dealer's on-ground staff — read-only listings, occupy/vacate only. Separate auth from the dealer's own login. */}
+          <Route path="/employee/*" element={<EmployeeRoutes />} />
+
+          {/* Unified sign-in across all four field-partner roles above — picks the
+              right login/shell to land on; the roles themselves are unchanged. */}
+          <Route path="/partner-portal" element={<PartnerPortalRoutes />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

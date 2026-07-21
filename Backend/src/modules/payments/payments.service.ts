@@ -1,6 +1,6 @@
 import Razorpay from "razorpay";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils";
-import { dbInstances } from "@repo/db-customer";
+import { dbInstances, type PaymentPurpose } from "@repo/db-customer";
 import { env } from "../../config/env";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
@@ -25,7 +25,16 @@ function getRazorpayClient(): Razorpay {
 }
 
 export const paymentsService = {
-  async createOrder(customerId: string, input: CreateOrderInput) {
+  /**
+   * `purpose` here is the full Prisma `PaymentPurpose` enum, not just
+   * `CreateOrderInput['purpose']` — the latter is deliberately the narrower
+   * set the public `POST /v1/payments/orders` endpoint's zod schema accepts
+   * from a customer directly. Purposes only ever created server-side (e.g.
+   * PARKING_EXTRA_CHARGE from parking.service.ts's checkoutBooking) must stay
+   * out of that public enum, or a customer could self-create one for an
+   * arbitrary referenceId/amount via the generic endpoint.
+   */
+  async createOrder(customerId: string, input: Omit<CreateOrderInput, "purpose"> & { purpose: PaymentPurpose }) {
     const razorpay = getRazorpayClient();
 
     const order = await dbInstances.customerOrder.create({
@@ -67,6 +76,30 @@ export const paymentsService = {
       currency: updated.currency,
       keyId: env.RAZORPAY_KEY_ID,
     };
+  },
+
+  async createWalkInPaymentLink(walkInId: string, amountPaise: number) {
+    const razorpay = getRazorpayClient();
+    try {
+      // We generate a payment link which creates a short URL that can be shown as a QR.
+      const paymentLink = await razorpay.paymentLink.create({
+        amount: amountPaise,
+        currency: "INR",
+        accept_partial: false,
+        description: "Parking Walk-in Payment",
+        reference_id: walkInId,
+        customer: { name: "Walk-in Customer", contact: "9999999999" },
+        notes: { purpose: "PARKING_WALKIN_PAYMENT", walkInId },
+      } as any);
+
+      return {
+        paymentLinkId: paymentLink.id,
+        shortUrl: paymentLink.short_url,
+      };
+    } catch (err) {
+      logger.error({ err, walkInId }, "Razorpay payment link creation failed");
+      throw AppError.internal("Could not create payment link");
+    }
   },
 
   async getOrder(customerId: string, orderId: string) {
@@ -291,6 +324,19 @@ export const paymentsService = {
   },
 
   async applyWebhookEvent(eventType: string, payload: any): Promise<void> {
+    if (eventType === "payment.link.paid") {
+      const notes = payload?.payload?.payment_link?.entity?.notes;
+      if (notes?.purpose === "PARKING_WALKIN_PAYMENT" && notes?.walkInId) {
+        // Mark walkin as paid ONLINE
+        await dbInstances.parkingWalkIn.update({
+          where: { id: notes.walkInId },
+          data: { paymentMethod: "ONLINE" },
+        });
+        logger.info({ walkInId: notes.walkInId }, "WalkIn Payment Link Paid");
+      }
+      return;
+    }
+
     if (eventType === "payment.captured" || eventType === "order.paid") {
       const paymentEntity = payload?.payload?.payment?.entity;
       const razorpayOrderId: string | undefined = paymentEntity?.order_id;

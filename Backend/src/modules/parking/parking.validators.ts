@@ -75,6 +75,35 @@ export const createSlotWindowsSchema = z.object({
   capacity: z.coerce.number().int().positive(),
 });
 
+export const checkInWalkInSchema = z.object({
+  vehicleType: z.enum(["CAR", "BIKE"]),
+  vehicleNumber: z.string().min(1).max(20),
+});
+
+/** Amount isn't collected here — checkOutWalkIn computes it from actual duration parked. */
+export const checkOutWalkInSchema = z.object({
+  paymentMethod: z.enum(["CASH", "ONLINE"]),
+});
+
+export const createEmployeeSchema = z.object({
+  name: z.string().min(1),
+  phoneNumber: z.string().min(6),
+  password: z.string().min(8),
+  /** Which lot(s) this employee can see/work — can be empty and assigned later. */
+  listingIds: z.array(z.string().min(1)).default([]),
+});
+
+export const setEmployeeListingsSchema = z.object({
+  listingIds: z.array(z.string().min(1)),
+});
+
+// ── Employee-facing (dealer's on-ground staff) ──────────────────
+
+export const employeeLoginSchema = z.object({
+  phoneNumber: z.string().min(6),
+  password: z.string().min(1),
+});
+
 export type SearchListingsInput = z.infer<typeof searchListingsSchema>;
 export type AvailabilityInput = z.infer<typeof availabilitySchema>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
@@ -84,3 +113,8 @@ export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 export type CreateSlotWindowsInput = z.infer<typeof createSlotWindowsSchema>;
 export type AdminCreateDealerInput = z.infer<typeof adminCreateDealerSchema>;
+export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
+export type SetEmployeeListingsInput = z.infer<typeof setEmployeeListingsSchema>;
+export type EmployeeLoginInput = z.infer<typeof employeeLoginSchema>;
+export type CheckInWalkInInput = z.infer<typeof checkInWalkInSchema>;
+export type CheckOutWalkInInput = z.infer<typeof checkOutWalkInSchema>;

@@ -8,6 +8,10 @@ import {
   createListingSchema,
   updateListingSchema,
   createSlotWindowsSchema,
+  createEmployeeSchema,
+  checkInWalkInSchema,
+  checkOutWalkInSchema,
+  setEmployeeListingsSchema,
 } from "./parking.validators";
 
 function parseBody<T>(
@@ -79,5 +83,75 @@ export const dealerController = {
     if (!req.dealer?.id) throw AppError.unauthorized();
     const bookings = await parkingService.listDealerBookings(req.dealer.id);
     success(res, bookings);
+  }),
+
+  checkInWalkIn: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const body = parseBody(req, checkInWalkInSchema);
+    const walkIn = await parkingService.checkInWalkIn(
+      req.dealer.id,
+      req.params.id as string,
+      req.params.slotId as string,
+      body,
+    );
+    success(res, walkIn, 201);
+  }),
+
+  checkOutWalkIn: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const body = parseBody(req, checkOutWalkInSchema);
+    const walkIn = await parkingService.checkOutWalkIn(req.dealer.id, req.params.walkInId as string, body.paymentMethod);
+    success(res, walkIn);
+  }),
+
+  getListingLiveStatus: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const status = await parkingService.dealerGetListingLiveStatus(req.dealer.id, req.params.id as string);
+    success(res, status);
+  }),
+
+  getListingWalkInHistory: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const history = await parkingService.dealerGetListingWalkInHistory(req.dealer.id, req.params.id as string);
+    success(res, history);
+  }),
+
+  listLiveListings: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const listings = await parkingService.dealerListLiveListings(req.dealer.id);
+    success(res, listings);
+  }),
+
+  createEmployee: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const body = parseBody(req, createEmployeeSchema);
+    const employee = await parkingService.createEmployee(req.dealer.id, body);
+    success(res, employee, 201);
+  }),
+
+  listEmployees: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const employees = await parkingService.listEmployees(req.dealer.id);
+    success(res, employees);
+  }),
+
+  setEmployeeActive: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const isActive = Boolean(req.body?.isActive);
+    const employee = await parkingService.setEmployeeActive(req.dealer.id, req.params.employeeId as string, isActive);
+    success(res, employee);
+  }),
+
+  setEmployeeListings: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const body = parseBody(req, setEmployeeListingsSchema);
+    const employee = await parkingService.setEmployeeListings(req.dealer.id, req.params.employeeId as string, body.listingIds);
+    success(res, employee);
+  }),
+
+  checkoutBooking: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const booking = await parkingService.checkoutBooking(req.dealer.id, req.params.id as string);
+    success(res, booking);
   }),
 };

@@ -2201,6 +2201,8 @@ model WebhookEvent {
 
 enum PaymentPurpose {
   PARKING_BOOKING
+  PARKING_EXTRA_CHARGE
+  PARKING_WALKIN_PAYMENT
   CAR_WASH_BOOKING
 
   @@schema("customer")
@@ -2241,10 +2243,48 @@ model ParkingDealer {
   email        String?
   passwordHash String
   status       DealerStatus @default(PENDING_VERIFICATION)
+  commissionRate Int        @default(10)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   listings     ParkingListing[]
+  employees    ParkingEmployee[]
+  settlements  ParkingSettlement[]
 
+  @@schema("customer")
+}
+
+/// A dealer's on-ground staff — read-only on listings, can only mark
+/// walk-in occupancy (occupy/vacate a bay). Distinct from the dealer's own
+/// login, which manages listings/rates/availability.
+model ParkingEmployee {
+  id               String        @id @default(cuid())
+  dealerId         String
+  name             String
+  phoneNumber      String        @unique
+  passwordHash     String
+  isActive         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  dealer           ParkingDealer @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  walkIns          ParkingWalkIn[]
+  assignedListings ParkingEmployeeListing[]
+
+  @@index([dealerId])
+  @@schema("customer")
+}
+
+/// Which lot(s) an employee can see/work — an employee with no rows here
+/// isn't assigned anywhere yet (a dealer must assign at least one lot before
+/// the employee can do anything useful in their portal).
+model ParkingEmployeeListing {
+  id         String          @id @default(cuid())
+  employeeId String
+  listingId  String
+  createdAt  DateTime        @default(now())
+  employee   ParkingEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  listing    ParkingListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, listingId])
+  @@index([listingId])
   @@schema("customer")
 }
 
@@ -2268,6 +2308,8 @@ model ParkingListing {
   slotWindows         ParkingSlotWindow[]
   bookings            ParkingBooking[]
   waitlist            ParkingWaitlistEntry[]
+  walkIns             ParkingWalkIn[]
+  assignedEmployees   ParkingEmployeeListing[]
 
   @@index([dealerId])
   @@index([latitude, longitude])
@@ -2276,40 +2318,123 @@ model ParkingListing {
 
 /// Declared capacity for one hour-block on one date — not a physical bay.
 model ParkingSlotWindow {
-  id        String         @id @default(cuid())
-  listingId String
-  date      DateTime       @db.Date
-  startHour Int
-  endHour   Int
-  capacity  Int
-  booked    Int            @default(0)
-  listing   ParkingListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  id                  String         @id @default(cuid())
+  listingId           String
+  date                DateTime       @db.Date
+  startHour           Int
+  endHour             Int
+  capacity            Int
+  booked              Int            @default(0)
+  manualOccupiedCars  Int            @default(0) // walk-in cars the dealer/employee marks occupied outside the app-booking flow
+  manualOccupiedBikes Int            @default(0) // walk-in bikes, same as above
+  listing             ParkingListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  walkIns             ParkingWalkIn[]
 
   @@unique([listingId, date, startHour])
   @@index([listingId, date])
   @@schema("customer")
 }
 
-model ParkingBooking {
-  id             String         @id @default(cuid())
-  customerId     String
+/// One walk-in vehicle's stay — the audit-trail counterpart to
+/// ParkingSlotWindow.manualOccupiedCars/Bikes, which stays the source of
+/// truth for atomic capacity checks. This table exists so a dealer/admin can
+/// see *which* vehicle (by number) is parked, who checked it in, and what
+/// was collected — the counters alone can't answer that.
+/// `amountPaise`/`paymentMethod` are set at exit, not entry — a walk-in's
+/// charge depends on how long it actually stayed, same reasoning as
+/// ParkingBooking's overstay charge.
+model ParkingWalkIn {
+  id             String          @id @default(cuid())
   listingId      String
-  slotWindowId   String                        // which ParkingSlotWindow capacity was reserved from
-  vehicleId      String?
-  startTime      DateTime
-  endTime        DateTime
-  amountPaise    Int
-  status         BookingStatus  @default(PENDING_PAYMENT)
-  orderId        String?
-  idempotencyKey String?        @unique         // client-generated; retrying the same tap must not double-book
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  listing        ParkingListing @relation(fields: [listingId], references: [id])
+  slotWindowId   String
+  vehicleType    ParkingVehicleType
+  vehicleNumber  String
+  amountPaise    Int             @default(0)
+  paymentMethod  ParkingPaymentMethod?
+  employeeId     String?                          // null if the dealer checked the vehicle in directly
+  enteredAt      DateTime        @default(now())
+  exitedAt       DateTime?
+  isSettled      Boolean         @default(false)
+  settlementId   String?
+  
+  listing        ParkingListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  slotWindow     ParkingSlotWindow @relation(fields: [slotWindowId], references: [id], onDelete: Cascade)
+  employee       ParkingEmployee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  settlement     ParkingSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+
+  @@index([listingId, exitedAt])
+  @@index([slotWindowId])
+  @@schema("customer")
+}
+
+enum ParkingPaymentMethod {
+  CASH
+  ONLINE
+
+  @@schema("customer")
+}
+
+enum ParkingVehicleType {
+  CAR
+  BIKE
+
+  @@schema("customer")
+}
+
+model ParkingBooking {
+  id                 String         @id @default(cuid())
+  customerId         String
+  listingId          String
+  slotWindowId       String                        // which ParkingSlotWindow capacity was reserved from
+  vehicleId          String?
+  startTime          DateTime
+  endTime            DateTime
+  amountPaise        Int
+  status             BookingStatus  @default(PENDING_PAYMENT)
+  orderId            String?
+  idempotencyKey     String?        @unique         // client-generated; retrying the same tap must not double-book
+  actualCheckOutTime DateTime?                      // set by dealer/employee when the vehicle actually leaves
+  extraAmountPaise   Int?                           // overstay charge if actualCheckOutTime is past endTime
+  extraOrderId       String?                        // CustomerOrder id for the overstay charge (purpose: PARKING_EXTRA_CHARGE)
+  isSettled          Boolean        @default(false)
+  settlementId       String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  
+  customer           Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  listing            ParkingListing @relation(fields: [listingId], references: [id])
+  settlement         ParkingSettlement? @relation(fields: [settlementId], references: [id], onDelete: SetNull)
 
   @@index([customerId])
   @@index([listingId, startTime])
   @@index([status, createdAt])
+  @@index([isSettled])
+  @@schema("customer")
+}
+
+model ParkingSettlement {
+  id              String           @id @default(cuid())
+  dealerId        String
+  date            DateTime         @db.Date
+  totalCollected  Int              // Total amount collected in paise
+  gupioCommission Int              // Cut for Gupio in paise
+  amountSettled   Int              // Dealer payout in paise
+  status          SettlementStatus @default(PENDING)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  dealer          ParkingDealer    @relation(fields: [dealerId], references: [id])
+  bookings        ParkingBooking[]
+  walkIns         ParkingWalkIn[]
+  
+  @@index([dealerId, date])
+  @@schema("customer")
+}
+
+enum SettlementStatus {
+  PENDING
+  COMPLETED
+
   @@schema("customer")
 }
 

@@ -27,6 +27,7 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRY: z.string().default("30d"),
   ADMIN_JWT_EXPIRY: z.string().default("24h"),
   DEALER_JWT_EXPIRY: z.string().default("24h"),
+  PARKING_EMPLOYEE_JWT_EXPIRY: z.string().default("24h"),
   WASH_PARTNER_JWT_EXPIRY: z.string().default("24h"),
   WASH_TECHNICIAN_JWT_EXPIRY: z.string().default("24h"),
   OTP_EXPIRY_SEC: z.coerce.number().default(300),

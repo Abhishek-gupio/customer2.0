@@ -74,7 +74,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
 ];
 
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
-  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode', 'VehicleMessages', 'CarWash'], color: '#ef4444' }, // Red
+  { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode', 'VehicleMessages', 'CarWash', 'Parking'], color: '#ef4444' }, // Red
   { title: 'Community', itemIds: ['Community'], color: '#8b5cf6' }, // Violet
   { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo

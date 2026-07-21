@@ -1,6 +1,6 @@
 import { CustomerPayload } from "../modules/auth/auth.types";
 import type { AdminPayload } from "../modules/admin/admin.types";
-import type { DealerPayload } from "../modules/parking/parking.types";
+import type { DealerPayload, ParkingEmployeePayload } from "../modules/parking/parking.types";
 import type { PartnerPayload, TechnicianPayload } from "../modules/carwash/carwash.types";
 
 declare global {
@@ -9,6 +9,7 @@ declare global {
       customer?: CustomerPayload;
       admin?: AdminPayload;
       dealer?: DealerPayload;
+      parkingEmployee?: ParkingEmployeePayload;
       partner?: PartnerPayload;
       technician?: TechnicianPayload;
       /** Raw request body bytes, captured by app.ts's express.json `verify` hook — needed for Razorpay webhook signature verification. */

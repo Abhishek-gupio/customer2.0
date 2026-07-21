@@ -71,4 +71,10 @@ export const parkingController = {
     const entry = await parkingService.joinWaitlist(req.customer.id, body);
     success(res, entry, 201);
   }),
+
+  getExtraPayment: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const payment = await parkingService.getExtraPaymentInfo(req.customer.id, req.params.id as string);
+    success(res, payment);
+  }),
 };

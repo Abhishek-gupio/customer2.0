@@ -45,7 +45,18 @@ export interface ParkingBooking {
   status: ParkingBookingStatus;
   orderId: string | null;
   createdAt: string;
+  actualCheckOutTime: string | null;
+  extraAmountPaise: number | null;
+  extraOrderId: string | null;
   listing?: { name: string; addressLine: string; city: string };
+}
+
+export interface ExtraPaymentInfo {
+  orderId: string;
+  razorpayOrderId: string;
+  amountPaise: number;
+  currency: string;
+  keyId: string;
 }
 
 export interface CreateBookingResult {
@@ -126,5 +137,10 @@ export const parkingService = {
 
   joinWaitlist: async (listingId: string, desiredDate: Date): Promise<void> => {
     await api.post('/v1/parking/waitlist', { listingId, desiredDate: desiredDate.toISOString() });
+  },
+
+  getExtraPayment: async (bookingId: string): Promise<ExtraPaymentInfo> => {
+    const res = await api.get<{ data?: ExtraPaymentInfo }>(`/v1/parking/bookings/${bookingId}/extra-payment`);
+    return unwrap<ExtraPaymentInfo>(res);
   },
 };

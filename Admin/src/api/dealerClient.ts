@@ -44,6 +44,8 @@ export interface DealerListing {
   createdAt: string;
 }
 
+export type ParkingVehicleType = 'CAR' | 'BIKE';
+
 export interface DealerSlotWindow {
   id: string;
   listingId: string;
@@ -52,17 +54,88 @@ export interface DealerSlotWindow {
   endHour: number;
   capacity: number;
   booked: number;
+  manualOccupiedCars: number;
+  manualOccupiedBikes: number;
+}
+
+export type ParkingPaymentMethod = 'CASH' | 'ONLINE';
+
+export interface WalkIn {
+  id: string;
+  source: 'walkin';
+  vehicleType: ParkingVehicleType;
+  vehicleNumber: string;
+  amountPaise: number;
+  paymentMethod: ParkingPaymentMethod | null;
+  employeeName: string | null;
+  enteredAt: string;
+  paymentLink?: {
+    paymentLinkId: string;
+    shortUrl: string;
+  };
+}
+
+export interface LiveBooking {
+  id: string;
+  source: 'app';
+  vehicleNumber: string | null;
+  customerName: string | null;
+  customerPhone: string;
+  amountPaise: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface ListingLiveStatus {
+  bookings: LiveBooking[];
+  walkIns: WalkIn[];
+}
+
+export interface WalkInHistoryEntry {
+  id: string;
+  vehicleType: ParkingVehicleType;
+  vehicleNumber: string;
+  amountPaise: number;
+  paymentMethod: ParkingPaymentMethod | null;
+  employeeName: string | null;
+  enteredAt: string;
+  exitedAt: string;
+}
+
+export interface LiveListingSummary {
+  listingId: string;
+  listingName: string;
+  appCount: number;
+  walkInCount: number;
+  // Present only on the admin (Gupio ops) overview across all dealers.
+  city?: string;
+  dealerName?: string;
+}
+
+export interface DealerEmployee {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  isActive: boolean;
+  createdAt: string;
+  assignedListings: { id: string; name: string }[];
 }
 
 export interface DealerBooking {
   id: string;
   listingId: string;
   vehicleId: string | null;
+  vehicleNumber: string | null;
+  customerName: string | null;
+  customerPhone: string | null;
   startTime: string;
   endTime: string;
   amountPaise: number;
   status: 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
   createdAt: string;
+  actualCheckOutTime: string | null;
+  extraAmountPaise: number | null;
+  extraOrderId: string | null;
   listing: { name: string };
 }
 
@@ -108,5 +181,45 @@ export const dealerApi = {
   listSlotWindows: (listingId: string) =>
     dealerApiRequest<DealerSlotWindow[]>(`/v1/parking/dealer/listings/${listingId}/slots`),
 
+  checkInWalkIn: (listingId: string, slotId: string, data: { vehicleType: ParkingVehicleType; vehicleNumber: string }) =>
+    dealerApiRequest<WalkIn>(`/v1/parking/dealer/listings/${listingId}/slots/${slotId}/checkin`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  checkOutWalkIn: (walkInId: string, paymentMethod: ParkingPaymentMethod) =>
+    dealerApiRequest<WalkIn>(`/v1/parking/dealer/walkins/${walkInId}/checkout`, {
+      method: 'POST',
+      body: JSON.stringify({ paymentMethod }),
+    }),
+
+  getListingLiveStatus: (listingId: string) =>
+    dealerApiRequest<ListingLiveStatus>(`/v1/parking/dealer/listings/${listingId}/live`),
+
+  getWalkInHistory: (listingId: string) =>
+    dealerApiRequest<WalkInHistoryEntry[]>(`/v1/parking/dealer/listings/${listingId}/walkins/history`),
+
+  listLiveListings: () => dealerApiRequest<LiveListingSummary[]>('/v1/parking/dealer/live-listings'),
+
   listBookings: () => dealerApiRequest<DealerBooking[]>('/v1/parking/dealer/bookings'),
+
+  checkoutBooking: (bookingId: string) =>
+    dealerApiRequest<DealerBooking>(`/v1/parking/dealer/bookings/${bookingId}/checkout`, { method: 'POST' }),
+
+  createEmployee: (data: { name: string; phoneNumber: string; password: string; listingIds: string[] }) =>
+    dealerApiRequest<DealerEmployee>('/v1/parking/dealer/employees', { method: 'POST', body: JSON.stringify(data) }),
+
+  listEmployees: () => dealerApiRequest<DealerEmployee[]>('/v1/parking/dealer/employees'),
+
+  setEmployeeActive: (employeeId: string, isActive: boolean) =>
+    dealerApiRequest<DealerEmployee>(`/v1/parking/dealer/employees/${employeeId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    }),
+
+  setEmployeeListings: (employeeId: string, listingIds: string[]) =>
+    dealerApiRequest<DealerEmployee>(`/v1/parking/dealer/employees/${employeeId}/listings`, {
+      method: 'PATCH',
+      body: JSON.stringify({ listingIds }),
+    }),
 };

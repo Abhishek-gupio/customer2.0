@@ -23,6 +23,8 @@ export default function ParkingDealers() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [createdCreds, setCreatedCreds] = useState<{ phoneNumber: string; password: string } | null>(null);
+  const [editingCommissionId, setEditingCommissionId] = useState<string | null>(null);
+  const [editingCommissionValue, setEditingCommissionValue] = useState<string>('');
 
   const load = () => {
     setLoading(true);
@@ -57,6 +59,21 @@ export default function ParkingDealers() {
       load();
     } else {
       setError(res.error.message);
+    }
+  };
+
+  const handleUpdateCommission = async (dealerId: string) => {
+    const val = parseFloat(editingCommissionValue);
+    if (isNaN(val) || val < 0 || val > 100) {
+      alert("Please enter a valid percentage between 0 and 100");
+      return;
+    }
+    const res = await adminApi.updateDealerCommission(dealerId, val);
+    if (res.success) {
+      setEditingCommissionId(null);
+      load();
+    } else {
+      alert(res.error.message);
     }
   };
 
@@ -139,6 +156,7 @@ export default function ParkingDealers() {
                   <th className="px-5 py-3">Dealer</th>
                   <th className="px-5 py-3">Phone</th>
                   <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Commission %</th>
                   <th className="px-5 py-3">Listings</th>
                   <th className="px-5 py-3">Onboarded</th>
                 </tr>
@@ -152,6 +170,28 @@ export default function ParkingDealers() {
                       <span className={cn('rounded-lg border px-2 py-0.5 text-[10px] font-black uppercase tracking-widest', STATUS_STYLE[d.status])}>
                         {d.status.replace('_', ' ')}
                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-sm font-medium">
+                      {editingCommissionId === d.id ? (
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="number"
+                            className="w-16 h-7 bg-white/5 border border-white/10 rounded px-2 text-xs text-white"
+                            value={editingCommissionValue}
+                            onChange={(e) => setEditingCommissionValue(e.target.value)}
+                          />
+                          <button onClick={() => handleUpdateCommission(d.id)} className="text-emerald-400 text-xs font-bold uppercase hover:text-emerald-300">Save</button>
+                          <button onClick={() => setEditingCommissionId(null)} className="text-white/40 text-xs font-bold uppercase hover:text-white/70">Cancel</button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 cursor-pointer group" onClick={() => {
+                          setEditingCommissionId(d.id);
+                          setEditingCommissionValue(d.commissionRate?.toString() || '10');
+                        }}>
+                          <span>{d.commissionRate ?? 10}%</span>
+                          <span className="text-[10px] uppercase text-white/30 group-hover:text-white/60 tracking-wider">Edit</span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-sm text-white/70">
                       <span className="flex items-center gap-1.5">

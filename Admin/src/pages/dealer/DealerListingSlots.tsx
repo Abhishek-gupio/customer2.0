@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarPlus, CalendarX } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CalendarX, Radio } from 'lucide-react';
 import { format } from 'date-fns';
 import { dealerApi, type DealerSlotWindow } from '../../api/dealerClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { cn } from '../../lib/cn';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -60,18 +61,26 @@ export default function DealerListingSlots() {
         Back to listings
       </button>
 
-      <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Availability</h1>
-        <p className="text-sm text-white/60">Set the hours and capacity customers can book</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight">Availability</h1>
+          <p className="text-sm text-white/60">Set the hours and capacity customers can book</p>
+        </div>
+        {id && (
+          <Button onClick={() => navigate(`/dealer/listings/${id}/live`)}>
+            <Radio className="h-4 w-4 mr-1" />
+            Live status
+          </Button>
+        )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Add availability</CardTitle>
-          <CardDescription>Applies the same hours and capacity to every day in the range</CardDescription>
+      <Card className="bg-[#18181b]/80 border-white/[0.04] backdrop-blur-xl shadow-lg shadow-black/30">
+        <CardHeader className="border-b border-white/[0.04] bg-white/[0.01]">
+          <CardTitle className="text-lg font-bold">Add availability</CardTitle>
+          <CardDescription className="text-white/40">Applies the same hours and capacity to every day in the range</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleCreate} className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+        <CardContent className="pt-6">
+          <form onSubmit={handleCreate} className="grid grid-cols-2 md:grid-cols-5 gap-6 items-end">
             <Field label="From">
               <input type="date" className={inputClass} value={form.fromDate} onChange={(e) => setForm({ ...form, fromDate: e.target.value })} />
             </Field>
@@ -87,10 +96,10 @@ export default function DealerListingSlots() {
             <Field label="Capacity">
               <input type="number" min={1} className={inputClass} value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
             </Field>
-            {error && <p className="col-span-full text-sm text-red-400">{error}</p>}
-            <div className="col-span-full">
-              <Button type="submit" disabled={submitting}>
-                <CalendarPlus className="h-4 w-4 mr-1" />
+            {error && <p className="col-span-full text-sm font-semibold text-red-400">{error}</p>}
+            <div className="col-span-full pt-2">
+              <Button type="submit" disabled={submitting} className="h-12 px-8 font-bold text-sm w-full md:w-auto">
+                <CalendarPlus className="h-4 w-4 mr-2" />
                 {submitting ? 'Saving…' : 'Save availability'}
               </Button>
             </div>
@@ -103,30 +112,45 @@ export default function DealerListingSlots() {
       ) : windows.length === 0 ? (
         <EmptyState icon={<CalendarX className="h-6 w-6" />} title="No availability set yet" description="Add a date range above so customers can book this lot." />
       ) : (
-        <Card>
-          <CardContent className="p-0">
-            <table className="w-full text-left border-collapse">
+        <Card className="bg-[#18181b]/80 border-white/[0.04] backdrop-blur-xl shadow-lg shadow-black/30 overflow-hidden">
+          <CardContent className="p-0 overflow-x-auto">
+            {error && <p className="px-6 pt-5 text-sm font-semibold text-red-400">{error}</p>}
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/60">
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-5 py-3">Hours</th>
-                  <th className="px-5 py-3">Capacity</th>
-                  <th className="px-5 py-3">Booked</th>
+                <tr className="border-b border-white/[0.04] text-xs font-bold uppercase tracking-widest text-white/30 bg-white/[0.01]">
+                  <th className="px-6 py-4 rounded-tl-xl">Date</th>
+                  <th className="px-6 py-4">Hours</th>
+                  <th className="px-6 py-4">Capacity</th>
+                  <th className="px-6 py-4">Booked (app)</th>
+                  <th className="px-6 py-4">Walk-ins</th>
+                  <th className="px-6 py-4 rounded-tr-xl">Available</th>
                 </tr>
               </thead>
               <tbody>
-                {windows.map((w) => (
-                  <tr key={w.id} className="border-b border-white/[0.05]">
-                    <td className="px-5 py-3 text-sm">{format(new Date(w.date), 'EEE, MMM d')}</td>
-                    <td className="px-5 py-3 text-sm text-white/70">{w.startHour}:00 – {w.endHour}:00</td>
-                    <td className="px-5 py-3 text-sm text-white/70">{w.capacity}</td>
-                    <td className="px-5 py-3 text-sm">
-                      <span className={w.booked >= w.capacity ? 'text-red-400 font-semibold' : 'text-emerald-400'}>
-                        {w.booked} / {w.capacity}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {windows.map((w) => {
+                  const occupied = w.booked + w.manualOccupiedCars + w.manualOccupiedBikes;
+                  const available = Math.max(w.capacity - occupied, 0);
+                  return (
+                    <tr key={w.id} className="border-b border-white/[0.04] transition-colors hover:bg-white/[0.02]">
+                      <td className="px-6 py-4 text-sm font-bold text-white">{format(new Date(w.date), 'EEE, MMM d')}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-white/70">{w.startHour}:00 – {w.endHour}:00</td>
+                      <td className="px-6 py-4 text-sm font-medium text-white/70">{w.capacity}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-white/70">{w.booked}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-white/70">{w.manualOccupiedCars + w.manualOccupiedBikes}</td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className={cn(
+                          'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-widest uppercase',
+                          available === 0 
+                            ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
+                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        )}>
+                          <span className={cn('h-1.5 w-1.5 rounded-full', available === 0 ? 'bg-red-500' : 'bg-emerald-500')}></span>
+                          {available}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </CardContent>
@@ -147,3 +171,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+

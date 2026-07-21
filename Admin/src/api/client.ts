@@ -1,3 +1,5 @@
+import type { ListingLiveStatus, LiveListingSummary, WalkInHistoryEntry } from './dealerClient';
+
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 
 function getToken(): string | null {
@@ -212,9 +214,19 @@ export const adminApi = {
       method: 'PATCH',
     }),
 
-  createParkingDealer: (data: { ownerName: string; phoneNumber: string; email?: string; password: string }) =>
+  createParkingDealer: (data: any) =>
     api<ParkingDealerListItem>('/v1/parking/admin/dealers', { method: 'POST', body: JSON.stringify(data) }),
   listParkingDealers: () => api<ParkingDealerListItem[]>('/v1/parking/admin/dealers'),
+  updateDealerCommission: (dealerId: string, commissionRate: number) =>
+    api<ParkingDealerListItem>(`/v1/parking/admin/dealers/${dealerId}/commission`, {
+      method: 'PATCH',
+      body: JSON.stringify({ commissionRate }),
+    }),
+  listParkingLiveListings: () => api<LiveListingSummary[]>('/v1/parking/admin/live-listings'),
+  getParkingListingLiveStatus: (listingId: string) =>
+    api<ListingLiveStatus>(`/v1/parking/admin/listings/${listingId}/live`),
+  getParkingWalkInHistory: (listingId: string) =>
+    api<WalkInHistoryEntry[]>(`/v1/parking/admin/listings/${listingId}/walkins/history`),
 
   createWashPartner: (data: { name: string; phoneNumber: string; password: string }) =>
     api<WashPartnerListItem>('/v1/carwash/admin/partners', { method: 'POST', body: JSON.stringify(data) }),
@@ -549,6 +561,7 @@ export interface ParkingDealerListItem {
   phoneNumber: string;
   email: string | null;
   status: 'PENDING_VERIFICATION' | 'VERIFIED' | 'SUSPENDED';
+  commissionRate: number;
   createdAt: string;
   _count?: { listings: number };
 }
