@@ -48,7 +48,12 @@ export const qrService = {
             model: true,
             color: true,
             imageUrl: true,
-            customerId: true,
+            customer: {
+              select: {
+                fullName: true,
+                phoneNumber: true,
+              },
+            },
           },
         },
       },
@@ -61,6 +66,8 @@ export const qrService = {
       model: qrToken.vehicle.model,
       color: qrToken.vehicle.color,
       imageUrl: qrToken.vehicle.imageUrl,
+      ownerName: qrToken.vehicle.customer?.fullName || null,
+      phoneNumber: qrToken.vehicle.customer?.phoneNumber || null,
     };
   },
 };

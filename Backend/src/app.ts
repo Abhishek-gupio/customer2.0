@@ -31,7 +31,18 @@ function rateLimitKey(req: Request): string {
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "script-src": ["'self'", "'unsafe-inline'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:", "https:"], // To allow loading external images (like vehicle photos)
+      },
+    },
+  })
+);
 
 const corsOptions: cors.CorsOptions = {
   origin:

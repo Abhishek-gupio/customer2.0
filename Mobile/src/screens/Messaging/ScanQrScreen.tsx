@@ -84,8 +84,9 @@ export default function ScanQrScreen() {
               <IconMC name="car" size={wp(10)} color="#FFBF00" />
             </View>
             <Text style={styles.resultReg}>{resolved.registrationNumber}</Text>
-            {resolved.make ? <Text style={styles.resultMakeModel}>{resolved.make} {resolved.model}</Text> : null}
+            {resolved.make ? <Text style={styles.resultMakeModel}>{resolved.make} {resolved.model} {resolved.color ? `· ${resolved.color}` : ''}</Text> : null}
             {resolved.ownerName ? <Text style={styles.resultOwnerName}>Owner: {resolved.ownerName}</Text> : null}
+            {resolved.phoneNumber ? <Text style={styles.resultPhone}>{resolved.phoneNumber}</Text> : null}
           </View>
           <TouchableOpacity style={styles.messageBtn} onPress={handleMessageOwner} disabled={starting} activeOpacity={0.85}>
             <IconMC name="message-text" size={wp(4.5)} color="#111" />
@@ -102,10 +103,7 @@ export default function ScanQrScreen() {
         <View style={styles.cameraWrap}>
           <Camera
             style={StyleSheet.absoluteFill}
-            scanBarcode
-            showFrame
-            laserColor="#FFBF00"
-            frameColor="#FFBF00"
+            scanBarcode={true}
             onReadCode={handleReadCode}
           />
           {resolving && (
@@ -170,7 +168,8 @@ const styles = StyleSheet.create({
   },
   resultReg: { color: '#fff', fontFamily: 'Outfit-Black', fontSize: wp(5.5) },
   resultMakeModel: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.8), marginTop: hp(0.5) },
-  resultOwnerName: { color: '#bbb', fontFamily: 'Outfit-Medium', fontSize: wp(4), marginTop: hp(1) },
+  resultOwnerName: { color: '#bbb', fontFamily: 'Outfit-Medium', fontSize: wp(4), marginTop: hp(1.5) },
+  resultPhone: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.5), marginTop: hp(0.5) },
   messageBtn: {
     flexDirection: 'row',
     alignItems: 'center',
