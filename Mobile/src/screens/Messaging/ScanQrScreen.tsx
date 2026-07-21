@@ -42,9 +42,11 @@ export default function ScanQrScreen() {
       const vehicle = await qrService.resolveToken(token);
       setResolved(vehicle);
     } catch (e: any) {
-      Alert.alert('Not a valid Gupio QR code', e?.message || 'Try scanning again.', [
-        { text: 'OK', onPress: () => { scannedRef.current = false; } },
-      ]);
+      Alert.alert(
+        'Not a valid Gupio QR code',
+        `Scanned: ${raw}\nExtracted Token: ${token}\nError: ${e?.message || 'Try scanning again.'}`,
+        [{ text: 'OK', onPress: () => { scannedRef.current = false; } }]
+      );
     } finally {
       setResolving(false);
     }
