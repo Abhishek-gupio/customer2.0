@@ -3,7 +3,13 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { AppError } from "../../utils/AppError";
 import { parkingService } from "./parking.service";
-import { employeeLoginSchema, checkInWalkInSchema, checkOutWalkInSchema } from "./parking.validators";
+import {
+  employeeLoginSchema,
+  checkInWalkInSchema,
+  checkOutWalkInSchema,
+  bookingsListSchema,
+  paginationSchema,
+} from "./parking.validators";
 
 function parseBody<T>(
   req: Request,
@@ -16,6 +22,24 @@ function parseBody<T>(
   },
 ): T {
   const result = schema.safeParse(req.body);
+  if (!result.success && result.error) {
+    const first = result.error.issues[0]?.message ?? "Validation failed";
+    throw AppError.badRequest(first);
+  }
+  return result.data!;
+}
+
+function parseQuery<T>(
+  req: Request,
+  schema: {
+    safeParse: (v: unknown) => {
+      success: boolean;
+      data?: T;
+      error?: { issues: { message: string }[] };
+    };
+  },
+): T {
+  const result = schema.safeParse(req.query);
   if (!result.success && result.error) {
     const first = result.error.issues[0]?.message ?? "Validation failed";
     throw AppError.badRequest(first);
@@ -73,7 +97,8 @@ export const employeeController = {
 
   getListingWalkInHistory: asyncHandler(async (req: Request, res: Response) => {
     if (!req.parkingEmployee?.id) throw AppError.unauthorized();
-    const history = await parkingService.employeeGetListingWalkInHistory(req.parkingEmployee.id, req.params.id as string);
+    const query = parseQuery(req, paginationSchema);
+    const history = await parkingService.employeeGetListingWalkInHistory(req.parkingEmployee.id, req.params.id as string, query);
     success(res, history);
   }),
 
@@ -85,13 +110,32 @@ export const employeeController = {
 
   listBookings: asyncHandler(async (req: Request, res: Response) => {
     if (!req.parkingEmployee?.id) throw AppError.unauthorized();
-    const bookings = await parkingService.employeeListBookings(req.parkingEmployee.id);
+    const query = parseQuery(req, bookingsListSchema);
+    const bookings = await parkingService.employeeListBookings(req.parkingEmployee.id, query);
     success(res, bookings);
   }),
 
   checkoutBooking: asyncHandler(async (req: Request, res: Response) => {
     if (!req.parkingEmployee?.id) throw AppError.unauthorized();
     const booking = await parkingService.employeeCheckoutBooking(req.parkingEmployee.id, req.params.id as string);
+    success(res, booking);
+  }),
+
+  markBookingNoShow: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.parkingEmployee?.id) throw AppError.unauthorized();
+    const booking = await parkingService.employeeMarkBookingNoShow(req.parkingEmployee.id, req.params.id as string);
+    success(res, booking);
+  }),
+
+  markBookingCheckedIn: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.parkingEmployee?.id) throw AppError.unauthorized();
+    const booking = await parkingService.employeeMarkBookingCheckedIn(req.parkingEmployee.id, req.params.id as string);
+    success(res, booking);
+  }),
+
+  undoBookingNoShow: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.parkingEmployee?.id) throw AppError.unauthorized();
+    const booking = await parkingService.employeeUndoBookingNoShow(req.parkingEmployee.id, req.params.id as string);
     success(res, booking);
   }),
 };

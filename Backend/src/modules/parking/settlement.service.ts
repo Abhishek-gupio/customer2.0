@@ -37,14 +37,40 @@ export const settlementService = {
   async generateDealerSettlement(dealer: { id: string; commissionRate: number }, date: Date) {
     // We wrap this in a transaction so that we don't double settle if things fail midway
     return await dbInstances.$transaction(async (tx) => {
-      // Find unsettled completed bookings
-      const bookings = await tx.parkingBooking.findMany({
+      // Base fare settles as soon as the vehicle has actually left
+      // (actualCheckOutTime set) — that money was already collected when the
+      // booking's original payment cleared (that's what got it to CONFIRMED
+      // in the first place). It must not wait on a possible overstay charge,
+      // which the customer might take days to pay, or never pay at all —
+      // that used to leave the whole booking (base fare included) unsettled
+      // forever whenever `status` stayed CONFIRMED instead of COMPLETED.
+      const baseBookings = await tx.parkingBooking.findMany({
+        where: {
+          listing: { dealerId: dealer.id },
+          actualCheckOutTime: { not: null },
+          // A checked-out booking should only ever be CONFIRMED or COMPLETED,
+          // but this must be explicit rather than relying on that holding
+          // true elsewhere — paying a dealer for a booking that ends up
+          // CANCELLED/refunded would be a real money leak, not just a
+          // display glitch.
+          status: { not: "CANCELLED" },
+          isSettled: false,
+        },
+        select: { id: true, amountPaise: true },
+      });
+
+      // Overstay charge is tracked independently via extraSettled — it only
+      // settles once it's actually been collected (status reaches COMPLETED
+      // when the extra payment succeeds), which may land in a later day's
+      // settlement run than the one that already settled the base fare.
+      const extraBookings = await tx.parkingBooking.findMany({
         where: {
           listing: { dealerId: dealer.id },
           status: "COMPLETED",
-          isSettled: false,
+          extraAmountPaise: { not: null },
+          extraSettled: false,
         },
-        select: { id: true, amountPaise: true, extraAmountPaise: true },
+        select: { id: true, extraAmountPaise: true },
       });
 
       // Find unsettled completed walkins (exitedAt not null)
@@ -57,13 +83,16 @@ export const settlementService = {
         select: { id: true, amountPaise: true },
       });
 
-      if (bookings.length === 0 && walkIns.length === 0) {
+      if (baseBookings.length === 0 && extraBookings.length === 0 && walkIns.length === 0) {
         return null; // Nothing to settle
       }
 
       let totalCollected = 0;
-      bookings.forEach((b) => {
-        totalCollected += b.amountPaise + (b.extraAmountPaise || 0);
+      baseBookings.forEach((b) => {
+        totalCollected += b.amountPaise;
+      });
+      extraBookings.forEach((b) => {
+        totalCollected += b.extraAmountPaise || 0;
       });
       walkIns.forEach((w) => {
         totalCollected += w.amountPaise;
@@ -83,11 +112,24 @@ export const settlementService = {
         },
       });
 
-      // Mark bookings and walk-ins as settled
-      if (bookings.length > 0) {
+      if (baseBookings.length > 0) {
         await tx.parkingBooking.updateMany({
-          where: { id: { in: bookings.map((b) => b.id) } },
+          where: { id: { in: baseBookings.map((b) => b.id) } },
           data: { isSettled: true, settlementId: settlement.id },
+        });
+      }
+
+      // Deliberately doesn't touch settlementId here: if a booking's base
+      // fare was already settled under an earlier settlement record,
+      // settlementId keeps pointing at that one — the `bookings` relation on
+      // a ParkingSettlement therefore means "settlements that included this
+      // booking's base fare," not a complete ledger of every settlement that
+      // ever paid out something for it. The overstay contribution is still
+      // correctly reflected in this settlement's own totalCollected/payout.
+      if (extraBookings.length > 0) {
+        await tx.parkingBooking.updateMany({
+          where: { id: { in: extraBookings.map((b) => b.id) } },
+          data: { extraSettled: true },
         });
       }
 
@@ -100,5 +142,21 @@ export const settlementService = {
 
       return settlement;
     });
-  }
+  },
+
+  async listDealerSettlements(dealerId: string, pageInput?: { page?: number; limit?: number }) {
+    const page = pageInput?.page ?? 1;
+    const limit = pageInput?.limit ?? 20;
+    const where = { dealerId };
+    const [data, total] = await Promise.all([
+      dbInstances.parkingSettlement.findMany({
+        where,
+        orderBy: { date: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      dbInstances.parkingSettlement.count({ where }),
+    ]);
+    return { data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  },
 };

@@ -3,7 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { AppError } from "../../utils/AppError";
 import { parkingService, parkingAdminLiveService } from "./parking.service";
-import { adminCreateDealerSchema } from "./parking.validators";
+import { adminCreateDealerSchema, paginationSchema } from "./parking.validators";
 
 function parseBody<T>(
   req: Request,
@@ -16,6 +16,24 @@ function parseBody<T>(
   },
 ): T {
   const result = schema.safeParse(req.body);
+  if (!result.success && result.error) {
+    const first = result.error.issues[0]?.message ?? "Validation failed";
+    throw AppError.badRequest(first);
+  }
+  return result.data!;
+}
+
+function parseQuery<T>(
+  req: Request,
+  schema: {
+    safeParse: (v: unknown) => {
+      success: boolean;
+      data?: T;
+      error?: { issues: { message: string }[] };
+    };
+  },
+): T {
+  const result = schema.safeParse(req.query);
   if (!result.success && result.error) {
     const first = result.error.issues[0]?.message ?? "Validation failed";
     throw AppError.badRequest(first);
@@ -59,7 +77,8 @@ export const adminDealerController = {
   }),
 
   getListingWalkInHistory: asyncHandler(async (req: Request, res: Response) => {
-    const history = await parkingAdminLiveService.getListingWalkInHistory(req.params.id as string);
+    const query = parseQuery(req, paginationSchema);
+    const history = await parkingAdminLiveService.getListingWalkInHistory(req.params.id as string, query);
     success(res, history);
   }),
 };

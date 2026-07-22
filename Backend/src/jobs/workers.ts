@@ -126,6 +126,9 @@ export const initWorkers = () => {
       } else if (job.name === "release-abandoned-parking-bookings") {
         const { parkingService } = await import("../modules/parking/parking.service");
         await parkingService.releaseAbandonedBookings();
+      } else if (job.name === "auto-noshow-parking-bookings") {
+        const { parkingService } = await import("../modules/parking/parking.service");
+        await parkingService.autoNoShowBookings();
       } else if (job.name === "auto-close-idle-conversations") {
         const { messagingService } = await import("../modules/messaging/messaging.service");
         await messagingService.autoCloseIdleConversations();
@@ -135,6 +138,9 @@ export const initWorkers = () => {
       } else if (job.name === "carwash-daily-reminder") {
         const { reminderService } = await import("../modules/carwash/reminder.service");
         await reminderService.sendDailyWashReminders();
+      } else if (job.name === "generate-daily-parking-settlements") {
+        const { settlementService } = await import("../modules/parking/settlement.service");
+        await settlementService.generateDailySettlements();
       }
     },
     defaultWorkerOptions

@@ -3,6 +3,7 @@ import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { AppError } from "../../utils/AppError";
 import { parkingService } from "./parking.service";
+import { settlementService } from "./settlement.service";
 import {
   dealerLoginSchema,
   createListingSchema,
@@ -12,6 +13,8 @@ import {
   checkInWalkInSchema,
   checkOutWalkInSchema,
   setEmployeeListingsSchema,
+  bookingsListSchema,
+  paginationSchema,
 } from "./parking.validators";
 
 function parseBody<T>(
@@ -25,6 +28,24 @@ function parseBody<T>(
   },
 ): T {
   const result = schema.safeParse(req.body);
+  if (!result.success && result.error) {
+    const first = result.error.issues[0]?.message ?? "Validation failed";
+    throw AppError.badRequest(first);
+  }
+  return result.data!;
+}
+
+function parseQuery<T>(
+  req: Request,
+  schema: {
+    safeParse: (v: unknown) => {
+      success: boolean;
+      data?: T;
+      error?: { issues: { message: string }[] };
+    };
+  },
+): T {
+  const result = schema.safeParse(req.query);
   if (!result.success && result.error) {
     const first = result.error.issues[0]?.message ?? "Validation failed";
     throw AppError.badRequest(first);
@@ -81,7 +102,8 @@ export const dealerController = {
 
   listBookings: asyncHandler(async (req: Request, res: Response) => {
     if (!req.dealer?.id) throw AppError.unauthorized();
-    const bookings = await parkingService.listDealerBookings(req.dealer.id);
+    const query = parseQuery(req, bookingsListSchema);
+    const bookings = await parkingService.listDealerBookings(req.dealer.id, query);
     success(res, bookings);
   }),
 
@@ -112,7 +134,8 @@ export const dealerController = {
 
   getListingWalkInHistory: asyncHandler(async (req: Request, res: Response) => {
     if (!req.dealer?.id) throw AppError.unauthorized();
-    const history = await parkingService.dealerGetListingWalkInHistory(req.dealer.id, req.params.id as string);
+    const query = parseQuery(req, paginationSchema);
+    const history = await parkingService.dealerGetListingWalkInHistory(req.dealer.id, req.params.id as string, query);
     success(res, history);
   }),
 
@@ -153,5 +176,30 @@ export const dealerController = {
     if (!req.dealer?.id) throw AppError.unauthorized();
     const booking = await parkingService.checkoutBooking(req.dealer.id, req.params.id as string);
     success(res, booking);
+  }),
+
+  markBookingNoShow: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const booking = await parkingService.markBookingNoShow(req.dealer.id, req.params.id as string);
+    success(res, booking);
+  }),
+
+  markBookingCheckedIn: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const booking = await parkingService.markBookingCheckedIn(req.dealer.id, req.params.id as string);
+    success(res, booking);
+  }),
+
+  undoBookingNoShow: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const booking = await parkingService.undoBookingNoShow(req.dealer.id, req.params.id as string);
+    success(res, booking);
+  }),
+
+  listSettlements: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const query = parseQuery(req, paginationSchema);
+    const settlements = await settlementService.listDealerSettlements(req.dealer.id, query);
+    success(res, settlements);
   }),
 };

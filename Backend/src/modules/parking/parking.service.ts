@@ -3,6 +3,7 @@ import { dbInstances, type ParkingVehicleType, type ParkingPaymentMethod } from 
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { notificationService } from "../../services/notification.service";
+import { getSMSService } from "../../services/sms.service";
 import { storageService } from "../../services/storage.service";
 import { paymentEvents } from "../../services/payment-events";
 import { paymentsService } from "../payments/payments.service";
@@ -17,6 +18,7 @@ import type {
   SearchListingsInput,
   CreateBookingInput,
   JoinWaitlistInput,
+  LeaveWaitlistInput,
   DealerLoginInput,
   CreateListingInput,
   UpdateListingInput,
@@ -25,6 +27,8 @@ import type {
   CreateEmployeeInput,
   EmployeeLoginInput,
   CheckInWalkInInput,
+  PaginationInput,
+  BookingsListInput,
 } from "./parking.validators";
 
 /**
@@ -48,6 +52,12 @@ const SALT_ROUNDS = 10;
 const CANCELLATION_WINDOW_MS = 60 * 60 * 1000;
 /** A PENDING_PAYMENT booking older than this with no payment activity releases its hold. */
 const ABANDONED_HOLD_MS = 10 * 60 * 1000;
+/**
+ * A CONFIRMED booking whose customer never showed can be marked no-show —
+ * manually by the dealer/employee, or automatically by the sweep below —
+ * this long after `startTime`. No refund: the slot was held for them.
+ */
+const NO_SHOW_GRACE_MS = 15 * 60 * 1000;
 
 /** Haversine distance in km — same approach as services/places.service.ts. */
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -62,6 +72,35 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): num
 
 function hoursBetween(start: Date, end: Date): number {
   return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (60 * 60 * 1000)));
+}
+
+/**
+ * This product only serves customers in India — slot windows are created by
+ * dealers using plain IST wall-clock hours (e.g. "6 to 22" meaning 6am-10pm
+ * IST), with no timezone conversion on their end. A booking's `startTime`/
+ * `endTime` arrive as real UTC instants (via .toISOString() from the app),
+ * so reading `.getUTCHours()` directly gives the wrong hour whenever the
+ * server process isn't itself running in IST (commonly UTC in prod) — IST is
+ * UTC+5:30, so an 11am IST booking's raw UTC hour is 5, which then fails to
+ * match a dealer's "starts at 6" window even though 11am is well within it.
+ * Shifting by the fixed IST offset first makes `.getUTCHours()`/date getters
+ * read back the intended IST wall-clock values regardless of server TZ.
+ */
+const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+function toIstShifted(date: Date): Date {
+  return new Date(date.getTime() + IST_OFFSET_MS);
+}
+
+/**
+ * Waitlist entries must key off the same calendar-day boundary that
+ * notifyWaitlistForFreedCapacity queries against (`Date.UTC(y, m, d)`,
+ * exact midnight) — the client sends a real Date with whatever time-of-day
+ * it happened to be constructed at (e.g. `new Date()`), so without this the
+ * stored `desiredDate` almost never matches that exact-midnight lookup and
+ * a waitlisted customer would silently never get notified.
+ */
+function toDayStartUTC(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
 async function findCoveringSlotWindow(listingId: string, date: Date, startHour: number, endHour: number) {
@@ -173,13 +212,40 @@ async function notifyWaitlistForFreedCapacity(listingId: string, date: Date): Pr
   }
 }
 
-async function expireOneAbandonedBooking(booking: { id: string; slotWindowId: string; listingId: string; startTime: Date }): Promise<void> {
-  await dbInstances.parkingBooking.update({
-    where: { id: booking.id },
+async function expireOneAbandonedBooking(booking: { id: string; slotWindowId: string; listingId: string; startTime: Date; listing: { dealerId: string } }): Promise<void> {
+  // updateMany + a status guard makes this the atomic compare-and-swap that
+  // decides who "wins" — two concurrent callers racing the same stale-read
+  // booking (e.g. the inline lazy-expiry check and the BullMQ sweep firing
+  // moments apart) can no longer both transition it and both release
+  // capacity, which would free more capacity than the slot actually has.
+  const { count } = await dbInstances.parkingBooking.updateMany({
+    where: { id: booking.id, status: "PENDING_PAYMENT" },
     data: { status: "CANCELLED" },
   });
+  if (count === 0) return;
   await releaseCapacity(booking.slotWindowId);
   await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+  emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
+}
+
+/**
+ * Frees the capacity a no-show booking was holding, so someone else can book
+ * or walk into that same slot instead of it sitting reserved for nobody for
+ * the rest of the day. No refund — see markBookingNoShow.
+ */
+async function markOneBookingNoShow(booking: { id: string; slotWindowId: string; listingId: string; startTime: Date; listing: { dealerId: string } }): Promise<void> {
+  // Same compare-and-swap shape as expireOneAbandonedBooking above — only
+  // the caller that actually flips CONFIRMED → NO_SHOW gets to release
+  // capacity, so a concurrent manual no-show + the auto-sweep racing the
+  // same booking can't double-decrement.
+  const { count } = await dbInstances.parkingBooking.updateMany({
+    where: { id: booking.id, status: "CONFIRMED" },
+    data: { status: "NO_SHOW" },
+  });
+  if (count === 0) return;
+  await releaseCapacity(booking.slotWindowId);
+  await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+  emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
 }
 
 /**
@@ -191,10 +257,51 @@ async function expireOneAbandonedBooking(booking: { id: string; slotWindowId: st
  * hold gets cleared the next time anyone touches that slot, even if the
  * background job never runs at all.
  */
+/**
+ * Shared by listDealerBookings/employeeListBookings: turns the optional
+ * `q`/`from`/`to` filters into extra Prisma AND-clauses layered on top of
+ * each caller's own scope filter. `vehicleNumber` isn't a Prisma relation
+ * (see ParkingBooking's vehicleId comment), so a text search on it has to
+ * resolve matching CustomerVehicle ids first, then filter bookings by
+ * `vehicleId IN (...)` — same reason getListingLiveStatus/listDealerBookings
+ * already join vehicle numbers back in manually after the query.
+ */
+async function buildBookingsSearchClauses(listInput?: BookingsListInput): Promise<Record<string, unknown>[]> {
+  const clauses: Record<string, unknown>[] = [];
+
+  if (listInput?.from || listInput?.to) {
+    clauses.push({
+      startTime: {
+        ...(listInput.from ? { gte: listInput.from } : {}),
+        ...(listInput.to ? { lte: listInput.to } : {}),
+      },
+    });
+  }
+
+  if (listInput?.q) {
+    const q = listInput.q;
+    const matchingVehicles = await dbInstances.customerVehicle.findMany({
+      where: { registrationNumber: { contains: q, mode: "insensitive" } },
+      select: { id: true },
+    });
+    clauses.push({
+      OR: [
+        { customer: { fullName: { contains: q, mode: "insensitive" } } },
+        { customer: { phoneNumber: { contains: q, mode: "insensitive" } } },
+        { listing: { name: { contains: q, mode: "insensitive" } } },
+        ...(matchingVehicles.length ? [{ vehicleId: { in: matchingVehicles.map((v) => v.id) } }] : []),
+      ],
+    });
+  }
+
+  return clauses;
+}
+
 async function expireAbandonedBookingsForSlotWindow(slotWindowId: string): Promise<void> {
   const cutoff = new Date(Date.now() - ABANDONED_HOLD_MS);
   const abandoned = await dbInstances.parkingBooking.findMany({
     where: { slotWindowId, status: "PENDING_PAYMENT", createdAt: { lt: cutoff } },
+    include: { listing: { select: { dealerId: true } } },
   });
   for (const booking of abandoned) {
     try {
@@ -308,9 +415,49 @@ export const parkingService = {
       throw AppError.notFound("Listing not available");
     }
 
-    const startHour = input.startTime.getUTCHours();
-    const endHour = input.endTime.getUTCHours() || 24;
-    const slotWindow = await findCoveringSlotWindow(listing.id, input.startTime, startHour, endHour);
+    const vehicle = await dbInstances.customerVehicle.findFirst({
+      where: {
+        id: input.vehicleId,
+        isActive: true,
+        OR: [{ customerId }, { accessList: { some: { customerId } } }],
+      },
+    });
+    if (!vehicle) {
+      throw AppError.notFound("Select a valid vehicle from your garage");
+    }
+
+    if (input.endTime.getTime() <= input.startTime.getTime()) {
+      throw AppError.badRequest("End time must be after start time");
+    }
+    if (input.startTime.getTime() < Date.now()) {
+      throw AppError.badRequest("Cannot book a slot in the past");
+    }
+
+    // A different idempotencyKey (e.g. the customer backed out and re-entered
+    // the booking flow) shouldn't be able to reserve a second hold for the
+    // exact same customer + listing + time window — return the existing one
+    // instead of stacking a duplicate PENDING_PAYMENT/CONFIRMED booking.
+    const existingForSameSlot = await dbInstances.parkingBooking.findFirst({
+      where: {
+        customerId,
+        listingId: listing.id,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
+      },
+    });
+    if (existingForSameSlot) {
+      if (existingForSameSlot.status === "CONFIRMED") {
+        throw AppError.conflict("You've already booked this slot — check My Bookings to view it.");
+      }
+      return { booking: existingForSameSlot, payment: await paymentsService.getCheckoutInfo(existingForSameSlot.orderId) };
+    }
+
+    const istStartTime = toIstShifted(input.startTime);
+    const istEndTime = toIstShifted(input.endTime);
+    const startHour = istStartTime.getUTCHours();
+    const endHour = istEndTime.getUTCHours() || 24;
+    const slotWindow = await findCoveringSlotWindow(listing.id, istStartTime, startHour, endHour);
     if (!slotWindow) {
       throw AppError.notFound("No availability for this time window");
     }
@@ -354,6 +501,12 @@ export const parkingService = {
         if (winner) {
           return { booking: winner, payment: await paymentsService.getCheckoutInfo(winner.orderId) };
         }
+      } else {
+        // Any other failure — a pool timeout, a transient DB error, or simply
+        // no idempotencyKey supplied at all (it's optional) — must not leave
+        // the reservation above outstanding, or this slot silently loses one
+        // unit of real capacity every time it happens.
+        await releaseCapacity(slotWindow.id);
       }
       throw err;
     }
@@ -381,16 +534,31 @@ export const parkingService = {
     }
   },
 
-  async listMyBookings(customerId: string) {
-    return dbInstances.parkingBooking.findMany({
-      where: { customerId },
-      include: { listing: { select: { name: true, addressLine: true, city: true } } },
-      orderBy: { startTime: "desc" },
-    });
+  async listMyBookings(customerId: string, pageInput?: PaginationInput) {
+    const page = pageInput?.page ?? 1;
+    const limit = pageInput?.limit ?? 20;
+    const where = { customerId };
+    const [bookings, total] = await Promise.all([
+      dbInstances.parkingBooking.findMany({
+        where,
+        include: { listing: { select: { name: true, addressLine: true, city: true } } },
+        // Ties on startTime happen whenever a first payment attempt is
+        // abandoned and the customer retries for the same slot — createdAt
+        // breaks the tie so the just-paid retry shows above the stale attempt.
+        orderBy: [{ startTime: "desc" }, { createdAt: "desc" }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      dbInstances.parkingBooking.count({ where }),
+    ]);
+    return { data: bookings, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   },
 
   async cancelBooking(customerId: string, bookingId: string) {
-    const booking = await dbInstances.parkingBooking.findUnique({ where: { id: bookingId } });
+    const booking = await dbInstances.parkingBooking.findUnique({
+      where: { id: bookingId },
+      include: { listing: { select: { dealerId: true } } },
+    });
     if (!booking || booking.customerId !== customerId) {
       throw AppError.notFound("Booking not found");
     }
@@ -409,6 +577,7 @@ export const parkingService = {
     });
     await releaseCapacity(booking.slotWindowId);
     await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+    emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
 
     if (wasConfirmed && booking.orderId) {
       await paymentsService.refund(booking.orderId, booking.amountPaise, "Customer cancelled booking");
@@ -430,16 +599,24 @@ export const parkingService = {
   },
 
   async joinWaitlist(customerId: string, input: JoinWaitlistInput) {
+    const desiredDate = toDayStartUTC(input.desiredDate);
     return dbInstances.parkingWaitlistEntry.upsert({
       where: {
         listingId_customerId_desiredDate: {
           listingId: input.listingId,
           customerId,
-          desiredDate: input.desiredDate,
+          desiredDate,
         },
       },
-      create: { listingId: input.listingId, customerId, desiredDate: input.desiredDate },
+      create: { listingId: input.listingId, customerId, desiredDate },
       update: {},
+    });
+  },
+
+  /** Idempotent — leaving a waitlist you were never on (or already left) is a no-op, not an error. */
+  async leaveWaitlist(customerId: string, input: LeaveWaitlistInput) {
+    await dbInstances.parkingWaitlistEntry.deleteMany({
+      where: { listingId: input.listingId, customerId, desiredDate: toDayStartUTC(input.desiredDate) },
     });
   },
 
@@ -453,6 +630,7 @@ export const parkingService = {
     const cutoff = new Date(Date.now() - ABANDONED_HOLD_MS);
     const abandoned = await dbInstances.parkingBooking.findMany({
       where: { status: "PENDING_PAYMENT", createdAt: { lt: cutoff } },
+      include: { listing: { select: { dealerId: true } } },
     });
     for (const booking of abandoned) {
       try {
@@ -463,6 +641,30 @@ export const parkingService = {
     }
     if (abandoned.length > 0) {
       logger.info({ count: abandoned.length }, "Released abandoned parking booking holds");
+    }
+  },
+
+  /**
+   * BullMQ maintenance job — see jobs/workers.ts. Safety net for customers who
+   * never show up: a dealer/employee can mark a booking no-show manually at
+   * the gate (markBookingNoShow), but if nobody does, this releases the held
+   * capacity on its own once the booking is well past its own end time.
+   */
+  async autoNoShowBookings() {
+    const cutoff = new Date(Date.now() - NO_SHOW_GRACE_MS);
+    const noShows = await dbInstances.parkingBooking.findMany({
+      where: { status: "CONFIRMED", actualCheckOutTime: null, checkedInAt: null, endTime: { lt: cutoff } },
+      include: { listing: { select: { dealerId: true } } },
+    });
+    for (const booking of noShows) {
+      try {
+        await markOneBookingNoShow(booking);
+      } catch (err) {
+        logger.error({ err, bookingId: booking.id }, "Failed to auto no-show parking booking");
+      }
+    }
+    if (noShows.length > 0) {
+      logger.info({ count: noShows.length }, "Auto no-showed parking bookings");
     }
   },
 
@@ -663,16 +865,36 @@ export const parkingService = {
     const hours = hoursBetween(walkIn.enteredAt, exitedAt);
     const amountPaise = hours * listing.hourlyRatePaise;
 
-    let paymentLinkData = undefined;
-    if (paymentMethod === "ONLINE") {
-      paymentLinkData = await paymentsService.createWalkInPaymentLink(walkInId, amountPaise);
-    }
-
-    await vacateCapacityManually(walkIn.slotWindowId, walkIn.vehicleType);
-    const updated = await dbInstances.parkingWalkIn.update({
-      where: { id: walkInId },
+    // Same atomic claim as checkoutBooking above: the WHERE re-checks
+    // exitedAt is still null, so a dealer and an employee tapping checkout
+    // on the same walk-in within milliseconds of each other can't both vacate
+    // capacity and both create a Razorpay payment link for the same exit.
+    const { count } = await dbInstances.parkingWalkIn.updateMany({
+      where: { id: walkInId, exitedAt: null },
       data: { exitedAt, amountPaise, paymentMethod },
     });
+    if (count === 0) {
+      throw AppError.badRequest("This vehicle has already checked out");
+    }
+
+    // The bay is free the instant the exit is claimed above — same reasoning
+    // as checkoutBooking's capacity release. This must not depend on the
+    // (optional, external) payment link call below: if Razorpay throws, the
+    // exit is already committed and exitedAt guards against retrying this
+    // function, so failing to vacate here would leave the bay stuck
+    // "occupied" with no way to free it.
+    await vacateCapacityManually(walkIn.slotWindowId, walkIn.vehicleType);
+
+    let paymentLinkData = undefined;
+    if (paymentMethod === "ONLINE") {
+      try {
+        paymentLinkData = await paymentsService.createWalkInPaymentLink(walkInId, amountPaise);
+      } catch (err) {
+        logger.error({ err, walkInId }, "Failed to create walk-in payment link after checkout");
+      }
+    }
+
+    const updated = await dbInstances.parkingWalkIn.findUniqueOrThrow({ where: { id: walkInId } });
     emitParkingLiveUpdate(dealerId, walkIn.listingId);
     return { ...updated, paymentLink: paymentLinkData };
   },
@@ -751,31 +973,41 @@ export const parkingService = {
   },
 
   /** Most recent checked-out walk-ins for a listing — the audit trail once a vehicle leaves the live list. */
-  async getListingWalkInHistory(listingId: string) {
-    const walkIns = await dbInstances.parkingWalkIn.findMany({
-      where: { listingId, exitedAt: { not: null } },
-      include: { employee: { select: { name: true } } },
-      orderBy: { exitedAt: "desc" },
-      take: 100,
-    });
-    return walkIns.map((w) => ({
-      id: w.id,
-      vehicleType: w.vehicleType,
-      vehicleNumber: w.vehicleNumber,
-      amountPaise: w.amountPaise,
-      paymentMethod: w.paymentMethod,
-      employeeName: w.employee?.name ?? null,
-      enteredAt: w.enteredAt,
-      exitedAt: w.exitedAt,
-    }));
+  async getListingWalkInHistory(listingId: string, pageInput?: PaginationInput) {
+    const page = pageInput?.page ?? 1;
+    const limit = pageInput?.limit ?? 20;
+    const where = { listingId, exitedAt: { not: null } };
+    const [walkIns, total] = await Promise.all([
+      dbInstances.parkingWalkIn.findMany({
+        where,
+        include: { employee: { select: { name: true } } },
+        orderBy: { exitedAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      dbInstances.parkingWalkIn.count({ where }),
+    ]);
+    return {
+      data: walkIns.map((w) => ({
+        id: w.id,
+        vehicleType: w.vehicleType,
+        vehicleNumber: w.vehicleNumber,
+        amountPaise: w.amountPaise,
+        paymentMethod: w.paymentMethod,
+        employeeName: w.employee?.name ?? null,
+        enteredAt: w.enteredAt,
+        exitedAt: w.exitedAt,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   },
 
-  async dealerGetListingWalkInHistory(dealerId: string, listingId: string) {
+  async dealerGetListingWalkInHistory(dealerId: string, listingId: string, pageInput?: PaginationInput) {
     const listing = await dbInstances.parkingListing.findUnique({ where: { id: listingId } });
     if (!listing || listing.dealerId !== dealerId) {
       throw AppError.notFound("Listing not found");
     }
-    return this.getListingWalkInHistory(listingId);
+    return this.getListingWalkInHistory(listingId, pageInput);
   },
 
   /** Every one of the dealer's listings, with just the live counts — click through for detail. */
@@ -794,15 +1026,33 @@ export const parkingService = {
     );
   },
 
-  async listDealerBookings(dealerId: string) {
-    const bookings = await dbInstances.parkingBooking.findMany({
-      where: { listing: { dealerId } },
-      include: {
-        listing: { select: { name: true } },
-        customer: { select: { fullName: true, phoneNumber: true } },
-      },
-      orderBy: { startTime: "desc" },
-    });
+  async listDealerBookings(dealerId: string, listInput?: BookingsListInput) {
+    const page = listInput?.page ?? 1;
+    const limit = listInput?.limit ?? 20;
+    const scope = listInput?.scope ?? "active";
+    const scopeWhere =
+      scope === "active"
+        ? { listing: { dealerId }, status: "CONFIRMED" as const, actualCheckOutTime: null }
+        : {
+            listing: { dealerId },
+            OR: [{ status: { not: "CONFIRMED" as const } }, { actualCheckOutTime: { not: null } }],
+          };
+    const searchClauses = await buildBookingsSearchClauses(listInput);
+    const where = searchClauses.length ? { AND: [scopeWhere, ...searchClauses] } : scopeWhere;
+
+    const [bookings, total] = await Promise.all([
+      dbInstances.parkingBooking.findMany({
+        where,
+        include: {
+          listing: { select: { name: true } },
+          customer: { select: { fullName: true, phoneNumber: true } },
+        },
+        orderBy: { startTime: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      dbInstances.parkingBooking.count({ where }),
+    ]);
 
     const vehicleIds = bookings.map((b) => b.vehicleId).filter((id): id is string => !!id);
     const vehicles = vehicleIds.length
@@ -813,12 +1063,15 @@ export const parkingService = {
       : [];
     const registrationById = new Map(vehicles.map((v) => [v.id, v.registrationNumber]));
 
-    return bookings.map((b) => ({
-      ...b,
-      vehicleNumber: b.vehicleId ? (registrationById.get(b.vehicleId) ?? null) : null,
-      customerName: b.customer.fullName,
-      customerPhone: b.customer.phoneNumber,
-    }));
+    return {
+      data: bookings.map((b) => ({
+        ...b,
+        vehicleNumber: b.vehicleId ? (registrationById.get(b.vehicleId) ?? null) : null,
+        customerName: b.customer.fullName,
+        customerPhone: b.customer.phoneNumber,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   },
 
   /**
@@ -844,12 +1097,37 @@ export const parkingService = {
     }
 
     const now = new Date();
+
+    // Atomically claim this checkout: the WHERE clause re-checks the exact
+    // same conditions just read above, so if two callers (e.g. a dealer and
+    // an employee tapping checkout within milliseconds of each other) both
+    // pass the guards above, only one of them actually flips a row here.
+    // Every side effect below (capacity release, overstay order, customer
+    // notification) only ever runs for whichever call actually won this
+    // compare-and-swap — the previous plain `update` let both callers reach
+    // every one of those side effects, including creating two separate
+    // Razorpay orders for the same overstay.
+    const { count } = await dbInstances.parkingBooking.updateMany({
+      where: { id: bookingId, status: "CONFIRMED", actualCheckOutTime: null },
+      data: { actualCheckOutTime: now },
+    });
+    if (count === 0) {
+      throw AppError.badRequest("Booking is already checked out");
+    }
+
     const overstayMs = now.getTime() - booking.endTime.getTime();
+
+    // The vehicle is physically leaving right now regardless of overstay
+    // payment status below — the bay is free the moment it drives out, not
+    // whenever the extra charge (if any) eventually clears.
+    await releaseCapacity(booking.slotWindowId);
+    await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+    emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
 
     if (overstayMs <= 0) {
       return dbInstances.parkingBooking.update({
         where: { id: booking.id },
-        data: { actualCheckOutTime: now, status: "COMPLETED" },
+        data: { status: "COMPLETED" },
       });
     }
 
@@ -864,7 +1142,6 @@ export const parkingService = {
     const updated = await dbInstances.parkingBooking.update({
       where: { id: booking.id },
       data: {
-        actualCheckOutTime: now,
         extraAmountPaise,
         extraOrderId: payment.orderId,
       },
@@ -878,6 +1155,111 @@ export const parkingService = {
       metadata: { bookingId: booking.id, extraOrderId: payment.orderId },
     });
 
+    return updated;
+  },
+
+  /**
+   * Dealer/employee marks a booked customer who never showed up — frees the
+   * held slot immediately instead of waiting for autoNoShowBookings' sweep.
+   * No refund: the slot was reserved for them for the whole booked window.
+   */
+  async markBookingNoShow(dealerId: string, bookingId: string) {
+    const booking = await dbInstances.parkingBooking.findUnique({
+      where: { id: bookingId },
+      include: { listing: true },
+    });
+    if (!booking || booking.listing.dealerId !== dealerId) {
+      throw AppError.notFound("Booking not found");
+    }
+    if (booking.status !== "CONFIRMED") {
+      throw AppError.badRequest(`Booking is ${booking.status.toLowerCase()}, not confirmed`);
+    }
+    if (booking.checkedInAt) {
+      throw AppError.badRequest("Customer already checked in — can't mark as no-show");
+    }
+    if (Date.now() - booking.startTime.getTime() < NO_SHOW_GRACE_MS) {
+      throw AppError.badRequest("Too early to mark this booking no-show");
+    }
+
+    await markOneBookingNoShow(booking);
+    return dbInstances.parkingBooking.findUnique({ where: { id: bookingId } });
+  },
+
+  /**
+   * Dealer/employee override for a customer who arrives late, after the
+   * gate already marked them NO_SHOW — no automatic partial-refund tiers,
+   * just a manual reinstatement decision left to whoever's on the ground.
+   * Re-claims capacity for the slot; if it's since filled up (another
+   * booking or walk-in took it), the reinstatement fails rather than
+   * silently overbooking the lot.
+   */
+  async undoBookingNoShow(dealerId: string, bookingId: string) {
+    const booking = await dbInstances.parkingBooking.findUnique({
+      where: { id: bookingId },
+      include: { listing: true },
+    });
+    if (!booking || booking.listing.dealerId !== dealerId) {
+      throw AppError.notFound("Booking not found");
+    }
+    if (booking.status !== "NO_SHOW") {
+      throw AppError.badRequest(`Booking is ${booking.status.toLowerCase()}, not no-show`);
+    }
+
+    const reclaimed = await reserveCapacity(booking.slotWindowId);
+    if (!reclaimed) {
+      throw AppError.conflict("This slot has since been taken — can't reinstate the booking");
+    }
+
+    // Same compare-and-swap shape as the rest of this file's status
+    // transitions — only the caller that actually wins this flip keeps the
+    // capacity unit it just reserved above.
+    const { count } = await dbInstances.parkingBooking.updateMany({
+      where: { id: bookingId, status: "NO_SHOW" },
+      data: { status: "CONFIRMED", checkedInAt: new Date() },
+    });
+    if (count === 0) {
+      await releaseCapacity(booking.slotWindowId);
+      throw AppError.badRequest(`Booking is ${booking.status.toLowerCase()}, not no-show`);
+    }
+
+    emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
+    await notificationService.notifyCustomer(booking.customerId, {
+      title: "Parking booking reinstated",
+      body: "Good news — your parking spot was reinstated after you checked in.",
+      type: "PARKING",
+      link: `/parking/bookings/${booking.id}`,
+      metadata: { bookingId: booking.id },
+    });
+    return dbInstances.parkingBooking.findUnique({ where: { id: bookingId } });
+  },
+
+  /**
+   * Dealer/employee marks that the booked customer's vehicle actually showed
+   * up at the gate — the counterpart to markBookingNoShow. Purely a presence
+   * signal: it doesn't change `status` (still CONFIRMED) or touch capacity,
+   * it just takes the booking out of no-show eligibility (both the manual
+   * button and the auto sweep check `checkedInAt` before acting).
+   */
+  async markBookingCheckedIn(dealerId: string, bookingId: string) {
+    const booking = await dbInstances.parkingBooking.findUnique({
+      where: { id: bookingId },
+      include: { listing: true },
+    });
+    if (!booking || booking.listing.dealerId !== dealerId) {
+      throw AppError.notFound("Booking not found");
+    }
+    if (booking.status !== "CONFIRMED") {
+      throw AppError.badRequest(`Booking is ${booking.status.toLowerCase()}, not confirmed`);
+    }
+    if (booking.checkedInAt) {
+      throw AppError.badRequest("Already marked as arrived");
+    }
+
+    const updated = await dbInstances.parkingBooking.update({
+      where: { id: bookingId },
+      data: { checkedInAt: new Date() },
+    });
+    emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
     return updated;
   },
 
@@ -1063,10 +1445,10 @@ export const parkingService = {
     );
   },
 
-  async employeeGetListingWalkInHistory(employeeId: string, listingId: string) {
+  async employeeGetListingWalkInHistory(employeeId: string, listingId: string, pageInput?: PaginationInput) {
     await this.assertEmployeeAssignedToListing(employeeId, listingId);
     const dealerId = await this.resolveActiveEmployeeDealerId(employeeId);
-    return this.dealerGetListingWalkInHistory(dealerId, listingId);
+    return this.dealerGetListingWalkInHistory(dealerId, listingId, pageInput);
   },
 
   async employeeCheckoutBooking(employeeId: string, bookingId: string) {
@@ -1077,17 +1459,61 @@ export const parkingService = {
     return this.checkoutBooking(dealerId, bookingId);
   },
 
-  async employeeListBookings(employeeId: string) {
+  async employeeMarkBookingNoShow(employeeId: string, bookingId: string) {
+    const dealerId = await this.resolveActiveEmployeeDealerId(employeeId);
+    const booking = await dbInstances.parkingBooking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw AppError.notFound("Booking not found");
+    await this.assertEmployeeAssignedToListing(employeeId, booking.listingId);
+    return this.markBookingNoShow(dealerId, bookingId);
+  },
+
+  async employeeMarkBookingCheckedIn(employeeId: string, bookingId: string) {
+    const dealerId = await this.resolveActiveEmployeeDealerId(employeeId);
+    const booking = await dbInstances.parkingBooking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw AppError.notFound("Booking not found");
+    await this.assertEmployeeAssignedToListing(employeeId, booking.listingId);
+    return this.markBookingCheckedIn(dealerId, bookingId);
+  },
+
+  async employeeUndoBookingNoShow(employeeId: string, bookingId: string) {
+    const dealerId = await this.resolveActiveEmployeeDealerId(employeeId);
+    const booking = await dbInstances.parkingBooking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw AppError.notFound("Booking not found");
+    await this.assertEmployeeAssignedToListing(employeeId, booking.listingId);
+    return this.undoBookingNoShow(dealerId, bookingId);
+  },
+
+  async employeeListBookings(employeeId: string, listInput?: BookingsListInput) {
+    const page = listInput?.page ?? 1;
+    const limit = listInput?.limit ?? 20;
+    const scope = listInput?.scope ?? "active";
     const listingIds = await this.resolveEmployeeListingIds(employeeId);
-    if (listingIds.length === 0) return [];
-    const bookings = await dbInstances.parkingBooking.findMany({
-      where: { listingId: { in: listingIds } },
-      include: {
-        listing: { select: { name: true } },
-        customer: { select: { fullName: true, phoneNumber: true } },
-      },
-      orderBy: { startTime: "desc" },
-    });
+    if (listingIds.length === 0) {
+      return { data: [], pagination: { page, limit, total: 0, totalPages: 0 } };
+    }
+    const scopeWhere =
+      scope === "active"
+        ? { listingId: { in: listingIds }, status: "CONFIRMED" as const, actualCheckOutTime: null }
+        : {
+            listingId: { in: listingIds },
+            OR: [{ status: { not: "CONFIRMED" as const } }, { actualCheckOutTime: { not: null } }],
+          };
+    const searchClauses = await buildBookingsSearchClauses(listInput);
+    const where = searchClauses.length ? { AND: [scopeWhere, ...searchClauses] } : scopeWhere;
+
+    const [bookings, total] = await Promise.all([
+      dbInstances.parkingBooking.findMany({
+        where,
+        include: {
+          listing: { select: { name: true } },
+          customer: { select: { fullName: true, phoneNumber: true } },
+        },
+        orderBy: { startTime: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      dbInstances.parkingBooking.count({ where }),
+    ]);
 
     const vehicleIds = bookings.map((b) => b.vehicleId).filter((id): id is string => !!id);
     const vehicles = vehicleIds.length
@@ -1098,12 +1524,15 @@ export const parkingService = {
       : [];
     const registrationById = new Map(vehicles.map((v) => [v.id, v.registrationNumber]));
 
-    return bookings.map((b) => ({
-      ...b,
-      vehicleNumber: b.vehicleId ? (registrationById.get(b.vehicleId) ?? null) : null,
-      customerName: b.customer.fullName,
-      customerPhone: b.customer.phoneNumber,
-    }));
+    return {
+      data: bookings.map((b) => ({
+        ...b,
+        vehicleNumber: b.vehicleId ? (registrationById.get(b.vehicleId) ?? null) : null,
+        customerName: b.customer.fullName,
+        customerPhone: b.customer.phoneNumber,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   },
 };
 
@@ -1116,10 +1545,10 @@ export const parkingAdminLiveService = {
     return parkingService.getListingLiveStatus(listingId);
   },
 
-  async getListingWalkInHistory(listingId: string) {
+  async getListingWalkInHistory(listingId: string, pageInput?: PaginationInput) {
     const listing = await dbInstances.parkingListing.findUnique({ where: { id: listingId } });
     if (!listing) throw AppError.notFound("Listing not found");
-    return parkingService.getListingWalkInHistory(listingId);
+    return parkingService.getListingWalkInHistory(listingId, pageInput);
   },
 
   async listAllLiveListings() {
@@ -1150,12 +1579,24 @@ export const parkingAdminLiveService = {
 paymentEvents.onSucceeded(async (event) => {
   if (event.purpose !== "PARKING_BOOKING") return;
   try {
-    const booking = await dbInstances.parkingBooking.findUnique({ where: { id: event.referenceId } });
-    if (!booking || booking.status !== "PENDING_PAYMENT") return;
+    const booking = await dbInstances.parkingBooking.findUnique({
+      where: { id: event.referenceId },
+      include: { listing: { select: { dealerId: true, name: true, dealer: { select: { phoneNumber: true } } } } },
+    });
+    // The paid order must be THIS booking's own order — referenceId alone
+    // isn't enough, since a customer can create a second, unrelated (and
+    // arbitrarily cheap) order against the same referenceId via the generic
+    // create-order endpoint. Confirming only on a match to booking.orderId
+    // means paying that decoy order can never confirm a real booking.
+    if (!booking || booking.status !== "PENDING_PAYMENT" || booking.orderId !== event.orderId) return;
     await dbInstances.parkingBooking.update({
       where: { id: booking.id },
       data: { status: "CONFIRMED" },
     });
+    // The one status-changing path in this file that used to never tell any
+    // live-status screen it happened — a dealer had no way to see a booking
+    // go PENDING_PAYMENT → CONFIRMED short of an unrelated refetch.
+    emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
     await notificationService.notifyCustomer(event.customerId, {
       title: "Parking booking confirmed",
       body: "Your payment cleared and your parking spot is confirmed.",
@@ -1163,6 +1604,19 @@ paymentEvents.onSucceeded(async (event) => {
       link: `/parking/bookings/${booking.id}`,
       metadata: { bookingId: booking.id },
     });
+    // Dealer awareness otherwise depended entirely on someone having the
+    // live dashboard open in a browser tab — an SMS means a new booking
+    // still reaches them if it isn't.
+    try {
+      if (booking.listing.dealer.phoneNumber) {
+        await getSMSService().sendSMS(
+          booking.listing.dealer.phoneNumber,
+          `New online booking at ${booking.listing.name}: ${hoursBetween(booking.startTime, booking.endTime)}h from ${booking.startTime.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}.`,
+        );
+      }
+    } catch (smsErr) {
+      logger.error({ smsErr, bookingId: booking.id }, "Failed to SMS dealer about new parking booking");
+    }
   } catch (err) {
     logger.error({ err, event }, "Failed to confirm parking booking after payment success");
   }
@@ -1171,14 +1625,22 @@ paymentEvents.onSucceeded(async (event) => {
 paymentEvents.onFailed(async (event) => {
   if (event.purpose !== "PARKING_BOOKING") return;
   try {
-    const booking = await dbInstances.parkingBooking.findUnique({ where: { id: event.referenceId } });
-    if (!booking || booking.status !== "PENDING_PAYMENT") return;
+    const booking = await dbInstances.parkingBooking.findUnique({
+      where: { id: event.referenceId },
+      include: { listing: { select: { dealerId: true } } },
+    });
+    // Same orderId guard as the success handler above — otherwise anyone
+    // could create a decoy order against another customer's PENDING_PAYMENT
+    // booking's referenceId and let it fail, cancelling a booking they don't
+    // own and releasing its capacity as a griefing vector.
+    if (!booking || booking.status !== "PENDING_PAYMENT" || booking.orderId !== event.orderId) return;
     await dbInstances.parkingBooking.update({
       where: { id: booking.id },
       data: { status: "CANCELLED" },
     });
     await releaseCapacity(booking.slotWindowId);
     await notifyWaitlistForFreedCapacity(booking.listingId, booking.startTime);
+    emitParkingLiveUpdate(booking.listing.dealerId, booking.listingId);
     await notificationService.notifyCustomer(event.customerId, {
       title: "Parking payment failed",
       body: "Your payment didn't go through, so the hold on your parking spot was released.",
@@ -1200,7 +1662,11 @@ paymentEvents.onSucceeded(async (event) => {
   if (event.purpose !== "PARKING_EXTRA_CHARGE") return;
   try {
     const booking = await dbInstances.parkingBooking.findUnique({ where: { id: event.referenceId } });
-    if (!booking || booking.status !== "CONFIRMED" || !booking.actualCheckOutTime) return;
+    // Same orderId guard as the PARKING_BOOKING handler above. This purpose
+    // isn't reachable via the public create-order endpoint today (its zod
+    // schema only allows PARKING_BOOKING/CAR_WASH_BOOKING), but this keeps
+    // the handler correct on its own terms rather than relying on that.
+    if (!booking || booking.status !== "CONFIRMED" || !booking.actualCheckOutTime || booking.extraOrderId !== event.orderId) return;
     await dbInstances.parkingBooking.update({
       where: { id: booking.id },
       data: { status: "COMPLETED" },

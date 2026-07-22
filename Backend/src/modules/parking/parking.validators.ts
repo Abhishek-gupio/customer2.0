@@ -18,7 +18,7 @@ export const availabilitySchema = z.object({
 export const createBookingSchema = z
   .object({
     listingId: z.string().min(1),
-    vehicleId: z.string().optional(),
+    vehicleId: z.string().min(1, "Select which vehicle you're parking"),
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
     /** Client-generated, stable across retries of the same tap — prevents double-booking on network retry. */
@@ -29,10 +29,28 @@ export const createBookingSchema = z
     path: ["endTime"],
   });
 
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+});
+export type PaginationInput = z.infer<typeof paginationSchema>;
+
+export const bookingsListSchema = paginationSchema.extend({
+  scope: z.enum(["active", "history"]).default("active"),
+  /** Free-text match against vehicle number, customer name/phone, or listing name. */
+  q: z.string().trim().min(1).max(100).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+});
+export type BookingsListInput = z.infer<typeof bookingsListSchema>;
+
 export const joinWaitlistSchema = z.object({
   listingId: z.string().min(1),
   desiredDate: z.coerce.date(),
 });
+
+/** Same shape as joining — leaving needs the same compound key to find the entry. */
+export const leaveWaitlistSchema = joinWaitlistSchema;
 
 // ── Dealer-facing ────────────────────────────────────────────────
 
@@ -108,6 +126,7 @@ export type SearchListingsInput = z.infer<typeof searchListingsSchema>;
 export type AvailabilityInput = z.infer<typeof availabilitySchema>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export type JoinWaitlistInput = z.infer<typeof joinWaitlistSchema>;
+export type LeaveWaitlistInput = z.infer<typeof leaveWaitlistSchema>;
 export type DealerLoginInput = z.infer<typeof dealerLoginSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type UpdateListingInput = z.infer<typeof updateListingSchema>;

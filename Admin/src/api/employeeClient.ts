@@ -8,6 +8,7 @@ import type {
   ListingLiveStatus,
   LiveListingSummary,
   WalkInHistoryEntry,
+  Pagination,
 } from './dealerClient';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
@@ -67,13 +68,36 @@ export const employeeApi = {
   getListingLiveStatus: (listingId: string) =>
     employeeApiRequest<ListingLiveStatus>(`/v1/parking/employee/listings/${listingId}/live`),
 
-  getWalkInHistory: (listingId: string) =>
-    employeeApiRequest<WalkInHistoryEntry[]>(`/v1/parking/employee/listings/${listingId}/walkins/history`),
+  getWalkInHistory: (listingId: string, params?: { page?: number; limit?: number }) =>
+    employeeApiRequest<{ data: WalkInHistoryEntry[]; pagination: Pagination }>(
+      `/v1/parking/employee/listings/${listingId}/walkins/history?page=${params?.page ?? 1}&limit=${params?.limit ?? 20}`,
+    ),
 
   listLiveListings: () => employeeApiRequest<LiveListingSummary[]>('/v1/parking/employee/live-listings'),
 
-  listBookings: () => employeeApiRequest<DealerBooking[]>('/v1/parking/employee/bookings'),
+  listBookings: (params?: { scope?: 'active' | 'history'; page?: number; limit?: number; q?: string; from?: string; to?: string }) => {
+    const query = new URLSearchParams({
+      scope: params?.scope ?? 'active',
+      page: String(params?.page ?? 1),
+      limit: String(params?.limit ?? 20),
+    });
+    if (params?.q) query.set('q', params.q);
+    if (params?.from) query.set('from', params.from);
+    if (params?.to) query.set('to', params.to);
+    return employeeApiRequest<{ data: DealerBooking[]; pagination: Pagination }>(
+      `/v1/parking/employee/bookings?${query.toString()}`,
+    );
+  },
 
   checkoutBooking: (bookingId: string) =>
     employeeApiRequest<DealerBooking>(`/v1/parking/employee/bookings/${bookingId}/checkout`, { method: 'POST' }),
+
+  markBookingNoShow: (bookingId: string) =>
+    employeeApiRequest<DealerBooking>(`/v1/parking/employee/bookings/${bookingId}/no-show`, { method: 'POST' }),
+
+  undoBookingNoShow: (bookingId: string) =>
+    employeeApiRequest<DealerBooking>(`/v1/parking/employee/bookings/${bookingId}/undo-no-show`, { method: 'POST' }),
+
+  markBookingCheckedIn: (bookingId: string) =>
+    employeeApiRequest<DealerBooking>(`/v1/parking/employee/bookings/${bookingId}/checkin`, { method: 'POST' }),
 };

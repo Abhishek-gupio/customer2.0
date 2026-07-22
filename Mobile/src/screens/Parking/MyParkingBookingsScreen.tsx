@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, Alert, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -26,8 +26,12 @@ export default function MyParkingBookingsScreen() {
   const version = useParkingStore((s) => s.version);
   const notifyBookingChanged = useParkingStore((s) => s.notifyBookingChanged);
 
+  const PAGE_SIZE = 20;
   const [bookings, setBookings] = useState<ParkingBooking[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [payingExtraId, setPayingExtraId] = useState<string | null>(null);
@@ -35,8 +39,10 @@ export default function MyParkingBookingsScreen() {
   const load = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
-      const data = await parkingService.listMyBookings();
-      setBookings(data);
+      const result = await parkingService.listMyBookings({ page: 1, limit: PAGE_SIZE });
+      setBookings(result.data);
+      setPage(1);
+      setTotalPages(result.pagination.totalPages);
     } catch (e: any) {
       Alert.alert('Could not load bookings', e?.message || 'Please try again.');
     } finally {
@@ -52,6 +58,22 @@ export default function MyParkingBookingsScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     load(true);
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || page >= totalPages) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const result = await parkingService.listMyBookings({ page: nextPage, limit: PAGE_SIZE });
+      setBookings((prev) => [...prev, ...result.data]);
+      setPage(nextPage);
+      setTotalPages(result.pagination.totalPages);
+    } catch {
+      // Silent — the user can just scroll again or pull to refresh.
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   const onCancel = (booking: ParkingBooking) => {
@@ -126,6 +148,9 @@ export default function MyParkingBookingsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+          onEndReachedThreshold={0.4}
+          onEndReached={loadMore}
+          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#FFBF00" style={styles.footerLoader} /> : null}
           renderItem={({ item }) => {
             const statusStyle = STATUS_STYLE[item.status];
             const cancellable = (item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED') && !item.actualCheckOutTime;
@@ -206,7 +231,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   searchBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3.6) },
-  listContent: { paddingHorizontal: wp(5), paddingBottom: hp(4) },
+  // The bottom tab bar floats via position:'absolute' (MainBottomTabs.tsx) and
+  // doesn't reserve layout space, so the list's last card needs to clear it manually.
+  listContent: { paddingHorizontal: wp(5), paddingBottom: (Platform.OS === 'ios' ? hp(10) : hp(8)) + hp(2) },
+  footerLoader: { marginVertical: hp(2) },
   card: {
     backgroundColor: '#111',
     borderRadius: 18,

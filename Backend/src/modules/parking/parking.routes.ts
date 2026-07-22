@@ -42,6 +42,10 @@ dealerRouter.get("/listings/:id/walkins/history", dealerController.getListingWal
 dealerRouter.get("/live-listings", dealerController.listLiveListings);
 dealerRouter.get("/bookings", dealerController.listBookings);
 dealerRouter.post("/bookings/:id/checkout", dealerController.checkoutBooking);
+dealerRouter.post("/bookings/:id/no-show", dealerController.markBookingNoShow);
+dealerRouter.post("/bookings/:id/undo-no-show", dealerController.undoBookingNoShow);
+dealerRouter.post("/bookings/:id/checkin", dealerController.markBookingCheckedIn);
+dealerRouter.get("/settlements", dealerController.listSettlements);
 dealerRouter.post("/employees", dealerController.createEmployee);
 dealerRouter.get("/employees", dealerController.listEmployees);
 dealerRouter.patch("/employees/:employeeId", dealerController.setEmployeeActive);
@@ -62,6 +66,9 @@ employeeRouter.get("/listings/:id/walkins/history", employeeController.getListin
 employeeRouter.get("/live-listings", employeeController.listLiveListings);
 employeeRouter.get("/bookings", employeeController.listBookings);
 employeeRouter.post("/bookings/:id/checkout", employeeController.checkoutBooking);
+employeeRouter.post("/bookings/:id/no-show", employeeController.markBookingNoShow);
+employeeRouter.post("/bookings/:id/undo-no-show", employeeController.undoBookingNoShow);
+employeeRouter.post("/bookings/:id/checkin", employeeController.markBookingCheckedIn);
 router.use("/employee", employeeRouter);
 
 // ── Customer-facing ──────────────────────────────────────────────
@@ -75,5 +82,6 @@ router.get("/bookings", parkingController.listMyBookings);
 router.post("/bookings/:id/cancel", parkingController.cancelBooking);
 router.get("/bookings/:id/extra-payment", parkingController.getExtraPayment);
 router.post("/waitlist", parkingController.joinWaitlist);
+router.delete("/waitlist", parkingController.leaveWaitlist);
 
 export const parkingRoutes = router;

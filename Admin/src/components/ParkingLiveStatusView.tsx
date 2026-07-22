@@ -9,6 +9,7 @@ import type {
   ParkingPaymentMethod,
   WalkIn,
   WalkInHistoryEntry,
+  Pagination,
 } from '../api/dealerClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/Card';
 import { Button } from './ui/Button';
@@ -16,11 +17,16 @@ import { useParkingLiveSocket } from '../hooks/useParkingLiveSocket';
 
 type ApiResult<T> = { success: true; data: T } | { success: false; error: { message: string } };
 
+const HISTORY_PAGE_SIZE = 20;
+
 export interface ParkingLiveStatusViewProps {
   listingId: string;
   fetchStatus: (listingId: string) => Promise<ApiResult<ListingLiveStatus>>;
   fetchSlotWindows?: (listingId: string) => Promise<ApiResult<DealerSlotWindow[]>>;
-  fetchHistory?: (listingId: string) => Promise<ApiResult<WalkInHistoryEntry[]>>;
+  fetchHistory?: (
+    listingId: string,
+    params?: { page?: number; limit?: number },
+  ) => Promise<ApiResult<{ data: WalkInHistoryEntry[]; pagination: Pagination }>>;
   onCheckIn?: (
     listingId: string,
     slotWindowId: string,
@@ -30,6 +36,13 @@ export interface ParkingLiveStatusViewProps {
   /** Undefined disables realtime (e.g. no socket token available yet). */
   socketToken?: string | null;
   socketActorType?: 'dealer' | 'parkingEmployee' | 'admin';
+  /**
+   * Explicit ops-visibility mode — hides check-in/checkout controls even if
+   * the callback props happen to be passed, and shows a caption explaining
+   * why. Without this, "read-only" was only ever an implicit side effect of
+   * a caller simply not passing onCheckIn/onCheckOut.
+   */
+  readOnly?: boolean;
 }
 
 const PAYMENT_METHOD_LABEL: Record<ParkingPaymentMethod, string> = { CASH: 'Cash', ONLINE: 'Online' };
@@ -52,10 +65,13 @@ export function ParkingLiveStatusView({
   onCheckOut,
   socketToken,
   socketActorType,
+  readOnly = false,
 }: ParkingLiveStatusViewProps) {
   const [status, setStatus] = useState<ListingLiveStatus | null>(null);
   const [currentSlot, setCurrentSlot] = useState<DealerSlotWindow | null>(null);
   const [history, setHistory] = useState<WalkInHistoryEntry[]>([]);
+  const [historyPagination, setHistoryPagination] = useState<Pagination | null>(null);
+  const [historyPage, setHistoryPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ vehicleType: 'CAR' as ParkingVehicleType, vehicleNumber: '' });
@@ -66,26 +82,30 @@ export function ParkingLiveStatusView({
   const [liveTab, setLiveTab] = useState<'parked' | 'history'>('parked');
   const [qrModalData, setQrModalData] = useState<{ shortUrl: string; amount: number; walkInId: string } | null>(null);
 
-  const canCheckIn = !!(onCheckIn && fetchSlotWindows);
+  const canCheckIn = !readOnly && !!(onCheckIn && fetchSlotWindows);
+  const canCheckOut = !readOnly && !!onCheckOut;
 
   const load = async () => {
     const [statusRes, slotsRes, historyRes] = await Promise.all([
       fetchStatus(listingId),
       fetchSlotWindows ? fetchSlotWindows(listingId) : Promise.resolve(null),
-      fetchHistory ? fetchHistory(listingId) : Promise.resolve(null),
+      fetchHistory ? fetchHistory(listingId, { page: historyPage, limit: HISTORY_PAGE_SIZE }) : Promise.resolve(null),
     ]);
     setLoading(false);
     if (statusRes.success) setStatus(statusRes.data);
     else setError(statusRes.error.message);
     if (slotsRes?.success) setCurrentSlot(findCurrentSlotWindow(slotsRes.data) ?? null);
-    if (historyRes?.success) setHistory(historyRes.data);
+    if (historyRes?.success) {
+      setHistory(historyRes.data.data);
+      setHistoryPagination(historyRes.data.pagination);
+    }
   };
 
   useEffect(() => {
     setLoading(true);
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listingId]);
+  }, [listingId, historyPage]);
 
   useParkingLiveSocket(socketToken ?? null, socketActorType ?? 'dealer', load);
 
@@ -179,6 +199,13 @@ export function ParkingLiveStatusView({
       )}
 
       {error && <p className="text-sm text-red-400">{error}</p>}
+
+      {readOnly && (
+        <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-3 text-xs font-semibold text-white/50">
+          <Radio className="h-3.5 w-3.5 text-white/30" />
+          Ops visibility — read-only. Check-in and checkout happen on-site from the dealer or staff app.
+        </div>
+      )}
 
       {/* Live Data Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -318,7 +345,7 @@ export function ParkingLiveStatusView({
                   : 'text-white/60 hover:text-white hover:bg-white/[0.02]'
               }`}
             >
-              Checkout History ({history.length})
+              Checkout History ({historyPagination?.total ?? history.length})
             </button>
           )}
         </div>
@@ -345,7 +372,7 @@ export function ParkingLiveStatusView({
                     <th className="px-5 py-4">Amount</th>
                     <th className="px-5 py-4">Since</th>
                     <th className="px-5 py-4">Checked in by</th>
-                    {onCheckOut && <th className="px-5 py-4 rounded-tr-xl" />}
+                    {canCheckOut && <th className="px-5 py-4 rounded-tr-xl" />}
                   </tr>
                 </thead>
                 <tbody>
@@ -364,7 +391,7 @@ export function ParkingLiveStatusView({
                       <td className="px-5 py-4 text-sm font-bold text-white">₹{(w.amountPaise / 100).toFixed(0)}</td>
                       <td className="px-5 py-4 text-xs font-medium text-white/50">{format(new Date(w.enteredAt), 'h:mm a')}</td>
                       <td className="px-5 py-4 text-xs font-medium text-white/50">{w.employeeName ?? 'Dealer'}</td>
-                      {onCheckOut && (
+                      {canCheckOut && (
                         <td className="px-5 py-4 text-right">
                           {confirmingExitId === w.id ? (
                             <div className="flex items-center justify-end gap-2">
@@ -418,7 +445,7 @@ export function ParkingLiveStatusView({
                       <td className="px-5 py-4 text-sm font-bold text-white">₹{(b.amountPaise / 100).toFixed(0)}</td>
                       <td className="px-5 py-4 text-xs font-medium text-white/50">{format(new Date(b.startTime), 'h:mm a')}</td>
                       <td className="px-5 py-4 text-xs font-medium text-white/50">{b.customerName ?? b.customerPhone}</td>
-                      {onCheckOut && <td className="px-5 py-4 text-xs font-semibold text-white/20 text-right">Manage via Bookings</td>}
+                      {canCheckOut && <td className="px-5 py-4 text-xs font-semibold text-white/20 text-right">Manage via Bookings</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -434,7 +461,7 @@ export function ParkingLiveStatusView({
                 <History className="h-4 w-4 text-white/50" />
                 Recent history
               </CardTitle>
-              <CardDescription>Last {history.length} checked-out walk-ins</CardDescription>
+              <CardDescription>{historyPagination?.total ?? history.length} checked-out walk-ins</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {history.length === 0 ? (
@@ -469,6 +496,29 @@ export function ParkingLiveStatusView({
                 </table>
               )}
             </CardContent>
+            {historyPagination && historyPagination.totalPages > 1 && (
+              <div className="flex items-center justify-between px-5 py-4 border-t border-white/[0.05]">
+                <span className="text-xs font-medium text-white/40">
+                  Page {historyPagination.page} of {historyPagination.totalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                    disabled={historyPage <= 1}
+                    className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-bold text-white/70 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => setHistoryPage((p) => Math.min(historyPagination.totalPages, p + 1))}
+                    disabled={historyPage >= historyPagination.totalPages}
+                    className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-bold text-white/70 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </Card>
         )
       )}

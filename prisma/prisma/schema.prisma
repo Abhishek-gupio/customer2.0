@@ -2393,10 +2393,16 @@ model ParkingBooking {
   status             BookingStatus  @default(PENDING_PAYMENT)
   orderId            String?
   idempotencyKey     String?        @unique         // client-generated; retrying the same tap must not double-book
+  checkedInAt        DateTime?                      // set by dealer/employee when the customer's vehicle actually arrives at the gate
   actualCheckOutTime DateTime?                      // set by dealer/employee when the vehicle actually leaves
   extraAmountPaise   Int?                           // overstay charge if actualCheckOutTime is past endTime
   extraOrderId       String?                        // CustomerOrder id for the overstay charge (purpose: PARKING_EXTRA_CHARGE)
+  // isSettled tracks the base amountPaise only, so it can settle as soon as the
+  // vehicle checks out — it must not wait on an overstay charge that may take the
+  // customer days to pay (or may never be paid). extraSettled tracks the overstay
+  // portion independently, once/if it's actually collected (status reaches COMPLETED).
   isSettled          Boolean        @default(false)
+  extraSettled       Boolean        @default(false)
   settlementId       String?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -2408,6 +2414,7 @@ model ParkingBooking {
   @@index([customerId])
   @@index([listingId, startTime])
   @@index([status, createdAt])
+  @@index([status, endTime]) // autoNoShowBookings' sweep — keeps that query an index scan, not a table scan, at any booking volume
   @@index([isSettled])
   @@schema("customer")
 }

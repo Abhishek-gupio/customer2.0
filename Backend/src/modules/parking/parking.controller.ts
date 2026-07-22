@@ -8,6 +8,8 @@ import {
   availabilitySchema,
   createBookingSchema,
   joinWaitlistSchema,
+  leaveWaitlistSchema,
+  paginationSchema,
 } from "./parking.validators";
 
 function parseInput<T>(
@@ -55,7 +57,8 @@ export const parkingController = {
 
   listMyBookings: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
-    const bookings = await parkingService.listMyBookings(req.customer.id);
+    const query = parseInput(req.query, paginationSchema);
+    const bookings = await parkingService.listMyBookings(req.customer.id, query);
     success(res, bookings);
   }),
 
@@ -70,6 +73,13 @@ export const parkingController = {
     const body = parseInput(req.body, joinWaitlistSchema);
     const entry = await parkingService.joinWaitlist(req.customer.id, body);
     success(res, entry, 201);
+  }),
+
+  leaveWaitlist: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    const query = parseInput(req.query, leaveWaitlistSchema);
+    await parkingService.leaveWaitlist(req.customer.id, query);
+    success(res, { removed: true });
   }),
 
   getExtraPayment: asyncHandler(async (req: Request, res: Response) => {

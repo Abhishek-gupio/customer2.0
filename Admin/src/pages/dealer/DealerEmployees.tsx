@@ -4,6 +4,7 @@ import { dealerApi, type DealerEmployee, type DealerListing } from '../../api/de
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { CredentialsRevealBanner } from '../../components/CredentialsRevealBanner';
 import { formatDate } from '../../lib/dateUtils';
 import { cn } from '../../lib/cn';
 
@@ -110,16 +111,7 @@ export default function DealerEmployees() {
       </div>
 
       {createdCreds && (
-        <Card className="border-emerald-500/30 bg-emerald-500/[0.04]">
-          <CardContent className="py-4">
-            <p className="text-sm text-emerald-300">
-              Employee created. Share these sign-in details with them directly — this password is not shown again:
-            </p>
-            <p className="mt-2 font-mono text-sm text-white">
-              Phone: {createdCreds.phoneNumber} · Password: {createdCreds.password}
-            </p>
-          </CardContent>
-        </Card>
+        <CredentialsRevealBanner noun="Employee" phoneNumber={createdCreds.phoneNumber} password={createdCreds.password} />
       )}
 
       {showForm && (

@@ -4,7 +4,7 @@ import { useEmployeeAuth } from '../../context/EmployeeAuthContext';
 import { cn } from '../../lib/cn';
 
 const navItems = [
-  { to: '/employee/listings', label: 'My Lots', icon: ParkingSquare },
+  { to: '/employee/listings', label: 'Listings', icon: ParkingSquare },
   { to: '/employee/bookings', label: 'Online Bookings', icon: CalendarRange },
   { to: '/employee/history', label: 'History', icon: History },
 ];

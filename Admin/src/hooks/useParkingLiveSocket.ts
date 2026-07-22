@@ -17,8 +17,15 @@ export function useParkingLiveSocket(
     if (!token) return;
     const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://customerapi.gupio.tech/api';
     const SOCKET_URL = API_BASE.replace(/\/api$/, '').replace(/\/$/, '');
+    // websocket-only, no polling fallback: a polling handshake is a series
+    // of separate HTTP requests that all have to land on the same backend
+    // instance, which needs load-balancer sticky sessions to guarantee. A
+    // single long-lived WebSocket connection has no such requirement — it's
+    // one connection to one instance for its whole life, sticky by
+    // construction. Trade-off: a client on a network that blocks raw
+    // WebSocket (rare for this audience) won't fall back, it just won't connect.
     const socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       auth: { token, actorType },
     });
     socket.on('connect', () => socket.emit('join'));

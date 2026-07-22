@@ -181,9 +181,15 @@ export const paymentsService = {
   },
 
   /**
-   * Optional immediate client-side check for a snappy UI. The webhook
-   * (processWebhook below) remains the source of truth for order status —
-   * this never flips `CustomerOrder.status` itself.
+   * Client-side check, called right after Razorpay checkout succeeds. The
+   * webhook (processWebhook below) is still the source of truth and will
+   * arrive independently, but this reconciles `CustomerOrder`/booking status
+   * synchronously too — otherwise a delayed or misconfigured webhook (e.g. a
+   * dashboard webhook URL not reachable from this environment) leaves a
+   * booking stuck showing "pending payment" indefinitely despite a captured
+   * payment. Reuses the same order-transition path as the webhook so a
+   * later webhook delivery for the same payment is a no-op (order already
+   * PAID) rather than a double-confirmation.
    */
   async verifyOrder(customerId: string, orderId: string, input: VerifyOrderInput) {
     const order = await this.getOrder(customerId, orderId);
@@ -200,17 +206,51 @@ export const paymentsService = {
       env.RAZORPAY_KEY_SECRET,
     );
 
-    await dbInstances.customerPaymentAttempt.create({
-      data: {
+    // upsert, not create: this same razorpayPaymentId may already have a row
+    // from the webhook (which usually wins the race) or from the client
+    // retrying this call — either way it's the same attempt, not a new one.
+    await dbInstances.customerPaymentAttempt.upsert({
+      where: { razorpayPaymentId: input.razorpayPaymentId },
+      create: {
         orderId: order.id,
         razorpayPaymentId: input.razorpayPaymentId,
         razorpaySignature: input.razorpaySignature,
         status: valid ? "SUCCESS" : "FAILED",
         paidAt: valid ? new Date() : undefined,
       },
+      update: {
+        status: valid ? "SUCCESS" : "FAILED",
+        paidAt: valid ? new Date() : undefined,
+      },
     });
 
+    if (valid && order.status !== "PAID") {
+      await this.markOrderPaid(order.id);
+    }
+
     return { valid };
+  },
+
+  /**
+   * Shared by the webhook's payment.captured/order.paid handling and
+   * verifyOrder's client-side fallback — both are ways of learning "this
+   * order's payment succeeded" and must converge on the same transition.
+   */
+  async markOrderPaid(orderId: string): Promise<void> {
+    const order = await dbInstances.customerOrder.updateMany({
+      where: { id: orderId, status: { not: "PAID" } },
+      data: { status: "PAID" },
+    });
+    if (order.count === 0) return; // already marked PAID by a concurrent caller
+
+    const updated = await dbInstances.customerOrder.findUniqueOrThrow({ where: { id: orderId } });
+    paymentEvents.emitSucceeded({
+      purpose: updated.purpose,
+      referenceId: updated.referenceId,
+      orderId: updated.id,
+      customerId: updated.customerId,
+      amountPaise: updated.amountPaise,
+    });
   },
 
   /** Called in-process by other modules (e.g. Parking cancellation) — never over HTTP. */
@@ -349,7 +389,7 @@ export const paymentsService = {
         logger.warn({ razorpayOrderId }, "Webhook: no matching CustomerOrder");
         return;
       }
-      if (order.status === "PAID") return; // already handled by an earlier delivery
+      if (order.status === "PAID") return; // already handled by an earlier delivery, or by verifyOrder's fallback
 
       await dbInstances.customerPaymentAttempt.upsert({
         where: { razorpayPaymentId: paymentEntity.id },
@@ -362,18 +402,7 @@ export const paymentsService = {
         },
         update: { status: "SUCCESS", paidAt: new Date() },
       });
-      await dbInstances.customerOrder.update({
-        where: { id: order.id },
-        data: { status: "PAID" },
-      });
-
-      paymentEvents.emitSucceeded({
-        purpose: order.purpose,
-        referenceId: order.referenceId,
-        orderId: order.id,
-        customerId: order.customerId,
-        amountPaise: order.amountPaise,
-      });
+      await this.markOrderPaid(order.id);
       return;
     }
 

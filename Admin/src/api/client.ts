@@ -1,4 +1,4 @@
-import type { ListingLiveStatus, LiveListingSummary, WalkInHistoryEntry } from './dealerClient';
+import type { ListingLiveStatus, LiveListingSummary, WalkInHistoryEntry, Pagination } from './dealerClient';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 
@@ -225,8 +225,10 @@ export const adminApi = {
   listParkingLiveListings: () => api<LiveListingSummary[]>('/v1/parking/admin/live-listings'),
   getParkingListingLiveStatus: (listingId: string) =>
     api<ListingLiveStatus>(`/v1/parking/admin/listings/${listingId}/live`),
-  getParkingWalkInHistory: (listingId: string) =>
-    api<WalkInHistoryEntry[]>(`/v1/parking/admin/listings/${listingId}/walkins/history`),
+  getParkingWalkInHistory: (listingId: string, params?: { page?: number; limit?: number }) =>
+    api<{ data: WalkInHistoryEntry[]; pagination: Pagination }>(
+      `/v1/parking/admin/listings/${listingId}/walkins/history?page=${params?.page ?? 1}&limit=${params?.limit ?? 20}`,
+    ),
 
   createWashPartner: (data: { name: string; phoneNumber: string; password: string }) =>
     api<WashPartnerListItem>('/v1/carwash/admin/partners', { method: 'POST', body: JSON.stringify(data) }),

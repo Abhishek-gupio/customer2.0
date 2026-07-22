@@ -8,6 +8,7 @@ import DealerListingLive from './DealerListingLive';
 import DealerBookings from './DealerBookings';
 import DealerEmployees from './DealerEmployees';
 import DealerHistory from './DealerHistory';
+import DealerSettlements from './DealerSettlements';
 
 function DealerProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useDealerAuth();
@@ -39,6 +40,7 @@ export default function DealerRoutes() {
           <Route path="bookings" element={<DealerBookings />} />
           <Route path="employees" element={<DealerEmployees />} />
           <Route path="history" element={<DealerHistory />} />
+          <Route path="settlements" element={<DealerSettlements />} />
         </Route>
       </Routes>
     </DealerAuthProvider>

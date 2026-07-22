@@ -116013,10 +116013,12 @@ export namespace Prisma {
     status: $Enums.BookingStatus | null
     orderId: string | null
     idempotencyKey: string | null
+    checkedInAt: Date | null
     actualCheckOutTime: Date | null
     extraAmountPaise: number | null
     extraOrderId: string | null
     isSettled: boolean | null
+    extraSettled: boolean | null
     settlementId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -116034,10 +116036,12 @@ export namespace Prisma {
     status: $Enums.BookingStatus | null
     orderId: string | null
     idempotencyKey: string | null
+    checkedInAt: Date | null
     actualCheckOutTime: Date | null
     extraAmountPaise: number | null
     extraOrderId: string | null
     isSettled: boolean | null
+    extraSettled: boolean | null
     settlementId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -116055,10 +116059,12 @@ export namespace Prisma {
     status: number
     orderId: number
     idempotencyKey: number
+    checkedInAt: number
     actualCheckOutTime: number
     extraAmountPaise: number
     extraOrderId: number
     isSettled: number
+    extraSettled: number
     settlementId: number
     createdAt: number
     updatedAt: number
@@ -116088,10 +116094,12 @@ export namespace Prisma {
     status?: true
     orderId?: true
     idempotencyKey?: true
+    checkedInAt?: true
     actualCheckOutTime?: true
     extraAmountPaise?: true
     extraOrderId?: true
     isSettled?: true
+    extraSettled?: true
     settlementId?: true
     createdAt?: true
     updatedAt?: true
@@ -116109,10 +116117,12 @@ export namespace Prisma {
     status?: true
     orderId?: true
     idempotencyKey?: true
+    checkedInAt?: true
     actualCheckOutTime?: true
     extraAmountPaise?: true
     extraOrderId?: true
     isSettled?: true
+    extraSettled?: true
     settlementId?: true
     createdAt?: true
     updatedAt?: true
@@ -116130,10 +116140,12 @@ export namespace Prisma {
     status?: true
     orderId?: true
     idempotencyKey?: true
+    checkedInAt?: true
     actualCheckOutTime?: true
     extraAmountPaise?: true
     extraOrderId?: true
     isSettled?: true
+    extraSettled?: true
     settlementId?: true
     createdAt?: true
     updatedAt?: true
@@ -116238,10 +116250,12 @@ export namespace Prisma {
     status: $Enums.BookingStatus
     orderId: string | null
     idempotencyKey: string | null
+    checkedInAt: Date | null
     actualCheckOutTime: Date | null
     extraAmountPaise: number | null
     extraOrderId: string | null
     isSettled: boolean
+    extraSettled: boolean
     settlementId: string | null
     createdAt: Date
     updatedAt: Date
@@ -116278,10 +116292,12 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
     actualCheckOutTime?: boolean
     extraAmountPaise?: boolean
     extraOrderId?: boolean
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -116302,10 +116318,12 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
     actualCheckOutTime?: boolean
     extraAmountPaise?: boolean
     extraOrderId?: boolean
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -116326,10 +116344,12 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
     actualCheckOutTime?: boolean
     extraAmountPaise?: boolean
     extraOrderId?: boolean
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -116350,16 +116370,18 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
     actualCheckOutTime?: boolean
     extraAmountPaise?: boolean
     extraOrderId?: boolean
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "idempotencyKey" | "actualCheckOutTime" | "extraAmountPaise" | "extraOrderId" | "isSettled" | "settlementId" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
+  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "idempotencyKey" | "checkedInAt" | "actualCheckOutTime" | "extraAmountPaise" | "extraOrderId" | "isSettled" | "extraSettled" | "settlementId" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
   export type ParkingBookingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
@@ -116395,10 +116417,12 @@ export namespace Prisma {
       status: $Enums.BookingStatus
       orderId: string | null
       idempotencyKey: string | null
+      checkedInAt: Date | null
       actualCheckOutTime: Date | null
       extraAmountPaise: number | null
       extraOrderId: string | null
       isSettled: boolean
+      extraSettled: boolean
       settlementId: string | null
       createdAt: Date
       updatedAt: Date
@@ -116839,10 +116863,12 @@ export namespace Prisma {
     readonly status: FieldRef<"ParkingBooking", 'BookingStatus'>
     readonly orderId: FieldRef<"ParkingBooking", 'String'>
     readonly idempotencyKey: FieldRef<"ParkingBooking", 'String'>
+    readonly checkedInAt: FieldRef<"ParkingBooking", 'DateTime'>
     readonly actualCheckOutTime: FieldRef<"ParkingBooking", 'DateTime'>
     readonly extraAmountPaise: FieldRef<"ParkingBooking", 'Int'>
     readonly extraOrderId: FieldRef<"ParkingBooking", 'String'>
     readonly isSettled: FieldRef<"ParkingBooking", 'Boolean'>
+    readonly extraSettled: FieldRef<"ParkingBooking", 'Boolean'>
     readonly settlementId: FieldRef<"ParkingBooking", 'String'>
     readonly createdAt: FieldRef<"ParkingBooking", 'DateTime'>
     readonly updatedAt: FieldRef<"ParkingBooking", 'DateTime'>
@@ -145627,10 +145653,12 @@ export namespace Prisma {
     status: 'status',
     orderId: 'orderId',
     idempotencyKey: 'idempotencyKey',
+    checkedInAt: 'checkedInAt',
     actualCheckOutTime: 'actualCheckOutTime',
     extraAmountPaise: 'extraAmountPaise',
     extraOrderId: 'extraOrderId',
     isSettled: 'isSettled',
+    extraSettled: 'extraSettled',
     settlementId: 'settlementId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -154967,10 +154995,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
     idempotencyKey?: StringNullableFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
     actualCheckOutTime?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
     extraAmountPaise?: IntNullableFilter<"ParkingBooking"> | number | null
     extraOrderId?: StringNullableFilter<"ParkingBooking"> | string | null
     isSettled?: BoolFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolFilter<"ParkingBooking"> | boolean
     settlementId?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
@@ -154991,10 +155021,12 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
+    checkedInAt?: SortOrderInput | SortOrder
     actualCheckOutTime?: SortOrderInput | SortOrder
     extraAmountPaise?: SortOrderInput | SortOrder
     extraOrderId?: SortOrderInput | SortOrder
     isSettled?: SortOrder
+    extraSettled?: SortOrder
     settlementId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -155018,10 +155050,12 @@ export namespace Prisma {
     amountPaise?: IntFilter<"ParkingBooking"> | number
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
     actualCheckOutTime?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
     extraAmountPaise?: IntNullableFilter<"ParkingBooking"> | number | null
     extraOrderId?: StringNullableFilter<"ParkingBooking"> | string | null
     isSettled?: BoolFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolFilter<"ParkingBooking"> | boolean
     settlementId?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
@@ -155042,10 +155076,12 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
+    checkedInAt?: SortOrderInput | SortOrder
     actualCheckOutTime?: SortOrderInput | SortOrder
     extraAmountPaise?: SortOrderInput | SortOrder
     extraOrderId?: SortOrderInput | SortOrder
     isSettled?: SortOrder
+    extraSettled?: SortOrder
     settlementId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -155071,10 +155107,12 @@ export namespace Prisma {
     status?: EnumBookingStatusWithAggregatesFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
     idempotencyKey?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableWithAggregatesFilter<"ParkingBooking"> | Date | string | null
     actualCheckOutTime?: DateTimeNullableWithAggregatesFilter<"ParkingBooking"> | Date | string | null
     extraAmountPaise?: IntNullableWithAggregatesFilter<"ParkingBooking"> | number | null
     extraOrderId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
     isSettled?: BoolWithAggregatesFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolWithAggregatesFilter<"ParkingBooking"> | boolean
     settlementId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
@@ -165697,10 +165735,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
@@ -165720,10 +165760,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -165739,10 +165781,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
@@ -165762,10 +165806,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -165783,10 +165829,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -165802,10 +165850,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -165822,10 +165872,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -174141,10 +174193,12 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrder
     idempotencyKey?: SortOrder
+    checkedInAt?: SortOrder
     actualCheckOutTime?: SortOrder
     extraAmountPaise?: SortOrder
     extraOrderId?: SortOrder
     isSettled?: SortOrder
+    extraSettled?: SortOrder
     settlementId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -174167,10 +174221,12 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrder
     idempotencyKey?: SortOrder
+    checkedInAt?: SortOrder
     actualCheckOutTime?: SortOrder
     extraAmountPaise?: SortOrder
     extraOrderId?: SortOrder
     isSettled?: SortOrder
+    extraSettled?: SortOrder
     settlementId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -174188,10 +174244,12 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrder
     idempotencyKey?: SortOrder
+    checkedInAt?: SortOrder
     actualCheckOutTime?: SortOrder
     extraAmountPaise?: SortOrder
     extraOrderId?: SortOrder
     isSettled?: SortOrder
+    extraSettled?: SortOrder
     settlementId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -185656,10 +185714,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     listing: ParkingListingCreateNestedOneWithoutBookingsInput
@@ -185677,10 +185737,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -186761,10 +186823,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
     idempotencyKey?: StringNullableFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
     actualCheckOutTime?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
     extraAmountPaise?: IntNullableFilter<"ParkingBooking"> | number | null
     extraOrderId?: StringNullableFilter<"ParkingBooking"> | string | null
     isSettled?: BoolFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolFilter<"ParkingBooking"> | boolean
     settlementId?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
@@ -205844,10 +205908,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
@@ -205865,10 +205931,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -206965,10 +207033,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
@@ -206987,10 +207057,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -212977,10 +213049,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -213799,10 +213873,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
@@ -213820,10 +213896,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -213840,10 +213918,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -218506,10 +218586,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -218588,10 +218670,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
@@ -218609,10 +218693,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -218629,10 +218715,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -218790,10 +218878,12 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
     actualCheckOutTime?: Date | string | null
     extraAmountPaise?: number | null
     extraOrderId?: string | null
     isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -218822,10 +218912,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
@@ -218844,10 +218936,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -218864,10 +218958,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
     extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

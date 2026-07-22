@@ -1,7 +1,11 @@
 import { Server, Socket } from "socket.io";
 import { Server as HttpServer } from "http";
+import Redis from "ioredis";
+import { createAdapter } from "@socket.io/redis-adapter";
 import { dbInstances } from "@repo/db-customer";
+import { env } from "./config/env";
 import { logger } from "./config/logger";
+import { getRedisStatus } from "./config/redis";
 import { verifyAccess } from "./modules/auth/jwt";
 import type { CustomerPayload } from "./modules/auth/auth.types";
 import { verifyAdminAccess } from "./modules/admin/admin.jwt";
@@ -57,10 +61,47 @@ export function onSocketConnection(handler: ConnectionHandler): void {
     connectionHandlers.push(handler);
 }
 
+/**
+ * Without this, `getIO().to(room).emit(...)` only reaches sockets held in
+ * this process's own in-memory room registry — every `parking_live_update`
+ * (and every other room-targeted emit) would silently stop propagating the
+ * moment this backend runs more than one instance behind a load balancer,
+ * which horizontal scaling requires. Degrades the same way the rest of this
+ * codebase treats optional Redis: single-instance broadcast still works
+ * fine without it, just doesn't cross instances — never a hard failure.
+ */
+function attachRedisAdapter(io: Server): void {
+    if (getRedisStatus() !== "ok") {
+        logger.warn(
+            "Socket.IO Redis adapter disabled (Redis not configured/ready) — room broadcasts " +
+                "will only reach clients connected to this same process. Fine for a single instance; " +
+                "will silently under-deliver real-time updates the moment this runs as >1 replica.",
+        );
+        return;
+    }
+    try {
+        // Deliberately NOT `getRedis().duplicate()`: the shared app client is
+        // tuned to fail fast (enableOfflineQueue: false, lazyConnect: true) for
+        // its other uses (OTP store, etc.), but a `.duplicate()` inherits those
+        // options — the adapter calls `psubscribe` synchronously on construction,
+        // and a lazy/not-yet-connected client with offline queueing off throws
+        // immediately instead of queuing the command. Independent clients with a
+        // profile suited to a long-lived pub/sub connection avoid that entirely.
+        const pubClient = new Redis(env.REDIS_URL!);
+        const subClient = new Redis(env.REDIS_URL!);
+        io.adapter(createAdapter(pubClient, subClient));
+        logger.info("Socket.IO Redis adapter attached — room broadcasts now propagate across instances");
+    } catch (err) {
+        logger.error({ err }, "Failed to attach Socket.IO Redis adapter — falling back to single-instance broadcast");
+    }
+}
+
 export const initSocket = (httpServer: HttpServer) => {
     io = new Server(httpServer, {
         cors: { origin: "*" }
     });
+
+    attachRedisAdapter(io);
 
     // Verifies the JWT the client sends in the connection handshake
     // (`io(url, { auth: { token, actorType } })`) and stashes the VERIFIED
