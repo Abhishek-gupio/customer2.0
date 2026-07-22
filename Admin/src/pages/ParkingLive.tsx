@@ -1,24 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radio, MapPin, ParkingSquare } from 'lucide-react';
+import { Radio, MapPin, ParkingSquare, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminApi } from '../api/client';
-import type { LiveListingSummary } from '../api/dealerClient';
+import type { LiveListingSummary, Pagination } from '../api/dealerClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+
+const PAGE_SIZE = 20;
 
 export default function ParkingLive() {
   const navigate = useNavigate();
   const [listings, setListings] = useState<LiveListingSummary[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    adminApi.listParkingLiveListings().then((res) => {
+    setLoading(true);
+    adminApi.listParkingLiveListings({ page, limit: PAGE_SIZE }).then((res) => {
       setLoading(false);
-      if (res.success) setListings(res.data);
-      else setError(res.error.message);
+      if (res.success) {
+        setListings(res.data.data);
+        setPagination(res.data.pagination);
+      } else setError(res.error.message);
     });
-  }, []);
+  }, [page]);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col space-y-6">
@@ -34,48 +41,73 @@ export default function ParkingLive() {
       ) : listings.length === 0 ? (
         <EmptyState icon={<ParkingSquare className="h-6 w-6" />} title="No listings yet" description="Live status will show up here once dealers add listings." />
       ) : (
-        <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Radio className="h-4 w-4 text-emerald-400 animate-pulse" />
-              All listings
-            </CardTitle>
-            <CardDescription>{listings.length} total</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 min-h-0 overflow-y-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 bg-[#0c0c0e]">
-                <tr className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/60">
-                  <th className="px-5 py-3">Listing</th>
-                  <th className="px-5 py-3">Dealer</th>
-                  <th className="px-5 py-3">App bookings</th>
-                  <th className="px-5 py-3">Walk-ins</th>
-                  <th className="px-5 py-3">Total here</th>
-                </tr>
-              </thead>
-              <tbody>
-                {listings.map((l) => (
-                  <tr
-                    key={l.listingId}
-                    className="border-b border-white/[0.05] cursor-pointer hover:bg-white/[0.03]"
-                    onClick={() => navigate(`/parking-live/${l.listingId}`)}
-                  >
-                    <td className="px-5 py-4 text-sm font-medium">{l.listingName}</td>
-                    <td className="px-5 py-4 text-sm text-white/70">
-                      <span className="flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-white/30" />
-                        {l.dealerName} · {l.city}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-white/70">{l.appCount}</td>
-                    <td className="px-5 py-4 text-sm text-white/70">{l.walkInCount}</td>
-                    <td className="px-5 py-4 text-sm font-bold text-[var(--accent)]">{l.appCount + l.walkInCount}</td>
+        <>
+          <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Radio className="h-4 w-4 text-emerald-400 animate-pulse" />
+                All listings
+              </CardTitle>
+              <CardDescription>{pagination?.total ?? listings.length} total</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 min-h-0 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-[#0c0c0e]">
+                  <tr className="border-b border-white/[0.07] text-xs font-semibold uppercase tracking-wide text-white/60">
+                    <th className="px-5 py-3">Listing</th>
+                    <th className="px-5 py-3">Dealer</th>
+                    <th className="px-5 py-3">App bookings</th>
+                    <th className="px-5 py-3">Walk-ins</th>
+                    <th className="px-5 py-3">Total here</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+                </thead>
+                <tbody>
+                  {listings.map((l) => (
+                    <tr
+                      key={l.listingId}
+                      className="border-b border-white/[0.05] cursor-pointer hover:bg-white/[0.03]"
+                      onClick={() => navigate(`/parking-live/${l.listingId}`)}
+                    >
+                      <td className="px-5 py-4 text-sm font-medium">{l.listingName}</td>
+                      <td className="px-5 py-4 text-sm text-white/70">
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-white/30" />
+                          {l.dealerName} · {l.city}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-white/70">{l.appCount}</td>
+                      <td className="px-5 py-4 text-sm text-white/70">{l.walkInCount}</td>
+                      <td className="px-5 py-4 text-sm font-bold text-[var(--accent)]">{l.appCount + l.walkInCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-medium text-white/40">
+                Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="flex items-center gap-1 rounded-xl border border-white/[0.08] px-3 py-2 text-xs font-bold text-white/70 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" /> Prev
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                  disabled={page >= pagination.totalPages}
+                  className="flex items-center gap-1 rounded-xl border border-white/[0.08] px-3 py-2 text-xs font-bold text-white/70 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  Next <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

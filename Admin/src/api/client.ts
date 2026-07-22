@@ -222,7 +222,10 @@ export const adminApi = {
       method: 'PATCH',
       body: JSON.stringify({ commissionRate }),
     }),
-  listParkingLiveListings: () => api<LiveListingSummary[]>('/v1/parking/admin/live-listings'),
+  listParkingLiveListings: (params?: { page?: number; limit?: number }) =>
+    api<{ data: LiveListingSummary[]; pagination: Pagination }>(
+      `/v1/parking/admin/live-listings?page=${params?.page ?? 1}&limit=${params?.limit ?? 20}`,
+    ),
   getParkingListingLiveStatus: (listingId: string) =>
     api<ListingLiveStatus>(`/v1/parking/admin/listings/${listingId}/live`),
   getParkingWalkInHistory: (listingId: string, params?: { page?: number; limit?: number }) =>

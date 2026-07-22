@@ -116,13 +116,44 @@ async function findCoveringSlotWindow(listingId: string, date: Date, startHour: 
 }
 
 /** True if `err` is a Prisma unique-constraint violation (P2002) on the given field. */
+/**
+ * This project's Prisma client runs in driver-adapter mode (@prisma/adapter-pg),
+ * which — verified empirically, not assumed — puts the actual violated-field
+ * list under `meta.driverAdapterError.cause.constraint.fields`, NOT the
+ * classic top-level `meta.target` this function used to check exclusively.
+ * That meant it never matched anything in practice: every P2002 on
+ * idempotencyKey fell through to a bare rethrow instead of the graceful
+ * "find and return the winning booking" recovery path it exists for. Both
+ * shapes are checked now so this keeps working if that ever changes back.
+ */
 function isUniqueConstraintOn(err: unknown, field: string): boolean {
   if (!err || typeof err !== "object") return false;
   const code = "code" in err ? String((err as { code: unknown }).code) : "";
   if (code !== "P2002") return false;
-  const target = (err as { meta?: { target?: unknown } }).meta?.target;
-  const targets = Array.isArray(target) ? target : typeof target === "string" ? [target] : [];
-  return targets.includes(field);
+  const meta = (err as { meta?: any }).meta;
+  const driverFields: unknown = meta?.driverAdapterError?.cause?.constraint?.fields;
+  const target = meta?.target;
+  const candidates = [
+    ...(Array.isArray(driverFields) ? driverFields : []),
+    ...(Array.isArray(target) ? target : typeof target === "string" ? [target] : []),
+  ];
+  // Driver-adapter field names come back double-quoted, e.g. `"idempotencyKey"`.
+  return candidates.some((c) => typeof c === "string" && c.replace(/"/g, "") === field);
+}
+
+/**
+ * Same idea as isUniqueConstraintOn, but for a unique constraint that's a
+ * plain named database index (e.g. one created by hand-written migration
+ * SQL, not a Prisma-schema-level `@unique`) — those report via
+ * `constraint.index` rather than `constraint.fields`.
+ */
+function isUniqueConstraintOnIndex(err: unknown, indexName: string): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = "code" in err ? String((err as { code: unknown }).code) : "";
+  if (code !== "P2002") return false;
+  const meta = (err as { meta?: any }).meta;
+  const index: unknown = meta?.driverAdapterError?.cause?.constraint?.index;
+  return index === indexName;
 }
 
 /** Atomic check-and-increment — Prisma's filter DSL can't compare two columns of the same row. */
@@ -295,6 +326,46 @@ async function buildBookingsSearchClauses(listInput?: BookingsListInput): Promis
   }
 
   return clauses;
+}
+
+/**
+ * Live-occupancy counts (app bookings + walk-ins currently parked) for a set
+ * of listings, in exactly 2 queries total regardless of how many listings
+ * are passed in — used by every "list of listings with a live count" screen
+ * (dealer's, employee's, and the platform-wide admin one), which previously
+ * each called the full getListingLiveStatus (itself 3-4 queries, including
+ * joined customer/vehicle/employee data this summary never uses) once PER
+ * LISTING via Promise.all — a 20-listing dealer fired ~60-80 concurrent
+ * queries for one dashboard load, and the admin variant did the same
+ * unbounded fan-out across every listing on the entire platform.
+ */
+async function countLiveOccupancyByListing<T extends { id: string }>(
+  listings: T[],
+): Promise<Array<T & { appCount: number; walkInCount: number }>> {
+  const listingIds = listings.map((l) => l.id);
+  if (listingIds.length === 0) return [];
+
+  const [bookingCounts, walkInCounts] = await Promise.all([
+    dbInstances.parkingBooking.groupBy({
+      by: ["listingId"],
+      where: { listingId: { in: listingIds }, status: "CONFIRMED", actualCheckOutTime: null },
+      _count: { _all: true },
+    }),
+    dbInstances.parkingWalkIn.groupBy({
+      by: ["listingId"],
+      where: { listingId: { in: listingIds }, exitedAt: null },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const appCountByListing = new Map(bookingCounts.map((b) => [b.listingId, b._count._all]));
+  const walkInCountByListing = new Map(walkInCounts.map((w) => [w.listingId, w._count._all]));
+
+  return listings.map((l) => ({
+    ...l,
+    appCount: appCountByListing.get(l.id) ?? 0,
+    walkInCount: walkInCountByListing.get(l.id) ?? 0,
+  }));
 }
 
 async function expireAbandonedBookingsForSlotWindow(slotWindowId: string): Promise<void> {
@@ -499,6 +570,30 @@ export const parkingService = {
           where: { idempotencyKey: input.idempotencyKey },
         });
         if (winner) {
+          return { booking: winner, payment: await paymentsService.getCheckoutInfo(winner.orderId) };
+        }
+      } else if (isUniqueConstraintOnIndex(err, "ParkingBooking_active_slot_unique_idx")) {
+        // Same idea, for the other race this function guards against: two
+        // genuinely concurrent requests for the same customer+listing+time
+        // both passed the earlier SELECT-based existingForSameSlot check
+        // before either had committed. That partial unique index (see
+        // schema.prisma's comment on ParkingBooking) is the real backstop —
+        // whichever request loses this race gets the winner's booking back
+        // instead of a raw 500.
+        await releaseCapacity(slotWindow.id);
+        const winner = await dbInstances.parkingBooking.findFirst({
+          where: {
+            customerId,
+            listingId: listing.id,
+            startTime: input.startTime,
+            endTime: input.endTime,
+            status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
+          },
+        });
+        if (winner) {
+          if (winner.status === "CONFIRMED") {
+            throw AppError.conflict("You've already booked this slot — check My Bookings to view it.");
+          }
           return { booking: winner, payment: await paymentsService.getCheckoutInfo(winner.orderId) };
         }
       } else {
@@ -994,6 +1089,10 @@ export const parkingService = {
         vehicleNumber: w.vehicleNumber,
         amountPaise: w.amountPaise,
         paymentMethod: w.paymentMethod,
+        // CASH is confirmed the moment it's handed over; ONLINE only once the
+        // payment.link.paid webhook actually fired. Revenue totals must key
+        // off this, not raw paymentMethod presence — see checkOutWalkIn.
+        paymentConfirmed: w.paymentMethod === "CASH" || !!w.onlinePaymentConfirmedAt,
         employeeName: w.employee?.name ?? null,
         enteredAt: w.enteredAt,
         exitedAt: w.exitedAt,
@@ -1012,18 +1111,14 @@ export const parkingService = {
 
   /** Every one of the dealer's listings, with just the live counts — click through for detail. */
   async dealerListLiveListings(dealerId: string) {
-    const listings = await dbInstances.parkingListing.findMany({ where: { dealerId } });
-    return Promise.all(
-      listings.map(async (l) => {
-        const status = await this.getListingLiveStatus(l.id);
-        return {
-          listingId: l.id,
-          listingName: l.name,
-          appCount: status.bookings.length,
-          walkInCount: status.walkIns.length,
-        };
-      }),
-    );
+    const listings = await dbInstances.parkingListing.findMany({ where: { dealerId }, select: { id: true, name: true } });
+    const withCounts = await countLiveOccupancyByListing(listings);
+    return withCounts.map((l) => ({
+      listingId: l.id,
+      listingName: l.name,
+      appCount: l.appCount,
+      walkInCount: l.walkInCount,
+    }));
   },
 
   async listDealerBookings(dealerId: string, listInput?: BookingsListInput) {
@@ -1431,18 +1526,17 @@ export const parkingService = {
   async employeeListLiveListings(employeeId: string) {
     const listingIds = await this.resolveEmployeeListingIds(employeeId);
     if (listingIds.length === 0) return [];
-    const listings = await dbInstances.parkingListing.findMany({ where: { id: { in: listingIds } } });
-    return Promise.all(
-      listings.map(async (l) => {
-        const status = await this.getListingLiveStatus(l.id);
-        return {
-          listingId: l.id,
-          listingName: l.name,
-          appCount: status.bookings.length,
-          walkInCount: status.walkIns.length,
-        };
-      }),
-    );
+    const listings = await dbInstances.parkingListing.findMany({
+      where: { id: { in: listingIds } },
+      select: { id: true, name: true },
+    });
+    const withCounts = await countLiveOccupancyByListing(listings);
+    return withCounts.map((l) => ({
+      listingId: l.id,
+      listingName: l.name,
+      appCount: l.appCount,
+      walkInCount: l.walkInCount,
+    }));
   },
 
   async employeeGetListingWalkInHistory(employeeId: string, listingId: string, pageInput?: PaginationInput) {
@@ -1551,24 +1645,30 @@ export const parkingAdminLiveService = {
     return parkingService.getListingWalkInHistory(listingId, pageInput);
   },
 
-  async listAllLiveListings() {
-    const listings = await dbInstances.parkingListing.findMany({
-      include: { dealer: { select: { ownerName: true } } },
-      orderBy: { createdAt: "desc" },
-    });
-    return Promise.all(
-      listings.map(async (l) => {
-        const status = await parkingService.getListingLiveStatus(l.id);
-        return {
-          listingId: l.id,
-          listingName: l.name,
-          city: l.city,
-          dealerName: l.dealer.ownerName,
-          appCount: status.bookings.length,
-          walkInCount: status.walkIns.length,
-        };
+  async listAllLiveListings(pageInput?: PaginationInput) {
+    const page = pageInput?.page ?? 1;
+    const limit = pageInput?.limit ?? 20;
+    const [listings, total] = await Promise.all([
+      dbInstances.parkingListing.findMany({
+        include: { dealer: { select: { ownerName: true } } },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
       }),
-    );
+      dbInstances.parkingListing.count(),
+    ]);
+    const withCounts = await countLiveOccupancyByListing(listings);
+    return {
+      data: withCounts.map((l) => ({
+        listingId: l.id,
+        listingName: l.name,
+        city: l.city,
+        dealerName: l.dealer.ownerName,
+        appCount: l.appCount,
+        walkInCount: l.walkInCount,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   },
 };
 
@@ -1697,5 +1797,21 @@ paymentEvents.onFailed(async (event) => {
     });
   } catch (err) {
     logger.error({ err, event }, "Failed to notify customer after overstay payment failure");
+  }
+});
+
+// A walk-in's QR-code payment actually clearing — this is the one place a
+// live update on this event was missing entirely, so the dealer's QR modal
+// had no way to learn the customer actually paid and never auto-closed it.
+paymentEvents.onWalkInPaymentConfirmed(async (event) => {
+  try {
+    const walkIn = await dbInstances.parkingWalkIn.findUnique({
+      where: { id: event.walkInId },
+      include: { listing: { select: { dealerId: true } } },
+    });
+    if (!walkIn) return;
+    emitParkingLiveUpdate(walkIn.listing.dealerId, walkIn.listingId);
+  } catch (err) {
+    logger.error({ err, event }, "Failed to emit live update after walk-in payment confirmed");
   }
 });

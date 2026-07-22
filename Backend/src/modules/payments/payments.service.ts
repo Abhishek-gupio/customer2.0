@@ -367,12 +367,16 @@ export const paymentsService = {
     if (eventType === "payment.link.paid") {
       const notes = payload?.payload?.payment_link?.entity?.notes;
       if (notes?.purpose === "PARKING_WALKIN_PAYMENT" && notes?.walkInId) {
-        // Mark walkin as paid ONLINE
+        // This is the moment the money actually arrived — checkOutWalkIn only
+        // *creates* the payment link and sets the customer's chosen method,
+        // it can't know whether they ever actually paid it. Only this webhook
+        // firing means the walk-in is real, collected revenue.
         await dbInstances.parkingWalkIn.update({
           where: { id: notes.walkInId },
-          data: { paymentMethod: "ONLINE" },
+          data: { paymentMethod: "ONLINE", onlinePaymentConfirmedAt: new Date() },
         });
         logger.info({ walkInId: notes.walkInId }, "WalkIn Payment Link Paid");
+        paymentEvents.emitWalkInPaymentConfirmed({ walkInId: notes.walkInId });
       }
       return;
     }

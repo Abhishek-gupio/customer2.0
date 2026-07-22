@@ -4,6 +4,7 @@ import { authMiddleware } from "../../middlewares/auth.middleware";
 import { adminAuthMiddleware, requireAdminRole } from "../../middlewares/admin.middleware";
 import { dealerAuthMiddleware } from "../../middlewares/parking-dealer.middleware";
 import { parkingEmployeeAuthMiddleware } from "../../middlewares/parking-employee.middleware";
+import { bookingCreateLimiter } from "../../middlewares/booking-rate-limit.middleware";
 import { parkingController } from "./parking.controller";
 import { dealerController } from "./dealer.controller";
 import { employeeController } from "./employee.controller";
@@ -77,7 +78,7 @@ router.get("/listings/:id", parkingController.getListing);
 router.get("/listings/:id/availability", parkingController.getAvailability);
 
 router.use(authMiddleware);
-router.post("/bookings", parkingController.createBooking);
+router.post("/bookings", bookingCreateLimiter, parkingController.createBooking);
 router.get("/bookings", parkingController.listMyBookings);
 router.post("/bookings/:id/cancel", parkingController.cancelBooking);
 router.get("/bookings/:id/extra-payment", parkingController.getExtraPayment);

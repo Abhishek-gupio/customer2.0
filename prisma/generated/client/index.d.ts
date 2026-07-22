@@ -114757,6 +114757,7 @@ export namespace Prisma {
     vehicleNumber: string | null
     amountPaise: number | null
     paymentMethod: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt: Date | null
     employeeId: string | null
     enteredAt: Date | null
     exitedAt: Date | null
@@ -114772,6 +114773,7 @@ export namespace Prisma {
     vehicleNumber: string | null
     amountPaise: number | null
     paymentMethod: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt: Date | null
     employeeId: string | null
     enteredAt: Date | null
     exitedAt: Date | null
@@ -114787,6 +114789,7 @@ export namespace Prisma {
     vehicleNumber: number
     amountPaise: number
     paymentMethod: number
+    onlinePaymentConfirmedAt: number
     employeeId: number
     enteredAt: number
     exitedAt: number
@@ -114812,6 +114815,7 @@ export namespace Prisma {
     vehicleNumber?: true
     amountPaise?: true
     paymentMethod?: true
+    onlinePaymentConfirmedAt?: true
     employeeId?: true
     enteredAt?: true
     exitedAt?: true
@@ -114827,6 +114831,7 @@ export namespace Prisma {
     vehicleNumber?: true
     amountPaise?: true
     paymentMethod?: true
+    onlinePaymentConfirmedAt?: true
     employeeId?: true
     enteredAt?: true
     exitedAt?: true
@@ -114842,6 +114847,7 @@ export namespace Prisma {
     vehicleNumber?: true
     amountPaise?: true
     paymentMethod?: true
+    onlinePaymentConfirmedAt?: true
     employeeId?: true
     enteredAt?: true
     exitedAt?: true
@@ -114944,6 +114950,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise: number
     paymentMethod: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt: Date | null
     employeeId: string | null
     enteredAt: Date
     exitedAt: Date | null
@@ -114978,6 +114985,7 @@ export namespace Prisma {
     vehicleNumber?: boolean
     amountPaise?: boolean
     paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
     employeeId?: boolean
     enteredAt?: boolean
     exitedAt?: boolean
@@ -114997,6 +115005,7 @@ export namespace Prisma {
     vehicleNumber?: boolean
     amountPaise?: boolean
     paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
     employeeId?: boolean
     enteredAt?: boolean
     exitedAt?: boolean
@@ -115016,6 +115025,7 @@ export namespace Prisma {
     vehicleNumber?: boolean
     amountPaise?: boolean
     paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
     employeeId?: boolean
     enteredAt?: boolean
     exitedAt?: boolean
@@ -115035,6 +115045,7 @@ export namespace Prisma {
     vehicleNumber?: boolean
     amountPaise?: boolean
     paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
     employeeId?: boolean
     enteredAt?: boolean
     exitedAt?: boolean
@@ -115042,7 +115053,7 @@ export namespace Prisma {
     settlementId?: boolean
   }
 
-  export type ParkingWalkInOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "listingId" | "slotWindowId" | "vehicleType" | "vehicleNumber" | "amountPaise" | "paymentMethod" | "employeeId" | "enteredAt" | "exitedAt" | "isSettled" | "settlementId", ExtArgs["result"]["parkingWalkIn"]>
+  export type ParkingWalkInOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "listingId" | "slotWindowId" | "vehicleType" | "vehicleNumber" | "amountPaise" | "paymentMethod" | "onlinePaymentConfirmedAt" | "employeeId" | "enteredAt" | "exitedAt" | "isSettled" | "settlementId", ExtArgs["result"]["parkingWalkIn"]>
   export type ParkingWalkInInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
     slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
@@ -115078,6 +115089,7 @@ export namespace Prisma {
       vehicleNumber: string
       amountPaise: number
       paymentMethod: $Enums.ParkingPaymentMethod | null
+      onlinePaymentConfirmedAt: Date | null
       employeeId: string | null
       enteredAt: Date
       exitedAt: Date | null
@@ -115517,6 +115529,7 @@ export namespace Prisma {
     readonly vehicleNumber: FieldRef<"ParkingWalkIn", 'String'>
     readonly amountPaise: FieldRef<"ParkingWalkIn", 'Int'>
     readonly paymentMethod: FieldRef<"ParkingWalkIn", 'ParkingPaymentMethod'>
+    readonly onlinePaymentConfirmedAt: FieldRef<"ParkingWalkIn", 'DateTime'>
     readonly employeeId: FieldRef<"ParkingWalkIn", 'String'>
     readonly enteredAt: FieldRef<"ParkingWalkIn", 'DateTime'>
     readonly exitedAt: FieldRef<"ParkingWalkIn", 'DateTime'>
@@ -145631,6 +145644,7 @@ export namespace Prisma {
     vehicleNumber: 'vehicleNumber',
     amountPaise: 'amountPaise',
     paymentMethod: 'paymentMethod',
+    onlinePaymentConfirmedAt: 'onlinePaymentConfirmedAt',
     employeeId: 'employeeId',
     enteredAt: 'enteredAt',
     exitedAt: 'exitedAt',
@@ -154890,6 +154904,7 @@ export namespace Prisma {
     vehicleNumber?: StringFilter<"ParkingWalkIn"> | string
     amountPaise?: IntFilter<"ParkingWalkIn"> | number
     paymentMethod?: EnumParkingPaymentMethodNullableFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
     employeeId?: StringNullableFilter<"ParkingWalkIn"> | string | null
     enteredAt?: DateTimeFilter<"ParkingWalkIn"> | Date | string
     exitedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
@@ -154909,6 +154924,7 @@ export namespace Prisma {
     vehicleNumber?: SortOrder
     amountPaise?: SortOrder
     paymentMethod?: SortOrderInput | SortOrder
+    onlinePaymentConfirmedAt?: SortOrderInput | SortOrder
     employeeId?: SortOrderInput | SortOrder
     enteredAt?: SortOrder
     exitedAt?: SortOrderInput | SortOrder
@@ -154931,6 +154947,7 @@ export namespace Prisma {
     vehicleNumber?: StringFilter<"ParkingWalkIn"> | string
     amountPaise?: IntFilter<"ParkingWalkIn"> | number
     paymentMethod?: EnumParkingPaymentMethodNullableFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
     employeeId?: StringNullableFilter<"ParkingWalkIn"> | string | null
     enteredAt?: DateTimeFilter<"ParkingWalkIn"> | Date | string
     exitedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
@@ -154950,6 +154967,7 @@ export namespace Prisma {
     vehicleNumber?: SortOrder
     amountPaise?: SortOrder
     paymentMethod?: SortOrderInput | SortOrder
+    onlinePaymentConfirmedAt?: SortOrderInput | SortOrder
     employeeId?: SortOrderInput | SortOrder
     enteredAt?: SortOrder
     exitedAt?: SortOrderInput | SortOrder
@@ -154973,6 +154991,7 @@ export namespace Prisma {
     vehicleNumber?: StringWithAggregatesFilter<"ParkingWalkIn"> | string
     amountPaise?: IntWithAggregatesFilter<"ParkingWalkIn"> | number
     paymentMethod?: EnumParkingPaymentMethodNullableWithAggregatesFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableWithAggregatesFilter<"ParkingWalkIn"> | Date | string | null
     employeeId?: StringNullableWithAggregatesFilter<"ParkingWalkIn"> | string | null
     enteredAt?: DateTimeWithAggregatesFilter<"ParkingWalkIn"> | Date | string
     exitedAt?: DateTimeNullableWithAggregatesFilter<"ParkingWalkIn"> | Date | string | null
@@ -165630,6 +165649,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -165647,6 +165667,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -165660,6 +165681,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -165677,6 +165699,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -165692,6 +165715,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -165705,6 +165729,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -165718,6 +165743,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -174109,6 +174135,7 @@ export namespace Prisma {
     vehicleNumber?: SortOrder
     amountPaise?: SortOrder
     paymentMethod?: SortOrder
+    onlinePaymentConfirmedAt?: SortOrder
     employeeId?: SortOrder
     enteredAt?: SortOrder
     exitedAt?: SortOrder
@@ -174128,6 +174155,7 @@ export namespace Prisma {
     vehicleNumber?: SortOrder
     amountPaise?: SortOrder
     paymentMethod?: SortOrder
+    onlinePaymentConfirmedAt?: SortOrder
     employeeId?: SortOrder
     enteredAt?: SortOrder
     exitedAt?: SortOrder
@@ -174143,6 +174171,7 @@ export namespace Prisma {
     vehicleNumber?: SortOrder
     amountPaise?: SortOrder
     paymentMethod?: SortOrder
+    onlinePaymentConfirmedAt?: SortOrder
     employeeId?: SortOrder
     enteredAt?: SortOrder
     exitedAt?: SortOrder
@@ -205514,6 +205543,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -205530,6 +205560,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -205634,6 +205665,7 @@ export namespace Prisma {
     vehicleNumber?: StringFilter<"ParkingWalkIn"> | string
     amountPaise?: IntFilter<"ParkingWalkIn"> | number
     paymentMethod?: EnumParkingPaymentMethodNullableFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
     employeeId?: StringNullableFilter<"ParkingWalkIn"> | string | null
     enteredAt?: DateTimeFilter<"ParkingWalkIn"> | Date | string
     exitedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
@@ -205984,6 +206016,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -205999,6 +206032,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -206227,6 +206261,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -206242,6 +206277,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -207083,6 +207119,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -207099,6 +207136,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -218492,6 +218530,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
     isSettled?: boolean
@@ -218510,6 +218549,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -218526,6 +218566,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -218540,6 +218581,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -218612,6 +218654,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -218756,6 +218799,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -218771,6 +218815,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -218785,6 +218830,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -218817,6 +218863,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -218830,6 +218877,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -218845,6 +218893,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -218859,6 +218908,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -218896,6 +218946,7 @@ export namespace Prisma {
     vehicleNumber: string
     amountPaise?: number
     paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
     employeeId?: string | null
     enteredAt?: Date | string
     exitedAt?: Date | string | null
@@ -218974,6 +219025,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isSettled?: BoolFieldUpdateOperationsInput | boolean
@@ -218990,6 +219042,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -219004,6 +219057,7 @@ export namespace Prisma {
     vehicleNumber?: StringFieldUpdateOperationsInput | string
     amountPaise?: IntFieldUpdateOperationsInput | number
     paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
     exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

@@ -66,8 +66,9 @@ export const adminDealerController = {
     success(res, updated);
   }),
 
-  listLiveListings: asyncHandler(async (_req: Request, res: Response) => {
-    const listings = await parkingAdminLiveService.listAllLiveListings();
+  listLiveListings: asyncHandler(async (req: Request, res: Response) => {
+    const query = parseQuery(req, paginationSchema);
+    const listings = await parkingAdminLiveService.listAllLiveListings(query);
     success(res, listings);
   }),
 

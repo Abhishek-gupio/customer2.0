@@ -97,6 +97,9 @@ export interface WalkInHistoryEntry {
   vehicleNumber: string;
   amountPaise: number;
   paymentMethod: ParkingPaymentMethod | null;
+  // CASH is confirmed instantly; ONLINE only once Razorpay's webhook actually
+  // fires — revenue totals must key off this, not paymentMethod's presence.
+  paymentConfirmed: boolean;
   employeeName: string | null;
   enteredAt: string;
   exitedAt: string;

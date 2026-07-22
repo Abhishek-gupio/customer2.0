@@ -26,6 +26,17 @@ export interface RefundProcessedEvent {
 }
 
 /**
+ * Walk-in QR/UPI payments go through Razorpay Payment Links, not the
+ * CustomerOrder-based Orders flow the events above model — there's no
+ * orderId/customerId/amountPaise to report, just "this walk-in's payment
+ * link was paid." Kept separate rather than shoehorned into
+ * PaymentSucceededEvent's shape.
+ */
+export interface WalkInPaymentConfirmedEvent {
+  walkInId: string;
+}
+
+/**
  * In-process pub/sub so payments.service.ts never imports a specific
  * feature's service (parking, accessories, ...). Each feature module
  * subscribes and filters on `purpose` — this is the only coupling between
@@ -51,6 +62,13 @@ class PaymentEvents extends EventEmitter {
   }
   onRefundProcessed(listener: (event: RefundProcessedEvent) => void): void {
     this.on("refund.processed", listener);
+  }
+
+  emitWalkInPaymentConfirmed(event: WalkInPaymentConfirmedEvent): void {
+    this.emit("walkin.payment.confirmed", event);
+  }
+  onWalkInPaymentConfirmed(listener: (event: WalkInPaymentConfirmedEvent) => void): void {
+    this.on("walkin.payment.confirmed", listener);
   }
 }
 

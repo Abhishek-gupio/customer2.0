@@ -1315,6 +1315,7 @@ exports.Prisma.ParkingWalkInScalarFieldEnum = {
   vehicleNumber: 'vehicleNumber',
   amountPaise: 'amountPaise',
   paymentMethod: 'paymentMethod',
+  onlinePaymentConfirmedAt: 'onlinePaymentConfirmedAt',
   employeeId: 'employeeId',
   enteredAt: 'enteredAt',
   exitedAt: 'exitedAt',

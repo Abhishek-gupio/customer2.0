@@ -107,6 +107,17 @@ export function ParkingLiveStatusView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingId, historyPage]);
 
+  // Auto-close the QR modal once the walk-in it's showing actually shows up
+  // paid in a refetch (triggered by the realtime socket event the
+  // payment.link.paid webhook now emits) — previously nothing ever told this
+  // modal the customer had paid; the dealer had to notice and dismiss it
+  // manually, with no signal either way.
+  useEffect(() => {
+    if (!qrModalData) return;
+    const paid = history.find((h) => h.id === qrModalData.walkInId)?.paymentConfirmed;
+    if (paid) setQrModalData(null);
+  }, [history, qrModalData]);
+
   useParkingLiveSocket(socketToken ?? null, socketActorType ?? 'dealer', load);
 
   const handleCheckIn = async (e: React.FormEvent) => {
@@ -162,9 +173,13 @@ export function ParkingLiveStatusView({
     return new Date(h.exitedAt).toDateString() === todayStr;
   });
 
-  const walkInRevenueToday = todayHistory.reduce((sum, h) => sum + h.amountPaise, 0) / 100;
-  const cashRevenue = todayHistory.filter((h) => h.paymentMethod === 'CASH').reduce((sum, h) => sum + h.amountPaise, 0) / 100;
-  const onlineRevenue = todayHistory.filter((h) => h.paymentMethod === 'ONLINE').reduce((sum, h) => sum + h.amountPaise, 0) / 100;
+  // Revenue must only count payments that actually cleared — an ONLINE walk-in
+  // whose QR code the customer never scanned isn't collected money yet, even
+  // though checkout already happened and the bay is free (see checkOutWalkIn).
+  const confirmedTodayHistory = todayHistory.filter((h) => h.paymentConfirmed);
+  const walkInRevenueToday = confirmedTodayHistory.reduce((sum, h) => sum + h.amountPaise, 0) / 100;
+  const cashRevenue = confirmedTodayHistory.filter((h) => h.paymentMethod === 'CASH').reduce((sum, h) => sum + h.amountPaise, 0) / 100;
+  const onlineRevenue = confirmedTodayHistory.filter((h) => h.paymentMethod === 'ONLINE').reduce((sum, h) => sum + h.amountPaise, 0) / 100;
   const departuresToday = todayHistory.length;
 
   return (

@@ -2342,18 +2342,24 @@ model ParkingSlotWindow {
 /// charge depends on how long it actually stayed, same reasoning as
 /// ParkingBooking's overstay charge.
 model ParkingWalkIn {
-  id            String                @id @default(cuid())
-  listingId     String
-  slotWindowId  String
-  vehicleType   ParkingVehicleType
-  vehicleNumber String
-  amountPaise   Int                   @default(0)
-  paymentMethod ParkingPaymentMethod?
-  employeeId    String? // null if the dealer checked the vehicle in directly
-  enteredAt     DateTime              @default(now())
-  exitedAt      DateTime?
-  isSettled     Boolean               @default(false)
-  settlementId  String?
+  id                       String                @id @default(cuid())
+  listingId                String
+  slotWindowId             String
+  vehicleType              ParkingVehicleType
+  vehicleNumber            String
+  amountPaise              Int                   @default(0)
+  paymentMethod            ParkingPaymentMethod?
+  // paymentMethod is set the instant checkout happens — it's "how they chose
+  // to pay", not proof the money actually arrived. CASH is confirmed the
+  // moment it's handed over, but ONLINE only becomes real revenue once
+  // Razorpay's payment.link.paid webhook fires; until then this stays null
+  // and the walk-in must not be counted as collected revenue.
+  onlinePaymentConfirmedAt DateTime?
+  employeeId               String? // null if the dealer checked the vehicle in directly
+  enteredAt                DateTime              @default(now())
+  exitedAt                 DateTime?
+  isSettled                Boolean               @default(false)
+  settlementId             String?
 
   listing    ParkingListing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
   slotWindow ParkingSlotWindow  @relation(fields: [slotWindowId], references: [id], onDelete: Cascade)
@@ -2414,6 +2420,14 @@ model ParkingBooking {
   @@index([status, createdAt])
   @@index([status, endTime]) // autoNoShowBookings' sweep — keeps that query an index scan, not a table scan, at any booking volume
   @@index([isSettled])
+  // Also enforced at the DB level: a partial unique index on
+  // (customerId, listingId, startTime, endTime) WHERE status IN
+  // (PENDING_PAYMENT, CONFIRMED) — see migration
+  // 20260722010000_add_parking_booking_active_slot_unique. Prisma's `@@unique`
+  // can't express a WHERE-scoped (partial) unique constraint, so this one
+  // exists only as hand-written SQL and won't show up as a field attribute
+  // here; createBooking's pre-insert SELECT check is a UX nicety for the
+  // common case, this index is what actually closes the concurrent-race gap.
   @@schema("customer")
 }
 
