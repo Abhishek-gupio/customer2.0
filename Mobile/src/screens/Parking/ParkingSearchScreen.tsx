@@ -87,9 +87,17 @@ export default function ParkingSearchScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Local-only "joined this session" signal — the search response has no
+  // persisted waitlist-membership field, so this doesn't survive a reload,
+  // but it's enough to let someone leave a waitlist they just joined
+  // without navigating away first.
+  const [waitlistedIds, setWaitlistedIds] = useState<Set<string>>(new Set());
 
   const dateOptions = Array.from({ length: 7 }, (_, i) => addDays(new Date(), i));
   const endHour = Math.min(startHour + durationHours, 24);
+  // Only today's chip has a floor above 0 — past hours today can't be booked,
+  // but every hour is fair game on a future date.
+  const minStartHour = isSameDay(selectedDate, new Date()) ? new Date().getHours() : 0;
 
   useEffect(() => {
     (async () => {
@@ -129,6 +137,13 @@ export default function ParkingSearchScreen() {
     if (destinationCoords) runSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [destinationCoords, selectedDate, startHour, durationHours]);
+
+  // Switching to today after picking an hour that's now in the past (or the
+  // clock ticking past the selected hour) needs to bump startHour back up.
+  useEffect(() => {
+    if (startHour < minStartHour) setStartHour(minStartHour);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [minStartHour]);
 
   const onChangeQuery = (text: string) => {
     setQuery(text);
@@ -176,6 +191,13 @@ export default function ParkingSearchScreen() {
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
         <Text style={styles.headerTitle}>Find Parking</Text>
+        <TouchableOpacity
+          style={styles.myBookingsBtn}
+          onPress={() => navigation.navigate('MyParkingBookings')}
+        >
+          <IconMC name="calendar-check-outline" size={wp(4.2)} color="#FFBF00" />
+          <Text style={styles.myBookingsBtnText}>My Bookings</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchWrap}>
@@ -221,7 +243,12 @@ export default function ParkingSearchScreen() {
               <TouchableOpacity
                 key={d.toISOString()}
                 style={[styles.dateChip, active && styles.dateChipActive]}
-                onPress={() => setSelectedDate(d)}
+                onPress={() => {
+                  setSelectedDate(d);
+                  if (isSameDay(d, new Date())) {
+                    setStartHour((h) => Math.max(h, new Date().getHours()));
+                  }
+                }}
               >
                 <Text style={[styles.dateChipDay, active && styles.dateChipTextActive]}>{format(d, 'EEE')}</Text>
                 <Text style={[styles.dateChipNum, active && styles.dateChipTextActive]}>{format(d, 'd')}</Text>
@@ -234,8 +261,12 @@ export default function ParkingSearchScreen() {
           <View style={styles.stepperCard}>
             <Text style={styles.stepperLabel}>Start time</Text>
             <View style={styles.stepperControls}>
-              <TouchableOpacity style={styles.stepperBtn} onPress={() => setStartHour((h) => Math.max(0, h - 1))}>
-                <IconMC name="minus" size={wp(4)} color="#fff" />
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => setStartHour((h) => Math.max(minStartHour, h - 1))}
+                disabled={startHour <= minStartHour}
+              >
+                <IconMC name="minus" size={wp(4)} color={startHour <= minStartHour ? '#555' : '#fff'} />
               </TouchableOpacity>
               <Text style={styles.stepperValue}>{HOUR_LABELS[startHour]}</Text>
               <TouchableOpacity style={styles.stepperBtn} onPress={() => setStartHour((h) => Math.min(23, h + 1))}>
@@ -303,14 +334,34 @@ export default function ParkingSearchScreen() {
                   </View>
                 </View>
                 {r.soldOut ? (
-                  <TouchableOpacity
-                    style={styles.waitlistBtn}
-                    onPress={() => parkingService.joinWaitlist(r.id, selectedDate).then(() =>
-                      Alert.alert('Added to waitlist', "We'll notify you if a spot opens up."))
-                    }
-                  >
-                    <Text style={styles.waitlistBtnText}>Notify Me</Text>
-                  </TouchableOpacity>
+                  waitlistedIds.has(r.id) ? (
+                    <TouchableOpacity
+                      style={[styles.waitlistBtn, styles.waitlistBtnJoined]}
+                      onPress={() =>
+                        parkingService.leaveWaitlist(r.id, selectedDate).then(() =>
+                          setWaitlistedIds((prev) => {
+                            const next = new Set(prev);
+                            next.delete(r.id);
+                            return next;
+                          }),
+                        )
+                      }
+                    >
+                      <Text style={styles.waitlistBtnTextJoined}>On Waitlist ✕</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.waitlistBtn}
+                      onPress={() =>
+                        parkingService.joinWaitlist(r.id, selectedDate).then(() => {
+                          setWaitlistedIds((prev) => new Set(prev).add(r.id));
+                          Alert.alert('Added to waitlist', "We'll notify you if a spot opens up.");
+                        })
+                      }
+                    >
+                      <Text style={styles.waitlistBtnText}>Notify Me</Text>
+                    </TouchableOpacity>
+                  )
                 ) : (
                   <View style={styles.availableBadge}>
                     <Text style={styles.availableBadgeText}>{r.availableSpots} left</Text>
@@ -320,7 +371,9 @@ export default function ParkingSearchScreen() {
             ))
           )}
         </View>
-        <View style={{ height: hp(4) }} />
+        {/* The bottom tab bar floats via position:'absolute' (MainBottomTabs.tsx) and
+            doesn't reserve layout space, so the last result card needs to clear it manually. */}
+        <View style={{ height: (Platform.OS === 'ios' ? hp(10) : hp(8)) + hp(2) }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -339,6 +392,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
     color: '#fff',
     marginLeft: wp(3),
+    flex: 1,
+  },
+  myBookingsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.2),
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  myBookingsBtnText: {
+    color: '#FFBF00',
+    fontFamily: 'Outfit-Medium',
+    fontSize: wp(2.9),
   },
   searchWrap: {
     paddingHorizontal: wp(5),
@@ -460,5 +529,11 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1),
     borderRadius: 10,
   },
+  waitlistBtnJoined: {
+    backgroundColor: '#333',
+    borderWidth: 1,
+    borderColor: '#FFBF00',
+  },
   waitlistBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(2.9) },
+  waitlistBtnTextJoined: { color: '#FFBF00', fontFamily: 'Outfit-Bold', fontSize: wp(2.9) },
 });

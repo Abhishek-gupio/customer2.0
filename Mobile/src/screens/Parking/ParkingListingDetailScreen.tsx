@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -13,6 +13,7 @@ import BackButton from '../../components/BackButton';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { parkingService, type ParkingListingDetail } from '../../services/parkingService';
 import { openRazorpayCheckout, paymentsService } from '../../services/paymentsService';
+import { vehicleService, type Vehicle } from '../../services/vehicleService';
 import { useParkingStore } from '../../store/parkingStore';
 
 function hourLabel(h: number): string {
@@ -45,6 +46,10 @@ export default function ParkingListingDetailScreen() {
   // network error reuses the same key instead of risking a second booking.
   const [idempotencyKey] = useState(generateIdempotencyKey);
 
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -58,12 +63,31 @@ export default function ParkingListingDetailScreen() {
     })();
   }, [listingId]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await vehicleService.getVehicles();
+        setVehicles(list);
+        const primary = list.find((v) => v.isPrimary) ?? list[0];
+        if (primary) setSelectedVehicleId(primary.id);
+      } catch {
+        // Non-fatal — the "select vehicle" tile will just show the empty state.
+      }
+    })();
+  }, []);
+
+  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) ?? null;
+
   const hours = Math.max(1, endHour - startHour);
   const totalPaise = listing ? hours * listing.hourlyRatePaise : 0;
   const selectedDate = new Date(date);
 
   const handleBookAndPay = async () => {
     if (!listing) return;
+    if (!selectedVehicleId) {
+      Alert.alert('Select a vehicle', 'Choose which vehicle you\'re parking before booking.');
+      return;
+    }
     setBooking(true);
     try {
       const startTime = new Date(selectedDate);
@@ -73,6 +97,7 @@ export default function ParkingListingDetailScreen() {
 
       const { booking: newBooking, payment } = await parkingService.createBooking({
         listingId: listing.id,
+        vehicleId: selectedVehicleId,
         startTime,
         endTime,
         idempotencyKey,
@@ -117,7 +142,18 @@ export default function ParkingListingDetailScreen() {
         );
       }
     } catch (e: any) {
-      Alert.alert('Could not book this slot', e?.message || 'Please try a different time window.');
+      if (e?.message?.includes('already booked this slot')) {
+        Alert.alert(
+          "You're all set",
+          "You've already booked this slot — no need to book it again.",
+          [
+            { text: 'View my bookings', onPress: () => navigation.navigate('MyParkingBookings') },
+            { text: 'OK', style: 'cancel' },
+          ],
+        );
+      } else {
+        Alert.alert('Could not book this slot', e?.message || 'Please try a different time window.');
+      }
     } finally {
       setBooking(false);
     }
@@ -172,6 +208,25 @@ export default function ParkingListingDetailScreen() {
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Vehicle</Text>
+          <TouchableOpacity
+            style={styles.vehicleSelector}
+            activeOpacity={0.8}
+            onPress={() => setShowVehiclePicker(true)}
+          >
+            <IconMC name="car" size={wp(4.5)} color="#FFBF00" />
+            <Text style={styles.vehicleSelectorText} numberOfLines={1}>
+              {selectedVehicle
+                ? `${selectedVehicle.registrationNumber}${selectedVehicle.isPrimary ? ' (Primary)' : ''}`
+                : vehicles.length === 0
+                  ? 'No vehicles in your garage'
+                  : 'Select which vehicle you\'re parking'}
+            </Text>
+            <IconMC name="chevron-right" size={wp(5)} color="#555" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
           <Text style={styles.sectionTitle}>Your booking</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Date</Text>
@@ -201,11 +256,49 @@ export default function ParkingListingDetailScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.bookBtn} activeOpacity={0.85} onPress={handleBookAndPay} disabled={booking}>
+        <TouchableOpacity
+          style={[styles.bookBtn, !selectedVehicleId && styles.bookBtnDisabled]}
+          activeOpacity={0.85}
+          onPress={handleBookAndPay}
+          disabled={booking || !selectedVehicleId}
+        >
           <Text style={styles.bookBtnText}>{booking ? 'Processing…' : `Book & Pay ₹${(totalPaise / 100).toFixed(0)}`}</Text>
         </TouchableOpacity>
       </View>
       <LoadingSpinner visible={booking} />
+
+      <Modal transparent visible={showVehiclePicker} animationType="fade" onRequestClose={() => setShowVehiclePicker(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowVehiclePicker(false)}>
+          <Pressable style={styles.vehiclePanel} onPress={() => {}}>
+            <Text style={styles.vehiclePanelTitle}>Select vehicle</Text>
+            {vehicles.length === 0 ? (
+              <Text style={styles.vehiclePanelEmpty}>
+                Add a vehicle to your garage first to book parking.
+              </Text>
+            ) : (
+              vehicles.map((v) => (
+                <TouchableOpacity
+                  key={v.id}
+                  style={styles.vehicleOption}
+                  onPress={() => {
+                    setSelectedVehicleId(v.id);
+                    setShowVehiclePicker(false);
+                  }}
+                >
+                  <IconMC
+                    name={v.id === selectedVehicleId ? 'radiobox-marked' : 'radiobox-blank'}
+                    size={wp(5)}
+                    color={v.id === selectedVehicleId ? '#FFBF00' : '#555'}
+                  />
+                  <Text style={styles.vehicleOptionText}>
+                    {v.registrationNumber} {v.isPrimary ? '(Primary)' : ''}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -259,7 +352,13 @@ const styles = StyleSheet.create({
   },
   infoBannerText: { flex: 1, color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3), lineHeight: wp(4.3) },
   footer: {
-    padding: wp(5),
+    paddingHorizontal: wp(5),
+    paddingTop: wp(5),
+    // The bottom tab bar floats via position:'absolute' (MainBottomTabs.tsx),
+    // so it doesn't reserve its own layout space — every screen nested inside
+    // the Services tab has to pad for it manually or the tab bar covers
+    // whatever's anchored at the bottom (here, the Book & Pay button).
+    paddingBottom: (Platform.OS === 'ios' ? hp(10) : hp(8)) + wp(5),
     borderTopWidth: 1,
     borderTopColor: '#1a1a1a',
   },
@@ -269,5 +368,41 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.8),
     alignItems: 'center',
   },
+  bookBtnDisabled: { backgroundColor: '#4a4020' },
   bookBtnText: { color: '#111', fontFamily: 'Outfit-Black', fontSize: wp(4) },
+  vehicleSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2.5),
+    backgroundColor: '#181818',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    paddingVertical: hp(1.6),
+    paddingHorizontal: wp(3.5),
+  },
+  vehicleSelectorText: { flex: 1, color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.5) },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  vehiclePanel: {
+    backgroundColor: '#141414',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: wp(5),
+    paddingBottom: hp(4),
+  },
+  vehiclePanelTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.2), marginBottom: hp(1.5) },
+  vehiclePanelEmpty: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.4), paddingVertical: hp(2) },
+  vehicleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    paddingVertical: hp(1.6),
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+  },
+  vehicleOptionText: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.6) },
 });

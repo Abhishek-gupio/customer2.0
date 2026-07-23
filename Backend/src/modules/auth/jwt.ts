@@ -19,20 +19,35 @@ const accessExpirySec = parseExpiry(ACCESS_EXPIRY);
 const refreshExpirySec = parseExpiry(REFRESH_EXPIRY);
 
 export function signAccess(payload: CustomerPayload): string {
-  return jwt.sign(payload, SECRET, { expiresIn: accessExpirySec });
+  return jwt.sign({ ...payload, kind: "customer" }, SECRET, { expiresIn: accessExpirySec });
 }
 
 export function signRefresh(payload: CustomerPayload): string {
-  return jwt.sign(payload, SECRET, { expiresIn: refreshExpirySec });
+  return jwt.sign({ ...payload, kind: "customer" }, SECRET, { expiresIn: refreshExpirySec });
+}
+
+/**
+ * `kind` is only checked when present so tokens issued before this claim
+ * existed (short-lived — 15min access, 30d refresh) keep working until they
+ * naturally expire, rather than forcing every logged-in customer out. Once
+ * absent-kind tokens have rolled off, this becomes a hard requirement in
+ * practice with no code change needed.
+ */
+function assertKind(decoded: jwt.JwtPayload & { kind?: string }, expected: string): void {
+  if (decoded.kind !== undefined && decoded.kind !== expected) {
+    throw new Error(`Token kind mismatch: expected ${expected}, got ${decoded.kind}`);
+  }
 }
 
 export function verifyAccess(token: string): CustomerPayload {
-  const decoded = jwt.verify(token, SECRET) as jwt.JwtPayload & CustomerPayload;
+  const decoded = jwt.verify(token, SECRET) as jwt.JwtPayload & CustomerPayload & { kind?: string };
+  assertKind(decoded, "customer");
   return { id: decoded.id, phoneNumber: decoded.phoneNumber };
 }
 
 export function verifyRefresh(token: string): CustomerPayload {
-  const decoded = jwt.verify(token, SECRET) as jwt.JwtPayload & CustomerPayload;
+  const decoded = jwt.verify(token, SECRET) as jwt.JwtPayload & CustomerPayload & { kind?: string };
+  assertKind(decoded, "customer");
   return { id: decoded.id, phoneNumber: decoded.phoneNumber };
 }
 

@@ -123,6 +123,17 @@ export const schedulerService = {
     );
     logger.info("Scheduled: Release Abandoned Parking Bookings (*/5 * * * *)");
 
+    // E2. Auto no-show CONFIRMED parking bookings past their grace period (Every 5 min)
+    await queues.maintenance.add(
+      "auto-noshow-parking-bookings",
+      {},
+      {
+        repeat: { pattern: "*/5 * * * *" },
+        jobId: "auto-noshow-parking-bookings-job",
+      },
+    );
+    logger.info("Scheduled: Auto No-Show Parking Bookings (*/5 * * * *)");
+
     // F. Auto-close idle vehicle-message conversations (Every day at 3:00 AM)
     await queues.maintenance.add(
       "auto-close-idle-conversations",
@@ -155,6 +166,17 @@ export const schedulerService = {
       },
     );
     logger.info("Scheduled: Car Wash Daily Reminder (30 9 * * *)");
+
+    // I. Daily parking dealer settlement generation (Every day at 11:30 PM)
+    await queues.maintenance.add(
+      "generate-daily-parking-settlements",
+      {},
+      {
+        repeat: { pattern: "30 23 * * *" },
+        jobId: "generate-daily-parking-settlements-job",
+      },
+    );
+    logger.info("Scheduled: Daily Parking Settlement Generation (30 23 * * *)");
 
     logger.info("Scheduler Service Initialized with BullMQ 🐂");
   },

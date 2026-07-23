@@ -1255,8 +1255,26 @@ exports.Prisma.ParkingDealerScalarFieldEnum = {
   email: 'email',
   passwordHash: 'passwordHash',
   status: 'status',
+  commissionRate: 'commissionRate',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingEmployeeScalarFieldEnum = {
+  id: 'id',
+  dealerId: 'dealerId',
+  name: 'name',
+  phoneNumber: 'phoneNumber',
+  passwordHash: 'passwordHash',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ParkingEmployeeListingScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  listingId: 'listingId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ParkingListingScalarFieldEnum = {
@@ -1284,7 +1302,25 @@ exports.Prisma.ParkingSlotWindowScalarFieldEnum = {
   startHour: 'startHour',
   endHour: 'endHour',
   capacity: 'capacity',
-  booked: 'booked'
+  booked: 'booked',
+  manualOccupiedCars: 'manualOccupiedCars',
+  manualOccupiedBikes: 'manualOccupiedBikes'
+};
+
+exports.Prisma.ParkingWalkInScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  slotWindowId: 'slotWindowId',
+  vehicleType: 'vehicleType',
+  vehicleNumber: 'vehicleNumber',
+  amountPaise: 'amountPaise',
+  paymentMethod: 'paymentMethod',
+  onlinePaymentConfirmedAt: 'onlinePaymentConfirmedAt',
+  employeeId: 'employeeId',
+  enteredAt: 'enteredAt',
+  exitedAt: 'exitedAt',
+  isSettled: 'isSettled',
+  settlementId: 'settlementId'
 };
 
 exports.Prisma.ParkingBookingScalarFieldEnum = {
@@ -1299,6 +1335,25 @@ exports.Prisma.ParkingBookingScalarFieldEnum = {
   status: 'status',
   orderId: 'orderId',
   idempotencyKey: 'idempotencyKey',
+  checkedInAt: 'checkedInAt',
+  actualCheckOutTime: 'actualCheckOutTime',
+  extraAmountPaise: 'extraAmountPaise',
+  extraOrderId: 'extraOrderId',
+  isSettled: 'isSettled',
+  extraSettled: 'extraSettled',
+  settlementId: 'settlementId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ParkingSettlementScalarFieldEnum = {
+  id: 'id',
+  dealerId: 'dealerId',
+  date: 'date',
+  totalCollected: 'totalCollected',
+  gupioCommission: 'gupioCommission',
+  amountSettled: 'amountSettled',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1965,6 +2020,8 @@ exports.ApprovalStatus = exports.$Enums.ApprovalStatus = {
 
 exports.PaymentPurpose = exports.$Enums.PaymentPurpose = {
   PARKING_BOOKING: 'PARKING_BOOKING',
+  PARKING_EXTRA_CHARGE: 'PARKING_EXTRA_CHARGE',
+  PARKING_WALKIN_PAYMENT: 'PARKING_WALKIN_PAYMENT',
   CAR_WASH_BOOKING: 'CAR_WASH_BOOKING'
 };
 
@@ -2000,12 +2057,27 @@ exports.ListingStatus = exports.$Enums.ListingStatus = {
   REMOVED: 'REMOVED'
 };
 
+exports.ParkingVehicleType = exports.$Enums.ParkingVehicleType = {
+  CAR: 'CAR',
+  BIKE: 'BIKE'
+};
+
+exports.ParkingPaymentMethod = exports.$Enums.ParkingPaymentMethod = {
+  CASH: 'CASH',
+  ONLINE: 'ONLINE'
+};
+
 exports.BookingStatus = exports.$Enums.BookingStatus = {
   PENDING_PAYMENT: 'PENDING_PAYMENT',
   CONFIRMED: 'CONFIRMED',
   CANCELLED: 'CANCELLED',
   COMPLETED: 'COMPLETED',
   NO_SHOW: 'NO_SHOW'
+};
+
+exports.SettlementStatus = exports.$Enums.SettlementStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED'
 };
 
 exports.ConversationCategory = exports.$Enums.ConversationCategory = {
@@ -2219,9 +2291,13 @@ exports.Prisma.ModelName = {
   CustomerRefund: 'CustomerRefund',
   WebhookEvent: 'WebhookEvent',
   ParkingDealer: 'ParkingDealer',
+  ParkingEmployee: 'ParkingEmployee',
+  ParkingEmployeeListing: 'ParkingEmployeeListing',
   ParkingListing: 'ParkingListing',
   ParkingSlotWindow: 'ParkingSlotWindow',
+  ParkingWalkIn: 'ParkingWalkIn',
   ParkingBooking: 'ParkingBooking',
+  ParkingSettlement: 'ParkingSettlement',
   ParkingWaitlistEntry: 'ParkingWaitlistEntry',
   VehicleQrToken: 'VehicleQrToken',
   Conversation: 'Conversation',

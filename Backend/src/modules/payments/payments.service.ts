@@ -1,6 +1,6 @@
 import Razorpay from "razorpay";
 import { validatePaymentVerification } from "razorpay/dist/utils/razorpay-utils";
-import { dbInstances } from "@repo/db-customer";
+import { dbInstances, type PaymentPurpose } from "@repo/db-customer";
 import { env } from "../../config/env";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
@@ -25,7 +25,16 @@ function getRazorpayClient(): Razorpay {
 }
 
 export const paymentsService = {
-  async createOrder(customerId: string, input: CreateOrderInput) {
+  /**
+   * `purpose` here is the full Prisma `PaymentPurpose` enum, not just
+   * `CreateOrderInput['purpose']` — the latter is deliberately the narrower
+   * set the public `POST /v1/payments/orders` endpoint's zod schema accepts
+   * from a customer directly. Purposes only ever created server-side (e.g.
+   * PARKING_EXTRA_CHARGE from parking.service.ts's checkoutBooking) must stay
+   * out of that public enum, or a customer could self-create one for an
+   * arbitrary referenceId/amount via the generic endpoint.
+   */
+  async createOrder(customerId: string, input: Omit<CreateOrderInput, "purpose"> & { purpose: PaymentPurpose }) {
     const razorpay = getRazorpayClient();
 
     const order = await dbInstances.customerOrder.create({
@@ -67,6 +76,30 @@ export const paymentsService = {
       currency: updated.currency,
       keyId: env.RAZORPAY_KEY_ID,
     };
+  },
+
+  async createWalkInPaymentLink(walkInId: string, amountPaise: number) {
+    const razorpay = getRazorpayClient();
+    try {
+      // We generate a payment link which creates a short URL that can be shown as a QR.
+      const paymentLink = await razorpay.paymentLink.create({
+        amount: amountPaise,
+        currency: "INR",
+        accept_partial: false,
+        description: "Parking Walk-in Payment",
+        reference_id: walkInId,
+        customer: { name: "Walk-in Customer", contact: "9999999999" },
+        notes: { purpose: "PARKING_WALKIN_PAYMENT", walkInId },
+      } as any);
+
+      return {
+        paymentLinkId: paymentLink.id,
+        shortUrl: paymentLink.short_url,
+      };
+    } catch (err) {
+      logger.error({ err, walkInId }, "Razorpay payment link creation failed");
+      throw AppError.internal("Could not create payment link");
+    }
   },
 
   async getOrder(customerId: string, orderId: string) {
@@ -148,9 +181,15 @@ export const paymentsService = {
   },
 
   /**
-   * Optional immediate client-side check for a snappy UI. The webhook
-   * (processWebhook below) remains the source of truth for order status —
-   * this never flips `CustomerOrder.status` itself.
+   * Client-side check, called right after Razorpay checkout succeeds. The
+   * webhook (processWebhook below) is still the source of truth and will
+   * arrive independently, but this reconciles `CustomerOrder`/booking status
+   * synchronously too — otherwise a delayed or misconfigured webhook (e.g. a
+   * dashboard webhook URL not reachable from this environment) leaves a
+   * booking stuck showing "pending payment" indefinitely despite a captured
+   * payment. Reuses the same order-transition path as the webhook so a
+   * later webhook delivery for the same payment is a no-op (order already
+   * PAID) rather than a double-confirmation.
    */
   async verifyOrder(customerId: string, orderId: string, input: VerifyOrderInput) {
     const order = await this.getOrder(customerId, orderId);
@@ -167,17 +206,51 @@ export const paymentsService = {
       env.RAZORPAY_KEY_SECRET,
     );
 
-    await dbInstances.customerPaymentAttempt.create({
-      data: {
+    // upsert, not create: this same razorpayPaymentId may already have a row
+    // from the webhook (which usually wins the race) or from the client
+    // retrying this call — either way it's the same attempt, not a new one.
+    await dbInstances.customerPaymentAttempt.upsert({
+      where: { razorpayPaymentId: input.razorpayPaymentId },
+      create: {
         orderId: order.id,
         razorpayPaymentId: input.razorpayPaymentId,
         razorpaySignature: input.razorpaySignature,
         status: valid ? "SUCCESS" : "FAILED",
         paidAt: valid ? new Date() : undefined,
       },
+      update: {
+        status: valid ? "SUCCESS" : "FAILED",
+        paidAt: valid ? new Date() : undefined,
+      },
     });
 
+    if (valid && order.status !== "PAID") {
+      await this.markOrderPaid(order.id);
+    }
+
     return { valid };
+  },
+
+  /**
+   * Shared by the webhook's payment.captured/order.paid handling and
+   * verifyOrder's client-side fallback — both are ways of learning "this
+   * order's payment succeeded" and must converge on the same transition.
+   */
+  async markOrderPaid(orderId: string): Promise<void> {
+    const order = await dbInstances.customerOrder.updateMany({
+      where: { id: orderId, status: { not: "PAID" } },
+      data: { status: "PAID" },
+    });
+    if (order.count === 0) return; // already marked PAID by a concurrent caller
+
+    const updated = await dbInstances.customerOrder.findUniqueOrThrow({ where: { id: orderId } });
+    paymentEvents.emitSucceeded({
+      purpose: updated.purpose,
+      referenceId: updated.referenceId,
+      orderId: updated.id,
+      customerId: updated.customerId,
+      amountPaise: updated.amountPaise,
+    });
   },
 
   /** Called in-process by other modules (e.g. Parking cancellation) — never over HTTP. */
@@ -291,6 +364,23 @@ export const paymentsService = {
   },
 
   async applyWebhookEvent(eventType: string, payload: any): Promise<void> {
+    if (eventType === "payment.link.paid") {
+      const notes = payload?.payload?.payment_link?.entity?.notes;
+      if (notes?.purpose === "PARKING_WALKIN_PAYMENT" && notes?.walkInId) {
+        // This is the moment the money actually arrived — checkOutWalkIn only
+        // *creates* the payment link and sets the customer's chosen method,
+        // it can't know whether they ever actually paid it. Only this webhook
+        // firing means the walk-in is real, collected revenue.
+        await dbInstances.parkingWalkIn.update({
+          where: { id: notes.walkInId },
+          data: { paymentMethod: "ONLINE", onlinePaymentConfirmedAt: new Date() },
+        });
+        logger.info({ walkInId: notes.walkInId }, "WalkIn Payment Link Paid");
+        paymentEvents.emitWalkInPaymentConfirmed({ walkInId: notes.walkInId });
+      }
+      return;
+    }
+
     if (eventType === "payment.captured" || eventType === "order.paid") {
       const paymentEntity = payload?.payload?.payment?.entity;
       const razorpayOrderId: string | undefined = paymentEntity?.order_id;
@@ -303,7 +393,7 @@ export const paymentsService = {
         logger.warn({ razorpayOrderId }, "Webhook: no matching CustomerOrder");
         return;
       }
-      if (order.status === "PAID") return; // already handled by an earlier delivery
+      if (order.status === "PAID") return; // already handled by an earlier delivery, or by verifyOrder's fallback
 
       await dbInstances.customerPaymentAttempt.upsert({
         where: { razorpayPaymentId: paymentEntity.id },
@@ -316,18 +406,7 @@ export const paymentsService = {
         },
         update: { status: "SUCCESS", paidAt: new Date() },
       });
-      await dbInstances.customerOrder.update({
-        where: { id: order.id },
-        data: { status: "PAID" },
-      });
-
-      paymentEvents.emitSucceeded({
-        purpose: order.purpose,
-        referenceId: order.referenceId,
-        orderId: order.id,
-        customerId: order.customerId,
-        amountPaise: order.amountPaise,
-      });
+      await this.markOrderPaid(order.id);
       return;
     }
 

@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
+import { connectAndJoin } from '../services/realtime/socketClient';
+import { useParkingStore } from '../store/parkingStore';
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
@@ -166,6 +170,31 @@ const TripDetailScreen = withErrorBoundary(TripDetail, {
 
 export function RootNavigator() {
   const [overlayResetKey, setOverlayResetKey] = React.useState(0);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const notifyBookingChanged = useParkingStore((s) => s.notifyBookingChanged);
+
+  // A booking-confirmed push/notification was previously wired all the way
+  // to the server emitting it and to a real FCM push landing on the device —
+  // but nothing on the client ever turned that into a UI update. The
+  // in-app copy right after checkout literally promises "it'll show as
+  // Confirmed in a few seconds"; without this, the only thing that actually
+  // delivered on that promise was the customer manually pulling to refresh.
+  // Wired here (not inside a specific screen) so it fires regardless of
+  // which screen the customer is looking at when the webhook lands —
+  // notably including the payment-processing screen itself.
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    const socket = connectAndJoin(user.id);
+    const onNewNotification = (notif: { type?: string; metadata?: { bookingId?: string } }) => {
+      if (notif?.type === 'PARKING') {
+        notifyBookingChanged(notif.metadata?.bookingId);
+      }
+    };
+    socket.on('new_notification', onNewNotification);
+    return () => {
+      socket.off('new_notification', onNewNotification);
+    };
+  }, [isAuthenticated, user?.id, notifyBookingChanged]);
 
   return (
     <View style={{ flex: 1 }}>

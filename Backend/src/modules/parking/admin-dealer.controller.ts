@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { success } from "../../utils/apiResponse";
 import { AppError } from "../../utils/AppError";
-import { parkingService } from "./parking.service";
-import { adminCreateDealerSchema } from "./parking.validators";
+import { parkingService, parkingAdminLiveService } from "./parking.service";
+import { adminCreateDealerSchema, paginationSchema } from "./parking.validators";
 
 function parseBody<T>(
   req: Request,
@@ -16,6 +16,24 @@ function parseBody<T>(
   },
 ): T {
   const result = schema.safeParse(req.body);
+  if (!result.success && result.error) {
+    const first = result.error.issues[0]?.message ?? "Validation failed";
+    throw AppError.badRequest(first);
+  }
+  return result.data!;
+}
+
+function parseQuery<T>(
+  req: Request,
+  schema: {
+    safeParse: (v: unknown) => {
+      success: boolean;
+      data?: T;
+      error?: { issues: { message: string }[] };
+    };
+  },
+): T {
+  const result = schema.safeParse(req.query);
   if (!result.success && result.error) {
     const first = result.error.issues[0]?.message ?? "Validation failed";
     throw AppError.badRequest(first);
@@ -38,5 +56,30 @@ export const adminDealerController = {
   list: asyncHandler(async (_req: Request, res: Response) => {
     const dealers = await parkingService.adminListDealers();
     success(res, dealers);
+  }),
+
+  updateCommission: asyncHandler(async (req: Request, res: Response) => {
+    const dealerId = req.params.id as string;
+    const { commissionRate } = req.body;
+    if (typeof commissionRate !== 'number') throw AppError.badRequest("commissionRate must be a number");
+    const updated = await parkingService.adminUpdateDealerCommission(dealerId, commissionRate);
+    success(res, updated);
+  }),
+
+  listLiveListings: asyncHandler(async (req: Request, res: Response) => {
+    const query = parseQuery(req, paginationSchema);
+    const listings = await parkingAdminLiveService.listAllLiveListings(query);
+    success(res, listings);
+  }),
+
+  getListingLiveStatus: asyncHandler(async (req: Request, res: Response) => {
+    const status = await parkingAdminLiveService.getListingLiveStatus(req.params.id as string);
+    success(res, status);
+  }),
+
+  getListingWalkInHistory: asyncHandler(async (req: Request, res: Response) => {
+    const query = parseQuery(req, paginationSchema);
+    const history = await parkingAdminLiveService.getListingWalkInHistory(req.params.id as string, query);
+    success(res, history);
   }),
 };

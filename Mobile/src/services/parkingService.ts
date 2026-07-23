@@ -45,7 +45,25 @@ export interface ParkingBooking {
   status: ParkingBookingStatus;
   orderId: string | null;
   createdAt: string;
+  actualCheckOutTime: string | null;
+  extraAmountPaise: number | null;
+  extraOrderId: string | null;
   listing?: { name: string; addressLine: string; city: string };
+}
+
+export interface ExtraPaymentInfo {
+  orderId: string;
+  razorpayOrderId: string;
+  amountPaise: number;
+  currency: string;
+  keyId: string;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface CreateBookingResult {
@@ -97,7 +115,7 @@ export const parkingService = {
 
   createBooking: async (input: {
     listingId: string;
-    vehicleId?: string;
+    vehicleId: string;
     startTime: Date;
     endTime: Date;
     /** Same key across retries of one "Book & Pay" tap prevents a double booking on network retry. */
@@ -113,10 +131,16 @@ export const parkingService = {
     return unwrap<CreateBookingResult>(res);
   },
 
-  listMyBookings: async (): Promise<ParkingBooking[]> => {
-    const res = await api.get<{ data?: ParkingBooking[] }>('/v1/parking/bookings');
-    const data = unwrap<ParkingBooking[]>(res);
-    return Array.isArray(data) ? data : [];
+  listMyBookings: async (params?: { page?: number; limit?: number }): Promise<{ data: ParkingBooking[]; pagination: Pagination }> => {
+    const query = new URLSearchParams({
+      page: String(params?.page ?? 1),
+      limit: String(params?.limit ?? 20),
+    });
+    const res = await api.get<{ data?: { data: ParkingBooking[]; pagination: Pagination } }>(
+      `/v1/parking/bookings?${query.toString()}`,
+    );
+    const result = unwrap<{ data: ParkingBooking[]; pagination: Pagination }>(res);
+    return result?.data ? result : { data: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 0 } };
   },
 
   cancelBooking: async (bookingId: string): Promise<ParkingBooking> => {
@@ -126,5 +150,15 @@ export const parkingService = {
 
   joinWaitlist: async (listingId: string, desiredDate: Date): Promise<void> => {
     await api.post('/v1/parking/waitlist', { listingId, desiredDate: desiredDate.toISOString() });
+  },
+
+  leaveWaitlist: async (listingId: string, desiredDate: Date): Promise<void> => {
+    const query = new URLSearchParams({ listingId, desiredDate: desiredDate.toISOString() });
+    await api.delete(`/v1/parking/waitlist?${query.toString()}`);
+  },
+
+  getExtraPayment: async (bookingId: string): Promise<ExtraPaymentInfo> => {
+    const res = await api.get<{ data?: ExtraPaymentInfo }>(`/v1/parking/bookings/${bookingId}/extra-payment`);
+    return unwrap<ExtraPaymentInfo>(res);
   },
 };

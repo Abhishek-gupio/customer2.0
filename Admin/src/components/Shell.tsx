@@ -11,6 +11,7 @@ import {
   UserCircle,
   Shield,
   ParkingSquare,
+  Radio,
   Receipt,
   MessageSquare,
   Droplets,
@@ -32,7 +33,8 @@ const navItems = [
   { to: '/vehicles', label: 'Vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
   { to: '/car-library', label: 'Car Library', icon: LibraryBig, roles: ['ADMIN'], color: 'violet' },
   { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'red' },
-  { to: '/parking-dealers', label: 'Parking Dealers', icon: ParkingSquare, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
+  { to: '/parking-dealers', label: 'Parking Dealers', icon: ParkingSquare, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue', sectionStart: 'Parking' },
+  { to: '/parking-live', label: 'Parking Live', icon: Radio, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'emerald' },
   { to: '/wash-partners', label: 'Wash Partners', icon: Droplets, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'blue' },
   { to: '/payments-ops', label: 'Payments', icon: Receipt, roles: ['SUPER_ADMIN', 'ADMIN'], color: 'emerald' },
   { to: '/messaging', label: 'Vehicle Messaging', icon: MessageSquare, roles: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'], color: 'violet' },
@@ -224,8 +226,13 @@ export default function Shell() {
               const styles = colorStyles[item.color];
 
               return (
-                <NavLink
-                  key={item.to}
+                <React.Fragment key={item.to}>
+                  {item.sectionStart && !isCollapsed && (
+                    <div className="px-4 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/25">
+                      {item.sectionStart}
+                    </div>
+                  )}
+                  <NavLink
                   to={item.to}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
@@ -288,6 +295,7 @@ export default function Shell() {
                     </div>
                   )}
                 </NavLink>
+                </React.Fragment>
               );
             })}
         </nav>

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { adminAuthMiddleware, requireAdminRole } from "../../middlewares/admin.middleware";
+import { paymentOrderCreateLimiter } from "../../middlewares/booking-rate-limit.middleware";
 import { paymentsController } from "./payments.controller";
 import { razorpayWebhookController } from "./razorpay.webhook.controller";
 import { adminPaymentsController } from "./admin-payments.controller";
@@ -20,7 +21,7 @@ router.use("/admin", adminRouter);
 
 router.use(authMiddleware);
 
-router.post("/orders", paymentsController.createOrder);
+router.post("/orders", paymentOrderCreateLimiter, paymentsController.createOrder);
 router.get("/orders/:id", paymentsController.getOrder);
 router.post("/orders/:id/verify", paymentsController.verifyOrder);
 router.get("/history", paymentsController.listHistory);

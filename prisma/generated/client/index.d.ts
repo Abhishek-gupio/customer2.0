@@ -421,6 +421,20 @@ export type WebhookEvent = $Result.DefaultSelection<Prisma.$WebhookEventPayload>
  */
 export type ParkingDealer = $Result.DefaultSelection<Prisma.$ParkingDealerPayload>
 /**
+ * Model ParkingEmployee
+ * A dealer's on-ground staff — read-only on listings, can only mark
+ * walk-in occupancy (occupy/vacate a bay). Distinct from the dealer's own
+ * login, which manages listings/rates/availability.
+ */
+export type ParkingEmployee = $Result.DefaultSelection<Prisma.$ParkingEmployeePayload>
+/**
+ * Model ParkingEmployeeListing
+ * Which lot(s) an employee can see/work — an employee with no rows here
+ * isn't assigned anywhere yet (a dealer must assign at least one lot before
+ * the employee can do anything useful in their portal).
+ */
+export type ParkingEmployeeListing = $Result.DefaultSelection<Prisma.$ParkingEmployeeListingPayload>
+/**
  * Model ParkingListing
  * 
  */
@@ -431,10 +445,27 @@ export type ParkingListing = $Result.DefaultSelection<Prisma.$ParkingListingPayl
  */
 export type ParkingSlotWindow = $Result.DefaultSelection<Prisma.$ParkingSlotWindowPayload>
 /**
+ * Model ParkingWalkIn
+ * One walk-in vehicle's stay — the audit-trail counterpart to
+ * ParkingSlotWindow.manualOccupiedCars/Bikes, which stays the source of
+ * truth for atomic capacity checks. This table exists so a dealer/admin can
+ * see *which* vehicle (by number) is parked, who checked it in, and what
+ * was collected — the counters alone can't answer that.
+ * `amountPaise`/`paymentMethod` are set at exit, not entry — a walk-in's
+ * charge depends on how long it actually stayed, same reasoning as
+ * ParkingBooking's overstay charge.
+ */
+export type ParkingWalkIn = $Result.DefaultSelection<Prisma.$ParkingWalkInPayload>
+/**
  * Model ParkingBooking
  * 
  */
 export type ParkingBooking = $Result.DefaultSelection<Prisma.$ParkingBookingPayload>
+/**
+ * Model ParkingSettlement
+ * 
+ */
+export type ParkingSettlement = $Result.DefaultSelection<Prisma.$ParkingSettlementPayload>
 /**
  * Model ParkingWaitlistEntry
  * 
@@ -1125,6 +1156,8 @@ export type VehicleStatus = (typeof VehicleStatus)[keyof typeof VehicleStatus]
 
 export const PaymentPurpose: {
   PARKING_BOOKING: 'PARKING_BOOKING',
+  PARKING_EXTRA_CHARGE: 'PARKING_EXTRA_CHARGE',
+  PARKING_WALKIN_PAYMENT: 'PARKING_WALKIN_PAYMENT',
   CAR_WASH_BOOKING: 'CAR_WASH_BOOKING'
 };
 
@@ -1158,6 +1191,30 @@ export const CustomerRefundStatus: {
 };
 
 export type CustomerRefundStatus = (typeof CustomerRefundStatus)[keyof typeof CustomerRefundStatus]
+
+
+export const ParkingPaymentMethod: {
+  CASH: 'CASH',
+  ONLINE: 'ONLINE'
+};
+
+export type ParkingPaymentMethod = (typeof ParkingPaymentMethod)[keyof typeof ParkingPaymentMethod]
+
+
+export const ParkingVehicleType: {
+  CAR: 'CAR',
+  BIKE: 'BIKE'
+};
+
+export type ParkingVehicleType = (typeof ParkingVehicleType)[keyof typeof ParkingVehicleType]
+
+
+export const SettlementStatus: {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED'
+};
+
+export type SettlementStatus = (typeof SettlementStatus)[keyof typeof SettlementStatus]
 
 
 export const DealerStatus: {
@@ -1601,6 +1658,18 @@ export const PaymentAttemptStatus: typeof $Enums.PaymentAttemptStatus
 export type CustomerRefundStatus = $Enums.CustomerRefundStatus
 
 export const CustomerRefundStatus: typeof $Enums.CustomerRefundStatus
+
+export type ParkingPaymentMethod = $Enums.ParkingPaymentMethod
+
+export const ParkingPaymentMethod: typeof $Enums.ParkingPaymentMethod
+
+export type ParkingVehicleType = $Enums.ParkingVehicleType
+
+export const ParkingVehicleType: typeof $Enums.ParkingVehicleType
+
+export type SettlementStatus = $Enums.SettlementStatus
+
+export const SettlementStatus: typeof $Enums.SettlementStatus
 
 export type DealerStatus = $Enums.DealerStatus
 
@@ -2614,6 +2683,26 @@ export class PrismaClient<
   get parkingDealer(): Prisma.ParkingDealerDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.parkingEmployee`: Exposes CRUD operations for the **ParkingEmployee** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingEmployees
+    * const parkingEmployees = await prisma.parkingEmployee.findMany()
+    * ```
+    */
+  get parkingEmployee(): Prisma.ParkingEmployeeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingEmployeeListing`: Exposes CRUD operations for the **ParkingEmployeeListing** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingEmployeeListings
+    * const parkingEmployeeListings = await prisma.parkingEmployeeListing.findMany()
+    * ```
+    */
+  get parkingEmployeeListing(): Prisma.ParkingEmployeeListingDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.parkingListing`: Exposes CRUD operations for the **ParkingListing** model.
     * Example usage:
     * ```ts
@@ -2634,6 +2723,16 @@ export class PrismaClient<
   get parkingSlotWindow(): Prisma.ParkingSlotWindowDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.parkingWalkIn`: Exposes CRUD operations for the **ParkingWalkIn** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingWalkIns
+    * const parkingWalkIns = await prisma.parkingWalkIn.findMany()
+    * ```
+    */
+  get parkingWalkIn(): Prisma.ParkingWalkInDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.parkingBooking`: Exposes CRUD operations for the **ParkingBooking** model.
     * Example usage:
     * ```ts
@@ -2642,6 +2741,16 @@ export class PrismaClient<
     * ```
     */
   get parkingBooking(): Prisma.ParkingBookingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.parkingSettlement`: Exposes CRUD operations for the **ParkingSettlement** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingSettlements
+    * const parkingSettlements = await prisma.parkingSettlement.findMany()
+    * ```
+    */
+  get parkingSettlement(): Prisma.ParkingSettlementDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.parkingWaitlistEntry`: Exposes CRUD operations for the **ParkingWaitlistEntry** model.
@@ -3377,9 +3486,13 @@ export namespace Prisma {
     CustomerRefund: 'CustomerRefund',
     WebhookEvent: 'WebhookEvent',
     ParkingDealer: 'ParkingDealer',
+    ParkingEmployee: 'ParkingEmployee',
+    ParkingEmployeeListing: 'ParkingEmployeeListing',
     ParkingListing: 'ParkingListing',
     ParkingSlotWindow: 'ParkingSlotWindow',
+    ParkingWalkIn: 'ParkingWalkIn',
     ParkingBooking: 'ParkingBooking',
+    ParkingSettlement: 'ParkingSettlement',
     ParkingWaitlistEntry: 'ParkingWaitlistEntry',
     VehicleQrToken: 'VehicleQrToken',
     Conversation: 'Conversation',
@@ -3417,7 +3530,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingListing" | "parkingSlotWindow" | "parkingBooking" | "parkingWaitlistEntry" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry" | "community" | "communityMembership" | "hashtag" | "post" | "postHashtag" | "comment" | "reaction" | "follow" | "contentReport" | "washPartner" | "washTechnician" | "washCenter" | "washSlot" | "washBooking"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingEmployee" | "parkingEmployeeListing" | "parkingListing" | "parkingSlotWindow" | "parkingWalkIn" | "parkingBooking" | "parkingSettlement" | "parkingWaitlistEntry" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry" | "community" | "communityMembership" | "hashtag" | "post" | "postHashtag" | "comment" | "reaction" | "follow" | "contentReport" | "washPartner" | "washTechnician" | "washCenter" | "washSlot" | "washBooking"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -9415,6 +9528,154 @@ export namespace Prisma {
           }
         }
       }
+      ParkingEmployee: {
+        payload: Prisma.$ParkingEmployeePayload<ExtArgs>
+        fields: Prisma.ParkingEmployeeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingEmployeeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingEmployeeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingEmployeeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingEmployeeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>
+          }
+          findMany: {
+            args: Prisma.ParkingEmployeeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>[]
+          }
+          create: {
+            args: Prisma.ParkingEmployeeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>
+          }
+          createMany: {
+            args: Prisma.ParkingEmployeeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingEmployeeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingEmployeeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>
+          }
+          update: {
+            args: Prisma.ParkingEmployeeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingEmployeeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingEmployeeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingEmployeeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingEmployeeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeePayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingEmployeeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingEmployee>
+          }
+          groupBy: {
+            args: Prisma.ParkingEmployeeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingEmployeeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingEmployeeCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingEmployeeCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingEmployeeListing: {
+        payload: Prisma.$ParkingEmployeeListingPayload<ExtArgs>
+        fields: Prisma.ParkingEmployeeListingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingEmployeeListingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingEmployeeListingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingEmployeeListingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingEmployeeListingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingEmployeeListingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingEmployeeListingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingEmployeeListingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingEmployeeListingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingEmployeeListingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>
+          }
+          update: {
+            args: Prisma.ParkingEmployeeListingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingEmployeeListingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingEmployeeListingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingEmployeeListingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingEmployeeListingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingEmployeeListingPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingEmployeeListingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingEmployeeListing>
+          }
+          groupBy: {
+            args: Prisma.ParkingEmployeeListingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingEmployeeListingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingEmployeeListingCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingEmployeeListingCountAggregateOutputType> | number
+          }
+        }
+      }
       ParkingListing: {
         payload: Prisma.$ParkingListingPayload<ExtArgs>
         fields: Prisma.ParkingListingFieldRefs
@@ -9563,6 +9824,80 @@ export namespace Prisma {
           }
         }
       }
+      ParkingWalkIn: {
+        payload: Prisma.$ParkingWalkInPayload<ExtArgs>
+        fields: Prisma.ParkingWalkInFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingWalkInFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingWalkInFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingWalkInFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingWalkInFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingWalkInFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingWalkInCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingWalkInCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingWalkInCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingWalkInDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>
+          }
+          update: {
+            args: Prisma.ParkingWalkInUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingWalkInDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingWalkInUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingWalkInUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingWalkInUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingWalkInPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingWalkInAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingWalkIn>
+          }
+          groupBy: {
+            args: Prisma.ParkingWalkInGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingWalkInGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingWalkInCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingWalkInCountAggregateOutputType> | number
+          }
+        }
+      }
       ParkingBooking: {
         payload: Prisma.$ParkingBookingPayload<ExtArgs>
         fields: Prisma.ParkingBookingFieldRefs
@@ -9634,6 +9969,80 @@ export namespace Prisma {
           count: {
             args: Prisma.ParkingBookingCountArgs<ExtArgs>
             result: $Utils.Optional<ParkingBookingCountAggregateOutputType> | number
+          }
+        }
+      }
+      ParkingSettlement: {
+        payload: Prisma.$ParkingSettlementPayload<ExtArgs>
+        fields: Prisma.ParkingSettlementFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingSettlementFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingSettlementFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingSettlementFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingSettlementFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingSettlementFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingSettlementCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingSettlementCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingSettlementCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingSettlementDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>
+          }
+          update: {
+            args: Prisma.ParkingSettlementUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingSettlementDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingSettlementUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingSettlementUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingSettlementUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSettlementPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingSettlementAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingSettlement>
+          }
+          groupBy: {
+            args: Prisma.ParkingSettlementGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingSettlementGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingSettlementCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingSettlementCountAggregateOutputType> | number
           }
         }
       }
@@ -11454,9 +11863,13 @@ export namespace Prisma {
     customerRefund?: CustomerRefundOmit
     webhookEvent?: WebhookEventOmit
     parkingDealer?: ParkingDealerOmit
+    parkingEmployee?: ParkingEmployeeOmit
+    parkingEmployeeListing?: ParkingEmployeeListingOmit
     parkingListing?: ParkingListingOmit
     parkingSlotWindow?: ParkingSlotWindowOmit
+    parkingWalkIn?: ParkingWalkInOmit
     parkingBooking?: ParkingBookingOmit
+    parkingSettlement?: ParkingSettlementOmit
     parkingWaitlistEntry?: ParkingWaitlistEntryOmit
     vehicleQrToken?: VehicleQrTokenOmit
     conversation?: ConversationOmit
@@ -12841,10 +13254,14 @@ export namespace Prisma {
 
   export type ParkingDealerCountOutputType = {
     listings: number
+    employees: number
+    settlements: number
   }
 
   export type ParkingDealerCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     listings?: boolean | ParkingDealerCountOutputTypeCountListingsArgs
+    employees?: boolean | ParkingDealerCountOutputTypeCountEmployeesArgs
+    settlements?: boolean | ParkingDealerCountOutputTypeCountSettlementsArgs
   }
 
   // Custom InputTypes
@@ -12865,6 +13282,60 @@ export namespace Prisma {
     where?: ParkingListingWhereInput
   }
 
+  /**
+   * ParkingDealerCountOutputType without action
+   */
+  export type ParkingDealerCountOutputTypeCountEmployeesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingEmployeeWhereInput
+  }
+
+  /**
+   * ParkingDealerCountOutputType without action
+   */
+  export type ParkingDealerCountOutputTypeCountSettlementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingSettlementWhereInput
+  }
+
+
+  /**
+   * Count Type ParkingEmployeeCountOutputType
+   */
+
+  export type ParkingEmployeeCountOutputType = {
+    walkIns: number
+    assignedListings: number
+  }
+
+  export type ParkingEmployeeCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    walkIns?: boolean | ParkingEmployeeCountOutputTypeCountWalkInsArgs
+    assignedListings?: boolean | ParkingEmployeeCountOutputTypeCountAssignedListingsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ParkingEmployeeCountOutputType without action
+   */
+  export type ParkingEmployeeCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeCountOutputType
+     */
+    select?: ParkingEmployeeCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ParkingEmployeeCountOutputType without action
+   */
+  export type ParkingEmployeeCountOutputTypeCountWalkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWalkInWhereInput
+  }
+
+  /**
+   * ParkingEmployeeCountOutputType without action
+   */
+  export type ParkingEmployeeCountOutputTypeCountAssignedListingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingEmployeeListingWhereInput
+  }
+
 
   /**
    * Count Type ParkingListingCountOutputType
@@ -12874,12 +13345,16 @@ export namespace Prisma {
     slotWindows: number
     bookings: number
     waitlist: number
+    walkIns: number
+    assignedEmployees: number
   }
 
   export type ParkingListingCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     slotWindows?: boolean | ParkingListingCountOutputTypeCountSlotWindowsArgs
     bookings?: boolean | ParkingListingCountOutputTypeCountBookingsArgs
     waitlist?: boolean | ParkingListingCountOutputTypeCountWaitlistArgs
+    walkIns?: boolean | ParkingListingCountOutputTypeCountWalkInsArgs
+    assignedEmployees?: boolean | ParkingListingCountOutputTypeCountAssignedEmployeesArgs
   }
 
   // Custom InputTypes
@@ -12912,6 +13387,91 @@ export namespace Prisma {
    */
   export type ParkingListingCountOutputTypeCountWaitlistArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ParkingWaitlistEntryWhereInput
+  }
+
+  /**
+   * ParkingListingCountOutputType without action
+   */
+  export type ParkingListingCountOutputTypeCountWalkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWalkInWhereInput
+  }
+
+  /**
+   * ParkingListingCountOutputType without action
+   */
+  export type ParkingListingCountOutputTypeCountAssignedEmployeesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingEmployeeListingWhereInput
+  }
+
+
+  /**
+   * Count Type ParkingSlotWindowCountOutputType
+   */
+
+  export type ParkingSlotWindowCountOutputType = {
+    walkIns: number
+  }
+
+  export type ParkingSlotWindowCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    walkIns?: boolean | ParkingSlotWindowCountOutputTypeCountWalkInsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ParkingSlotWindowCountOutputType without action
+   */
+  export type ParkingSlotWindowCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSlotWindowCountOutputType
+     */
+    select?: ParkingSlotWindowCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ParkingSlotWindowCountOutputType without action
+   */
+  export type ParkingSlotWindowCountOutputTypeCountWalkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWalkInWhereInput
+  }
+
+
+  /**
+   * Count Type ParkingSettlementCountOutputType
+   */
+
+  export type ParkingSettlementCountOutputType = {
+    bookings: number
+    walkIns: number
+  }
+
+  export type ParkingSettlementCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    bookings?: boolean | ParkingSettlementCountOutputTypeCountBookingsArgs
+    walkIns?: boolean | ParkingSettlementCountOutputTypeCountWalkInsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ParkingSettlementCountOutputType without action
+   */
+  export type ParkingSettlementCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlementCountOutputType
+     */
+    select?: ParkingSettlementCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ParkingSettlementCountOutputType without action
+   */
+  export type ParkingSettlementCountOutputTypeCountBookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingBookingWhereInput
+  }
+
+  /**
+   * ParkingSettlementCountOutputType without action
+   */
+  export type ParkingSettlementCountOutputTypeCountWalkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWalkInWhereInput
   }
 
 
@@ -108169,8 +108729,18 @@ export namespace Prisma {
 
   export type AggregateParkingDealer = {
     _count: ParkingDealerCountAggregateOutputType | null
+    _avg: ParkingDealerAvgAggregateOutputType | null
+    _sum: ParkingDealerSumAggregateOutputType | null
     _min: ParkingDealerMinAggregateOutputType | null
     _max: ParkingDealerMaxAggregateOutputType | null
+  }
+
+  export type ParkingDealerAvgAggregateOutputType = {
+    commissionRate: number | null
+  }
+
+  export type ParkingDealerSumAggregateOutputType = {
+    commissionRate: number | null
   }
 
   export type ParkingDealerMinAggregateOutputType = {
@@ -108180,6 +108750,7 @@ export namespace Prisma {
     email: string | null
     passwordHash: string | null
     status: $Enums.DealerStatus | null
+    commissionRate: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -108191,6 +108762,7 @@ export namespace Prisma {
     email: string | null
     passwordHash: string | null
     status: $Enums.DealerStatus | null
+    commissionRate: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -108202,11 +108774,20 @@ export namespace Prisma {
     email: number
     passwordHash: number
     status: number
+    commissionRate: number
     createdAt: number
     updatedAt: number
     _all: number
   }
 
+
+  export type ParkingDealerAvgAggregateInputType = {
+    commissionRate?: true
+  }
+
+  export type ParkingDealerSumAggregateInputType = {
+    commissionRate?: true
+  }
 
   export type ParkingDealerMinAggregateInputType = {
     id?: true
@@ -108215,6 +108796,7 @@ export namespace Prisma {
     email?: true
     passwordHash?: true
     status?: true
+    commissionRate?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -108226,6 +108808,7 @@ export namespace Prisma {
     email?: true
     passwordHash?: true
     status?: true
+    commissionRate?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -108237,6 +108820,7 @@ export namespace Prisma {
     email?: true
     passwordHash?: true
     status?: true
+    commissionRate?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -108280,6 +108864,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingDealerAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingDealerSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ParkingDealerMinAggregateInputType
@@ -108310,6 +108906,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ParkingDealerCountAggregateInputType | true
+    _avg?: ParkingDealerAvgAggregateInputType
+    _sum?: ParkingDealerSumAggregateInputType
     _min?: ParkingDealerMinAggregateInputType
     _max?: ParkingDealerMaxAggregateInputType
   }
@@ -108321,9 +108919,12 @@ export namespace Prisma {
     email: string | null
     passwordHash: string
     status: $Enums.DealerStatus
+    commissionRate: number
     createdAt: Date
     updatedAt: Date
     _count: ParkingDealerCountAggregateOutputType | null
+    _avg: ParkingDealerAvgAggregateOutputType | null
+    _sum: ParkingDealerSumAggregateOutputType | null
     _min: ParkingDealerMinAggregateOutputType | null
     _max: ParkingDealerMaxAggregateOutputType | null
   }
@@ -108349,9 +108950,12 @@ export namespace Prisma {
     email?: boolean
     passwordHash?: boolean
     status?: boolean
+    commissionRate?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     listings?: boolean | ParkingDealer$listingsArgs<ExtArgs>
+    employees?: boolean | ParkingDealer$employeesArgs<ExtArgs>
+    settlements?: boolean | ParkingDealer$settlementsArgs<ExtArgs>
     _count?: boolean | ParkingDealerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["parkingDealer"]>
 
@@ -108362,6 +108966,7 @@ export namespace Prisma {
     email?: boolean
     passwordHash?: boolean
     status?: boolean
+    commissionRate?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["parkingDealer"]>
@@ -108373,6 +108978,7 @@ export namespace Prisma {
     email?: boolean
     passwordHash?: boolean
     status?: boolean
+    commissionRate?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["parkingDealer"]>
@@ -108384,13 +108990,16 @@ export namespace Prisma {
     email?: boolean
     passwordHash?: boolean
     status?: boolean
+    commissionRate?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ParkingDealerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ownerName" | "phoneNumber" | "email" | "passwordHash" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingDealer"]>
+  export type ParkingDealerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ownerName" | "phoneNumber" | "email" | "passwordHash" | "status" | "commissionRate" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingDealer"]>
   export type ParkingDealerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     listings?: boolean | ParkingDealer$listingsArgs<ExtArgs>
+    employees?: boolean | ParkingDealer$employeesArgs<ExtArgs>
+    settlements?: boolean | ParkingDealer$settlementsArgs<ExtArgs>
     _count?: boolean | ParkingDealerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ParkingDealerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -108400,6 +109009,8 @@ export namespace Prisma {
     name: "ParkingDealer"
     objects: {
       listings: Prisma.$ParkingListingPayload<ExtArgs>[]
+      employees: Prisma.$ParkingEmployeePayload<ExtArgs>[]
+      settlements: Prisma.$ParkingSettlementPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -108408,6 +109019,7 @@ export namespace Prisma {
       email: string | null
       passwordHash: string
       status: $Enums.DealerStatus
+      commissionRate: number
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["parkingDealer"]>
@@ -108805,6 +109417,8 @@ export namespace Prisma {
   export interface Prisma__ParkingDealerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     listings<T extends ParkingDealer$listingsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealer$listingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    employees<T extends ParkingDealer$employeesArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealer$employeesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    settlements<T extends ParkingDealer$settlementsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealer$settlementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -108840,6 +109454,7 @@ export namespace Prisma {
     readonly email: FieldRef<"ParkingDealer", 'String'>
     readonly passwordHash: FieldRef<"ParkingDealer", 'String'>
     readonly status: FieldRef<"ParkingDealer", 'DealerStatus'>
+    readonly commissionRate: FieldRef<"ParkingDealer", 'Int'>
     readonly createdAt: FieldRef<"ParkingDealer", 'DateTime'>
     readonly updatedAt: FieldRef<"ParkingDealer", 'DateTime'>
   }
@@ -109259,6 +109874,54 @@ export namespace Prisma {
   }
 
   /**
+   * ParkingDealer.employees
+   */
+  export type ParkingDealer$employeesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    where?: ParkingEmployeeWhereInput
+    orderBy?: ParkingEmployeeOrderByWithRelationInput | ParkingEmployeeOrderByWithRelationInput[]
+    cursor?: ParkingEmployeeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingEmployeeScalarFieldEnum | ParkingEmployeeScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingDealer.settlements
+   */
+  export type ParkingDealer$settlementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    where?: ParkingSettlementWhereInput
+    orderBy?: ParkingSettlementOrderByWithRelationInput | ParkingSettlementOrderByWithRelationInput[]
+    cursor?: ParkingSettlementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingSettlementScalarFieldEnum | ParkingSettlementScalarFieldEnum[]
+  }
+
+  /**
    * ParkingDealer without action
    */
   export type ParkingDealerDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -109274,6 +109937,2211 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ParkingDealerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingEmployee
+   */
+
+  export type AggregateParkingEmployee = {
+    _count: ParkingEmployeeCountAggregateOutputType | null
+    _min: ParkingEmployeeMinAggregateOutputType | null
+    _max: ParkingEmployeeMaxAggregateOutputType | null
+  }
+
+  export type ParkingEmployeeMinAggregateOutputType = {
+    id: string | null
+    dealerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    passwordHash: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type ParkingEmployeeMaxAggregateOutputType = {
+    id: string | null
+    dealerId: string | null
+    name: string | null
+    phoneNumber: string | null
+    passwordHash: string | null
+    isActive: boolean | null
+    createdAt: Date | null
+  }
+
+  export type ParkingEmployeeCountAggregateOutputType = {
+    id: number
+    dealerId: number
+    name: number
+    phoneNumber: number
+    passwordHash: number
+    isActive: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ParkingEmployeeMinAggregateInputType = {
+    id?: true
+    dealerId?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type ParkingEmployeeMaxAggregateInputType = {
+    id?: true
+    dealerId?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    isActive?: true
+    createdAt?: true
+  }
+
+  export type ParkingEmployeeCountAggregateInputType = {
+    id?: true
+    dealerId?: true
+    name?: true
+    phoneNumber?: true
+    passwordHash?: true
+    isActive?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ParkingEmployeeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingEmployee to aggregate.
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployees to fetch.
+     */
+    orderBy?: ParkingEmployeeOrderByWithRelationInput | ParkingEmployeeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingEmployeeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingEmployees
+    **/
+    _count?: true | ParkingEmployeeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingEmployeeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingEmployeeMaxAggregateInputType
+  }
+
+  export type GetParkingEmployeeAggregateType<T extends ParkingEmployeeAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingEmployee]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingEmployee[P]>
+      : GetScalarType<T[P], AggregateParkingEmployee[P]>
+  }
+
+
+
+
+  export type ParkingEmployeeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingEmployeeWhereInput
+    orderBy?: ParkingEmployeeOrderByWithAggregationInput | ParkingEmployeeOrderByWithAggregationInput[]
+    by: ParkingEmployeeScalarFieldEnum[] | ParkingEmployeeScalarFieldEnum
+    having?: ParkingEmployeeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingEmployeeCountAggregateInputType | true
+    _min?: ParkingEmployeeMinAggregateInputType
+    _max?: ParkingEmployeeMaxAggregateInputType
+  }
+
+  export type ParkingEmployeeGroupByOutputType = {
+    id: string
+    dealerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive: boolean
+    createdAt: Date
+    _count: ParkingEmployeeCountAggregateOutputType | null
+    _min: ParkingEmployeeMinAggregateOutputType | null
+    _max: ParkingEmployeeMaxAggregateOutputType | null
+  }
+
+  type GetParkingEmployeeGroupByPayload<T extends ParkingEmployeeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingEmployeeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingEmployeeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingEmployeeGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingEmployeeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingEmployeeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+    walkIns?: boolean | ParkingEmployee$walkInsArgs<ExtArgs>
+    assignedListings?: boolean | ParkingEmployee$assignedListingsArgs<ExtArgs>
+    _count?: boolean | ParkingEmployeeCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingEmployee"]>
+
+  export type ParkingEmployeeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingEmployee"]>
+
+  export type ParkingEmployeeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingEmployee"]>
+
+  export type ParkingEmployeeSelectScalar = {
+    id?: boolean
+    dealerId?: boolean
+    name?: boolean
+    phoneNumber?: boolean
+    passwordHash?: boolean
+    isActive?: boolean
+    createdAt?: boolean
+  }
+
+  export type ParkingEmployeeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "dealerId" | "name" | "phoneNumber" | "passwordHash" | "isActive" | "createdAt", ExtArgs["result"]["parkingEmployee"]>
+  export type ParkingEmployeeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+    walkIns?: boolean | ParkingEmployee$walkInsArgs<ExtArgs>
+    assignedListings?: boolean | ParkingEmployee$assignedListingsArgs<ExtArgs>
+    _count?: boolean | ParkingEmployeeCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ParkingEmployeeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }
+  export type ParkingEmployeeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingEmployeePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingEmployee"
+    objects: {
+      dealer: Prisma.$ParkingDealerPayload<ExtArgs>
+      walkIns: Prisma.$ParkingWalkInPayload<ExtArgs>[]
+      assignedListings: Prisma.$ParkingEmployeeListingPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      dealerId: string
+      name: string
+      phoneNumber: string
+      passwordHash: string
+      isActive: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["parkingEmployee"]>
+    composites: {}
+  }
+
+  type ParkingEmployeeGetPayload<S extends boolean | null | undefined | ParkingEmployeeDefaultArgs> = $Result.GetResult<Prisma.$ParkingEmployeePayload, S>
+
+  type ParkingEmployeeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingEmployeeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingEmployeeCountAggregateInputType | true
+    }
+
+  export interface ParkingEmployeeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingEmployee'], meta: { name: 'ParkingEmployee' } }
+    /**
+     * Find zero or one ParkingEmployee that matches the filter.
+     * @param {ParkingEmployeeFindUniqueArgs} args - Arguments to find a ParkingEmployee
+     * @example
+     * // Get one ParkingEmployee
+     * const parkingEmployee = await prisma.parkingEmployee.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingEmployeeFindUniqueArgs>(args: SelectSubset<T, ParkingEmployeeFindUniqueArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingEmployee that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingEmployeeFindUniqueOrThrowArgs} args - Arguments to find a ParkingEmployee
+     * @example
+     * // Get one ParkingEmployee
+     * const parkingEmployee = await prisma.parkingEmployee.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingEmployeeFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingEmployeeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingEmployee that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeFindFirstArgs} args - Arguments to find a ParkingEmployee
+     * @example
+     * // Get one ParkingEmployee
+     * const parkingEmployee = await prisma.parkingEmployee.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingEmployeeFindFirstArgs>(args?: SelectSubset<T, ParkingEmployeeFindFirstArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingEmployee that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeFindFirstOrThrowArgs} args - Arguments to find a ParkingEmployee
+     * @example
+     * // Get one ParkingEmployee
+     * const parkingEmployee = await prisma.parkingEmployee.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingEmployeeFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingEmployeeFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingEmployees that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingEmployees
+     * const parkingEmployees = await prisma.parkingEmployee.findMany()
+     * 
+     * // Get first 10 ParkingEmployees
+     * const parkingEmployees = await prisma.parkingEmployee.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingEmployeeWithIdOnly = await prisma.parkingEmployee.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingEmployeeFindManyArgs>(args?: SelectSubset<T, ParkingEmployeeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingEmployee.
+     * @param {ParkingEmployeeCreateArgs} args - Arguments to create a ParkingEmployee.
+     * @example
+     * // Create one ParkingEmployee
+     * const ParkingEmployee = await prisma.parkingEmployee.create({
+     *   data: {
+     *     // ... data to create a ParkingEmployee
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingEmployeeCreateArgs>(args: SelectSubset<T, ParkingEmployeeCreateArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingEmployees.
+     * @param {ParkingEmployeeCreateManyArgs} args - Arguments to create many ParkingEmployees.
+     * @example
+     * // Create many ParkingEmployees
+     * const parkingEmployee = await prisma.parkingEmployee.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingEmployeeCreateManyArgs>(args?: SelectSubset<T, ParkingEmployeeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingEmployees and returns the data saved in the database.
+     * @param {ParkingEmployeeCreateManyAndReturnArgs} args - Arguments to create many ParkingEmployees.
+     * @example
+     * // Create many ParkingEmployees
+     * const parkingEmployee = await prisma.parkingEmployee.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingEmployees and only return the `id`
+     * const parkingEmployeeWithIdOnly = await prisma.parkingEmployee.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingEmployeeCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingEmployeeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingEmployee.
+     * @param {ParkingEmployeeDeleteArgs} args - Arguments to delete one ParkingEmployee.
+     * @example
+     * // Delete one ParkingEmployee
+     * const ParkingEmployee = await prisma.parkingEmployee.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingEmployee
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingEmployeeDeleteArgs>(args: SelectSubset<T, ParkingEmployeeDeleteArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingEmployee.
+     * @param {ParkingEmployeeUpdateArgs} args - Arguments to update one ParkingEmployee.
+     * @example
+     * // Update one ParkingEmployee
+     * const parkingEmployee = await prisma.parkingEmployee.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingEmployeeUpdateArgs>(args: SelectSubset<T, ParkingEmployeeUpdateArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingEmployees.
+     * @param {ParkingEmployeeDeleteManyArgs} args - Arguments to filter ParkingEmployees to delete.
+     * @example
+     * // Delete a few ParkingEmployees
+     * const { count } = await prisma.parkingEmployee.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingEmployeeDeleteManyArgs>(args?: SelectSubset<T, ParkingEmployeeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingEmployees.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingEmployees
+     * const parkingEmployee = await prisma.parkingEmployee.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingEmployeeUpdateManyArgs>(args: SelectSubset<T, ParkingEmployeeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingEmployees and returns the data updated in the database.
+     * @param {ParkingEmployeeUpdateManyAndReturnArgs} args - Arguments to update many ParkingEmployees.
+     * @example
+     * // Update many ParkingEmployees
+     * const parkingEmployee = await prisma.parkingEmployee.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingEmployees and only return the `id`
+     * const parkingEmployeeWithIdOnly = await prisma.parkingEmployee.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingEmployeeUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingEmployeeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingEmployee.
+     * @param {ParkingEmployeeUpsertArgs} args - Arguments to update or create a ParkingEmployee.
+     * @example
+     * // Update or create a ParkingEmployee
+     * const parkingEmployee = await prisma.parkingEmployee.upsert({
+     *   create: {
+     *     // ... data to create a ParkingEmployee
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingEmployee we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingEmployeeUpsertArgs>(args: SelectSubset<T, ParkingEmployeeUpsertArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingEmployees.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeCountArgs} args - Arguments to filter ParkingEmployees to count.
+     * @example
+     * // Count the number of ParkingEmployees
+     * const count = await prisma.parkingEmployee.count({
+     *   where: {
+     *     // ... the filter for the ParkingEmployees we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingEmployeeCountArgs>(
+      args?: Subset<T, ParkingEmployeeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingEmployeeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingEmployee.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingEmployeeAggregateArgs>(args: Subset<T, ParkingEmployeeAggregateArgs>): Prisma.PrismaPromise<GetParkingEmployeeAggregateType<T>>
+
+    /**
+     * Group by ParkingEmployee.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingEmployeeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingEmployeeGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingEmployeeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingEmployeeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingEmployeeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingEmployee model
+   */
+  readonly fields: ParkingEmployeeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingEmployee.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingEmployeeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    dealer<T extends ParkingDealerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealerDefaultArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    walkIns<T extends ParkingEmployee$walkInsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingEmployee$walkInsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assignedListings<T extends ParkingEmployee$assignedListingsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingEmployee$assignedListingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingEmployee model
+   */
+  interface ParkingEmployeeFieldRefs {
+    readonly id: FieldRef<"ParkingEmployee", 'String'>
+    readonly dealerId: FieldRef<"ParkingEmployee", 'String'>
+    readonly name: FieldRef<"ParkingEmployee", 'String'>
+    readonly phoneNumber: FieldRef<"ParkingEmployee", 'String'>
+    readonly passwordHash: FieldRef<"ParkingEmployee", 'String'>
+    readonly isActive: FieldRef<"ParkingEmployee", 'Boolean'>
+    readonly createdAt: FieldRef<"ParkingEmployee", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingEmployee findUnique
+   */
+  export type ParkingEmployeeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployee to fetch.
+     */
+    where: ParkingEmployeeWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployee findUniqueOrThrow
+   */
+  export type ParkingEmployeeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployee to fetch.
+     */
+    where: ParkingEmployeeWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployee findFirst
+   */
+  export type ParkingEmployeeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployee to fetch.
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployees to fetch.
+     */
+    orderBy?: ParkingEmployeeOrderByWithRelationInput | ParkingEmployeeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingEmployees.
+     */
+    cursor?: ParkingEmployeeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingEmployees.
+     */
+    distinct?: ParkingEmployeeScalarFieldEnum | ParkingEmployeeScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployee findFirstOrThrow
+   */
+  export type ParkingEmployeeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployee to fetch.
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployees to fetch.
+     */
+    orderBy?: ParkingEmployeeOrderByWithRelationInput | ParkingEmployeeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingEmployees.
+     */
+    cursor?: ParkingEmployeeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingEmployees.
+     */
+    distinct?: ParkingEmployeeScalarFieldEnum | ParkingEmployeeScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployee findMany
+   */
+  export type ParkingEmployeeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployees to fetch.
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployees to fetch.
+     */
+    orderBy?: ParkingEmployeeOrderByWithRelationInput | ParkingEmployeeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingEmployees.
+     */
+    cursor?: ParkingEmployeeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployees from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployees.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingEmployees.
+     */
+    distinct?: ParkingEmployeeScalarFieldEnum | ParkingEmployeeScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployee create
+   */
+  export type ParkingEmployeeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingEmployee.
+     */
+    data: XOR<ParkingEmployeeCreateInput, ParkingEmployeeUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingEmployee createMany
+   */
+  export type ParkingEmployeeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingEmployees.
+     */
+    data: ParkingEmployeeCreateManyInput | ParkingEmployeeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingEmployee createManyAndReturn
+   */
+  export type ParkingEmployeeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingEmployees.
+     */
+    data: ParkingEmployeeCreateManyInput | ParkingEmployeeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingEmployee update
+   */
+  export type ParkingEmployeeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingEmployee.
+     */
+    data: XOR<ParkingEmployeeUpdateInput, ParkingEmployeeUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingEmployee to update.
+     */
+    where: ParkingEmployeeWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployee updateMany
+   */
+  export type ParkingEmployeeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingEmployees.
+     */
+    data: XOR<ParkingEmployeeUpdateManyMutationInput, ParkingEmployeeUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingEmployees to update
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * Limit how many ParkingEmployees to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingEmployee updateManyAndReturn
+   */
+  export type ParkingEmployeeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingEmployees.
+     */
+    data: XOR<ParkingEmployeeUpdateManyMutationInput, ParkingEmployeeUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingEmployees to update
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * Limit how many ParkingEmployees to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingEmployee upsert
+   */
+  export type ParkingEmployeeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingEmployee to update in case it exists.
+     */
+    where: ParkingEmployeeWhereUniqueInput
+    /**
+     * In case the ParkingEmployee found by the `where` argument doesn't exist, create a new ParkingEmployee with this data.
+     */
+    create: XOR<ParkingEmployeeCreateInput, ParkingEmployeeUncheckedCreateInput>
+    /**
+     * In case the ParkingEmployee was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingEmployeeUpdateInput, ParkingEmployeeUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingEmployee delete
+   */
+  export type ParkingEmployeeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingEmployee to delete.
+     */
+    where: ParkingEmployeeWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployee deleteMany
+   */
+  export type ParkingEmployeeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingEmployees to delete
+     */
+    where?: ParkingEmployeeWhereInput
+    /**
+     * Limit how many ParkingEmployees to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingEmployee.walkIns
+   */
+  export type ParkingEmployee$walkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    where?: ParkingWalkInWhereInput
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    cursor?: ParkingWalkInWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployee.assignedListings
+   */
+  export type ParkingEmployee$assignedListingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    where?: ParkingEmployeeListingWhereInput
+    orderBy?: ParkingEmployeeListingOrderByWithRelationInput | ParkingEmployeeListingOrderByWithRelationInput[]
+    cursor?: ParkingEmployeeListingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingEmployeeListingScalarFieldEnum | ParkingEmployeeListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployee without action
+   */
+  export type ParkingEmployeeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingEmployeeListing
+   */
+
+  export type AggregateParkingEmployeeListing = {
+    _count: ParkingEmployeeListingCountAggregateOutputType | null
+    _min: ParkingEmployeeListingMinAggregateOutputType | null
+    _max: ParkingEmployeeListingMaxAggregateOutputType | null
+  }
+
+  export type ParkingEmployeeListingMinAggregateOutputType = {
+    id: string | null
+    employeeId: string | null
+    listingId: string | null
+    createdAt: Date | null
+  }
+
+  export type ParkingEmployeeListingMaxAggregateOutputType = {
+    id: string | null
+    employeeId: string | null
+    listingId: string | null
+    createdAt: Date | null
+  }
+
+  export type ParkingEmployeeListingCountAggregateOutputType = {
+    id: number
+    employeeId: number
+    listingId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ParkingEmployeeListingMinAggregateInputType = {
+    id?: true
+    employeeId?: true
+    listingId?: true
+    createdAt?: true
+  }
+
+  export type ParkingEmployeeListingMaxAggregateInputType = {
+    id?: true
+    employeeId?: true
+    listingId?: true
+    createdAt?: true
+  }
+
+  export type ParkingEmployeeListingCountAggregateInputType = {
+    id?: true
+    employeeId?: true
+    listingId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ParkingEmployeeListingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingEmployeeListing to aggregate.
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployeeListings to fetch.
+     */
+    orderBy?: ParkingEmployeeListingOrderByWithRelationInput | ParkingEmployeeListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingEmployeeListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployeeListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployeeListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingEmployeeListings
+    **/
+    _count?: true | ParkingEmployeeListingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingEmployeeListingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingEmployeeListingMaxAggregateInputType
+  }
+
+  export type GetParkingEmployeeListingAggregateType<T extends ParkingEmployeeListingAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingEmployeeListing]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingEmployeeListing[P]>
+      : GetScalarType<T[P], AggregateParkingEmployeeListing[P]>
+  }
+
+
+
+
+  export type ParkingEmployeeListingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingEmployeeListingWhereInput
+    orderBy?: ParkingEmployeeListingOrderByWithAggregationInput | ParkingEmployeeListingOrderByWithAggregationInput[]
+    by: ParkingEmployeeListingScalarFieldEnum[] | ParkingEmployeeListingScalarFieldEnum
+    having?: ParkingEmployeeListingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingEmployeeListingCountAggregateInputType | true
+    _min?: ParkingEmployeeListingMinAggregateInputType
+    _max?: ParkingEmployeeListingMaxAggregateInputType
+  }
+
+  export type ParkingEmployeeListingGroupByOutputType = {
+    id: string
+    employeeId: string
+    listingId: string
+    createdAt: Date
+    _count: ParkingEmployeeListingCountAggregateOutputType | null
+    _min: ParkingEmployeeListingMinAggregateOutputType | null
+    _max: ParkingEmployeeListingMaxAggregateOutputType | null
+  }
+
+  type GetParkingEmployeeListingGroupByPayload<T extends ParkingEmployeeListingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingEmployeeListingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingEmployeeListingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingEmployeeListingGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingEmployeeListingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingEmployeeListingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    employeeId?: boolean
+    listingId?: boolean
+    createdAt?: boolean
+    employee?: boolean | ParkingEmployeeDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingEmployeeListing"]>
+
+  export type ParkingEmployeeListingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    employeeId?: boolean
+    listingId?: boolean
+    createdAt?: boolean
+    employee?: boolean | ParkingEmployeeDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingEmployeeListing"]>
+
+  export type ParkingEmployeeListingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    employeeId?: boolean
+    listingId?: boolean
+    createdAt?: boolean
+    employee?: boolean | ParkingEmployeeDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingEmployeeListing"]>
+
+  export type ParkingEmployeeListingSelectScalar = {
+    id?: boolean
+    employeeId?: boolean
+    listingId?: boolean
+    createdAt?: boolean
+  }
+
+  export type ParkingEmployeeListingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "listingId" | "createdAt", ExtArgs["result"]["parkingEmployeeListing"]>
+  export type ParkingEmployeeListingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    employee?: boolean | ParkingEmployeeDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingEmployeeListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    employee?: boolean | ParkingEmployeeDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+  export type ParkingEmployeeListingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    employee?: boolean | ParkingEmployeeDefaultArgs<ExtArgs>
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingEmployeeListingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingEmployeeListing"
+    objects: {
+      employee: Prisma.$ParkingEmployeePayload<ExtArgs>
+      listing: Prisma.$ParkingListingPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      employeeId: string
+      listingId: string
+      createdAt: Date
+    }, ExtArgs["result"]["parkingEmployeeListing"]>
+    composites: {}
+  }
+
+  type ParkingEmployeeListingGetPayload<S extends boolean | null | undefined | ParkingEmployeeListingDefaultArgs> = $Result.GetResult<Prisma.$ParkingEmployeeListingPayload, S>
+
+  type ParkingEmployeeListingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingEmployeeListingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingEmployeeListingCountAggregateInputType | true
+    }
+
+  export interface ParkingEmployeeListingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingEmployeeListing'], meta: { name: 'ParkingEmployeeListing' } }
+    /**
+     * Find zero or one ParkingEmployeeListing that matches the filter.
+     * @param {ParkingEmployeeListingFindUniqueArgs} args - Arguments to find a ParkingEmployeeListing
+     * @example
+     * // Get one ParkingEmployeeListing
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingEmployeeListingFindUniqueArgs>(args: SelectSubset<T, ParkingEmployeeListingFindUniqueArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingEmployeeListing that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingEmployeeListingFindUniqueOrThrowArgs} args - Arguments to find a ParkingEmployeeListing
+     * @example
+     * // Get one ParkingEmployeeListing
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingEmployeeListingFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingEmployeeListingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingEmployeeListing that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingFindFirstArgs} args - Arguments to find a ParkingEmployeeListing
+     * @example
+     * // Get one ParkingEmployeeListing
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingEmployeeListingFindFirstArgs>(args?: SelectSubset<T, ParkingEmployeeListingFindFirstArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingEmployeeListing that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingFindFirstOrThrowArgs} args - Arguments to find a ParkingEmployeeListing
+     * @example
+     * // Get one ParkingEmployeeListing
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingEmployeeListingFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingEmployeeListingFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingEmployeeListings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingEmployeeListings
+     * const parkingEmployeeListings = await prisma.parkingEmployeeListing.findMany()
+     * 
+     * // Get first 10 ParkingEmployeeListings
+     * const parkingEmployeeListings = await prisma.parkingEmployeeListing.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingEmployeeListingWithIdOnly = await prisma.parkingEmployeeListing.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingEmployeeListingFindManyArgs>(args?: SelectSubset<T, ParkingEmployeeListingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingEmployeeListing.
+     * @param {ParkingEmployeeListingCreateArgs} args - Arguments to create a ParkingEmployeeListing.
+     * @example
+     * // Create one ParkingEmployeeListing
+     * const ParkingEmployeeListing = await prisma.parkingEmployeeListing.create({
+     *   data: {
+     *     // ... data to create a ParkingEmployeeListing
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingEmployeeListingCreateArgs>(args: SelectSubset<T, ParkingEmployeeListingCreateArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingEmployeeListings.
+     * @param {ParkingEmployeeListingCreateManyArgs} args - Arguments to create many ParkingEmployeeListings.
+     * @example
+     * // Create many ParkingEmployeeListings
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingEmployeeListingCreateManyArgs>(args?: SelectSubset<T, ParkingEmployeeListingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingEmployeeListings and returns the data saved in the database.
+     * @param {ParkingEmployeeListingCreateManyAndReturnArgs} args - Arguments to create many ParkingEmployeeListings.
+     * @example
+     * // Create many ParkingEmployeeListings
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingEmployeeListings and only return the `id`
+     * const parkingEmployeeListingWithIdOnly = await prisma.parkingEmployeeListing.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingEmployeeListingCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingEmployeeListingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingEmployeeListing.
+     * @param {ParkingEmployeeListingDeleteArgs} args - Arguments to delete one ParkingEmployeeListing.
+     * @example
+     * // Delete one ParkingEmployeeListing
+     * const ParkingEmployeeListing = await prisma.parkingEmployeeListing.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingEmployeeListing
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingEmployeeListingDeleteArgs>(args: SelectSubset<T, ParkingEmployeeListingDeleteArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingEmployeeListing.
+     * @param {ParkingEmployeeListingUpdateArgs} args - Arguments to update one ParkingEmployeeListing.
+     * @example
+     * // Update one ParkingEmployeeListing
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingEmployeeListingUpdateArgs>(args: SelectSubset<T, ParkingEmployeeListingUpdateArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingEmployeeListings.
+     * @param {ParkingEmployeeListingDeleteManyArgs} args - Arguments to filter ParkingEmployeeListings to delete.
+     * @example
+     * // Delete a few ParkingEmployeeListings
+     * const { count } = await prisma.parkingEmployeeListing.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingEmployeeListingDeleteManyArgs>(args?: SelectSubset<T, ParkingEmployeeListingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingEmployeeListings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingEmployeeListings
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingEmployeeListingUpdateManyArgs>(args: SelectSubset<T, ParkingEmployeeListingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingEmployeeListings and returns the data updated in the database.
+     * @param {ParkingEmployeeListingUpdateManyAndReturnArgs} args - Arguments to update many ParkingEmployeeListings.
+     * @example
+     * // Update many ParkingEmployeeListings
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingEmployeeListings and only return the `id`
+     * const parkingEmployeeListingWithIdOnly = await prisma.parkingEmployeeListing.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingEmployeeListingUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingEmployeeListingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingEmployeeListing.
+     * @param {ParkingEmployeeListingUpsertArgs} args - Arguments to update or create a ParkingEmployeeListing.
+     * @example
+     * // Update or create a ParkingEmployeeListing
+     * const parkingEmployeeListing = await prisma.parkingEmployeeListing.upsert({
+     *   create: {
+     *     // ... data to create a ParkingEmployeeListing
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingEmployeeListing we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingEmployeeListingUpsertArgs>(args: SelectSubset<T, ParkingEmployeeListingUpsertArgs<ExtArgs>>): Prisma__ParkingEmployeeListingClient<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingEmployeeListings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingCountArgs} args - Arguments to filter ParkingEmployeeListings to count.
+     * @example
+     * // Count the number of ParkingEmployeeListings
+     * const count = await prisma.parkingEmployeeListing.count({
+     *   where: {
+     *     // ... the filter for the ParkingEmployeeListings we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingEmployeeListingCountArgs>(
+      args?: Subset<T, ParkingEmployeeListingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingEmployeeListingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingEmployeeListing.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingEmployeeListingAggregateArgs>(args: Subset<T, ParkingEmployeeListingAggregateArgs>): Prisma.PrismaPromise<GetParkingEmployeeListingAggregateType<T>>
+
+    /**
+     * Group by ParkingEmployeeListing.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingEmployeeListingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingEmployeeListingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingEmployeeListingGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingEmployeeListingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingEmployeeListingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingEmployeeListingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingEmployeeListing model
+   */
+  readonly fields: ParkingEmployeeListingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingEmployeeListing.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingEmployeeListingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    employee<T extends ParkingEmployeeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingEmployeeDefaultArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingEmployeeListing model
+   */
+  interface ParkingEmployeeListingFieldRefs {
+    readonly id: FieldRef<"ParkingEmployeeListing", 'String'>
+    readonly employeeId: FieldRef<"ParkingEmployeeListing", 'String'>
+    readonly listingId: FieldRef<"ParkingEmployeeListing", 'String'>
+    readonly createdAt: FieldRef<"ParkingEmployeeListing", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingEmployeeListing findUnique
+   */
+  export type ParkingEmployeeListingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployeeListing to fetch.
+     */
+    where: ParkingEmployeeListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployeeListing findUniqueOrThrow
+   */
+  export type ParkingEmployeeListingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployeeListing to fetch.
+     */
+    where: ParkingEmployeeListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployeeListing findFirst
+   */
+  export type ParkingEmployeeListingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployeeListing to fetch.
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployeeListings to fetch.
+     */
+    orderBy?: ParkingEmployeeListingOrderByWithRelationInput | ParkingEmployeeListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingEmployeeListings.
+     */
+    cursor?: ParkingEmployeeListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployeeListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployeeListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingEmployeeListings.
+     */
+    distinct?: ParkingEmployeeListingScalarFieldEnum | ParkingEmployeeListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployeeListing findFirstOrThrow
+   */
+  export type ParkingEmployeeListingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployeeListing to fetch.
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployeeListings to fetch.
+     */
+    orderBy?: ParkingEmployeeListingOrderByWithRelationInput | ParkingEmployeeListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingEmployeeListings.
+     */
+    cursor?: ParkingEmployeeListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployeeListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployeeListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingEmployeeListings.
+     */
+    distinct?: ParkingEmployeeListingScalarFieldEnum | ParkingEmployeeListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployeeListing findMany
+   */
+  export type ParkingEmployeeListingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingEmployeeListings to fetch.
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingEmployeeListings to fetch.
+     */
+    orderBy?: ParkingEmployeeListingOrderByWithRelationInput | ParkingEmployeeListingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingEmployeeListings.
+     */
+    cursor?: ParkingEmployeeListingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingEmployeeListings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingEmployeeListings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingEmployeeListings.
+     */
+    distinct?: ParkingEmployeeListingScalarFieldEnum | ParkingEmployeeListingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingEmployeeListing create
+   */
+  export type ParkingEmployeeListingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingEmployeeListing.
+     */
+    data: XOR<ParkingEmployeeListingCreateInput, ParkingEmployeeListingUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingEmployeeListing createMany
+   */
+  export type ParkingEmployeeListingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingEmployeeListings.
+     */
+    data: ParkingEmployeeListingCreateManyInput | ParkingEmployeeListingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingEmployeeListing createManyAndReturn
+   */
+  export type ParkingEmployeeListingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingEmployeeListings.
+     */
+    data: ParkingEmployeeListingCreateManyInput | ParkingEmployeeListingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingEmployeeListing update
+   */
+  export type ParkingEmployeeListingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingEmployeeListing.
+     */
+    data: XOR<ParkingEmployeeListingUpdateInput, ParkingEmployeeListingUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingEmployeeListing to update.
+     */
+    where: ParkingEmployeeListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployeeListing updateMany
+   */
+  export type ParkingEmployeeListingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingEmployeeListings.
+     */
+    data: XOR<ParkingEmployeeListingUpdateManyMutationInput, ParkingEmployeeListingUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingEmployeeListings to update
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * Limit how many ParkingEmployeeListings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingEmployeeListing updateManyAndReturn
+   */
+  export type ParkingEmployeeListingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingEmployeeListings.
+     */
+    data: XOR<ParkingEmployeeListingUpdateManyMutationInput, ParkingEmployeeListingUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingEmployeeListings to update
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * Limit how many ParkingEmployeeListings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingEmployeeListing upsert
+   */
+  export type ParkingEmployeeListingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingEmployeeListing to update in case it exists.
+     */
+    where: ParkingEmployeeListingWhereUniqueInput
+    /**
+     * In case the ParkingEmployeeListing found by the `where` argument doesn't exist, create a new ParkingEmployeeListing with this data.
+     */
+    create: XOR<ParkingEmployeeListingCreateInput, ParkingEmployeeListingUncheckedCreateInput>
+    /**
+     * In case the ParkingEmployeeListing was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingEmployeeListingUpdateInput, ParkingEmployeeListingUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingEmployeeListing delete
+   */
+  export type ParkingEmployeeListingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingEmployeeListing to delete.
+     */
+    where: ParkingEmployeeListingWhereUniqueInput
+  }
+
+  /**
+   * ParkingEmployeeListing deleteMany
+   */
+  export type ParkingEmployeeListingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingEmployeeListings to delete
+     */
+    where?: ParkingEmployeeListingWhereInput
+    /**
+     * Limit how many ParkingEmployeeListings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingEmployeeListing without action
+   */
+  export type ParkingEmployeeListingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
   }
 
 
@@ -109575,6 +112443,8 @@ export namespace Prisma {
     slotWindows?: boolean | ParkingListing$slotWindowsArgs<ExtArgs>
     bookings?: boolean | ParkingListing$bookingsArgs<ExtArgs>
     waitlist?: boolean | ParkingListing$waitlistArgs<ExtArgs>
+    walkIns?: boolean | ParkingListing$walkInsArgs<ExtArgs>
+    assignedEmployees?: boolean | ParkingListing$assignedEmployeesArgs<ExtArgs>
     _count?: boolean | ParkingListingCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["parkingListing"]>
 
@@ -109640,6 +112510,8 @@ export namespace Prisma {
     slotWindows?: boolean | ParkingListing$slotWindowsArgs<ExtArgs>
     bookings?: boolean | ParkingListing$bookingsArgs<ExtArgs>
     waitlist?: boolean | ParkingListing$waitlistArgs<ExtArgs>
+    walkIns?: boolean | ParkingListing$walkInsArgs<ExtArgs>
+    assignedEmployees?: boolean | ParkingListing$assignedEmployeesArgs<ExtArgs>
     _count?: boolean | ParkingListingCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ParkingListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -109656,6 +112528,8 @@ export namespace Prisma {
       slotWindows: Prisma.$ParkingSlotWindowPayload<ExtArgs>[]
       bookings: Prisma.$ParkingBookingPayload<ExtArgs>[]
       waitlist: Prisma.$ParkingWaitlistEntryPayload<ExtArgs>[]
+      walkIns: Prisma.$ParkingWalkInPayload<ExtArgs>[]
+      assignedEmployees: Prisma.$ParkingEmployeeListingPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -110071,6 +112945,8 @@ export namespace Prisma {
     slotWindows<T extends ParkingListing$slotWindowsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$slotWindowsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     bookings<T extends ParkingListing$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     waitlist<T extends ParkingListing$waitlistArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$waitlistArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    walkIns<T extends ParkingListing$walkInsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$walkInsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assignedEmployees<T extends ParkingListing$assignedEmployeesArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListing$assignedEmployeesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingEmployeeListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -110588,6 +113464,54 @@ export namespace Prisma {
   }
 
   /**
+   * ParkingListing.walkIns
+   */
+  export type ParkingListing$walkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    where?: ParkingWalkInWhereInput
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    cursor?: ParkingWalkInWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingListing.assignedEmployees
+   */
+  export type ParkingListing$assignedEmployeesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployeeListing
+     */
+    select?: ParkingEmployeeListingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployeeListing
+     */
+    omit?: ParkingEmployeeListingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeListingInclude<ExtArgs> | null
+    where?: ParkingEmployeeListingWhereInput
+    orderBy?: ParkingEmployeeListingOrderByWithRelationInput | ParkingEmployeeListingOrderByWithRelationInput[]
+    cursor?: ParkingEmployeeListingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingEmployeeListingScalarFieldEnum | ParkingEmployeeListingScalarFieldEnum[]
+  }
+
+  /**
    * ParkingListing without action
    */
   export type ParkingListingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -110623,6 +113547,8 @@ export namespace Prisma {
     endHour: number | null
     capacity: number | null
     booked: number | null
+    manualOccupiedCars: number | null
+    manualOccupiedBikes: number | null
   }
 
   export type ParkingSlotWindowSumAggregateOutputType = {
@@ -110630,6 +113556,8 @@ export namespace Prisma {
     endHour: number | null
     capacity: number | null
     booked: number | null
+    manualOccupiedCars: number | null
+    manualOccupiedBikes: number | null
   }
 
   export type ParkingSlotWindowMinAggregateOutputType = {
@@ -110640,6 +113568,8 @@ export namespace Prisma {
     endHour: number | null
     capacity: number | null
     booked: number | null
+    manualOccupiedCars: number | null
+    manualOccupiedBikes: number | null
   }
 
   export type ParkingSlotWindowMaxAggregateOutputType = {
@@ -110650,6 +113580,8 @@ export namespace Prisma {
     endHour: number | null
     capacity: number | null
     booked: number | null
+    manualOccupiedCars: number | null
+    manualOccupiedBikes: number | null
   }
 
   export type ParkingSlotWindowCountAggregateOutputType = {
@@ -110660,6 +113592,8 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked: number
+    manualOccupiedCars: number
+    manualOccupiedBikes: number
     _all: number
   }
 
@@ -110669,6 +113603,8 @@ export namespace Prisma {
     endHour?: true
     capacity?: true
     booked?: true
+    manualOccupiedCars?: true
+    manualOccupiedBikes?: true
   }
 
   export type ParkingSlotWindowSumAggregateInputType = {
@@ -110676,6 +113612,8 @@ export namespace Prisma {
     endHour?: true
     capacity?: true
     booked?: true
+    manualOccupiedCars?: true
+    manualOccupiedBikes?: true
   }
 
   export type ParkingSlotWindowMinAggregateInputType = {
@@ -110686,6 +113624,8 @@ export namespace Prisma {
     endHour?: true
     capacity?: true
     booked?: true
+    manualOccupiedCars?: true
+    manualOccupiedBikes?: true
   }
 
   export type ParkingSlotWindowMaxAggregateInputType = {
@@ -110696,6 +113636,8 @@ export namespace Prisma {
     endHour?: true
     capacity?: true
     booked?: true
+    manualOccupiedCars?: true
+    manualOccupiedBikes?: true
   }
 
   export type ParkingSlotWindowCountAggregateInputType = {
@@ -110706,6 +113648,8 @@ export namespace Prisma {
     endHour?: true
     capacity?: true
     booked?: true
+    manualOccupiedCars?: true
+    manualOccupiedBikes?: true
     _all?: true
   }
 
@@ -110803,6 +113747,8 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked: number
+    manualOccupiedCars: number
+    manualOccupiedBikes: number
     _count: ParkingSlotWindowCountAggregateOutputType | null
     _avg: ParkingSlotWindowAvgAggregateOutputType | null
     _sum: ParkingSlotWindowSumAggregateOutputType | null
@@ -110832,7 +113778,11 @@ export namespace Prisma {
     endHour?: boolean
     capacity?: boolean
     booked?: boolean
+    manualOccupiedCars?: boolean
+    manualOccupiedBikes?: boolean
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    walkIns?: boolean | ParkingSlotWindow$walkInsArgs<ExtArgs>
+    _count?: boolean | ParkingSlotWindowCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["parkingSlotWindow"]>
 
   export type ParkingSlotWindowSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -110843,6 +113793,8 @@ export namespace Prisma {
     endHour?: boolean
     capacity?: boolean
     booked?: boolean
+    manualOccupiedCars?: boolean
+    manualOccupiedBikes?: boolean
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["parkingSlotWindow"]>
 
@@ -110854,6 +113806,8 @@ export namespace Prisma {
     endHour?: boolean
     capacity?: boolean
     booked?: boolean
+    manualOccupiedCars?: boolean
+    manualOccupiedBikes?: boolean
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["parkingSlotWindow"]>
 
@@ -110865,11 +113819,15 @@ export namespace Prisma {
     endHour?: boolean
     capacity?: boolean
     booked?: boolean
+    manualOccupiedCars?: boolean
+    manualOccupiedBikes?: boolean
   }
 
-  export type ParkingSlotWindowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "listingId" | "date" | "startHour" | "endHour" | "capacity" | "booked", ExtArgs["result"]["parkingSlotWindow"]>
+  export type ParkingSlotWindowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "listingId" | "date" | "startHour" | "endHour" | "capacity" | "booked" | "manualOccupiedCars" | "manualOccupiedBikes", ExtArgs["result"]["parkingSlotWindow"]>
   export type ParkingSlotWindowInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    walkIns?: boolean | ParkingSlotWindow$walkInsArgs<ExtArgs>
+    _count?: boolean | ParkingSlotWindowCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ParkingSlotWindowIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
@@ -110882,6 +113840,7 @@ export namespace Prisma {
     name: "ParkingSlotWindow"
     objects: {
       listing: Prisma.$ParkingListingPayload<ExtArgs>
+      walkIns: Prisma.$ParkingWalkInPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -110891,6 +113850,8 @@ export namespace Prisma {
       endHour: number
       capacity: number
       booked: number
+      manualOccupiedCars: number
+      manualOccupiedBikes: number
     }, ExtArgs["result"]["parkingSlotWindow"]>
     composites: {}
   }
@@ -111286,6 +114247,7 @@ export namespace Prisma {
   export interface Prisma__ParkingSlotWindowClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    walkIns<T extends ParkingSlotWindow$walkInsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingSlotWindow$walkInsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -111322,6 +114284,8 @@ export namespace Prisma {
     readonly endHour: FieldRef<"ParkingSlotWindow", 'Int'>
     readonly capacity: FieldRef<"ParkingSlotWindow", 'Int'>
     readonly booked: FieldRef<"ParkingSlotWindow", 'Int'>
+    readonly manualOccupiedCars: FieldRef<"ParkingSlotWindow", 'Int'>
+    readonly manualOccupiedBikes: FieldRef<"ParkingSlotWindow", 'Int'>
   }
     
 
@@ -111723,6 +114687,30 @@ export namespace Prisma {
   }
 
   /**
+   * ParkingSlotWindow.walkIns
+   */
+  export type ParkingSlotWindow$walkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    where?: ParkingWalkInWhereInput
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    cursor?: ParkingWalkInWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
    * ParkingSlotWindow without action
    */
   export type ParkingSlotWindowDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -111742,6 +114730,1269 @@ export namespace Prisma {
 
 
   /**
+   * Model ParkingWalkIn
+   */
+
+  export type AggregateParkingWalkIn = {
+    _count: ParkingWalkInCountAggregateOutputType | null
+    _avg: ParkingWalkInAvgAggregateOutputType | null
+    _sum: ParkingWalkInSumAggregateOutputType | null
+    _min: ParkingWalkInMinAggregateOutputType | null
+    _max: ParkingWalkInMaxAggregateOutputType | null
+  }
+
+  export type ParkingWalkInAvgAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type ParkingWalkInSumAggregateOutputType = {
+    amountPaise: number | null
+  }
+
+  export type ParkingWalkInMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    slotWindowId: string | null
+    vehicleType: $Enums.ParkingVehicleType | null
+    vehicleNumber: string | null
+    amountPaise: number | null
+    paymentMethod: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt: Date | null
+    employeeId: string | null
+    enteredAt: Date | null
+    exitedAt: Date | null
+    isSettled: boolean | null
+    settlementId: string | null
+  }
+
+  export type ParkingWalkInMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    slotWindowId: string | null
+    vehicleType: $Enums.ParkingVehicleType | null
+    vehicleNumber: string | null
+    amountPaise: number | null
+    paymentMethod: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt: Date | null
+    employeeId: string | null
+    enteredAt: Date | null
+    exitedAt: Date | null
+    isSettled: boolean | null
+    settlementId: string | null
+  }
+
+  export type ParkingWalkInCountAggregateOutputType = {
+    id: number
+    listingId: number
+    slotWindowId: number
+    vehicleType: number
+    vehicleNumber: number
+    amountPaise: number
+    paymentMethod: number
+    onlinePaymentConfirmedAt: number
+    employeeId: number
+    enteredAt: number
+    exitedAt: number
+    isSettled: number
+    settlementId: number
+    _all: number
+  }
+
+
+  export type ParkingWalkInAvgAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type ParkingWalkInSumAggregateInputType = {
+    amountPaise?: true
+  }
+
+  export type ParkingWalkInMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    slotWindowId?: true
+    vehicleType?: true
+    vehicleNumber?: true
+    amountPaise?: true
+    paymentMethod?: true
+    onlinePaymentConfirmedAt?: true
+    employeeId?: true
+    enteredAt?: true
+    exitedAt?: true
+    isSettled?: true
+    settlementId?: true
+  }
+
+  export type ParkingWalkInMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    slotWindowId?: true
+    vehicleType?: true
+    vehicleNumber?: true
+    amountPaise?: true
+    paymentMethod?: true
+    onlinePaymentConfirmedAt?: true
+    employeeId?: true
+    enteredAt?: true
+    exitedAt?: true
+    isSettled?: true
+    settlementId?: true
+  }
+
+  export type ParkingWalkInCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    slotWindowId?: true
+    vehicleType?: true
+    vehicleNumber?: true
+    amountPaise?: true
+    paymentMethod?: true
+    onlinePaymentConfirmedAt?: true
+    employeeId?: true
+    enteredAt?: true
+    exitedAt?: true
+    isSettled?: true
+    settlementId?: true
+    _all?: true
+  }
+
+  export type ParkingWalkInAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingWalkIn to aggregate.
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWalkIns to fetch.
+     */
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingWalkInWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWalkIns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWalkIns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingWalkIns
+    **/
+    _count?: true | ParkingWalkInCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingWalkInAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingWalkInSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingWalkInMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingWalkInMaxAggregateInputType
+  }
+
+  export type GetParkingWalkInAggregateType<T extends ParkingWalkInAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingWalkIn]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingWalkIn[P]>
+      : GetScalarType<T[P], AggregateParkingWalkIn[P]>
+  }
+
+
+
+
+  export type ParkingWalkInGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingWalkInWhereInput
+    orderBy?: ParkingWalkInOrderByWithAggregationInput | ParkingWalkInOrderByWithAggregationInput[]
+    by: ParkingWalkInScalarFieldEnum[] | ParkingWalkInScalarFieldEnum
+    having?: ParkingWalkInScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingWalkInCountAggregateInputType | true
+    _avg?: ParkingWalkInAvgAggregateInputType
+    _sum?: ParkingWalkInSumAggregateInputType
+    _min?: ParkingWalkInMinAggregateInputType
+    _max?: ParkingWalkInMaxAggregateInputType
+  }
+
+  export type ParkingWalkInGroupByOutputType = {
+    id: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise: number
+    paymentMethod: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt: Date | null
+    employeeId: string | null
+    enteredAt: Date
+    exitedAt: Date | null
+    isSettled: boolean
+    settlementId: string | null
+    _count: ParkingWalkInCountAggregateOutputType | null
+    _avg: ParkingWalkInAvgAggregateOutputType | null
+    _sum: ParkingWalkInSumAggregateOutputType | null
+    _min: ParkingWalkInMinAggregateOutputType | null
+    _max: ParkingWalkInMaxAggregateOutputType | null
+  }
+
+  type GetParkingWalkInGroupByPayload<T extends ParkingWalkInGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingWalkInGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingWalkInGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingWalkInGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingWalkInGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingWalkInSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleType?: boolean
+    vehicleNumber?: boolean
+    amountPaise?: boolean
+    paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
+    employeeId?: boolean
+    enteredAt?: boolean
+    exitedAt?: boolean
+    isSettled?: boolean
+    settlementId?: boolean
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
+    employee?: boolean | ParkingWalkIn$employeeArgs<ExtArgs>
+    settlement?: boolean | ParkingWalkIn$settlementArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingWalkIn"]>
+
+  export type ParkingWalkInSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleType?: boolean
+    vehicleNumber?: boolean
+    amountPaise?: boolean
+    paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
+    employeeId?: boolean
+    enteredAt?: boolean
+    exitedAt?: boolean
+    isSettled?: boolean
+    settlementId?: boolean
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
+    employee?: boolean | ParkingWalkIn$employeeArgs<ExtArgs>
+    settlement?: boolean | ParkingWalkIn$settlementArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingWalkIn"]>
+
+  export type ParkingWalkInSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleType?: boolean
+    vehicleNumber?: boolean
+    amountPaise?: boolean
+    paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
+    employeeId?: boolean
+    enteredAt?: boolean
+    exitedAt?: boolean
+    isSettled?: boolean
+    settlementId?: boolean
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
+    employee?: boolean | ParkingWalkIn$employeeArgs<ExtArgs>
+    settlement?: boolean | ParkingWalkIn$settlementArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingWalkIn"]>
+
+  export type ParkingWalkInSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    slotWindowId?: boolean
+    vehicleType?: boolean
+    vehicleNumber?: boolean
+    amountPaise?: boolean
+    paymentMethod?: boolean
+    onlinePaymentConfirmedAt?: boolean
+    employeeId?: boolean
+    enteredAt?: boolean
+    exitedAt?: boolean
+    isSettled?: boolean
+    settlementId?: boolean
+  }
+
+  export type ParkingWalkInOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "listingId" | "slotWindowId" | "vehicleType" | "vehicleNumber" | "amountPaise" | "paymentMethod" | "onlinePaymentConfirmedAt" | "employeeId" | "enteredAt" | "exitedAt" | "isSettled" | "settlementId", ExtArgs["result"]["parkingWalkIn"]>
+  export type ParkingWalkInInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
+    employee?: boolean | ParkingWalkIn$employeeArgs<ExtArgs>
+    settlement?: boolean | ParkingWalkIn$settlementArgs<ExtArgs>
+  }
+  export type ParkingWalkInIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
+    employee?: boolean | ParkingWalkIn$employeeArgs<ExtArgs>
+    settlement?: boolean | ParkingWalkIn$settlementArgs<ExtArgs>
+  }
+  export type ParkingWalkInIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    slotWindow?: boolean | ParkingSlotWindowDefaultArgs<ExtArgs>
+    employee?: boolean | ParkingWalkIn$employeeArgs<ExtArgs>
+    settlement?: boolean | ParkingWalkIn$settlementArgs<ExtArgs>
+  }
+
+  export type $ParkingWalkInPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingWalkIn"
+    objects: {
+      listing: Prisma.$ParkingListingPayload<ExtArgs>
+      slotWindow: Prisma.$ParkingSlotWindowPayload<ExtArgs>
+      employee: Prisma.$ParkingEmployeePayload<ExtArgs> | null
+      settlement: Prisma.$ParkingSettlementPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      slotWindowId: string
+      vehicleType: $Enums.ParkingVehicleType
+      vehicleNumber: string
+      amountPaise: number
+      paymentMethod: $Enums.ParkingPaymentMethod | null
+      onlinePaymentConfirmedAt: Date | null
+      employeeId: string | null
+      enteredAt: Date
+      exitedAt: Date | null
+      isSettled: boolean
+      settlementId: string | null
+    }, ExtArgs["result"]["parkingWalkIn"]>
+    composites: {}
+  }
+
+  type ParkingWalkInGetPayload<S extends boolean | null | undefined | ParkingWalkInDefaultArgs> = $Result.GetResult<Prisma.$ParkingWalkInPayload, S>
+
+  type ParkingWalkInCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingWalkInFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingWalkInCountAggregateInputType | true
+    }
+
+  export interface ParkingWalkInDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingWalkIn'], meta: { name: 'ParkingWalkIn' } }
+    /**
+     * Find zero or one ParkingWalkIn that matches the filter.
+     * @param {ParkingWalkInFindUniqueArgs} args - Arguments to find a ParkingWalkIn
+     * @example
+     * // Get one ParkingWalkIn
+     * const parkingWalkIn = await prisma.parkingWalkIn.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingWalkInFindUniqueArgs>(args: SelectSubset<T, ParkingWalkInFindUniqueArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingWalkIn that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingWalkInFindUniqueOrThrowArgs} args - Arguments to find a ParkingWalkIn
+     * @example
+     * // Get one ParkingWalkIn
+     * const parkingWalkIn = await prisma.parkingWalkIn.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingWalkInFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingWalkInFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingWalkIn that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInFindFirstArgs} args - Arguments to find a ParkingWalkIn
+     * @example
+     * // Get one ParkingWalkIn
+     * const parkingWalkIn = await prisma.parkingWalkIn.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingWalkInFindFirstArgs>(args?: SelectSubset<T, ParkingWalkInFindFirstArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingWalkIn that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInFindFirstOrThrowArgs} args - Arguments to find a ParkingWalkIn
+     * @example
+     * // Get one ParkingWalkIn
+     * const parkingWalkIn = await prisma.parkingWalkIn.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingWalkInFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingWalkInFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingWalkIns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingWalkIns
+     * const parkingWalkIns = await prisma.parkingWalkIn.findMany()
+     * 
+     * // Get first 10 ParkingWalkIns
+     * const parkingWalkIns = await prisma.parkingWalkIn.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingWalkInWithIdOnly = await prisma.parkingWalkIn.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingWalkInFindManyArgs>(args?: SelectSubset<T, ParkingWalkInFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingWalkIn.
+     * @param {ParkingWalkInCreateArgs} args - Arguments to create a ParkingWalkIn.
+     * @example
+     * // Create one ParkingWalkIn
+     * const ParkingWalkIn = await prisma.parkingWalkIn.create({
+     *   data: {
+     *     // ... data to create a ParkingWalkIn
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingWalkInCreateArgs>(args: SelectSubset<T, ParkingWalkInCreateArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingWalkIns.
+     * @param {ParkingWalkInCreateManyArgs} args - Arguments to create many ParkingWalkIns.
+     * @example
+     * // Create many ParkingWalkIns
+     * const parkingWalkIn = await prisma.parkingWalkIn.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingWalkInCreateManyArgs>(args?: SelectSubset<T, ParkingWalkInCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingWalkIns and returns the data saved in the database.
+     * @param {ParkingWalkInCreateManyAndReturnArgs} args - Arguments to create many ParkingWalkIns.
+     * @example
+     * // Create many ParkingWalkIns
+     * const parkingWalkIn = await prisma.parkingWalkIn.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingWalkIns and only return the `id`
+     * const parkingWalkInWithIdOnly = await prisma.parkingWalkIn.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingWalkInCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingWalkInCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingWalkIn.
+     * @param {ParkingWalkInDeleteArgs} args - Arguments to delete one ParkingWalkIn.
+     * @example
+     * // Delete one ParkingWalkIn
+     * const ParkingWalkIn = await prisma.parkingWalkIn.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingWalkIn
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingWalkInDeleteArgs>(args: SelectSubset<T, ParkingWalkInDeleteArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingWalkIn.
+     * @param {ParkingWalkInUpdateArgs} args - Arguments to update one ParkingWalkIn.
+     * @example
+     * // Update one ParkingWalkIn
+     * const parkingWalkIn = await prisma.parkingWalkIn.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingWalkInUpdateArgs>(args: SelectSubset<T, ParkingWalkInUpdateArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingWalkIns.
+     * @param {ParkingWalkInDeleteManyArgs} args - Arguments to filter ParkingWalkIns to delete.
+     * @example
+     * // Delete a few ParkingWalkIns
+     * const { count } = await prisma.parkingWalkIn.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingWalkInDeleteManyArgs>(args?: SelectSubset<T, ParkingWalkInDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingWalkIns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingWalkIns
+     * const parkingWalkIn = await prisma.parkingWalkIn.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingWalkInUpdateManyArgs>(args: SelectSubset<T, ParkingWalkInUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingWalkIns and returns the data updated in the database.
+     * @param {ParkingWalkInUpdateManyAndReturnArgs} args - Arguments to update many ParkingWalkIns.
+     * @example
+     * // Update many ParkingWalkIns
+     * const parkingWalkIn = await prisma.parkingWalkIn.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingWalkIns and only return the `id`
+     * const parkingWalkInWithIdOnly = await prisma.parkingWalkIn.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingWalkInUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingWalkInUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingWalkIn.
+     * @param {ParkingWalkInUpsertArgs} args - Arguments to update or create a ParkingWalkIn.
+     * @example
+     * // Update or create a ParkingWalkIn
+     * const parkingWalkIn = await prisma.parkingWalkIn.upsert({
+     *   create: {
+     *     // ... data to create a ParkingWalkIn
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingWalkIn we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingWalkInUpsertArgs>(args: SelectSubset<T, ParkingWalkInUpsertArgs<ExtArgs>>): Prisma__ParkingWalkInClient<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingWalkIns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInCountArgs} args - Arguments to filter ParkingWalkIns to count.
+     * @example
+     * // Count the number of ParkingWalkIns
+     * const count = await prisma.parkingWalkIn.count({
+     *   where: {
+     *     // ... the filter for the ParkingWalkIns we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingWalkInCountArgs>(
+      args?: Subset<T, ParkingWalkInCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingWalkInCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingWalkIn.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingWalkInAggregateArgs>(args: Subset<T, ParkingWalkInAggregateArgs>): Prisma.PrismaPromise<GetParkingWalkInAggregateType<T>>
+
+    /**
+     * Group by ParkingWalkIn.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingWalkInGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingWalkInGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingWalkInGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingWalkInGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingWalkInGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingWalkInGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingWalkIn model
+   */
+  readonly fields: ParkingWalkInFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingWalkIn.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingWalkInClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    slotWindow<T extends ParkingSlotWindowDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingSlotWindowDefaultArgs<ExtArgs>>): Prisma__ParkingSlotWindowClient<$Result.GetResult<Prisma.$ParkingSlotWindowPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    employee<T extends ParkingWalkIn$employeeArgs<ExtArgs> = {}>(args?: Subset<T, ParkingWalkIn$employeeArgs<ExtArgs>>): Prisma__ParkingEmployeeClient<$Result.GetResult<Prisma.$ParkingEmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    settlement<T extends ParkingWalkIn$settlementArgs<ExtArgs> = {}>(args?: Subset<T, ParkingWalkIn$settlementArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingWalkIn model
+   */
+  interface ParkingWalkInFieldRefs {
+    readonly id: FieldRef<"ParkingWalkIn", 'String'>
+    readonly listingId: FieldRef<"ParkingWalkIn", 'String'>
+    readonly slotWindowId: FieldRef<"ParkingWalkIn", 'String'>
+    readonly vehicleType: FieldRef<"ParkingWalkIn", 'ParkingVehicleType'>
+    readonly vehicleNumber: FieldRef<"ParkingWalkIn", 'String'>
+    readonly amountPaise: FieldRef<"ParkingWalkIn", 'Int'>
+    readonly paymentMethod: FieldRef<"ParkingWalkIn", 'ParkingPaymentMethod'>
+    readonly onlinePaymentConfirmedAt: FieldRef<"ParkingWalkIn", 'DateTime'>
+    readonly employeeId: FieldRef<"ParkingWalkIn", 'String'>
+    readonly enteredAt: FieldRef<"ParkingWalkIn", 'DateTime'>
+    readonly exitedAt: FieldRef<"ParkingWalkIn", 'DateTime'>
+    readonly isSettled: FieldRef<"ParkingWalkIn", 'Boolean'>
+    readonly settlementId: FieldRef<"ParkingWalkIn", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingWalkIn findUnique
+   */
+  export type ParkingWalkInFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWalkIn to fetch.
+     */
+    where: ParkingWalkInWhereUniqueInput
+  }
+
+  /**
+   * ParkingWalkIn findUniqueOrThrow
+   */
+  export type ParkingWalkInFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWalkIn to fetch.
+     */
+    where: ParkingWalkInWhereUniqueInput
+  }
+
+  /**
+   * ParkingWalkIn findFirst
+   */
+  export type ParkingWalkInFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWalkIn to fetch.
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWalkIns to fetch.
+     */
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingWalkIns.
+     */
+    cursor?: ParkingWalkInWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWalkIns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWalkIns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingWalkIns.
+     */
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingWalkIn findFirstOrThrow
+   */
+  export type ParkingWalkInFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWalkIn to fetch.
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWalkIns to fetch.
+     */
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingWalkIns.
+     */
+    cursor?: ParkingWalkInWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWalkIns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWalkIns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingWalkIns.
+     */
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingWalkIn findMany
+   */
+  export type ParkingWalkInFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingWalkIns to fetch.
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingWalkIns to fetch.
+     */
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingWalkIns.
+     */
+    cursor?: ParkingWalkInWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingWalkIns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingWalkIns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingWalkIns.
+     */
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingWalkIn create
+   */
+  export type ParkingWalkInCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingWalkIn.
+     */
+    data: XOR<ParkingWalkInCreateInput, ParkingWalkInUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingWalkIn createMany
+   */
+  export type ParkingWalkInCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingWalkIns.
+     */
+    data: ParkingWalkInCreateManyInput | ParkingWalkInCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingWalkIn createManyAndReturn
+   */
+  export type ParkingWalkInCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingWalkIns.
+     */
+    data: ParkingWalkInCreateManyInput | ParkingWalkInCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingWalkIn update
+   */
+  export type ParkingWalkInUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingWalkIn.
+     */
+    data: XOR<ParkingWalkInUpdateInput, ParkingWalkInUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingWalkIn to update.
+     */
+    where: ParkingWalkInWhereUniqueInput
+  }
+
+  /**
+   * ParkingWalkIn updateMany
+   */
+  export type ParkingWalkInUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingWalkIns.
+     */
+    data: XOR<ParkingWalkInUpdateManyMutationInput, ParkingWalkInUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingWalkIns to update
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * Limit how many ParkingWalkIns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingWalkIn updateManyAndReturn
+   */
+  export type ParkingWalkInUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingWalkIns.
+     */
+    data: XOR<ParkingWalkInUpdateManyMutationInput, ParkingWalkInUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingWalkIns to update
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * Limit how many ParkingWalkIns to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingWalkIn upsert
+   */
+  export type ParkingWalkInUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingWalkIn to update in case it exists.
+     */
+    where: ParkingWalkInWhereUniqueInput
+    /**
+     * In case the ParkingWalkIn found by the `where` argument doesn't exist, create a new ParkingWalkIn with this data.
+     */
+    create: XOR<ParkingWalkInCreateInput, ParkingWalkInUncheckedCreateInput>
+    /**
+     * In case the ParkingWalkIn was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingWalkInUpdateInput, ParkingWalkInUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingWalkIn delete
+   */
+  export type ParkingWalkInDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingWalkIn to delete.
+     */
+    where: ParkingWalkInWhereUniqueInput
+  }
+
+  /**
+   * ParkingWalkIn deleteMany
+   */
+  export type ParkingWalkInDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingWalkIns to delete
+     */
+    where?: ParkingWalkInWhereInput
+    /**
+     * Limit how many ParkingWalkIns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingWalkIn.employee
+   */
+  export type ParkingWalkIn$employeeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingEmployee
+     */
+    select?: ParkingEmployeeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingEmployee
+     */
+    omit?: ParkingEmployeeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingEmployeeInclude<ExtArgs> | null
+    where?: ParkingEmployeeWhereInput
+  }
+
+  /**
+   * ParkingWalkIn.settlement
+   */
+  export type ParkingWalkIn$settlementArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    where?: ParkingSettlementWhereInput
+  }
+
+  /**
+   * ParkingWalkIn without action
+   */
+  export type ParkingWalkInDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model ParkingBooking
    */
 
@@ -111755,10 +116006,12 @@ export namespace Prisma {
 
   export type ParkingBookingAvgAggregateOutputType = {
     amountPaise: number | null
+    extraAmountPaise: number | null
   }
 
   export type ParkingBookingSumAggregateOutputType = {
     amountPaise: number | null
+    extraAmountPaise: number | null
   }
 
   export type ParkingBookingMinAggregateOutputType = {
@@ -111773,6 +116026,13 @@ export namespace Prisma {
     status: $Enums.BookingStatus | null
     orderId: string | null
     idempotencyKey: string | null
+    checkedInAt: Date | null
+    actualCheckOutTime: Date | null
+    extraAmountPaise: number | null
+    extraOrderId: string | null
+    isSettled: boolean | null
+    extraSettled: boolean | null
+    settlementId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -111789,6 +116049,13 @@ export namespace Prisma {
     status: $Enums.BookingStatus | null
     orderId: string | null
     idempotencyKey: string | null
+    checkedInAt: Date | null
+    actualCheckOutTime: Date | null
+    extraAmountPaise: number | null
+    extraOrderId: string | null
+    isSettled: boolean | null
+    extraSettled: boolean | null
+    settlementId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -111805,6 +116072,13 @@ export namespace Prisma {
     status: number
     orderId: number
     idempotencyKey: number
+    checkedInAt: number
+    actualCheckOutTime: number
+    extraAmountPaise: number
+    extraOrderId: number
+    isSettled: number
+    extraSettled: number
+    settlementId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -111813,10 +116087,12 @@ export namespace Prisma {
 
   export type ParkingBookingAvgAggregateInputType = {
     amountPaise?: true
+    extraAmountPaise?: true
   }
 
   export type ParkingBookingSumAggregateInputType = {
     amountPaise?: true
+    extraAmountPaise?: true
   }
 
   export type ParkingBookingMinAggregateInputType = {
@@ -111831,6 +116107,13 @@ export namespace Prisma {
     status?: true
     orderId?: true
     idempotencyKey?: true
+    checkedInAt?: true
+    actualCheckOutTime?: true
+    extraAmountPaise?: true
+    extraOrderId?: true
+    isSettled?: true
+    extraSettled?: true
+    settlementId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -111847,6 +116130,13 @@ export namespace Prisma {
     status?: true
     orderId?: true
     idempotencyKey?: true
+    checkedInAt?: true
+    actualCheckOutTime?: true
+    extraAmountPaise?: true
+    extraOrderId?: true
+    isSettled?: true
+    extraSettled?: true
+    settlementId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -111863,6 +116153,13 @@ export namespace Prisma {
     status?: true
     orderId?: true
     idempotencyKey?: true
+    checkedInAt?: true
+    actualCheckOutTime?: true
+    extraAmountPaise?: true
+    extraOrderId?: true
+    isSettled?: true
+    extraSettled?: true
+    settlementId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -111966,6 +116263,13 @@ export namespace Prisma {
     status: $Enums.BookingStatus
     orderId: string | null
     idempotencyKey: string | null
+    checkedInAt: Date | null
+    actualCheckOutTime: Date | null
+    extraAmountPaise: number | null
+    extraOrderId: string | null
+    isSettled: boolean
+    extraSettled: boolean
+    settlementId: string | null
     createdAt: Date
     updatedAt: Date
     _count: ParkingBookingCountAggregateOutputType | null
@@ -112001,10 +116305,18 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
+    actualCheckOutTime?: boolean
+    extraAmountPaise?: boolean
+    extraOrderId?: boolean
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    settlement?: boolean | ParkingBooking$settlementArgs<ExtArgs>
   }, ExtArgs["result"]["parkingBooking"]>
 
   export type ParkingBookingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -112019,10 +116331,18 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
+    actualCheckOutTime?: boolean
+    extraAmountPaise?: boolean
+    extraOrderId?: boolean
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    settlement?: boolean | ParkingBooking$settlementArgs<ExtArgs>
   }, ExtArgs["result"]["parkingBooking"]>
 
   export type ParkingBookingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -112037,10 +116357,18 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
+    actualCheckOutTime?: boolean
+    extraAmountPaise?: boolean
+    extraOrderId?: boolean
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    settlement?: boolean | ParkingBooking$settlementArgs<ExtArgs>
   }, ExtArgs["result"]["parkingBooking"]>
 
   export type ParkingBookingSelectScalar = {
@@ -112055,22 +116383,32 @@ export namespace Prisma {
     status?: boolean
     orderId?: boolean
     idempotencyKey?: boolean
+    checkedInAt?: boolean
+    actualCheckOutTime?: boolean
+    extraAmountPaise?: boolean
+    extraOrderId?: boolean
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "idempotencyKey" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
+  export type ParkingBookingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "listingId" | "slotWindowId" | "vehicleId" | "startTime" | "endTime" | "amountPaise" | "status" | "orderId" | "idempotencyKey" | "checkedInAt" | "actualCheckOutTime" | "extraAmountPaise" | "extraOrderId" | "isSettled" | "extraSettled" | "settlementId" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingBooking"]>
   export type ParkingBookingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    settlement?: boolean | ParkingBooking$settlementArgs<ExtArgs>
   }
   export type ParkingBookingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    settlement?: boolean | ParkingBooking$settlementArgs<ExtArgs>
   }
   export type ParkingBookingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     customer?: boolean | CustomerDefaultArgs<ExtArgs>
     listing?: boolean | ParkingListingDefaultArgs<ExtArgs>
+    settlement?: boolean | ParkingBooking$settlementArgs<ExtArgs>
   }
 
   export type $ParkingBookingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -112078,6 +116416,7 @@ export namespace Prisma {
     objects: {
       customer: Prisma.$CustomerPayload<ExtArgs>
       listing: Prisma.$ParkingListingPayload<ExtArgs>
+      settlement: Prisma.$ParkingSettlementPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -112091,6 +116430,13 @@ export namespace Prisma {
       status: $Enums.BookingStatus
       orderId: string | null
       idempotencyKey: string | null
+      checkedInAt: Date | null
+      actualCheckOutTime: Date | null
+      extraAmountPaise: number | null
+      extraOrderId: string | null
+      isSettled: boolean
+      extraSettled: boolean
+      settlementId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["parkingBooking"]>
@@ -112489,6 +116835,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     customer<T extends CustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerDefaultArgs<ExtArgs>>): Prisma__CustomerClient<$Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     listing<T extends ParkingListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingListingDefaultArgs<ExtArgs>>): Prisma__ParkingListingClient<$Result.GetResult<Prisma.$ParkingListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    settlement<T extends ParkingBooking$settlementArgs<ExtArgs> = {}>(args?: Subset<T, ParkingBooking$settlementArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -112529,6 +116876,13 @@ export namespace Prisma {
     readonly status: FieldRef<"ParkingBooking", 'BookingStatus'>
     readonly orderId: FieldRef<"ParkingBooking", 'String'>
     readonly idempotencyKey: FieldRef<"ParkingBooking", 'String'>
+    readonly checkedInAt: FieldRef<"ParkingBooking", 'DateTime'>
+    readonly actualCheckOutTime: FieldRef<"ParkingBooking", 'DateTime'>
+    readonly extraAmountPaise: FieldRef<"ParkingBooking", 'Int'>
+    readonly extraOrderId: FieldRef<"ParkingBooking", 'String'>
+    readonly isSettled: FieldRef<"ParkingBooking", 'Boolean'>
+    readonly extraSettled: FieldRef<"ParkingBooking", 'Boolean'>
+    readonly settlementId: FieldRef<"ParkingBooking", 'String'>
     readonly createdAt: FieldRef<"ParkingBooking", 'DateTime'>
     readonly updatedAt: FieldRef<"ParkingBooking", 'DateTime'>
   }
@@ -112932,6 +117286,25 @@ export namespace Prisma {
   }
 
   /**
+   * ParkingBooking.settlement
+   */
+  export type ParkingBooking$settlementArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    where?: ParkingSettlementWhereInput
+  }
+
+  /**
    * ParkingBooking without action
    */
   export type ParkingBookingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -112947,6 +117320,1221 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ParkingBookingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ParkingSettlement
+   */
+
+  export type AggregateParkingSettlement = {
+    _count: ParkingSettlementCountAggregateOutputType | null
+    _avg: ParkingSettlementAvgAggregateOutputType | null
+    _sum: ParkingSettlementSumAggregateOutputType | null
+    _min: ParkingSettlementMinAggregateOutputType | null
+    _max: ParkingSettlementMaxAggregateOutputType | null
+  }
+
+  export type ParkingSettlementAvgAggregateOutputType = {
+    totalCollected: number | null
+    gupioCommission: number | null
+    amountSettled: number | null
+  }
+
+  export type ParkingSettlementSumAggregateOutputType = {
+    totalCollected: number | null
+    gupioCommission: number | null
+    amountSettled: number | null
+  }
+
+  export type ParkingSettlementMinAggregateOutputType = {
+    id: string | null
+    dealerId: string | null
+    date: Date | null
+    totalCollected: number | null
+    gupioCommission: number | null
+    amountSettled: number | null
+    status: $Enums.SettlementStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingSettlementMaxAggregateOutputType = {
+    id: string | null
+    dealerId: string | null
+    date: Date | null
+    totalCollected: number | null
+    gupioCommission: number | null
+    amountSettled: number | null
+    status: $Enums.SettlementStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ParkingSettlementCountAggregateOutputType = {
+    id: number
+    dealerId: number
+    date: number
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ParkingSettlementAvgAggregateInputType = {
+    totalCollected?: true
+    gupioCommission?: true
+    amountSettled?: true
+  }
+
+  export type ParkingSettlementSumAggregateInputType = {
+    totalCollected?: true
+    gupioCommission?: true
+    amountSettled?: true
+  }
+
+  export type ParkingSettlementMinAggregateInputType = {
+    id?: true
+    dealerId?: true
+    date?: true
+    totalCollected?: true
+    gupioCommission?: true
+    amountSettled?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingSettlementMaxAggregateInputType = {
+    id?: true
+    dealerId?: true
+    date?: true
+    totalCollected?: true
+    gupioCommission?: true
+    amountSettled?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ParkingSettlementCountAggregateInputType = {
+    id?: true
+    dealerId?: true
+    date?: true
+    totalCollected?: true
+    gupioCommission?: true
+    amountSettled?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ParkingSettlementAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingSettlement to aggregate.
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSettlements to fetch.
+     */
+    orderBy?: ParkingSettlementOrderByWithRelationInput | ParkingSettlementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingSettlementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSettlements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSettlements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingSettlements
+    **/
+    _count?: true | ParkingSettlementCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingSettlementAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingSettlementSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingSettlementMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingSettlementMaxAggregateInputType
+  }
+
+  export type GetParkingSettlementAggregateType<T extends ParkingSettlementAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingSettlement]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingSettlement[P]>
+      : GetScalarType<T[P], AggregateParkingSettlement[P]>
+  }
+
+
+
+
+  export type ParkingSettlementGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingSettlementWhereInput
+    orderBy?: ParkingSettlementOrderByWithAggregationInput | ParkingSettlementOrderByWithAggregationInput[]
+    by: ParkingSettlementScalarFieldEnum[] | ParkingSettlementScalarFieldEnum
+    having?: ParkingSettlementScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingSettlementCountAggregateInputType | true
+    _avg?: ParkingSettlementAvgAggregateInputType
+    _sum?: ParkingSettlementSumAggregateInputType
+    _min?: ParkingSettlementMinAggregateInputType
+    _max?: ParkingSettlementMaxAggregateInputType
+  }
+
+  export type ParkingSettlementGroupByOutputType = {
+    id: string
+    dealerId: string
+    date: Date
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status: $Enums.SettlementStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: ParkingSettlementCountAggregateOutputType | null
+    _avg: ParkingSettlementAvgAggregateOutputType | null
+    _sum: ParkingSettlementSumAggregateOutputType | null
+    _min: ParkingSettlementMinAggregateOutputType | null
+    _max: ParkingSettlementMaxAggregateOutputType | null
+  }
+
+  type GetParkingSettlementGroupByPayload<T extends ParkingSettlementGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingSettlementGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingSettlementGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingSettlementGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingSettlementGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingSettlementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    date?: boolean
+    totalCollected?: boolean
+    gupioCommission?: boolean
+    amountSettled?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+    bookings?: boolean | ParkingSettlement$bookingsArgs<ExtArgs>
+    walkIns?: boolean | ParkingSettlement$walkInsArgs<ExtArgs>
+    _count?: boolean | ParkingSettlementCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingSettlement"]>
+
+  export type ParkingSettlementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    date?: boolean
+    totalCollected?: boolean
+    gupioCommission?: boolean
+    amountSettled?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingSettlement"]>
+
+  export type ParkingSettlementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    dealerId?: boolean
+    date?: boolean
+    totalCollected?: boolean
+    gupioCommission?: boolean
+    amountSettled?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["parkingSettlement"]>
+
+  export type ParkingSettlementSelectScalar = {
+    id?: boolean
+    dealerId?: boolean
+    date?: boolean
+    totalCollected?: boolean
+    gupioCommission?: boolean
+    amountSettled?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ParkingSettlementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "dealerId" | "date" | "totalCollected" | "gupioCommission" | "amountSettled" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingSettlement"]>
+  export type ParkingSettlementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+    bookings?: boolean | ParkingSettlement$bookingsArgs<ExtArgs>
+    walkIns?: boolean | ParkingSettlement$walkInsArgs<ExtArgs>
+    _count?: boolean | ParkingSettlementCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ParkingSettlementIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }
+  export type ParkingSettlementIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    dealer?: boolean | ParkingDealerDefaultArgs<ExtArgs>
+  }
+
+  export type $ParkingSettlementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingSettlement"
+    objects: {
+      dealer: Prisma.$ParkingDealerPayload<ExtArgs>
+      bookings: Prisma.$ParkingBookingPayload<ExtArgs>[]
+      walkIns: Prisma.$ParkingWalkInPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      dealerId: string
+      date: Date
+      totalCollected: number
+      gupioCommission: number
+      amountSettled: number
+      status: $Enums.SettlementStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["parkingSettlement"]>
+    composites: {}
+  }
+
+  type ParkingSettlementGetPayload<S extends boolean | null | undefined | ParkingSettlementDefaultArgs> = $Result.GetResult<Prisma.$ParkingSettlementPayload, S>
+
+  type ParkingSettlementCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingSettlementFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingSettlementCountAggregateInputType | true
+    }
+
+  export interface ParkingSettlementDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingSettlement'], meta: { name: 'ParkingSettlement' } }
+    /**
+     * Find zero or one ParkingSettlement that matches the filter.
+     * @param {ParkingSettlementFindUniqueArgs} args - Arguments to find a ParkingSettlement
+     * @example
+     * // Get one ParkingSettlement
+     * const parkingSettlement = await prisma.parkingSettlement.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingSettlementFindUniqueArgs>(args: SelectSubset<T, ParkingSettlementFindUniqueArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingSettlement that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingSettlementFindUniqueOrThrowArgs} args - Arguments to find a ParkingSettlement
+     * @example
+     * // Get one ParkingSettlement
+     * const parkingSettlement = await prisma.parkingSettlement.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingSettlementFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingSettlementFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingSettlement that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementFindFirstArgs} args - Arguments to find a ParkingSettlement
+     * @example
+     * // Get one ParkingSettlement
+     * const parkingSettlement = await prisma.parkingSettlement.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingSettlementFindFirstArgs>(args?: SelectSubset<T, ParkingSettlementFindFirstArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingSettlement that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementFindFirstOrThrowArgs} args - Arguments to find a ParkingSettlement
+     * @example
+     * // Get one ParkingSettlement
+     * const parkingSettlement = await prisma.parkingSettlement.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingSettlementFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingSettlementFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingSettlements that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingSettlements
+     * const parkingSettlements = await prisma.parkingSettlement.findMany()
+     * 
+     * // Get first 10 ParkingSettlements
+     * const parkingSettlements = await prisma.parkingSettlement.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingSettlementWithIdOnly = await prisma.parkingSettlement.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingSettlementFindManyArgs>(args?: SelectSubset<T, ParkingSettlementFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingSettlement.
+     * @param {ParkingSettlementCreateArgs} args - Arguments to create a ParkingSettlement.
+     * @example
+     * // Create one ParkingSettlement
+     * const ParkingSettlement = await prisma.parkingSettlement.create({
+     *   data: {
+     *     // ... data to create a ParkingSettlement
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingSettlementCreateArgs>(args: SelectSubset<T, ParkingSettlementCreateArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingSettlements.
+     * @param {ParkingSettlementCreateManyArgs} args - Arguments to create many ParkingSettlements.
+     * @example
+     * // Create many ParkingSettlements
+     * const parkingSettlement = await prisma.parkingSettlement.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingSettlementCreateManyArgs>(args?: SelectSubset<T, ParkingSettlementCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingSettlements and returns the data saved in the database.
+     * @param {ParkingSettlementCreateManyAndReturnArgs} args - Arguments to create many ParkingSettlements.
+     * @example
+     * // Create many ParkingSettlements
+     * const parkingSettlement = await prisma.parkingSettlement.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingSettlements and only return the `id`
+     * const parkingSettlementWithIdOnly = await prisma.parkingSettlement.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingSettlementCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingSettlementCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingSettlement.
+     * @param {ParkingSettlementDeleteArgs} args - Arguments to delete one ParkingSettlement.
+     * @example
+     * // Delete one ParkingSettlement
+     * const ParkingSettlement = await prisma.parkingSettlement.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingSettlement
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingSettlementDeleteArgs>(args: SelectSubset<T, ParkingSettlementDeleteArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingSettlement.
+     * @param {ParkingSettlementUpdateArgs} args - Arguments to update one ParkingSettlement.
+     * @example
+     * // Update one ParkingSettlement
+     * const parkingSettlement = await prisma.parkingSettlement.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingSettlementUpdateArgs>(args: SelectSubset<T, ParkingSettlementUpdateArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingSettlements.
+     * @param {ParkingSettlementDeleteManyArgs} args - Arguments to filter ParkingSettlements to delete.
+     * @example
+     * // Delete a few ParkingSettlements
+     * const { count } = await prisma.parkingSettlement.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingSettlementDeleteManyArgs>(args?: SelectSubset<T, ParkingSettlementDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingSettlements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingSettlements
+     * const parkingSettlement = await prisma.parkingSettlement.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingSettlementUpdateManyArgs>(args: SelectSubset<T, ParkingSettlementUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingSettlements and returns the data updated in the database.
+     * @param {ParkingSettlementUpdateManyAndReturnArgs} args - Arguments to update many ParkingSettlements.
+     * @example
+     * // Update many ParkingSettlements
+     * const parkingSettlement = await prisma.parkingSettlement.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingSettlements and only return the `id`
+     * const parkingSettlementWithIdOnly = await prisma.parkingSettlement.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingSettlementUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingSettlementUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingSettlement.
+     * @param {ParkingSettlementUpsertArgs} args - Arguments to update or create a ParkingSettlement.
+     * @example
+     * // Update or create a ParkingSettlement
+     * const parkingSettlement = await prisma.parkingSettlement.upsert({
+     *   create: {
+     *     // ... data to create a ParkingSettlement
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingSettlement we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingSettlementUpsertArgs>(args: SelectSubset<T, ParkingSettlementUpsertArgs<ExtArgs>>): Prisma__ParkingSettlementClient<$Result.GetResult<Prisma.$ParkingSettlementPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingSettlements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementCountArgs} args - Arguments to filter ParkingSettlements to count.
+     * @example
+     * // Count the number of ParkingSettlements
+     * const count = await prisma.parkingSettlement.count({
+     *   where: {
+     *     // ... the filter for the ParkingSettlements we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingSettlementCountArgs>(
+      args?: Subset<T, ParkingSettlementCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingSettlementCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingSettlement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingSettlementAggregateArgs>(args: Subset<T, ParkingSettlementAggregateArgs>): Prisma.PrismaPromise<GetParkingSettlementAggregateType<T>>
+
+    /**
+     * Group by ParkingSettlement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSettlementGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingSettlementGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingSettlementGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingSettlementGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingSettlementGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingSettlementGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingSettlement model
+   */
+  readonly fields: ParkingSettlementFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingSettlement.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingSettlementClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    dealer<T extends ParkingDealerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ParkingDealerDefaultArgs<ExtArgs>>): Prisma__ParkingDealerClient<$Result.GetResult<Prisma.$ParkingDealerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    bookings<T extends ParkingSettlement$bookingsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingSettlement$bookingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingBookingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    walkIns<T extends ParkingSettlement$walkInsArgs<ExtArgs> = {}>(args?: Subset<T, ParkingSettlement$walkInsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingWalkInPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingSettlement model
+   */
+  interface ParkingSettlementFieldRefs {
+    readonly id: FieldRef<"ParkingSettlement", 'String'>
+    readonly dealerId: FieldRef<"ParkingSettlement", 'String'>
+    readonly date: FieldRef<"ParkingSettlement", 'DateTime'>
+    readonly totalCollected: FieldRef<"ParkingSettlement", 'Int'>
+    readonly gupioCommission: FieldRef<"ParkingSettlement", 'Int'>
+    readonly amountSettled: FieldRef<"ParkingSettlement", 'Int'>
+    readonly status: FieldRef<"ParkingSettlement", 'SettlementStatus'>
+    readonly createdAt: FieldRef<"ParkingSettlement", 'DateTime'>
+    readonly updatedAt: FieldRef<"ParkingSettlement", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingSettlement findUnique
+   */
+  export type ParkingSettlementFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSettlement to fetch.
+     */
+    where: ParkingSettlementWhereUniqueInput
+  }
+
+  /**
+   * ParkingSettlement findUniqueOrThrow
+   */
+  export type ParkingSettlementFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSettlement to fetch.
+     */
+    where: ParkingSettlementWhereUniqueInput
+  }
+
+  /**
+   * ParkingSettlement findFirst
+   */
+  export type ParkingSettlementFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSettlement to fetch.
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSettlements to fetch.
+     */
+    orderBy?: ParkingSettlementOrderByWithRelationInput | ParkingSettlementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingSettlements.
+     */
+    cursor?: ParkingSettlementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSettlements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSettlements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSettlements.
+     */
+    distinct?: ParkingSettlementScalarFieldEnum | ParkingSettlementScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSettlement findFirstOrThrow
+   */
+  export type ParkingSettlementFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSettlement to fetch.
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSettlements to fetch.
+     */
+    orderBy?: ParkingSettlementOrderByWithRelationInput | ParkingSettlementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingSettlements.
+     */
+    cursor?: ParkingSettlementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSettlements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSettlements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSettlements.
+     */
+    distinct?: ParkingSettlementScalarFieldEnum | ParkingSettlementScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSettlement findMany
+   */
+  export type ParkingSettlementFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * Filter, which ParkingSettlements to fetch.
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSettlements to fetch.
+     */
+    orderBy?: ParkingSettlementOrderByWithRelationInput | ParkingSettlementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingSettlements.
+     */
+    cursor?: ParkingSettlementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSettlements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSettlements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSettlements.
+     */
+    distinct?: ParkingSettlementScalarFieldEnum | ParkingSettlementScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSettlement create
+   */
+  export type ParkingSettlementCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingSettlement.
+     */
+    data: XOR<ParkingSettlementCreateInput, ParkingSettlementUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingSettlement createMany
+   */
+  export type ParkingSettlementCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingSettlements.
+     */
+    data: ParkingSettlementCreateManyInput | ParkingSettlementCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingSettlement createManyAndReturn
+   */
+  export type ParkingSettlementCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingSettlements.
+     */
+    data: ParkingSettlementCreateManyInput | ParkingSettlementCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingSettlement update
+   */
+  export type ParkingSettlementUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingSettlement.
+     */
+    data: XOR<ParkingSettlementUpdateInput, ParkingSettlementUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingSettlement to update.
+     */
+    where: ParkingSettlementWhereUniqueInput
+  }
+
+  /**
+   * ParkingSettlement updateMany
+   */
+  export type ParkingSettlementUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingSettlements.
+     */
+    data: XOR<ParkingSettlementUpdateManyMutationInput, ParkingSettlementUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingSettlements to update
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * Limit how many ParkingSettlements to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSettlement updateManyAndReturn
+   */
+  export type ParkingSettlementUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingSettlements.
+     */
+    data: XOR<ParkingSettlementUpdateManyMutationInput, ParkingSettlementUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingSettlements to update
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * Limit how many ParkingSettlements to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ParkingSettlement upsert
+   */
+  export type ParkingSettlementUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingSettlement to update in case it exists.
+     */
+    where: ParkingSettlementWhereUniqueInput
+    /**
+     * In case the ParkingSettlement found by the `where` argument doesn't exist, create a new ParkingSettlement with this data.
+     */
+    create: XOR<ParkingSettlementCreateInput, ParkingSettlementUncheckedCreateInput>
+    /**
+     * In case the ParkingSettlement was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingSettlementUpdateInput, ParkingSettlementUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingSettlement delete
+   */
+  export type ParkingSettlementDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
+    /**
+     * Filter which ParkingSettlement to delete.
+     */
+    where: ParkingSettlementWhereUniqueInput
+  }
+
+  /**
+   * ParkingSettlement deleteMany
+   */
+  export type ParkingSettlementDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingSettlements to delete
+     */
+    where?: ParkingSettlementWhereInput
+    /**
+     * Limit how many ParkingSettlements to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSettlement.bookings
+   */
+  export type ParkingSettlement$bookingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingBooking
+     */
+    select?: ParkingBookingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingBooking
+     */
+    omit?: ParkingBookingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingBookingInclude<ExtArgs> | null
+    where?: ParkingBookingWhereInput
+    orderBy?: ParkingBookingOrderByWithRelationInput | ParkingBookingOrderByWithRelationInput[]
+    cursor?: ParkingBookingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingBookingScalarFieldEnum | ParkingBookingScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSettlement.walkIns
+   */
+  export type ParkingSettlement$walkInsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingWalkIn
+     */
+    select?: ParkingWalkInSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingWalkIn
+     */
+    omit?: ParkingWalkInOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingWalkInInclude<ExtArgs> | null
+    where?: ParkingWalkInWhereInput
+    orderBy?: ParkingWalkInOrderByWithRelationInput | ParkingWalkInOrderByWithRelationInput[]
+    cursor?: ParkingWalkInWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ParkingWalkInScalarFieldEnum | ParkingWalkInScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSettlement without action
+   */
+  export type ParkingSettlementDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSettlement
+     */
+    select?: ParkingSettlementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSettlement
+     */
+    omit?: ParkingSettlementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ParkingSettlementInclude<ExtArgs> | null
   }
 
 
@@ -139981,11 +145569,35 @@ export namespace Prisma {
     email: 'email',
     passwordHash: 'passwordHash',
     status: 'status',
+    commissionRate: 'commissionRate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type ParkingDealerScalarFieldEnum = (typeof ParkingDealerScalarFieldEnum)[keyof typeof ParkingDealerScalarFieldEnum]
+
+
+  export const ParkingEmployeeScalarFieldEnum: {
+    id: 'id',
+    dealerId: 'dealerId',
+    name: 'name',
+    phoneNumber: 'phoneNumber',
+    passwordHash: 'passwordHash',
+    isActive: 'isActive',
+    createdAt: 'createdAt'
+  };
+
+  export type ParkingEmployeeScalarFieldEnum = (typeof ParkingEmployeeScalarFieldEnum)[keyof typeof ParkingEmployeeScalarFieldEnum]
+
+
+  export const ParkingEmployeeListingScalarFieldEnum: {
+    id: 'id',
+    employeeId: 'employeeId',
+    listingId: 'listingId',
+    createdAt: 'createdAt'
+  };
+
+  export type ParkingEmployeeListingScalarFieldEnum = (typeof ParkingEmployeeListingScalarFieldEnum)[keyof typeof ParkingEmployeeListingScalarFieldEnum]
 
 
   export const ParkingListingScalarFieldEnum: {
@@ -140016,10 +145628,31 @@ export namespace Prisma {
     startHour: 'startHour',
     endHour: 'endHour',
     capacity: 'capacity',
-    booked: 'booked'
+    booked: 'booked',
+    manualOccupiedCars: 'manualOccupiedCars',
+    manualOccupiedBikes: 'manualOccupiedBikes'
   };
 
   export type ParkingSlotWindowScalarFieldEnum = (typeof ParkingSlotWindowScalarFieldEnum)[keyof typeof ParkingSlotWindowScalarFieldEnum]
+
+
+  export const ParkingWalkInScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    slotWindowId: 'slotWindowId',
+    vehicleType: 'vehicleType',
+    vehicleNumber: 'vehicleNumber',
+    amountPaise: 'amountPaise',
+    paymentMethod: 'paymentMethod',
+    onlinePaymentConfirmedAt: 'onlinePaymentConfirmedAt',
+    employeeId: 'employeeId',
+    enteredAt: 'enteredAt',
+    exitedAt: 'exitedAt',
+    isSettled: 'isSettled',
+    settlementId: 'settlementId'
+  };
+
+  export type ParkingWalkInScalarFieldEnum = (typeof ParkingWalkInScalarFieldEnum)[keyof typeof ParkingWalkInScalarFieldEnum]
 
 
   export const ParkingBookingScalarFieldEnum: {
@@ -140034,11 +145667,33 @@ export namespace Prisma {
     status: 'status',
     orderId: 'orderId',
     idempotencyKey: 'idempotencyKey',
+    checkedInAt: 'checkedInAt',
+    actualCheckOutTime: 'actualCheckOutTime',
+    extraAmountPaise: 'extraAmountPaise',
+    extraOrderId: 'extraOrderId',
+    isSettled: 'isSettled',
+    extraSettled: 'extraSettled',
+    settlementId: 'settlementId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type ParkingBookingScalarFieldEnum = (typeof ParkingBookingScalarFieldEnum)[keyof typeof ParkingBookingScalarFieldEnum]
+
+
+  export const ParkingSettlementScalarFieldEnum: {
+    id: 'id',
+    dealerId: 'dealerId',
+    date: 'date',
+    totalCollected: 'totalCollected',
+    gupioCommission: 'gupioCommission',
+    amountSettled: 'amountSettled',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ParkingSettlementScalarFieldEnum = (typeof ParkingSettlementScalarFieldEnum)[keyof typeof ParkingSettlementScalarFieldEnum]
 
 
   export const ParkingWaitlistEntryScalarFieldEnum: {
@@ -141313,6 +146968,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'ParkingVehicleType'
+   */
+  export type EnumParkingVehicleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParkingVehicleType'>
+    
+
+
+  /**
+   * Reference to a field of type 'ParkingVehicleType[]'
+   */
+  export type ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParkingVehicleType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'ParkingPaymentMethod'
+   */
+  export type EnumParkingPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParkingPaymentMethod'>
+    
+
+
+  /**
+   * Reference to a field of type 'ParkingPaymentMethod[]'
+   */
+  export type ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParkingPaymentMethod[]'>
+    
+
+
+  /**
    * Reference to a field of type 'BookingStatus'
    */
   export type EnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus'>
@@ -141323,6 +147006,20 @@ export namespace Prisma {
    * Reference to a field of type 'BookingStatus[]'
    */
   export type ListEnumBookingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BookingStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'SettlementStatus'
+   */
+  export type EnumSettlementStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SettlementStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SettlementStatus[]'
+   */
+  export type ListEnumSettlementStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SettlementStatus[]'>
     
 
 
@@ -148795,9 +154492,12 @@ export namespace Prisma {
     email?: StringNullableFilter<"ParkingDealer"> | string | null
     passwordHash?: StringFilter<"ParkingDealer"> | string
     status?: EnumDealerStatusFilter<"ParkingDealer"> | $Enums.DealerStatus
+    commissionRate?: IntFilter<"ParkingDealer"> | number
     createdAt?: DateTimeFilter<"ParkingDealer"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingDealer"> | Date | string
     listings?: ParkingListingListRelationFilter
+    employees?: ParkingEmployeeListRelationFilter
+    settlements?: ParkingSettlementListRelationFilter
   }
 
   export type ParkingDealerOrderByWithRelationInput = {
@@ -148807,9 +154507,12 @@ export namespace Prisma {
     email?: SortOrderInput | SortOrder
     passwordHash?: SortOrder
     status?: SortOrder
+    commissionRate?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     listings?: ParkingListingOrderByRelationAggregateInput
+    employees?: ParkingEmployeeOrderByRelationAggregateInput
+    settlements?: ParkingSettlementOrderByRelationAggregateInput
   }
 
   export type ParkingDealerWhereUniqueInput = Prisma.AtLeast<{
@@ -148822,9 +154525,12 @@ export namespace Prisma {
     email?: StringNullableFilter<"ParkingDealer"> | string | null
     passwordHash?: StringFilter<"ParkingDealer"> | string
     status?: EnumDealerStatusFilter<"ParkingDealer"> | $Enums.DealerStatus
+    commissionRate?: IntFilter<"ParkingDealer"> | number
     createdAt?: DateTimeFilter<"ParkingDealer"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingDealer"> | Date | string
     listings?: ParkingListingListRelationFilter
+    employees?: ParkingEmployeeListRelationFilter
+    settlements?: ParkingSettlementListRelationFilter
   }, "id" | "phoneNumber">
 
   export type ParkingDealerOrderByWithAggregationInput = {
@@ -148834,11 +154540,14 @@ export namespace Prisma {
     email?: SortOrderInput | SortOrder
     passwordHash?: SortOrder
     status?: SortOrder
+    commissionRate?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ParkingDealerCountOrderByAggregateInput
+    _avg?: ParkingDealerAvgOrderByAggregateInput
     _max?: ParkingDealerMaxOrderByAggregateInput
     _min?: ParkingDealerMinOrderByAggregateInput
+    _sum?: ParkingDealerSumOrderByAggregateInput
   }
 
   export type ParkingDealerScalarWhereWithAggregatesInput = {
@@ -148851,8 +154560,134 @@ export namespace Prisma {
     email?: StringNullableWithAggregatesFilter<"ParkingDealer"> | string | null
     passwordHash?: StringWithAggregatesFilter<"ParkingDealer"> | string
     status?: EnumDealerStatusWithAggregatesFilter<"ParkingDealer"> | $Enums.DealerStatus
+    commissionRate?: IntWithAggregatesFilter<"ParkingDealer"> | number
     createdAt?: DateTimeWithAggregatesFilter<"ParkingDealer"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ParkingDealer"> | Date | string
+  }
+
+  export type ParkingEmployeeWhereInput = {
+    AND?: ParkingEmployeeWhereInput | ParkingEmployeeWhereInput[]
+    OR?: ParkingEmployeeWhereInput[]
+    NOT?: ParkingEmployeeWhereInput | ParkingEmployeeWhereInput[]
+    id?: StringFilter<"ParkingEmployee"> | string
+    dealerId?: StringFilter<"ParkingEmployee"> | string
+    name?: StringFilter<"ParkingEmployee"> | string
+    phoneNumber?: StringFilter<"ParkingEmployee"> | string
+    passwordHash?: StringFilter<"ParkingEmployee"> | string
+    isActive?: BoolFilter<"ParkingEmployee"> | boolean
+    createdAt?: DateTimeFilter<"ParkingEmployee"> | Date | string
+    dealer?: XOR<ParkingDealerScalarRelationFilter, ParkingDealerWhereInput>
+    walkIns?: ParkingWalkInListRelationFilter
+    assignedListings?: ParkingEmployeeListingListRelationFilter
+  }
+
+  export type ParkingEmployeeOrderByWithRelationInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    dealer?: ParkingDealerOrderByWithRelationInput
+    walkIns?: ParkingWalkInOrderByRelationAggregateInput
+    assignedListings?: ParkingEmployeeListingOrderByRelationAggregateInput
+  }
+
+  export type ParkingEmployeeWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneNumber?: string
+    AND?: ParkingEmployeeWhereInput | ParkingEmployeeWhereInput[]
+    OR?: ParkingEmployeeWhereInput[]
+    NOT?: ParkingEmployeeWhereInput | ParkingEmployeeWhereInput[]
+    dealerId?: StringFilter<"ParkingEmployee"> | string
+    name?: StringFilter<"ParkingEmployee"> | string
+    passwordHash?: StringFilter<"ParkingEmployee"> | string
+    isActive?: BoolFilter<"ParkingEmployee"> | boolean
+    createdAt?: DateTimeFilter<"ParkingEmployee"> | Date | string
+    dealer?: XOR<ParkingDealerScalarRelationFilter, ParkingDealerWhereInput>
+    walkIns?: ParkingWalkInListRelationFilter
+    assignedListings?: ParkingEmployeeListingListRelationFilter
+  }, "id" | "phoneNumber">
+
+  export type ParkingEmployeeOrderByWithAggregationInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+    _count?: ParkingEmployeeCountOrderByAggregateInput
+    _max?: ParkingEmployeeMaxOrderByAggregateInput
+    _min?: ParkingEmployeeMinOrderByAggregateInput
+  }
+
+  export type ParkingEmployeeScalarWhereWithAggregatesInput = {
+    AND?: ParkingEmployeeScalarWhereWithAggregatesInput | ParkingEmployeeScalarWhereWithAggregatesInput[]
+    OR?: ParkingEmployeeScalarWhereWithAggregatesInput[]
+    NOT?: ParkingEmployeeScalarWhereWithAggregatesInput | ParkingEmployeeScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingEmployee"> | string
+    dealerId?: StringWithAggregatesFilter<"ParkingEmployee"> | string
+    name?: StringWithAggregatesFilter<"ParkingEmployee"> | string
+    phoneNumber?: StringWithAggregatesFilter<"ParkingEmployee"> | string
+    passwordHash?: StringWithAggregatesFilter<"ParkingEmployee"> | string
+    isActive?: BoolWithAggregatesFilter<"ParkingEmployee"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingEmployee"> | Date | string
+  }
+
+  export type ParkingEmployeeListingWhereInput = {
+    AND?: ParkingEmployeeListingWhereInput | ParkingEmployeeListingWhereInput[]
+    OR?: ParkingEmployeeListingWhereInput[]
+    NOT?: ParkingEmployeeListingWhereInput | ParkingEmployeeListingWhereInput[]
+    id?: StringFilter<"ParkingEmployeeListing"> | string
+    employeeId?: StringFilter<"ParkingEmployeeListing"> | string
+    listingId?: StringFilter<"ParkingEmployeeListing"> | string
+    createdAt?: DateTimeFilter<"ParkingEmployeeListing"> | Date | string
+    employee?: XOR<ParkingEmployeeScalarRelationFilter, ParkingEmployeeWhereInput>
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }
+
+  export type ParkingEmployeeListingOrderByWithRelationInput = {
+    id?: SortOrder
+    employeeId?: SortOrder
+    listingId?: SortOrder
+    createdAt?: SortOrder
+    employee?: ParkingEmployeeOrderByWithRelationInput
+    listing?: ParkingListingOrderByWithRelationInput
+  }
+
+  export type ParkingEmployeeListingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    employeeId_listingId?: ParkingEmployeeListingEmployeeIdListingIdCompoundUniqueInput
+    AND?: ParkingEmployeeListingWhereInput | ParkingEmployeeListingWhereInput[]
+    OR?: ParkingEmployeeListingWhereInput[]
+    NOT?: ParkingEmployeeListingWhereInput | ParkingEmployeeListingWhereInput[]
+    employeeId?: StringFilter<"ParkingEmployeeListing"> | string
+    listingId?: StringFilter<"ParkingEmployeeListing"> | string
+    createdAt?: DateTimeFilter<"ParkingEmployeeListing"> | Date | string
+    employee?: XOR<ParkingEmployeeScalarRelationFilter, ParkingEmployeeWhereInput>
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+  }, "id" | "employeeId_listingId">
+
+  export type ParkingEmployeeListingOrderByWithAggregationInput = {
+    id?: SortOrder
+    employeeId?: SortOrder
+    listingId?: SortOrder
+    createdAt?: SortOrder
+    _count?: ParkingEmployeeListingCountOrderByAggregateInput
+    _max?: ParkingEmployeeListingMaxOrderByAggregateInput
+    _min?: ParkingEmployeeListingMinOrderByAggregateInput
+  }
+
+  export type ParkingEmployeeListingScalarWhereWithAggregatesInput = {
+    AND?: ParkingEmployeeListingScalarWhereWithAggregatesInput | ParkingEmployeeListingScalarWhereWithAggregatesInput[]
+    OR?: ParkingEmployeeListingScalarWhereWithAggregatesInput[]
+    NOT?: ParkingEmployeeListingScalarWhereWithAggregatesInput | ParkingEmployeeListingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingEmployeeListing"> | string
+    employeeId?: StringWithAggregatesFilter<"ParkingEmployeeListing"> | string
+    listingId?: StringWithAggregatesFilter<"ParkingEmployeeListing"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingEmployeeListing"> | Date | string
   }
 
   export type ParkingListingWhereInput = {
@@ -148878,6 +154713,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowListRelationFilter
     bookings?: ParkingBookingListRelationFilter
     waitlist?: ParkingWaitlistEntryListRelationFilter
+    walkIns?: ParkingWalkInListRelationFilter
+    assignedEmployees?: ParkingEmployeeListingListRelationFilter
   }
 
   export type ParkingListingOrderByWithRelationInput = {
@@ -148900,6 +154737,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowOrderByRelationAggregateInput
     bookings?: ParkingBookingOrderByRelationAggregateInput
     waitlist?: ParkingWaitlistEntryOrderByRelationAggregateInput
+    walkIns?: ParkingWalkInOrderByRelationAggregateInput
+    assignedEmployees?: ParkingEmployeeListingOrderByRelationAggregateInput
   }
 
   export type ParkingListingWhereUniqueInput = Prisma.AtLeast<{
@@ -148925,6 +154764,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowListRelationFilter
     bookings?: ParkingBookingListRelationFilter
     waitlist?: ParkingWaitlistEntryListRelationFilter
+    walkIns?: ParkingWalkInListRelationFilter
+    assignedEmployees?: ParkingEmployeeListingListRelationFilter
   }, "id">
 
   export type ParkingListingOrderByWithAggregationInput = {
@@ -148982,7 +154823,10 @@ export namespace Prisma {
     endHour?: IntFilter<"ParkingSlotWindow"> | number
     capacity?: IntFilter<"ParkingSlotWindow"> | number
     booked?: IntFilter<"ParkingSlotWindow"> | number
+    manualOccupiedCars?: IntFilter<"ParkingSlotWindow"> | number
+    manualOccupiedBikes?: IntFilter<"ParkingSlotWindow"> | number
     listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+    walkIns?: ParkingWalkInListRelationFilter
   }
 
   export type ParkingSlotWindowOrderByWithRelationInput = {
@@ -148993,7 +154837,10 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
     listing?: ParkingListingOrderByWithRelationInput
+    walkIns?: ParkingWalkInOrderByRelationAggregateInput
   }
 
   export type ParkingSlotWindowWhereUniqueInput = Prisma.AtLeast<{
@@ -149008,7 +154855,10 @@ export namespace Prisma {
     endHour?: IntFilter<"ParkingSlotWindow"> | number
     capacity?: IntFilter<"ParkingSlotWindow"> | number
     booked?: IntFilter<"ParkingSlotWindow"> | number
+    manualOccupiedCars?: IntFilter<"ParkingSlotWindow"> | number
+    manualOccupiedBikes?: IntFilter<"ParkingSlotWindow"> | number
     listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+    walkIns?: ParkingWalkInListRelationFilter
   }, "id" | "listingId_date_startHour">
 
   export type ParkingSlotWindowOrderByWithAggregationInput = {
@@ -149019,6 +154869,8 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
     _count?: ParkingSlotWindowCountOrderByAggregateInput
     _avg?: ParkingSlotWindowAvgOrderByAggregateInput
     _max?: ParkingSlotWindowMaxOrderByAggregateInput
@@ -149037,6 +154889,114 @@ export namespace Prisma {
     endHour?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
     capacity?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
     booked?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+    manualOccupiedCars?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+    manualOccupiedBikes?: IntWithAggregatesFilter<"ParkingSlotWindow"> | number
+  }
+
+  export type ParkingWalkInWhereInput = {
+    AND?: ParkingWalkInWhereInput | ParkingWalkInWhereInput[]
+    OR?: ParkingWalkInWhereInput[]
+    NOT?: ParkingWalkInWhereInput | ParkingWalkInWhereInput[]
+    id?: StringFilter<"ParkingWalkIn"> | string
+    listingId?: StringFilter<"ParkingWalkIn"> | string
+    slotWindowId?: StringFilter<"ParkingWalkIn"> | string
+    vehicleType?: EnumParkingVehicleTypeFilter<"ParkingWalkIn"> | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFilter<"ParkingWalkIn"> | string
+    amountPaise?: IntFilter<"ParkingWalkIn"> | number
+    paymentMethod?: EnumParkingPaymentMethodNullableFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
+    employeeId?: StringNullableFilter<"ParkingWalkIn"> | string | null
+    enteredAt?: DateTimeFilter<"ParkingWalkIn"> | Date | string
+    exitedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
+    isSettled?: BoolFilter<"ParkingWalkIn"> | boolean
+    settlementId?: StringNullableFilter<"ParkingWalkIn"> | string | null
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+    slotWindow?: XOR<ParkingSlotWindowScalarRelationFilter, ParkingSlotWindowWhereInput>
+    employee?: XOR<ParkingEmployeeNullableScalarRelationFilter, ParkingEmployeeWhereInput> | null
+    settlement?: XOR<ParkingSettlementNullableScalarRelationFilter, ParkingSettlementWhereInput> | null
+  }
+
+  export type ParkingWalkInOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleType?: SortOrder
+    vehicleNumber?: SortOrder
+    amountPaise?: SortOrder
+    paymentMethod?: SortOrderInput | SortOrder
+    onlinePaymentConfirmedAt?: SortOrderInput | SortOrder
+    employeeId?: SortOrderInput | SortOrder
+    enteredAt?: SortOrder
+    exitedAt?: SortOrderInput | SortOrder
+    isSettled?: SortOrder
+    settlementId?: SortOrderInput | SortOrder
+    listing?: ParkingListingOrderByWithRelationInput
+    slotWindow?: ParkingSlotWindowOrderByWithRelationInput
+    employee?: ParkingEmployeeOrderByWithRelationInput
+    settlement?: ParkingSettlementOrderByWithRelationInput
+  }
+
+  export type ParkingWalkInWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ParkingWalkInWhereInput | ParkingWalkInWhereInput[]
+    OR?: ParkingWalkInWhereInput[]
+    NOT?: ParkingWalkInWhereInput | ParkingWalkInWhereInput[]
+    listingId?: StringFilter<"ParkingWalkIn"> | string
+    slotWindowId?: StringFilter<"ParkingWalkIn"> | string
+    vehicleType?: EnumParkingVehicleTypeFilter<"ParkingWalkIn"> | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFilter<"ParkingWalkIn"> | string
+    amountPaise?: IntFilter<"ParkingWalkIn"> | number
+    paymentMethod?: EnumParkingPaymentMethodNullableFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
+    employeeId?: StringNullableFilter<"ParkingWalkIn"> | string | null
+    enteredAt?: DateTimeFilter<"ParkingWalkIn"> | Date | string
+    exitedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
+    isSettled?: BoolFilter<"ParkingWalkIn"> | boolean
+    settlementId?: StringNullableFilter<"ParkingWalkIn"> | string | null
+    listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+    slotWindow?: XOR<ParkingSlotWindowScalarRelationFilter, ParkingSlotWindowWhereInput>
+    employee?: XOR<ParkingEmployeeNullableScalarRelationFilter, ParkingEmployeeWhereInput> | null
+    settlement?: XOR<ParkingSettlementNullableScalarRelationFilter, ParkingSettlementWhereInput> | null
+  }, "id">
+
+  export type ParkingWalkInOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleType?: SortOrder
+    vehicleNumber?: SortOrder
+    amountPaise?: SortOrder
+    paymentMethod?: SortOrderInput | SortOrder
+    onlinePaymentConfirmedAt?: SortOrderInput | SortOrder
+    employeeId?: SortOrderInput | SortOrder
+    enteredAt?: SortOrder
+    exitedAt?: SortOrderInput | SortOrder
+    isSettled?: SortOrder
+    settlementId?: SortOrderInput | SortOrder
+    _count?: ParkingWalkInCountOrderByAggregateInput
+    _avg?: ParkingWalkInAvgOrderByAggregateInput
+    _max?: ParkingWalkInMaxOrderByAggregateInput
+    _min?: ParkingWalkInMinOrderByAggregateInput
+    _sum?: ParkingWalkInSumOrderByAggregateInput
+  }
+
+  export type ParkingWalkInScalarWhereWithAggregatesInput = {
+    AND?: ParkingWalkInScalarWhereWithAggregatesInput | ParkingWalkInScalarWhereWithAggregatesInput[]
+    OR?: ParkingWalkInScalarWhereWithAggregatesInput[]
+    NOT?: ParkingWalkInScalarWhereWithAggregatesInput | ParkingWalkInScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingWalkIn"> | string
+    listingId?: StringWithAggregatesFilter<"ParkingWalkIn"> | string
+    slotWindowId?: StringWithAggregatesFilter<"ParkingWalkIn"> | string
+    vehicleType?: EnumParkingVehicleTypeWithAggregatesFilter<"ParkingWalkIn"> | $Enums.ParkingVehicleType
+    vehicleNumber?: StringWithAggregatesFilter<"ParkingWalkIn"> | string
+    amountPaise?: IntWithAggregatesFilter<"ParkingWalkIn"> | number
+    paymentMethod?: EnumParkingPaymentMethodNullableWithAggregatesFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableWithAggregatesFilter<"ParkingWalkIn"> | Date | string | null
+    employeeId?: StringNullableWithAggregatesFilter<"ParkingWalkIn"> | string | null
+    enteredAt?: DateTimeWithAggregatesFilter<"ParkingWalkIn"> | Date | string
+    exitedAt?: DateTimeNullableWithAggregatesFilter<"ParkingWalkIn"> | Date | string | null
+    isSettled?: BoolWithAggregatesFilter<"ParkingWalkIn"> | boolean
+    settlementId?: StringNullableWithAggregatesFilter<"ParkingWalkIn"> | string | null
   }
 
   export type ParkingBookingWhereInput = {
@@ -149054,10 +155014,18 @@ export namespace Prisma {
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
     idempotencyKey?: StringNullableFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
+    actualCheckOutTime?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
+    extraAmountPaise?: IntNullableFilter<"ParkingBooking"> | number | null
+    extraOrderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    isSettled?: BoolFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolFilter<"ParkingBooking"> | boolean
+    settlementId?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+    settlement?: XOR<ParkingSettlementNullableScalarRelationFilter, ParkingSettlementWhereInput> | null
   }
 
   export type ParkingBookingOrderByWithRelationInput = {
@@ -149072,10 +155040,18 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
+    checkedInAt?: SortOrderInput | SortOrder
+    actualCheckOutTime?: SortOrderInput | SortOrder
+    extraAmountPaise?: SortOrderInput | SortOrder
+    extraOrderId?: SortOrderInput | SortOrder
+    isSettled?: SortOrder
+    extraSettled?: SortOrder
+    settlementId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     customer?: CustomerOrderByWithRelationInput
     listing?: ParkingListingOrderByWithRelationInput
+    settlement?: ParkingSettlementOrderByWithRelationInput
   }
 
   export type ParkingBookingWhereUniqueInput = Prisma.AtLeast<{
@@ -149093,10 +155069,18 @@ export namespace Prisma {
     amountPaise?: IntFilter<"ParkingBooking"> | number
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
+    actualCheckOutTime?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
+    extraAmountPaise?: IntNullableFilter<"ParkingBooking"> | number | null
+    extraOrderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    isSettled?: BoolFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolFilter<"ParkingBooking"> | boolean
+    settlementId?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     customer?: XOR<CustomerScalarRelationFilter, CustomerWhereInput>
     listing?: XOR<ParkingListingScalarRelationFilter, ParkingListingWhereInput>
+    settlement?: XOR<ParkingSettlementNullableScalarRelationFilter, ParkingSettlementWhereInput> | null
   }, "id" | "idempotencyKey">
 
   export type ParkingBookingOrderByWithAggregationInput = {
@@ -149111,6 +155095,13 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrderInput | SortOrder
     idempotencyKey?: SortOrderInput | SortOrder
+    checkedInAt?: SortOrderInput | SortOrder
+    actualCheckOutTime?: SortOrderInput | SortOrder
+    extraAmountPaise?: SortOrderInput | SortOrder
+    extraOrderId?: SortOrderInput | SortOrder
+    isSettled?: SortOrder
+    extraSettled?: SortOrder
+    settlementId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ParkingBookingCountOrderByAggregateInput
@@ -149135,8 +155126,98 @@ export namespace Prisma {
     status?: EnumBookingStatusWithAggregatesFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
     idempotencyKey?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableWithAggregatesFilter<"ParkingBooking"> | Date | string | null
+    actualCheckOutTime?: DateTimeNullableWithAggregatesFilter<"ParkingBooking"> | Date | string | null
+    extraAmountPaise?: IntNullableWithAggregatesFilter<"ParkingBooking"> | number | null
+    extraOrderId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
+    isSettled?: BoolWithAggregatesFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolWithAggregatesFilter<"ParkingBooking"> | boolean
+    settlementId?: StringNullableWithAggregatesFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ParkingBooking"> | Date | string
+  }
+
+  export type ParkingSettlementWhereInput = {
+    AND?: ParkingSettlementWhereInput | ParkingSettlementWhereInput[]
+    OR?: ParkingSettlementWhereInput[]
+    NOT?: ParkingSettlementWhereInput | ParkingSettlementWhereInput[]
+    id?: StringFilter<"ParkingSettlement"> | string
+    dealerId?: StringFilter<"ParkingSettlement"> | string
+    date?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    totalCollected?: IntFilter<"ParkingSettlement"> | number
+    gupioCommission?: IntFilter<"ParkingSettlement"> | number
+    amountSettled?: IntFilter<"ParkingSettlement"> | number
+    status?: EnumSettlementStatusFilter<"ParkingSettlement"> | $Enums.SettlementStatus
+    createdAt?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    dealer?: XOR<ParkingDealerScalarRelationFilter, ParkingDealerWhereInput>
+    bookings?: ParkingBookingListRelationFilter
+    walkIns?: ParkingWalkInListRelationFilter
+  }
+
+  export type ParkingSettlementOrderByWithRelationInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    date?: SortOrder
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    dealer?: ParkingDealerOrderByWithRelationInput
+    bookings?: ParkingBookingOrderByRelationAggregateInput
+    walkIns?: ParkingWalkInOrderByRelationAggregateInput
+  }
+
+  export type ParkingSettlementWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ParkingSettlementWhereInput | ParkingSettlementWhereInput[]
+    OR?: ParkingSettlementWhereInput[]
+    NOT?: ParkingSettlementWhereInput | ParkingSettlementWhereInput[]
+    dealerId?: StringFilter<"ParkingSettlement"> | string
+    date?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    totalCollected?: IntFilter<"ParkingSettlement"> | number
+    gupioCommission?: IntFilter<"ParkingSettlement"> | number
+    amountSettled?: IntFilter<"ParkingSettlement"> | number
+    status?: EnumSettlementStatusFilter<"ParkingSettlement"> | $Enums.SettlementStatus
+    createdAt?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    dealer?: XOR<ParkingDealerScalarRelationFilter, ParkingDealerWhereInput>
+    bookings?: ParkingBookingListRelationFilter
+    walkIns?: ParkingWalkInListRelationFilter
+  }, "id">
+
+  export type ParkingSettlementOrderByWithAggregationInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    date?: SortOrder
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ParkingSettlementCountOrderByAggregateInput
+    _avg?: ParkingSettlementAvgOrderByAggregateInput
+    _max?: ParkingSettlementMaxOrderByAggregateInput
+    _min?: ParkingSettlementMinOrderByAggregateInput
+    _sum?: ParkingSettlementSumOrderByAggregateInput
+  }
+
+  export type ParkingSettlementScalarWhereWithAggregatesInput = {
+    AND?: ParkingSettlementScalarWhereWithAggregatesInput | ParkingSettlementScalarWhereWithAggregatesInput[]
+    OR?: ParkingSettlementScalarWhereWithAggregatesInput[]
+    NOT?: ParkingSettlementScalarWhereWithAggregatesInput | ParkingSettlementScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingSettlement"> | string
+    dealerId?: StringWithAggregatesFilter<"ParkingSettlement"> | string
+    date?: DateTimeWithAggregatesFilter<"ParkingSettlement"> | Date | string
+    totalCollected?: IntWithAggregatesFilter<"ParkingSettlement"> | number
+    gupioCommission?: IntWithAggregatesFilter<"ParkingSettlement"> | number
+    amountSettled?: IntWithAggregatesFilter<"ParkingSettlement"> | number
+    status?: EnumSettlementStatusWithAggregatesFilter<"ParkingSettlement"> | $Enums.SettlementStatus
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingSettlement"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"ParkingSettlement"> | Date | string
   }
 
   export type ParkingWaitlistEntryWhereInput = {
@@ -159117,9 +165198,12 @@ export namespace Prisma {
     email?: string | null
     passwordHash: string
     status?: $Enums.DealerStatus
+    commissionRate?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     listings?: ParkingListingCreateNestedManyWithoutDealerInput
+    employees?: ParkingEmployeeCreateNestedManyWithoutDealerInput
+    settlements?: ParkingSettlementCreateNestedManyWithoutDealerInput
   }
 
   export type ParkingDealerUncheckedCreateInput = {
@@ -159129,9 +165213,12 @@ export namespace Prisma {
     email?: string | null
     passwordHash: string
     status?: $Enums.DealerStatus
+    commissionRate?: number
     createdAt?: Date | string
     updatedAt?: Date | string
     listings?: ParkingListingUncheckedCreateNestedManyWithoutDealerInput
+    employees?: ParkingEmployeeUncheckedCreateNestedManyWithoutDealerInput
+    settlements?: ParkingSettlementUncheckedCreateNestedManyWithoutDealerInput
   }
 
   export type ParkingDealerUpdateInput = {
@@ -159141,9 +165228,12 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     passwordHash?: StringFieldUpdateOperationsInput | string
     status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     listings?: ParkingListingUpdateManyWithoutDealerNestedInput
+    employees?: ParkingEmployeeUpdateManyWithoutDealerNestedInput
+    settlements?: ParkingSettlementUpdateManyWithoutDealerNestedInput
   }
 
   export type ParkingDealerUncheckedUpdateInput = {
@@ -159153,9 +165243,12 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     passwordHash?: StringFieldUpdateOperationsInput | string
     status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     listings?: ParkingListingUncheckedUpdateManyWithoutDealerNestedInput
+    employees?: ParkingEmployeeUncheckedUpdateManyWithoutDealerNestedInput
+    settlements?: ParkingSettlementUncheckedUpdateManyWithoutDealerNestedInput
   }
 
   export type ParkingDealerCreateManyInput = {
@@ -159165,6 +165258,7 @@ export namespace Prisma {
     email?: string | null
     passwordHash: string
     status?: $Enums.DealerStatus
+    commissionRate?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -159176,6 +165270,7 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     passwordHash?: StringFieldUpdateOperationsInput | string
     status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -159187,8 +165282,133 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     passwordHash?: StringFieldUpdateOperationsInput | string
     status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeCreateInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutEmployeesInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutEmployeeInput
+    assignedListings?: ParkingEmployeeListingCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeUncheckedCreateInput = {
+    id?: string
+    dealerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutEmployeeInput
+    assignedListings?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutEmployeesNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutEmployeeNestedInput
+    assignedListings?: ParkingEmployeeListingUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingEmployeeUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutEmployeeNestedInput
+    assignedListings?: ParkingEmployeeListingUncheckedUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingEmployeeCreateManyInput = {
+    id?: string
+    dealerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingEmployeeUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeListingCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    employee: ParkingEmployeeCreateNestedOneWithoutAssignedListingsInput
+    listing: ParkingListingCreateNestedOneWithoutAssignedEmployeesInput
+  }
+
+  export type ParkingEmployeeListingUncheckedCreateInput = {
+    id?: string
+    employeeId: string
+    listingId: string
+    createdAt?: Date | string
+  }
+
+  export type ParkingEmployeeListingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    employee?: ParkingEmployeeUpdateOneRequiredWithoutAssignedListingsNestedInput
+    listing?: ParkingListingUpdateOneRequiredWithoutAssignedEmployeesNestedInput
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    employeeId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeListingCreateManyInput = {
+    id?: string
+    employeeId: string
+    listingId: string
+    createdAt?: Date | string
+  }
+
+  export type ParkingEmployeeListingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    employeeId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ParkingListingCreateInput = {
@@ -159210,6 +165430,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
     bookings?: ParkingBookingCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingUncheckedCreateInput = {
@@ -159231,6 +165453,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
     bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingUpdateInput = {
@@ -159252,6 +165476,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingUncheckedUpdateInput = {
@@ -159273,6 +165499,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingCreateManyInput = {
@@ -159335,7 +165563,10 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
     listing: ParkingListingCreateNestedOneWithoutSlotWindowsInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutSlotWindowInput
   }
 
   export type ParkingSlotWindowUncheckedCreateInput = {
@@ -159346,6 +165577,9 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutSlotWindowInput
   }
 
   export type ParkingSlotWindowUpdateInput = {
@@ -159355,7 +165589,10 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
     listing?: ParkingListingUpdateOneRequiredWithoutSlotWindowsNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutSlotWindowNestedInput
   }
 
   export type ParkingSlotWindowUncheckedUpdateInput = {
@@ -159366,6 +165603,9 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutSlotWindowNestedInput
   }
 
   export type ParkingSlotWindowCreateManyInput = {
@@ -159376,6 +165616,8 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
   }
 
   export type ParkingSlotWindowUpdateManyMutationInput = {
@@ -159385,6 +165627,8 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
   }
 
   export type ParkingSlotWindowUncheckedUpdateManyInput = {
@@ -159395,6 +165639,116 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingWalkInCreateInput = {
+    id?: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    listing: ParkingListingCreateNestedOneWithoutWalkInsInput
+    slotWindow: ParkingSlotWindowCreateNestedOneWithoutWalkInsInput
+    employee?: ParkingEmployeeCreateNestedOneWithoutWalkInsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutWalkInsInput
+  }
+
+  export type ParkingWalkInUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingWalkInUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    listing?: ParkingListingUpdateOneRequiredWithoutWalkInsNestedInput
+    slotWindow?: ParkingSlotWindowUpdateOneRequiredWithoutWalkInsNestedInput
+    employee?: ParkingEmployeeUpdateOneWithoutWalkInsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutWalkInsNestedInput
+  }
+
+  export type ParkingWalkInUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingWalkInCreateManyInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingWalkInUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ParkingBookingCreateInput = {
@@ -159407,10 +165761,17 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
     listing: ParkingListingCreateNestedOneWithoutBookingsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutBookingsInput
   }
 
   export type ParkingBookingUncheckedCreateInput = {
@@ -159425,6 +165786,13 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -159439,10 +165807,17 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
     listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutBookingsNestedInput
   }
 
   export type ParkingBookingUncheckedUpdateInput = {
@@ -159457,6 +165832,13 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -159473,6 +165855,13 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -159487,6 +165876,12 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -159503,6 +165898,104 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSettlementCreateInput = {
+    id?: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutSettlementsInput
+    bookings?: ParkingBookingCreateNestedManyWithoutSettlementInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementUncheckedCreateInput = {
+    id?: string
+    dealerId: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutSettlementInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutSettlementsNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutSettlementNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingSettlementUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutSettlementNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingSettlementCreateManyInput = {
+    id?: string
+    dealerId: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingSettlementUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSettlementUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -167279,7 +173772,27 @@ export namespace Prisma {
     none?: ParkingListingWhereInput
   }
 
+  export type ParkingEmployeeListRelationFilter = {
+    every?: ParkingEmployeeWhereInput
+    some?: ParkingEmployeeWhereInput
+    none?: ParkingEmployeeWhereInput
+  }
+
+  export type ParkingSettlementListRelationFilter = {
+    every?: ParkingSettlementWhereInput
+    some?: ParkingSettlementWhereInput
+    none?: ParkingSettlementWhereInput
+  }
+
   export type ParkingListingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingEmployeeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingSettlementOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -167290,8 +173803,13 @@ export namespace Prisma {
     email?: SortOrder
     passwordHash?: SortOrder
     status?: SortOrder
+    commissionRate?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type ParkingDealerAvgOrderByAggregateInput = {
+    commissionRate?: SortOrder
   }
 
   export type ParkingDealerMaxOrderByAggregateInput = {
@@ -167301,6 +173819,7 @@ export namespace Prisma {
     email?: SortOrder
     passwordHash?: SortOrder
     status?: SortOrder
+    commissionRate?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -167312,8 +173831,13 @@ export namespace Prisma {
     email?: SortOrder
     passwordHash?: SortOrder
     status?: SortOrder
+    commissionRate?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type ParkingDealerSumOrderByAggregateInput = {
+    commissionRate?: SortOrder
   }
 
   export type EnumDealerStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -167326,16 +173850,102 @@ export namespace Prisma {
     _max?: NestedEnumDealerStatusFilter<$PrismaModel>
   }
 
+  export type ParkingDealerScalarRelationFilter = {
+    is?: ParkingDealerWhereInput
+    isNot?: ParkingDealerWhereInput
+  }
+
+  export type ParkingWalkInListRelationFilter = {
+    every?: ParkingWalkInWhereInput
+    some?: ParkingWalkInWhereInput
+    none?: ParkingWalkInWhereInput
+  }
+
+  export type ParkingEmployeeListingListRelationFilter = {
+    every?: ParkingEmployeeListingWhereInput
+    some?: ParkingEmployeeListingWhereInput
+    none?: ParkingEmployeeListingWhereInput
+  }
+
+  export type ParkingWalkInOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingEmployeeListingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ParkingEmployeeCountOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingEmployeeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingEmployeeMinOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    name?: SortOrder
+    phoneNumber?: SortOrder
+    passwordHash?: SortOrder
+    isActive?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingEmployeeScalarRelationFilter = {
+    is?: ParkingEmployeeWhereInput
+    isNot?: ParkingEmployeeWhereInput
+  }
+
+  export type ParkingListingScalarRelationFilter = {
+    is?: ParkingListingWhereInput
+    isNot?: ParkingListingWhereInput
+  }
+
+  export type ParkingEmployeeListingEmployeeIdListingIdCompoundUniqueInput = {
+    employeeId: string
+    listingId: string
+  }
+
+  export type ParkingEmployeeListingCountOrderByAggregateInput = {
+    id?: SortOrder
+    employeeId?: SortOrder
+    listingId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingEmployeeListingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    employeeId?: SortOrder
+    listingId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingEmployeeListingMinOrderByAggregateInput = {
+    id?: SortOrder
+    employeeId?: SortOrder
+    listingId?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type EnumListingStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.ListingStatus | EnumListingStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.ListingStatus[] | ListEnumListingStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumListingStatusFilter<$PrismaModel> | $Enums.ListingStatus
-  }
-
-  export type ParkingDealerScalarRelationFilter = {
-    is?: ParkingDealerWhereInput
-    isNot?: ParkingDealerWhereInput
   }
 
   export type ParkingSlotWindowListRelationFilter = {
@@ -167428,11 +174038,6 @@ export namespace Prisma {
     _max?: NestedEnumListingStatusFilter<$PrismaModel>
   }
 
-  export type ParkingListingScalarRelationFilter = {
-    is?: ParkingListingWhereInput
-    isNot?: ParkingListingWhereInput
-  }
-
   export type ParkingSlotWindowListingIdDateStartHourCompoundUniqueInput = {
     listingId: string
     date: Date | string
@@ -167447,6 +174052,8 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
   }
 
   export type ParkingSlotWindowAvgOrderByAggregateInput = {
@@ -167454,6 +174061,8 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
   }
 
   export type ParkingSlotWindowMaxOrderByAggregateInput = {
@@ -167464,6 +174073,8 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
   }
 
   export type ParkingSlotWindowMinOrderByAggregateInput = {
@@ -167474,6 +174085,8 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
   }
 
   export type ParkingSlotWindowSumOrderByAggregateInput = {
@@ -167481,6 +174094,113 @@ export namespace Prisma {
     endHour?: SortOrder
     capacity?: SortOrder
     booked?: SortOrder
+    manualOccupiedCars?: SortOrder
+    manualOccupiedBikes?: SortOrder
+  }
+
+  export type EnumParkingVehicleTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingVehicleType | EnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumParkingVehicleTypeFilter<$PrismaModel> | $Enums.ParkingVehicleType
+  }
+
+  export type EnumParkingPaymentMethodNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingPaymentMethod | EnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel> | $Enums.ParkingPaymentMethod | null
+  }
+
+  export type ParkingSlotWindowScalarRelationFilter = {
+    is?: ParkingSlotWindowWhereInput
+    isNot?: ParkingSlotWindowWhereInput
+  }
+
+  export type ParkingEmployeeNullableScalarRelationFilter = {
+    is?: ParkingEmployeeWhereInput | null
+    isNot?: ParkingEmployeeWhereInput | null
+  }
+
+  export type ParkingSettlementNullableScalarRelationFilter = {
+    is?: ParkingSettlementWhereInput | null
+    isNot?: ParkingSettlementWhereInput | null
+  }
+
+  export type ParkingWalkInCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleType?: SortOrder
+    vehicleNumber?: SortOrder
+    amountPaise?: SortOrder
+    paymentMethod?: SortOrder
+    onlinePaymentConfirmedAt?: SortOrder
+    employeeId?: SortOrder
+    enteredAt?: SortOrder
+    exitedAt?: SortOrder
+    isSettled?: SortOrder
+    settlementId?: SortOrder
+  }
+
+  export type ParkingWalkInAvgOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type ParkingWalkInMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleType?: SortOrder
+    vehicleNumber?: SortOrder
+    amountPaise?: SortOrder
+    paymentMethod?: SortOrder
+    onlinePaymentConfirmedAt?: SortOrder
+    employeeId?: SortOrder
+    enteredAt?: SortOrder
+    exitedAt?: SortOrder
+    isSettled?: SortOrder
+    settlementId?: SortOrder
+  }
+
+  export type ParkingWalkInMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    slotWindowId?: SortOrder
+    vehicleType?: SortOrder
+    vehicleNumber?: SortOrder
+    amountPaise?: SortOrder
+    paymentMethod?: SortOrder
+    onlinePaymentConfirmedAt?: SortOrder
+    employeeId?: SortOrder
+    enteredAt?: SortOrder
+    exitedAt?: SortOrder
+    isSettled?: SortOrder
+    settlementId?: SortOrder
+  }
+
+  export type ParkingWalkInSumOrderByAggregateInput = {
+    amountPaise?: SortOrder
+  }
+
+  export type EnumParkingVehicleTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingVehicleType | EnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumParkingVehicleTypeWithAggregatesFilter<$PrismaModel> | $Enums.ParkingVehicleType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumParkingVehicleTypeFilter<$PrismaModel>
+    _max?: NestedEnumParkingVehicleTypeFilter<$PrismaModel>
+  }
+
+  export type EnumParkingPaymentMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingPaymentMethod | EnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumParkingPaymentMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.ParkingPaymentMethod | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel>
+    _max?: NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel>
   }
 
   export type EnumBookingStatusFilter<$PrismaModel = never> = {
@@ -167502,12 +174222,20 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrder
     idempotencyKey?: SortOrder
+    checkedInAt?: SortOrder
+    actualCheckOutTime?: SortOrder
+    extraAmountPaise?: SortOrder
+    extraOrderId?: SortOrder
+    isSettled?: SortOrder
+    extraSettled?: SortOrder
+    settlementId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type ParkingBookingAvgOrderByAggregateInput = {
     amountPaise?: SortOrder
+    extraAmountPaise?: SortOrder
   }
 
   export type ParkingBookingMaxOrderByAggregateInput = {
@@ -167522,6 +174250,13 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrder
     idempotencyKey?: SortOrder
+    checkedInAt?: SortOrder
+    actualCheckOutTime?: SortOrder
+    extraAmountPaise?: SortOrder
+    extraOrderId?: SortOrder
+    isSettled?: SortOrder
+    extraSettled?: SortOrder
+    settlementId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -167538,12 +174273,20 @@ export namespace Prisma {
     status?: SortOrder
     orderId?: SortOrder
     idempotencyKey?: SortOrder
+    checkedInAt?: SortOrder
+    actualCheckOutTime?: SortOrder
+    extraAmountPaise?: SortOrder
+    extraOrderId?: SortOrder
+    isSettled?: SortOrder
+    extraSettled?: SortOrder
+    settlementId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type ParkingBookingSumOrderByAggregateInput = {
     amountPaise?: SortOrder
+    extraAmountPaise?: SortOrder
   }
 
   export type EnumBookingStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -167554,6 +174297,71 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBookingStatusFilter<$PrismaModel>
     _max?: NestedEnumBookingStatusFilter<$PrismaModel>
+  }
+
+  export type EnumSettlementStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SettlementStatus | EnumSettlementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSettlementStatusFilter<$PrismaModel> | $Enums.SettlementStatus
+  }
+
+  export type ParkingSettlementCountOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    date?: SortOrder
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingSettlementAvgOrderByAggregateInput = {
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+  }
+
+  export type ParkingSettlementMaxOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    date?: SortOrder
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingSettlementMinOrderByAggregateInput = {
+    id?: SortOrder
+    dealerId?: SortOrder
+    date?: SortOrder
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ParkingSettlementSumOrderByAggregateInput = {
+    totalCollected?: SortOrder
+    gupioCommission?: SortOrder
+    amountSettled?: SortOrder
+  }
+
+  export type EnumSettlementStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SettlementStatus | EnumSettlementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSettlementStatusWithAggregatesFilter<$PrismaModel> | $Enums.SettlementStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSettlementStatusFilter<$PrismaModel>
+    _max?: NestedEnumSettlementStatusFilter<$PrismaModel>
   }
 
   export type ParkingWaitlistEntryListingIdCustomerIdDesiredDateCompoundUniqueInput = {
@@ -174473,11 +181281,39 @@ export namespace Prisma {
     connect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
   }
 
+  export type ParkingEmployeeCreateNestedManyWithoutDealerInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutDealerInput, ParkingEmployeeUncheckedCreateWithoutDealerInput> | ParkingEmployeeCreateWithoutDealerInput[] | ParkingEmployeeUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutDealerInput | ParkingEmployeeCreateOrConnectWithoutDealerInput[]
+    createMany?: ParkingEmployeeCreateManyDealerInputEnvelope
+    connect?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+  }
+
+  export type ParkingSettlementCreateNestedManyWithoutDealerInput = {
+    create?: XOR<ParkingSettlementCreateWithoutDealerInput, ParkingSettlementUncheckedCreateWithoutDealerInput> | ParkingSettlementCreateWithoutDealerInput[] | ParkingSettlementUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutDealerInput | ParkingSettlementCreateOrConnectWithoutDealerInput[]
+    createMany?: ParkingSettlementCreateManyDealerInputEnvelope
+    connect?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+  }
+
   export type ParkingListingUncheckedCreateNestedManyWithoutDealerInput = {
     create?: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput> | ParkingListingCreateWithoutDealerInput[] | ParkingListingUncheckedCreateWithoutDealerInput[]
     connectOrCreate?: ParkingListingCreateOrConnectWithoutDealerInput | ParkingListingCreateOrConnectWithoutDealerInput[]
     createMany?: ParkingListingCreateManyDealerInputEnvelope
     connect?: ParkingListingWhereUniqueInput | ParkingListingWhereUniqueInput[]
+  }
+
+  export type ParkingEmployeeUncheckedCreateNestedManyWithoutDealerInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutDealerInput, ParkingEmployeeUncheckedCreateWithoutDealerInput> | ParkingEmployeeCreateWithoutDealerInput[] | ParkingEmployeeUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutDealerInput | ParkingEmployeeCreateOrConnectWithoutDealerInput[]
+    createMany?: ParkingEmployeeCreateManyDealerInputEnvelope
+    connect?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+  }
+
+  export type ParkingSettlementUncheckedCreateNestedManyWithoutDealerInput = {
+    create?: XOR<ParkingSettlementCreateWithoutDealerInput, ParkingSettlementUncheckedCreateWithoutDealerInput> | ParkingSettlementCreateWithoutDealerInput[] | ParkingSettlementUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutDealerInput | ParkingSettlementCreateOrConnectWithoutDealerInput[]
+    createMany?: ParkingSettlementCreateManyDealerInputEnvelope
+    connect?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
   }
 
   export type EnumDealerStatusFieldUpdateOperationsInput = {
@@ -174498,6 +181334,34 @@ export namespace Prisma {
     deleteMany?: ParkingListingScalarWhereInput | ParkingListingScalarWhereInput[]
   }
 
+  export type ParkingEmployeeUpdateManyWithoutDealerNestedInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutDealerInput, ParkingEmployeeUncheckedCreateWithoutDealerInput> | ParkingEmployeeCreateWithoutDealerInput[] | ParkingEmployeeUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutDealerInput | ParkingEmployeeCreateOrConnectWithoutDealerInput[]
+    upsert?: ParkingEmployeeUpsertWithWhereUniqueWithoutDealerInput | ParkingEmployeeUpsertWithWhereUniqueWithoutDealerInput[]
+    createMany?: ParkingEmployeeCreateManyDealerInputEnvelope
+    set?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    disconnect?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    delete?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    connect?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    update?: ParkingEmployeeUpdateWithWhereUniqueWithoutDealerInput | ParkingEmployeeUpdateWithWhereUniqueWithoutDealerInput[]
+    updateMany?: ParkingEmployeeUpdateManyWithWhereWithoutDealerInput | ParkingEmployeeUpdateManyWithWhereWithoutDealerInput[]
+    deleteMany?: ParkingEmployeeScalarWhereInput | ParkingEmployeeScalarWhereInput[]
+  }
+
+  export type ParkingSettlementUpdateManyWithoutDealerNestedInput = {
+    create?: XOR<ParkingSettlementCreateWithoutDealerInput, ParkingSettlementUncheckedCreateWithoutDealerInput> | ParkingSettlementCreateWithoutDealerInput[] | ParkingSettlementUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutDealerInput | ParkingSettlementCreateOrConnectWithoutDealerInput[]
+    upsert?: ParkingSettlementUpsertWithWhereUniqueWithoutDealerInput | ParkingSettlementUpsertWithWhereUniqueWithoutDealerInput[]
+    createMany?: ParkingSettlementCreateManyDealerInputEnvelope
+    set?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    disconnect?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    delete?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    connect?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    update?: ParkingSettlementUpdateWithWhereUniqueWithoutDealerInput | ParkingSettlementUpdateWithWhereUniqueWithoutDealerInput[]
+    updateMany?: ParkingSettlementUpdateManyWithWhereWithoutDealerInput | ParkingSettlementUpdateManyWithWhereWithoutDealerInput[]
+    deleteMany?: ParkingSettlementScalarWhereInput | ParkingSettlementScalarWhereInput[]
+  }
+
   export type ParkingListingUncheckedUpdateManyWithoutDealerNestedInput = {
     create?: XOR<ParkingListingCreateWithoutDealerInput, ParkingListingUncheckedCreateWithoutDealerInput> | ParkingListingCreateWithoutDealerInput[] | ParkingListingUncheckedCreateWithoutDealerInput[]
     connectOrCreate?: ParkingListingCreateOrConnectWithoutDealerInput | ParkingListingCreateOrConnectWithoutDealerInput[]
@@ -174510,6 +181374,160 @@ export namespace Prisma {
     update?: ParkingListingUpdateWithWhereUniqueWithoutDealerInput | ParkingListingUpdateWithWhereUniqueWithoutDealerInput[]
     updateMany?: ParkingListingUpdateManyWithWhereWithoutDealerInput | ParkingListingUpdateManyWithWhereWithoutDealerInput[]
     deleteMany?: ParkingListingScalarWhereInput | ParkingListingScalarWhereInput[]
+  }
+
+  export type ParkingEmployeeUncheckedUpdateManyWithoutDealerNestedInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutDealerInput, ParkingEmployeeUncheckedCreateWithoutDealerInput> | ParkingEmployeeCreateWithoutDealerInput[] | ParkingEmployeeUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutDealerInput | ParkingEmployeeCreateOrConnectWithoutDealerInput[]
+    upsert?: ParkingEmployeeUpsertWithWhereUniqueWithoutDealerInput | ParkingEmployeeUpsertWithWhereUniqueWithoutDealerInput[]
+    createMany?: ParkingEmployeeCreateManyDealerInputEnvelope
+    set?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    disconnect?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    delete?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    connect?: ParkingEmployeeWhereUniqueInput | ParkingEmployeeWhereUniqueInput[]
+    update?: ParkingEmployeeUpdateWithWhereUniqueWithoutDealerInput | ParkingEmployeeUpdateWithWhereUniqueWithoutDealerInput[]
+    updateMany?: ParkingEmployeeUpdateManyWithWhereWithoutDealerInput | ParkingEmployeeUpdateManyWithWhereWithoutDealerInput[]
+    deleteMany?: ParkingEmployeeScalarWhereInput | ParkingEmployeeScalarWhereInput[]
+  }
+
+  export type ParkingSettlementUncheckedUpdateManyWithoutDealerNestedInput = {
+    create?: XOR<ParkingSettlementCreateWithoutDealerInput, ParkingSettlementUncheckedCreateWithoutDealerInput> | ParkingSettlementCreateWithoutDealerInput[] | ParkingSettlementUncheckedCreateWithoutDealerInput[]
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutDealerInput | ParkingSettlementCreateOrConnectWithoutDealerInput[]
+    upsert?: ParkingSettlementUpsertWithWhereUniqueWithoutDealerInput | ParkingSettlementUpsertWithWhereUniqueWithoutDealerInput[]
+    createMany?: ParkingSettlementCreateManyDealerInputEnvelope
+    set?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    disconnect?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    delete?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    connect?: ParkingSettlementWhereUniqueInput | ParkingSettlementWhereUniqueInput[]
+    update?: ParkingSettlementUpdateWithWhereUniqueWithoutDealerInput | ParkingSettlementUpdateWithWhereUniqueWithoutDealerInput[]
+    updateMany?: ParkingSettlementUpdateManyWithWhereWithoutDealerInput | ParkingSettlementUpdateManyWithWhereWithoutDealerInput[]
+    deleteMany?: ParkingSettlementScalarWhereInput | ParkingSettlementScalarWhereInput[]
+  }
+
+  export type ParkingDealerCreateNestedOneWithoutEmployeesInput = {
+    create?: XOR<ParkingDealerCreateWithoutEmployeesInput, ParkingDealerUncheckedCreateWithoutEmployeesInput>
+    connectOrCreate?: ParkingDealerCreateOrConnectWithoutEmployeesInput
+    connect?: ParkingDealerWhereUniqueInput
+  }
+
+  export type ParkingWalkInCreateNestedManyWithoutEmployeeInput = {
+    create?: XOR<ParkingWalkInCreateWithoutEmployeeInput, ParkingWalkInUncheckedCreateWithoutEmployeeInput> | ParkingWalkInCreateWithoutEmployeeInput[] | ParkingWalkInUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutEmployeeInput | ParkingWalkInCreateOrConnectWithoutEmployeeInput[]
+    createMany?: ParkingWalkInCreateManyEmployeeInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type ParkingEmployeeListingCreateNestedManyWithoutEmployeeInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutEmployeeInput, ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput> | ParkingEmployeeListingCreateWithoutEmployeeInput[] | ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput | ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput[]
+    createMany?: ParkingEmployeeListingCreateManyEmployeeInputEnvelope
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+  }
+
+  export type ParkingWalkInUncheckedCreateNestedManyWithoutEmployeeInput = {
+    create?: XOR<ParkingWalkInCreateWithoutEmployeeInput, ParkingWalkInUncheckedCreateWithoutEmployeeInput> | ParkingWalkInCreateWithoutEmployeeInput[] | ParkingWalkInUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutEmployeeInput | ParkingWalkInCreateOrConnectWithoutEmployeeInput[]
+    createMany?: ParkingWalkInCreateManyEmployeeInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type ParkingEmployeeListingUncheckedCreateNestedManyWithoutEmployeeInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutEmployeeInput, ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput> | ParkingEmployeeListingCreateWithoutEmployeeInput[] | ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput | ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput[]
+    createMany?: ParkingEmployeeListingCreateManyEmployeeInputEnvelope
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+  }
+
+  export type ParkingDealerUpdateOneRequiredWithoutEmployeesNestedInput = {
+    create?: XOR<ParkingDealerCreateWithoutEmployeesInput, ParkingDealerUncheckedCreateWithoutEmployeesInput>
+    connectOrCreate?: ParkingDealerCreateOrConnectWithoutEmployeesInput
+    upsert?: ParkingDealerUpsertWithoutEmployeesInput
+    connect?: ParkingDealerWhereUniqueInput
+    update?: XOR<XOR<ParkingDealerUpdateToOneWithWhereWithoutEmployeesInput, ParkingDealerUpdateWithoutEmployeesInput>, ParkingDealerUncheckedUpdateWithoutEmployeesInput>
+  }
+
+  export type ParkingWalkInUpdateManyWithoutEmployeeNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutEmployeeInput, ParkingWalkInUncheckedCreateWithoutEmployeeInput> | ParkingWalkInCreateWithoutEmployeeInput[] | ParkingWalkInUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutEmployeeInput | ParkingWalkInCreateOrConnectWithoutEmployeeInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutEmployeeInput | ParkingWalkInUpsertWithWhereUniqueWithoutEmployeeInput[]
+    createMany?: ParkingWalkInCreateManyEmployeeInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutEmployeeInput | ParkingWalkInUpdateWithWhereUniqueWithoutEmployeeInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutEmployeeInput | ParkingWalkInUpdateManyWithWhereWithoutEmployeeInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingEmployeeListingUpdateManyWithoutEmployeeNestedInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutEmployeeInput, ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput> | ParkingEmployeeListingCreateWithoutEmployeeInput[] | ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput | ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput[]
+    upsert?: ParkingEmployeeListingUpsertWithWhereUniqueWithoutEmployeeInput | ParkingEmployeeListingUpsertWithWhereUniqueWithoutEmployeeInput[]
+    createMany?: ParkingEmployeeListingCreateManyEmployeeInputEnvelope
+    set?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    disconnect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    delete?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    update?: ParkingEmployeeListingUpdateWithWhereUniqueWithoutEmployeeInput | ParkingEmployeeListingUpdateWithWhereUniqueWithoutEmployeeInput[]
+    updateMany?: ParkingEmployeeListingUpdateManyWithWhereWithoutEmployeeInput | ParkingEmployeeListingUpdateManyWithWhereWithoutEmployeeInput[]
+    deleteMany?: ParkingEmployeeListingScalarWhereInput | ParkingEmployeeListingScalarWhereInput[]
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutEmployeeNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutEmployeeInput, ParkingWalkInUncheckedCreateWithoutEmployeeInput> | ParkingWalkInCreateWithoutEmployeeInput[] | ParkingWalkInUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutEmployeeInput | ParkingWalkInCreateOrConnectWithoutEmployeeInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutEmployeeInput | ParkingWalkInUpsertWithWhereUniqueWithoutEmployeeInput[]
+    createMany?: ParkingWalkInCreateManyEmployeeInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutEmployeeInput | ParkingWalkInUpdateWithWhereUniqueWithoutEmployeeInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutEmployeeInput | ParkingWalkInUpdateManyWithWhereWithoutEmployeeInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateManyWithoutEmployeeNestedInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutEmployeeInput, ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput> | ParkingEmployeeListingCreateWithoutEmployeeInput[] | ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput | ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput[]
+    upsert?: ParkingEmployeeListingUpsertWithWhereUniqueWithoutEmployeeInput | ParkingEmployeeListingUpsertWithWhereUniqueWithoutEmployeeInput[]
+    createMany?: ParkingEmployeeListingCreateManyEmployeeInputEnvelope
+    set?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    disconnect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    delete?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    update?: ParkingEmployeeListingUpdateWithWhereUniqueWithoutEmployeeInput | ParkingEmployeeListingUpdateWithWhereUniqueWithoutEmployeeInput[]
+    updateMany?: ParkingEmployeeListingUpdateManyWithWhereWithoutEmployeeInput | ParkingEmployeeListingUpdateManyWithWhereWithoutEmployeeInput[]
+    deleteMany?: ParkingEmployeeListingScalarWhereInput | ParkingEmployeeListingScalarWhereInput[]
+  }
+
+  export type ParkingEmployeeCreateNestedOneWithoutAssignedListingsInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutAssignedListingsInput, ParkingEmployeeUncheckedCreateWithoutAssignedListingsInput>
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutAssignedListingsInput
+    connect?: ParkingEmployeeWhereUniqueInput
+  }
+
+  export type ParkingListingCreateNestedOneWithoutAssignedEmployeesInput = {
+    create?: XOR<ParkingListingCreateWithoutAssignedEmployeesInput, ParkingListingUncheckedCreateWithoutAssignedEmployeesInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutAssignedEmployeesInput
+    connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type ParkingEmployeeUpdateOneRequiredWithoutAssignedListingsNestedInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutAssignedListingsInput, ParkingEmployeeUncheckedCreateWithoutAssignedListingsInput>
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutAssignedListingsInput
+    upsert?: ParkingEmployeeUpsertWithoutAssignedListingsInput
+    connect?: ParkingEmployeeWhereUniqueInput
+    update?: XOR<XOR<ParkingEmployeeUpdateToOneWithWhereWithoutAssignedListingsInput, ParkingEmployeeUpdateWithoutAssignedListingsInput>, ParkingEmployeeUncheckedUpdateWithoutAssignedListingsInput>
+  }
+
+  export type ParkingListingUpdateOneRequiredWithoutAssignedEmployeesNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutAssignedEmployeesInput, ParkingListingUncheckedCreateWithoutAssignedEmployeesInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutAssignedEmployeesInput
+    upsert?: ParkingListingUpsertWithoutAssignedEmployeesInput
+    connect?: ParkingListingWhereUniqueInput
+    update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutAssignedEmployeesInput, ParkingListingUpdateWithoutAssignedEmployeesInput>, ParkingListingUncheckedUpdateWithoutAssignedEmployeesInput>
   }
 
   export type ParkingListingCreatephotosInput = {
@@ -174543,6 +181561,20 @@ export namespace Prisma {
     connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
   }
 
+  export type ParkingWalkInCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingWalkInCreateWithoutListingInput, ParkingWalkInUncheckedCreateWithoutListingInput> | ParkingWalkInCreateWithoutListingInput[] | ParkingWalkInUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutListingInput | ParkingWalkInCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingWalkInCreateManyListingInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type ParkingEmployeeListingCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutListingInput, ParkingEmployeeListingUncheckedCreateWithoutListingInput> | ParkingEmployeeListingCreateWithoutListingInput[] | ParkingEmployeeListingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutListingInput | ParkingEmployeeListingCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingEmployeeListingCreateManyListingInputEnvelope
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+  }
+
   export type ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput = {
     create?: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput> | ParkingSlotWindowCreateWithoutListingInput[] | ParkingSlotWindowUncheckedCreateWithoutListingInput[]
     connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutListingInput | ParkingSlotWindowCreateOrConnectWithoutListingInput[]
@@ -174562,6 +181594,20 @@ export namespace Prisma {
     connectOrCreate?: ParkingWaitlistEntryCreateOrConnectWithoutListingInput | ParkingWaitlistEntryCreateOrConnectWithoutListingInput[]
     createMany?: ParkingWaitlistEntryCreateManyListingInputEnvelope
     connect?: ParkingWaitlistEntryWhereUniqueInput | ParkingWaitlistEntryWhereUniqueInput[]
+  }
+
+  export type ParkingWalkInUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingWalkInCreateWithoutListingInput, ParkingWalkInUncheckedCreateWithoutListingInput> | ParkingWalkInCreateWithoutListingInput[] | ParkingWalkInUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutListingInput | ParkingWalkInCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingWalkInCreateManyListingInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutListingInput, ParkingEmployeeListingUncheckedCreateWithoutListingInput> | ParkingEmployeeListingCreateWithoutListingInput[] | ParkingEmployeeListingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutListingInput | ParkingEmployeeListingCreateOrConnectWithoutListingInput[]
+    createMany?: ParkingEmployeeListingCreateManyListingInputEnvelope
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
   }
 
   export type ParkingListingUpdatephotosInput = {
@@ -174623,6 +181669,34 @@ export namespace Prisma {
     deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
   }
 
+  export type ParkingWalkInUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutListingInput, ParkingWalkInUncheckedCreateWithoutListingInput> | ParkingWalkInCreateWithoutListingInput[] | ParkingWalkInUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutListingInput | ParkingWalkInCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutListingInput | ParkingWalkInUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingWalkInCreateManyListingInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutListingInput | ParkingWalkInUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutListingInput | ParkingWalkInUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingEmployeeListingUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutListingInput, ParkingEmployeeListingUncheckedCreateWithoutListingInput> | ParkingEmployeeListingCreateWithoutListingInput[] | ParkingEmployeeListingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutListingInput | ParkingEmployeeListingCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingEmployeeListingUpsertWithWhereUniqueWithoutListingInput | ParkingEmployeeListingUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingEmployeeListingCreateManyListingInputEnvelope
+    set?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    disconnect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    delete?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    update?: ParkingEmployeeListingUpdateWithWhereUniqueWithoutListingInput | ParkingEmployeeListingUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingEmployeeListingUpdateManyWithWhereWithoutListingInput | ParkingEmployeeListingUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingEmployeeListingScalarWhereInput | ParkingEmployeeListingScalarWhereInput[]
+  }
+
   export type ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput = {
     create?: XOR<ParkingSlotWindowCreateWithoutListingInput, ParkingSlotWindowUncheckedCreateWithoutListingInput> | ParkingSlotWindowCreateWithoutListingInput[] | ParkingSlotWindowUncheckedCreateWithoutListingInput[]
     connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutListingInput | ParkingSlotWindowCreateOrConnectWithoutListingInput[]
@@ -174665,10 +181739,52 @@ export namespace Prisma {
     deleteMany?: ParkingWaitlistEntryScalarWhereInput | ParkingWaitlistEntryScalarWhereInput[]
   }
 
+  export type ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutListingInput, ParkingWalkInUncheckedCreateWithoutListingInput> | ParkingWalkInCreateWithoutListingInput[] | ParkingWalkInUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutListingInput | ParkingWalkInCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutListingInput | ParkingWalkInUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingWalkInCreateManyListingInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutListingInput | ParkingWalkInUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutListingInput | ParkingWalkInUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ParkingEmployeeListingCreateWithoutListingInput, ParkingEmployeeListingUncheckedCreateWithoutListingInput> | ParkingEmployeeListingCreateWithoutListingInput[] | ParkingEmployeeListingUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ParkingEmployeeListingCreateOrConnectWithoutListingInput | ParkingEmployeeListingCreateOrConnectWithoutListingInput[]
+    upsert?: ParkingEmployeeListingUpsertWithWhereUniqueWithoutListingInput | ParkingEmployeeListingUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ParkingEmployeeListingCreateManyListingInputEnvelope
+    set?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    disconnect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    delete?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    connect?: ParkingEmployeeListingWhereUniqueInput | ParkingEmployeeListingWhereUniqueInput[]
+    update?: ParkingEmployeeListingUpdateWithWhereUniqueWithoutListingInput | ParkingEmployeeListingUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ParkingEmployeeListingUpdateManyWithWhereWithoutListingInput | ParkingEmployeeListingUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ParkingEmployeeListingScalarWhereInput | ParkingEmployeeListingScalarWhereInput[]
+  }
+
   export type ParkingListingCreateNestedOneWithoutSlotWindowsInput = {
     create?: XOR<ParkingListingCreateWithoutSlotWindowsInput, ParkingListingUncheckedCreateWithoutSlotWindowsInput>
     connectOrCreate?: ParkingListingCreateOrConnectWithoutSlotWindowsInput
     connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type ParkingWalkInCreateNestedManyWithoutSlotWindowInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSlotWindowInput, ParkingWalkInUncheckedCreateWithoutSlotWindowInput> | ParkingWalkInCreateWithoutSlotWindowInput[] | ParkingWalkInUncheckedCreateWithoutSlotWindowInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSlotWindowInput | ParkingWalkInCreateOrConnectWithoutSlotWindowInput[]
+    createMany?: ParkingWalkInCreateManySlotWindowInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type ParkingWalkInUncheckedCreateNestedManyWithoutSlotWindowInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSlotWindowInput, ParkingWalkInUncheckedCreateWithoutSlotWindowInput> | ParkingWalkInCreateWithoutSlotWindowInput[] | ParkingWalkInUncheckedCreateWithoutSlotWindowInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSlotWindowInput | ParkingWalkInCreateOrConnectWithoutSlotWindowInput[]
+    createMany?: ParkingWalkInCreateManySlotWindowInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
   }
 
   export type ParkingListingUpdateOneRequiredWithoutSlotWindowsNestedInput = {
@@ -174677,6 +181793,102 @@ export namespace Prisma {
     upsert?: ParkingListingUpsertWithoutSlotWindowsInput
     connect?: ParkingListingWhereUniqueInput
     update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutSlotWindowsInput, ParkingListingUpdateWithoutSlotWindowsInput>, ParkingListingUncheckedUpdateWithoutSlotWindowsInput>
+  }
+
+  export type ParkingWalkInUpdateManyWithoutSlotWindowNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSlotWindowInput, ParkingWalkInUncheckedCreateWithoutSlotWindowInput> | ParkingWalkInCreateWithoutSlotWindowInput[] | ParkingWalkInUncheckedCreateWithoutSlotWindowInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSlotWindowInput | ParkingWalkInCreateOrConnectWithoutSlotWindowInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutSlotWindowInput | ParkingWalkInUpsertWithWhereUniqueWithoutSlotWindowInput[]
+    createMany?: ParkingWalkInCreateManySlotWindowInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutSlotWindowInput | ParkingWalkInUpdateWithWhereUniqueWithoutSlotWindowInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutSlotWindowInput | ParkingWalkInUpdateManyWithWhereWithoutSlotWindowInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutSlotWindowNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSlotWindowInput, ParkingWalkInUncheckedCreateWithoutSlotWindowInput> | ParkingWalkInCreateWithoutSlotWindowInput[] | ParkingWalkInUncheckedCreateWithoutSlotWindowInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSlotWindowInput | ParkingWalkInCreateOrConnectWithoutSlotWindowInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutSlotWindowInput | ParkingWalkInUpsertWithWhereUniqueWithoutSlotWindowInput[]
+    createMany?: ParkingWalkInCreateManySlotWindowInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutSlotWindowInput | ParkingWalkInUpdateWithWhereUniqueWithoutSlotWindowInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutSlotWindowInput | ParkingWalkInUpdateManyWithWhereWithoutSlotWindowInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingListingCreateNestedOneWithoutWalkInsInput = {
+    create?: XOR<ParkingListingCreateWithoutWalkInsInput, ParkingListingUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutWalkInsInput
+    connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type ParkingSlotWindowCreateNestedOneWithoutWalkInsInput = {
+    create?: XOR<ParkingSlotWindowCreateWithoutWalkInsInput, ParkingSlotWindowUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutWalkInsInput
+    connect?: ParkingSlotWindowWhereUniqueInput
+  }
+
+  export type ParkingEmployeeCreateNestedOneWithoutWalkInsInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutWalkInsInput, ParkingEmployeeUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutWalkInsInput
+    connect?: ParkingEmployeeWhereUniqueInput
+  }
+
+  export type ParkingSettlementCreateNestedOneWithoutWalkInsInput = {
+    create?: XOR<ParkingSettlementCreateWithoutWalkInsInput, ParkingSettlementUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutWalkInsInput
+    connect?: ParkingSettlementWhereUniqueInput
+  }
+
+  export type EnumParkingVehicleTypeFieldUpdateOperationsInput = {
+    set?: $Enums.ParkingVehicleType
+  }
+
+  export type NullableEnumParkingPaymentMethodFieldUpdateOperationsInput = {
+    set?: $Enums.ParkingPaymentMethod | null
+  }
+
+  export type ParkingListingUpdateOneRequiredWithoutWalkInsNestedInput = {
+    create?: XOR<ParkingListingCreateWithoutWalkInsInput, ParkingListingUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingListingCreateOrConnectWithoutWalkInsInput
+    upsert?: ParkingListingUpsertWithoutWalkInsInput
+    connect?: ParkingListingWhereUniqueInput
+    update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutWalkInsInput, ParkingListingUpdateWithoutWalkInsInput>, ParkingListingUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingSlotWindowUpdateOneRequiredWithoutWalkInsNestedInput = {
+    create?: XOR<ParkingSlotWindowCreateWithoutWalkInsInput, ParkingSlotWindowUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingSlotWindowCreateOrConnectWithoutWalkInsInput
+    upsert?: ParkingSlotWindowUpsertWithoutWalkInsInput
+    connect?: ParkingSlotWindowWhereUniqueInput
+    update?: XOR<XOR<ParkingSlotWindowUpdateToOneWithWhereWithoutWalkInsInput, ParkingSlotWindowUpdateWithoutWalkInsInput>, ParkingSlotWindowUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingEmployeeUpdateOneWithoutWalkInsNestedInput = {
+    create?: XOR<ParkingEmployeeCreateWithoutWalkInsInput, ParkingEmployeeUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingEmployeeCreateOrConnectWithoutWalkInsInput
+    upsert?: ParkingEmployeeUpsertWithoutWalkInsInput
+    disconnect?: ParkingEmployeeWhereInput | boolean
+    delete?: ParkingEmployeeWhereInput | boolean
+    connect?: ParkingEmployeeWhereUniqueInput
+    update?: XOR<XOR<ParkingEmployeeUpdateToOneWithWhereWithoutWalkInsInput, ParkingEmployeeUpdateWithoutWalkInsInput>, ParkingEmployeeUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingSettlementUpdateOneWithoutWalkInsNestedInput = {
+    create?: XOR<ParkingSettlementCreateWithoutWalkInsInput, ParkingSettlementUncheckedCreateWithoutWalkInsInput>
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutWalkInsInput
+    upsert?: ParkingSettlementUpsertWithoutWalkInsInput
+    disconnect?: ParkingSettlementWhereInput | boolean
+    delete?: ParkingSettlementWhereInput | boolean
+    connect?: ParkingSettlementWhereUniqueInput
+    update?: XOR<XOR<ParkingSettlementUpdateToOneWithWhereWithoutWalkInsInput, ParkingSettlementUpdateWithoutWalkInsInput>, ParkingSettlementUncheckedUpdateWithoutWalkInsInput>
   }
 
   export type CustomerCreateNestedOneWithoutParkingBookingsInput = {
@@ -174689,6 +181901,12 @@ export namespace Prisma {
     create?: XOR<ParkingListingCreateWithoutBookingsInput, ParkingListingUncheckedCreateWithoutBookingsInput>
     connectOrCreate?: ParkingListingCreateOrConnectWithoutBookingsInput
     connect?: ParkingListingWhereUniqueInput
+  }
+
+  export type ParkingSettlementCreateNestedOneWithoutBookingsInput = {
+    create?: XOR<ParkingSettlementCreateWithoutBookingsInput, ParkingSettlementUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutBookingsInput
+    connect?: ParkingSettlementWhereUniqueInput
   }
 
   export type EnumBookingStatusFieldUpdateOperationsInput = {
@@ -174709,6 +181927,118 @@ export namespace Prisma {
     upsert?: ParkingListingUpsertWithoutBookingsInput
     connect?: ParkingListingWhereUniqueInput
     update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutBookingsInput, ParkingListingUpdateWithoutBookingsInput>, ParkingListingUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type ParkingSettlementUpdateOneWithoutBookingsNestedInput = {
+    create?: XOR<ParkingSettlementCreateWithoutBookingsInput, ParkingSettlementUncheckedCreateWithoutBookingsInput>
+    connectOrCreate?: ParkingSettlementCreateOrConnectWithoutBookingsInput
+    upsert?: ParkingSettlementUpsertWithoutBookingsInput
+    disconnect?: ParkingSettlementWhereInput | boolean
+    delete?: ParkingSettlementWhereInput | boolean
+    connect?: ParkingSettlementWhereUniqueInput
+    update?: XOR<XOR<ParkingSettlementUpdateToOneWithWhereWithoutBookingsInput, ParkingSettlementUpdateWithoutBookingsInput>, ParkingSettlementUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type ParkingDealerCreateNestedOneWithoutSettlementsInput = {
+    create?: XOR<ParkingDealerCreateWithoutSettlementsInput, ParkingDealerUncheckedCreateWithoutSettlementsInput>
+    connectOrCreate?: ParkingDealerCreateOrConnectWithoutSettlementsInput
+    connect?: ParkingDealerWhereUniqueInput
+  }
+
+  export type ParkingBookingCreateNestedManyWithoutSettlementInput = {
+    create?: XOR<ParkingBookingCreateWithoutSettlementInput, ParkingBookingUncheckedCreateWithoutSettlementInput> | ParkingBookingCreateWithoutSettlementInput[] | ParkingBookingUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutSettlementInput | ParkingBookingCreateOrConnectWithoutSettlementInput[]
+    createMany?: ParkingBookingCreateManySettlementInputEnvelope
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+  }
+
+  export type ParkingWalkInCreateNestedManyWithoutSettlementInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSettlementInput, ParkingWalkInUncheckedCreateWithoutSettlementInput> | ParkingWalkInCreateWithoutSettlementInput[] | ParkingWalkInUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSettlementInput | ParkingWalkInCreateOrConnectWithoutSettlementInput[]
+    createMany?: ParkingWalkInCreateManySettlementInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type ParkingBookingUncheckedCreateNestedManyWithoutSettlementInput = {
+    create?: XOR<ParkingBookingCreateWithoutSettlementInput, ParkingBookingUncheckedCreateWithoutSettlementInput> | ParkingBookingCreateWithoutSettlementInput[] | ParkingBookingUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutSettlementInput | ParkingBookingCreateOrConnectWithoutSettlementInput[]
+    createMany?: ParkingBookingCreateManySettlementInputEnvelope
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+  }
+
+  export type ParkingWalkInUncheckedCreateNestedManyWithoutSettlementInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSettlementInput, ParkingWalkInUncheckedCreateWithoutSettlementInput> | ParkingWalkInCreateWithoutSettlementInput[] | ParkingWalkInUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSettlementInput | ParkingWalkInCreateOrConnectWithoutSettlementInput[]
+    createMany?: ParkingWalkInCreateManySettlementInputEnvelope
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+  }
+
+  export type EnumSettlementStatusFieldUpdateOperationsInput = {
+    set?: $Enums.SettlementStatus
+  }
+
+  export type ParkingDealerUpdateOneRequiredWithoutSettlementsNestedInput = {
+    create?: XOR<ParkingDealerCreateWithoutSettlementsInput, ParkingDealerUncheckedCreateWithoutSettlementsInput>
+    connectOrCreate?: ParkingDealerCreateOrConnectWithoutSettlementsInput
+    upsert?: ParkingDealerUpsertWithoutSettlementsInput
+    connect?: ParkingDealerWhereUniqueInput
+    update?: XOR<XOR<ParkingDealerUpdateToOneWithWhereWithoutSettlementsInput, ParkingDealerUpdateWithoutSettlementsInput>, ParkingDealerUncheckedUpdateWithoutSettlementsInput>
+  }
+
+  export type ParkingBookingUpdateManyWithoutSettlementNestedInput = {
+    create?: XOR<ParkingBookingCreateWithoutSettlementInput, ParkingBookingUncheckedCreateWithoutSettlementInput> | ParkingBookingCreateWithoutSettlementInput[] | ParkingBookingUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutSettlementInput | ParkingBookingCreateOrConnectWithoutSettlementInput[]
+    upsert?: ParkingBookingUpsertWithWhereUniqueWithoutSettlementInput | ParkingBookingUpsertWithWhereUniqueWithoutSettlementInput[]
+    createMany?: ParkingBookingCreateManySettlementInputEnvelope
+    set?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    disconnect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    delete?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    update?: ParkingBookingUpdateWithWhereUniqueWithoutSettlementInput | ParkingBookingUpdateWithWhereUniqueWithoutSettlementInput[]
+    updateMany?: ParkingBookingUpdateManyWithWhereWithoutSettlementInput | ParkingBookingUpdateManyWithWhereWithoutSettlementInput[]
+    deleteMany?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+  }
+
+  export type ParkingWalkInUpdateManyWithoutSettlementNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSettlementInput, ParkingWalkInUncheckedCreateWithoutSettlementInput> | ParkingWalkInCreateWithoutSettlementInput[] | ParkingWalkInUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSettlementInput | ParkingWalkInCreateOrConnectWithoutSettlementInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutSettlementInput | ParkingWalkInUpsertWithWhereUniqueWithoutSettlementInput[]
+    createMany?: ParkingWalkInCreateManySettlementInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutSettlementInput | ParkingWalkInUpdateWithWhereUniqueWithoutSettlementInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutSettlementInput | ParkingWalkInUpdateManyWithWhereWithoutSettlementInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+  }
+
+  export type ParkingBookingUncheckedUpdateManyWithoutSettlementNestedInput = {
+    create?: XOR<ParkingBookingCreateWithoutSettlementInput, ParkingBookingUncheckedCreateWithoutSettlementInput> | ParkingBookingCreateWithoutSettlementInput[] | ParkingBookingUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingBookingCreateOrConnectWithoutSettlementInput | ParkingBookingCreateOrConnectWithoutSettlementInput[]
+    upsert?: ParkingBookingUpsertWithWhereUniqueWithoutSettlementInput | ParkingBookingUpsertWithWhereUniqueWithoutSettlementInput[]
+    createMany?: ParkingBookingCreateManySettlementInputEnvelope
+    set?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    disconnect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    delete?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    connect?: ParkingBookingWhereUniqueInput | ParkingBookingWhereUniqueInput[]
+    update?: ParkingBookingUpdateWithWhereUniqueWithoutSettlementInput | ParkingBookingUpdateWithWhereUniqueWithoutSettlementInput[]
+    updateMany?: ParkingBookingUpdateManyWithWhereWithoutSettlementInput | ParkingBookingUpdateManyWithWhereWithoutSettlementInput[]
+    deleteMany?: ParkingBookingScalarWhereInput | ParkingBookingScalarWhereInput[]
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutSettlementNestedInput = {
+    create?: XOR<ParkingWalkInCreateWithoutSettlementInput, ParkingWalkInUncheckedCreateWithoutSettlementInput> | ParkingWalkInCreateWithoutSettlementInput[] | ParkingWalkInUncheckedCreateWithoutSettlementInput[]
+    connectOrCreate?: ParkingWalkInCreateOrConnectWithoutSettlementInput | ParkingWalkInCreateOrConnectWithoutSettlementInput[]
+    upsert?: ParkingWalkInUpsertWithWhereUniqueWithoutSettlementInput | ParkingWalkInUpsertWithWhereUniqueWithoutSettlementInput[]
+    createMany?: ParkingWalkInCreateManySettlementInputEnvelope
+    set?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    disconnect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    delete?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    connect?: ParkingWalkInWhereUniqueInput | ParkingWalkInWhereUniqueInput[]
+    update?: ParkingWalkInUpdateWithWhereUniqueWithoutSettlementInput | ParkingWalkInUpdateWithWhereUniqueWithoutSettlementInput[]
+    updateMany?: ParkingWalkInUpdateManyWithWhereWithoutSettlementInput | ParkingWalkInUpdateManyWithWhereWithoutSettlementInput[]
+    deleteMany?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
   }
 
   export type CustomerCreateNestedOneWithoutWaitlistEntriesInput = {
@@ -177359,6 +184689,40 @@ export namespace Prisma {
     _max?: NestedEnumListingStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumParkingVehicleTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingVehicleType | EnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumParkingVehicleTypeFilter<$PrismaModel> | $Enums.ParkingVehicleType
+  }
+
+  export type NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingPaymentMethod | EnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel> | $Enums.ParkingPaymentMethod | null
+  }
+
+  export type NestedEnumParkingVehicleTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingVehicleType | EnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ParkingVehicleType[] | ListEnumParkingVehicleTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumParkingVehicleTypeWithAggregatesFilter<$PrismaModel> | $Enums.ParkingVehicleType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumParkingVehicleTypeFilter<$PrismaModel>
+    _max?: NestedEnumParkingVehicleTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumParkingPaymentMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ParkingPaymentMethod | EnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ParkingPaymentMethod[] | ListEnumParkingPaymentMethodFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumParkingPaymentMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.ParkingPaymentMethod | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel>
+    _max?: NestedEnumParkingPaymentMethodNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumBookingStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.BookingStatus | EnumBookingStatusFieldRefInput<$PrismaModel>
     in?: $Enums.BookingStatus[] | ListEnumBookingStatusFieldRefInput<$PrismaModel>
@@ -177374,6 +184738,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumBookingStatusFilter<$PrismaModel>
     _max?: NestedEnumBookingStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumSettlementStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SettlementStatus | EnumSettlementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSettlementStatusFilter<$PrismaModel> | $Enums.SettlementStatus
+  }
+
+  export type NestedEnumSettlementStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SettlementStatus | EnumSettlementStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SettlementStatus[] | ListEnumSettlementStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSettlementStatusWithAggregatesFilter<$PrismaModel> | $Enums.SettlementStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSettlementStatusFilter<$PrismaModel>
+    _max?: NestedEnumSettlementStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumConversationCategoryFilter<$PrismaModel = never> = {
@@ -178362,9 +185743,16 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     listing: ParkingListingCreateNestedOneWithoutBookingsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutBookingsInput
   }
 
   export type ParkingBookingUncheckedCreateWithoutCustomerInput = {
@@ -178378,6 +185766,13 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -179457,6 +186852,13 @@ export namespace Prisma {
     status?: EnumBookingStatusFilter<"ParkingBooking"> | $Enums.BookingStatus
     orderId?: StringNullableFilter<"ParkingBooking"> | string | null
     idempotencyKey?: StringNullableFilter<"ParkingBooking"> | string | null
+    checkedInAt?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
+    actualCheckOutTime?: DateTimeNullableFilter<"ParkingBooking"> | Date | string | null
+    extraAmountPaise?: IntNullableFilter<"ParkingBooking"> | number | null
+    extraOrderId?: StringNullableFilter<"ParkingBooking"> | string | null
+    isSettled?: BoolFilter<"ParkingBooking"> | boolean
+    extraSettled?: BoolFilter<"ParkingBooking"> | boolean
+    settlementId?: StringNullableFilter<"ParkingBooking"> | string | null
     createdAt?: DateTimeFilter<"ParkingBooking"> | Date | string
     updatedAt?: DateTimeFilter<"ParkingBooking"> | Date | string
   }
@@ -197901,6 +205303,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
     bookings?: ParkingBookingCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingUncheckedCreateWithoutDealerInput = {
@@ -197921,6 +205325,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
     bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingCreateOrConnectWithoutDealerInput = {
@@ -197930,6 +205336,74 @@ export namespace Prisma {
 
   export type ParkingListingCreateManyDealerInputEnvelope = {
     data: ParkingListingCreateManyDealerInput | ParkingListingCreateManyDealerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingEmployeeCreateWithoutDealerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    walkIns?: ParkingWalkInCreateNestedManyWithoutEmployeeInput
+    assignedListings?: ParkingEmployeeListingCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeUncheckedCreateWithoutDealerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutEmployeeInput
+    assignedListings?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeCreateOrConnectWithoutDealerInput = {
+    where: ParkingEmployeeWhereUniqueInput
+    create: XOR<ParkingEmployeeCreateWithoutDealerInput, ParkingEmployeeUncheckedCreateWithoutDealerInput>
+  }
+
+  export type ParkingEmployeeCreateManyDealerInputEnvelope = {
+    data: ParkingEmployeeCreateManyDealerInput | ParkingEmployeeCreateManyDealerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingSettlementCreateWithoutDealerInput = {
+    id?: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    bookings?: ParkingBookingCreateNestedManyWithoutSettlementInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementUncheckedCreateWithoutDealerInput = {
+    id?: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutSettlementInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementCreateOrConnectWithoutDealerInput = {
+    where: ParkingSettlementWhereUniqueInput
+    create: XOR<ParkingSettlementCreateWithoutDealerInput, ParkingSettlementUncheckedCreateWithoutDealerInput>
+  }
+
+  export type ParkingSettlementCreateManyDealerInputEnvelope = {
+    data: ParkingSettlementCreateManyDealerInput | ParkingSettlementCreateManyDealerInput[]
     skipDuplicates?: boolean
   }
 
@@ -197970,6 +205444,425 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"ParkingListing"> | Date | string
   }
 
+  export type ParkingEmployeeUpsertWithWhereUniqueWithoutDealerInput = {
+    where: ParkingEmployeeWhereUniqueInput
+    update: XOR<ParkingEmployeeUpdateWithoutDealerInput, ParkingEmployeeUncheckedUpdateWithoutDealerInput>
+    create: XOR<ParkingEmployeeCreateWithoutDealerInput, ParkingEmployeeUncheckedCreateWithoutDealerInput>
+  }
+
+  export type ParkingEmployeeUpdateWithWhereUniqueWithoutDealerInput = {
+    where: ParkingEmployeeWhereUniqueInput
+    data: XOR<ParkingEmployeeUpdateWithoutDealerInput, ParkingEmployeeUncheckedUpdateWithoutDealerInput>
+  }
+
+  export type ParkingEmployeeUpdateManyWithWhereWithoutDealerInput = {
+    where: ParkingEmployeeScalarWhereInput
+    data: XOR<ParkingEmployeeUpdateManyMutationInput, ParkingEmployeeUncheckedUpdateManyWithoutDealerInput>
+  }
+
+  export type ParkingEmployeeScalarWhereInput = {
+    AND?: ParkingEmployeeScalarWhereInput | ParkingEmployeeScalarWhereInput[]
+    OR?: ParkingEmployeeScalarWhereInput[]
+    NOT?: ParkingEmployeeScalarWhereInput | ParkingEmployeeScalarWhereInput[]
+    id?: StringFilter<"ParkingEmployee"> | string
+    dealerId?: StringFilter<"ParkingEmployee"> | string
+    name?: StringFilter<"ParkingEmployee"> | string
+    phoneNumber?: StringFilter<"ParkingEmployee"> | string
+    passwordHash?: StringFilter<"ParkingEmployee"> | string
+    isActive?: BoolFilter<"ParkingEmployee"> | boolean
+    createdAt?: DateTimeFilter<"ParkingEmployee"> | Date | string
+  }
+
+  export type ParkingSettlementUpsertWithWhereUniqueWithoutDealerInput = {
+    where: ParkingSettlementWhereUniqueInput
+    update: XOR<ParkingSettlementUpdateWithoutDealerInput, ParkingSettlementUncheckedUpdateWithoutDealerInput>
+    create: XOR<ParkingSettlementCreateWithoutDealerInput, ParkingSettlementUncheckedCreateWithoutDealerInput>
+  }
+
+  export type ParkingSettlementUpdateWithWhereUniqueWithoutDealerInput = {
+    where: ParkingSettlementWhereUniqueInput
+    data: XOR<ParkingSettlementUpdateWithoutDealerInput, ParkingSettlementUncheckedUpdateWithoutDealerInput>
+  }
+
+  export type ParkingSettlementUpdateManyWithWhereWithoutDealerInput = {
+    where: ParkingSettlementScalarWhereInput
+    data: XOR<ParkingSettlementUpdateManyMutationInput, ParkingSettlementUncheckedUpdateManyWithoutDealerInput>
+  }
+
+  export type ParkingSettlementScalarWhereInput = {
+    AND?: ParkingSettlementScalarWhereInput | ParkingSettlementScalarWhereInput[]
+    OR?: ParkingSettlementScalarWhereInput[]
+    NOT?: ParkingSettlementScalarWhereInput | ParkingSettlementScalarWhereInput[]
+    id?: StringFilter<"ParkingSettlement"> | string
+    dealerId?: StringFilter<"ParkingSettlement"> | string
+    date?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    totalCollected?: IntFilter<"ParkingSettlement"> | number
+    gupioCommission?: IntFilter<"ParkingSettlement"> | number
+    amountSettled?: IntFilter<"ParkingSettlement"> | number
+    status?: EnumSettlementStatusFilter<"ParkingSettlement"> | $Enums.SettlementStatus
+    createdAt?: DateTimeFilter<"ParkingSettlement"> | Date | string
+    updatedAt?: DateTimeFilter<"ParkingSettlement"> | Date | string
+  }
+
+  export type ParkingDealerCreateWithoutEmployeesInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    commissionRate?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listings?: ParkingListingCreateNestedManyWithoutDealerInput
+    settlements?: ParkingSettlementCreateNestedManyWithoutDealerInput
+  }
+
+  export type ParkingDealerUncheckedCreateWithoutEmployeesInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    commissionRate?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listings?: ParkingListingUncheckedCreateNestedManyWithoutDealerInput
+    settlements?: ParkingSettlementUncheckedCreateNestedManyWithoutDealerInput
+  }
+
+  export type ParkingDealerCreateOrConnectWithoutEmployeesInput = {
+    where: ParkingDealerWhereUniqueInput
+    create: XOR<ParkingDealerCreateWithoutEmployeesInput, ParkingDealerUncheckedCreateWithoutEmployeesInput>
+  }
+
+  export type ParkingWalkInCreateWithoutEmployeeInput = {
+    id?: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    listing: ParkingListingCreateNestedOneWithoutWalkInsInput
+    slotWindow: ParkingSlotWindowCreateNestedOneWithoutWalkInsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutWalkInsInput
+  }
+
+  export type ParkingWalkInUncheckedCreateWithoutEmployeeInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingWalkInCreateOrConnectWithoutEmployeeInput = {
+    where: ParkingWalkInWhereUniqueInput
+    create: XOR<ParkingWalkInCreateWithoutEmployeeInput, ParkingWalkInUncheckedCreateWithoutEmployeeInput>
+  }
+
+  export type ParkingWalkInCreateManyEmployeeInputEnvelope = {
+    data: ParkingWalkInCreateManyEmployeeInput | ParkingWalkInCreateManyEmployeeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingEmployeeListingCreateWithoutEmployeeInput = {
+    id?: string
+    createdAt?: Date | string
+    listing: ParkingListingCreateNestedOneWithoutAssignedEmployeesInput
+  }
+
+  export type ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput = {
+    id?: string
+    listingId: string
+    createdAt?: Date | string
+  }
+
+  export type ParkingEmployeeListingCreateOrConnectWithoutEmployeeInput = {
+    where: ParkingEmployeeListingWhereUniqueInput
+    create: XOR<ParkingEmployeeListingCreateWithoutEmployeeInput, ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput>
+  }
+
+  export type ParkingEmployeeListingCreateManyEmployeeInputEnvelope = {
+    data: ParkingEmployeeListingCreateManyEmployeeInput | ParkingEmployeeListingCreateManyEmployeeInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingDealerUpsertWithoutEmployeesInput = {
+    update: XOR<ParkingDealerUpdateWithoutEmployeesInput, ParkingDealerUncheckedUpdateWithoutEmployeesInput>
+    create: XOR<ParkingDealerCreateWithoutEmployeesInput, ParkingDealerUncheckedCreateWithoutEmployeesInput>
+    where?: ParkingDealerWhereInput
+  }
+
+  export type ParkingDealerUpdateToOneWithWhereWithoutEmployeesInput = {
+    where?: ParkingDealerWhereInput
+    data: XOR<ParkingDealerUpdateWithoutEmployeesInput, ParkingDealerUncheckedUpdateWithoutEmployeesInput>
+  }
+
+  export type ParkingDealerUpdateWithoutEmployeesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listings?: ParkingListingUpdateManyWithoutDealerNestedInput
+    settlements?: ParkingSettlementUpdateManyWithoutDealerNestedInput
+  }
+
+  export type ParkingDealerUncheckedUpdateWithoutEmployeesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listings?: ParkingListingUncheckedUpdateManyWithoutDealerNestedInput
+    settlements?: ParkingSettlementUncheckedUpdateManyWithoutDealerNestedInput
+  }
+
+  export type ParkingWalkInUpsertWithWhereUniqueWithoutEmployeeInput = {
+    where: ParkingWalkInWhereUniqueInput
+    update: XOR<ParkingWalkInUpdateWithoutEmployeeInput, ParkingWalkInUncheckedUpdateWithoutEmployeeInput>
+    create: XOR<ParkingWalkInCreateWithoutEmployeeInput, ParkingWalkInUncheckedCreateWithoutEmployeeInput>
+  }
+
+  export type ParkingWalkInUpdateWithWhereUniqueWithoutEmployeeInput = {
+    where: ParkingWalkInWhereUniqueInput
+    data: XOR<ParkingWalkInUpdateWithoutEmployeeInput, ParkingWalkInUncheckedUpdateWithoutEmployeeInput>
+  }
+
+  export type ParkingWalkInUpdateManyWithWhereWithoutEmployeeInput = {
+    where: ParkingWalkInScalarWhereInput
+    data: XOR<ParkingWalkInUpdateManyMutationInput, ParkingWalkInUncheckedUpdateManyWithoutEmployeeInput>
+  }
+
+  export type ParkingWalkInScalarWhereInput = {
+    AND?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+    OR?: ParkingWalkInScalarWhereInput[]
+    NOT?: ParkingWalkInScalarWhereInput | ParkingWalkInScalarWhereInput[]
+    id?: StringFilter<"ParkingWalkIn"> | string
+    listingId?: StringFilter<"ParkingWalkIn"> | string
+    slotWindowId?: StringFilter<"ParkingWalkIn"> | string
+    vehicleType?: EnumParkingVehicleTypeFilter<"ParkingWalkIn"> | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFilter<"ParkingWalkIn"> | string
+    amountPaise?: IntFilter<"ParkingWalkIn"> | number
+    paymentMethod?: EnumParkingPaymentMethodNullableFilter<"ParkingWalkIn"> | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
+    employeeId?: StringNullableFilter<"ParkingWalkIn"> | string | null
+    enteredAt?: DateTimeFilter<"ParkingWalkIn"> | Date | string
+    exitedAt?: DateTimeNullableFilter<"ParkingWalkIn"> | Date | string | null
+    isSettled?: BoolFilter<"ParkingWalkIn"> | boolean
+    settlementId?: StringNullableFilter<"ParkingWalkIn"> | string | null
+  }
+
+  export type ParkingEmployeeListingUpsertWithWhereUniqueWithoutEmployeeInput = {
+    where: ParkingEmployeeListingWhereUniqueInput
+    update: XOR<ParkingEmployeeListingUpdateWithoutEmployeeInput, ParkingEmployeeListingUncheckedUpdateWithoutEmployeeInput>
+    create: XOR<ParkingEmployeeListingCreateWithoutEmployeeInput, ParkingEmployeeListingUncheckedCreateWithoutEmployeeInput>
+  }
+
+  export type ParkingEmployeeListingUpdateWithWhereUniqueWithoutEmployeeInput = {
+    where: ParkingEmployeeListingWhereUniqueInput
+    data: XOR<ParkingEmployeeListingUpdateWithoutEmployeeInput, ParkingEmployeeListingUncheckedUpdateWithoutEmployeeInput>
+  }
+
+  export type ParkingEmployeeListingUpdateManyWithWhereWithoutEmployeeInput = {
+    where: ParkingEmployeeListingScalarWhereInput
+    data: XOR<ParkingEmployeeListingUpdateManyMutationInput, ParkingEmployeeListingUncheckedUpdateManyWithoutEmployeeInput>
+  }
+
+  export type ParkingEmployeeListingScalarWhereInput = {
+    AND?: ParkingEmployeeListingScalarWhereInput | ParkingEmployeeListingScalarWhereInput[]
+    OR?: ParkingEmployeeListingScalarWhereInput[]
+    NOT?: ParkingEmployeeListingScalarWhereInput | ParkingEmployeeListingScalarWhereInput[]
+    id?: StringFilter<"ParkingEmployeeListing"> | string
+    employeeId?: StringFilter<"ParkingEmployeeListing"> | string
+    listingId?: StringFilter<"ParkingEmployeeListing"> | string
+    createdAt?: DateTimeFilter<"ParkingEmployeeListing"> | Date | string
+  }
+
+  export type ParkingEmployeeCreateWithoutAssignedListingsInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutEmployeesInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeUncheckedCreateWithoutAssignedListingsInput = {
+    id?: string
+    dealerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeCreateOrConnectWithoutAssignedListingsInput = {
+    where: ParkingEmployeeWhereUniqueInput
+    create: XOR<ParkingEmployeeCreateWithoutAssignedListingsInput, ParkingEmployeeUncheckedCreateWithoutAssignedListingsInput>
+  }
+
+  export type ParkingListingCreateWithoutAssignedEmployeesInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutListingsInput
+    slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateWithoutAssignedEmployeesInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingCreateOrConnectWithoutAssignedEmployeesInput = {
+    where: ParkingListingWhereUniqueInput
+    create: XOR<ParkingListingCreateWithoutAssignedEmployeesInput, ParkingListingUncheckedCreateWithoutAssignedEmployeesInput>
+  }
+
+  export type ParkingEmployeeUpsertWithoutAssignedListingsInput = {
+    update: XOR<ParkingEmployeeUpdateWithoutAssignedListingsInput, ParkingEmployeeUncheckedUpdateWithoutAssignedListingsInput>
+    create: XOR<ParkingEmployeeCreateWithoutAssignedListingsInput, ParkingEmployeeUncheckedCreateWithoutAssignedListingsInput>
+    where?: ParkingEmployeeWhereInput
+  }
+
+  export type ParkingEmployeeUpdateToOneWithWhereWithoutAssignedListingsInput = {
+    where?: ParkingEmployeeWhereInput
+    data: XOR<ParkingEmployeeUpdateWithoutAssignedListingsInput, ParkingEmployeeUncheckedUpdateWithoutAssignedListingsInput>
+  }
+
+  export type ParkingEmployeeUpdateWithoutAssignedListingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutEmployeesNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingEmployeeUncheckedUpdateWithoutAssignedListingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingListingUpsertWithoutAssignedEmployeesInput = {
+    update: XOR<ParkingListingUpdateWithoutAssignedEmployeesInput, ParkingListingUncheckedUpdateWithoutAssignedEmployeesInput>
+    create: XOR<ParkingListingCreateWithoutAssignedEmployeesInput, ParkingListingUncheckedCreateWithoutAssignedEmployeesInput>
+    where?: ParkingListingWhereInput
+  }
+
+  export type ParkingListingUpdateToOneWithWhereWithoutAssignedEmployeesInput = {
+    where?: ParkingListingWhereInput
+    data: XOR<ParkingListingUpdateWithoutAssignedEmployeesInput, ParkingListingUncheckedUpdateWithoutAssignedEmployeesInput>
+  }
+
+  export type ParkingListingUpdateWithoutAssignedEmployeesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
+    slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateWithoutAssignedEmployeesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput
+  }
+
   export type ParkingDealerCreateWithoutListingsInput = {
     id?: string
     ownerName: string
@@ -197977,8 +205870,11 @@ export namespace Prisma {
     email?: string | null
     passwordHash: string
     status?: $Enums.DealerStatus
+    commissionRate?: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    employees?: ParkingEmployeeCreateNestedManyWithoutDealerInput
+    settlements?: ParkingSettlementCreateNestedManyWithoutDealerInput
   }
 
   export type ParkingDealerUncheckedCreateWithoutListingsInput = {
@@ -197988,8 +205884,11 @@ export namespace Prisma {
     email?: string | null
     passwordHash: string
     status?: $Enums.DealerStatus
+    commissionRate?: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    employees?: ParkingEmployeeUncheckedCreateNestedManyWithoutDealerInput
+    settlements?: ParkingSettlementUncheckedCreateNestedManyWithoutDealerInput
   }
 
   export type ParkingDealerCreateOrConnectWithoutListingsInput = {
@@ -198004,6 +205903,9 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
+    walkIns?: ParkingWalkInCreateNestedManyWithoutSlotWindowInput
   }
 
   export type ParkingSlotWindowUncheckedCreateWithoutListingInput = {
@@ -198013,6 +205915,9 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutSlotWindowInput
   }
 
   export type ParkingSlotWindowCreateOrConnectWithoutListingInput = {
@@ -198035,9 +205940,16 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerCreateNestedOneWithoutParkingBookingsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutBookingsInput
   }
 
   export type ParkingBookingUncheckedCreateWithoutListingInput = {
@@ -198051,6 +205963,13 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -198091,6 +206010,68 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ParkingWalkInCreateWithoutListingInput = {
+    id?: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    slotWindow: ParkingSlotWindowCreateNestedOneWithoutWalkInsInput
+    employee?: ParkingEmployeeCreateNestedOneWithoutWalkInsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutWalkInsInput
+  }
+
+  export type ParkingWalkInUncheckedCreateWithoutListingInput = {
+    id?: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingWalkInCreateOrConnectWithoutListingInput = {
+    where: ParkingWalkInWhereUniqueInput
+    create: XOR<ParkingWalkInCreateWithoutListingInput, ParkingWalkInUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingWalkInCreateManyListingInputEnvelope = {
+    data: ParkingWalkInCreateManyListingInput | ParkingWalkInCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingEmployeeListingCreateWithoutListingInput = {
+    id?: string
+    createdAt?: Date | string
+    employee: ParkingEmployeeCreateNestedOneWithoutAssignedListingsInput
+  }
+
+  export type ParkingEmployeeListingUncheckedCreateWithoutListingInput = {
+    id?: string
+    employeeId: string
+    createdAt?: Date | string
+  }
+
+  export type ParkingEmployeeListingCreateOrConnectWithoutListingInput = {
+    where: ParkingEmployeeListingWhereUniqueInput
+    create: XOR<ParkingEmployeeListingCreateWithoutListingInput, ParkingEmployeeListingUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingEmployeeListingCreateManyListingInputEnvelope = {
+    data: ParkingEmployeeListingCreateManyListingInput | ParkingEmployeeListingCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ParkingDealerUpsertWithoutListingsInput = {
     update: XOR<ParkingDealerUpdateWithoutListingsInput, ParkingDealerUncheckedUpdateWithoutListingsInput>
     create: XOR<ParkingDealerCreateWithoutListingsInput, ParkingDealerUncheckedCreateWithoutListingsInput>
@@ -198109,8 +206090,11 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     passwordHash?: StringFieldUpdateOperationsInput | string
     status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    employees?: ParkingEmployeeUpdateManyWithoutDealerNestedInput
+    settlements?: ParkingSettlementUpdateManyWithoutDealerNestedInput
   }
 
   export type ParkingDealerUncheckedUpdateWithoutListingsInput = {
@@ -198120,8 +206104,11 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     passwordHash?: StringFieldUpdateOperationsInput | string
     status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    employees?: ParkingEmployeeUncheckedUpdateManyWithoutDealerNestedInput
+    settlements?: ParkingSettlementUncheckedUpdateManyWithoutDealerNestedInput
   }
 
   export type ParkingSlotWindowUpsertWithWhereUniqueWithoutListingInput = {
@@ -198151,6 +206138,8 @@ export namespace Prisma {
     endHour?: IntFilter<"ParkingSlotWindow"> | number
     capacity?: IntFilter<"ParkingSlotWindow"> | number
     booked?: IntFilter<"ParkingSlotWindow"> | number
+    manualOccupiedCars?: IntFilter<"ParkingSlotWindow"> | number
+    manualOccupiedBikes?: IntFilter<"ParkingSlotWindow"> | number
   }
 
   export type ParkingBookingUpsertWithWhereUniqueWithoutListingInput = {
@@ -198185,6 +206174,38 @@ export namespace Prisma {
     data: XOR<ParkingWaitlistEntryUpdateManyMutationInput, ParkingWaitlistEntryUncheckedUpdateManyWithoutListingInput>
   }
 
+  export type ParkingWalkInUpsertWithWhereUniqueWithoutListingInput = {
+    where: ParkingWalkInWhereUniqueInput
+    update: XOR<ParkingWalkInUpdateWithoutListingInput, ParkingWalkInUncheckedUpdateWithoutListingInput>
+    create: XOR<ParkingWalkInCreateWithoutListingInput, ParkingWalkInUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingWalkInUpdateWithWhereUniqueWithoutListingInput = {
+    where: ParkingWalkInWhereUniqueInput
+    data: XOR<ParkingWalkInUpdateWithoutListingInput, ParkingWalkInUncheckedUpdateWithoutListingInput>
+  }
+
+  export type ParkingWalkInUpdateManyWithWhereWithoutListingInput = {
+    where: ParkingWalkInScalarWhereInput
+    data: XOR<ParkingWalkInUpdateManyMutationInput, ParkingWalkInUncheckedUpdateManyWithoutListingInput>
+  }
+
+  export type ParkingEmployeeListingUpsertWithWhereUniqueWithoutListingInput = {
+    where: ParkingEmployeeListingWhereUniqueInput
+    update: XOR<ParkingEmployeeListingUpdateWithoutListingInput, ParkingEmployeeListingUncheckedUpdateWithoutListingInput>
+    create: XOR<ParkingEmployeeListingCreateWithoutListingInput, ParkingEmployeeListingUncheckedCreateWithoutListingInput>
+  }
+
+  export type ParkingEmployeeListingUpdateWithWhereUniqueWithoutListingInput = {
+    where: ParkingEmployeeListingWhereUniqueInput
+    data: XOR<ParkingEmployeeListingUpdateWithoutListingInput, ParkingEmployeeListingUncheckedUpdateWithoutListingInput>
+  }
+
+  export type ParkingEmployeeListingUpdateManyWithWhereWithoutListingInput = {
+    where: ParkingEmployeeListingScalarWhereInput
+    data: XOR<ParkingEmployeeListingUpdateManyMutationInput, ParkingEmployeeListingUncheckedUpdateManyWithoutListingInput>
+  }
+
   export type ParkingListingCreateWithoutSlotWindowsInput = {
     id?: string
     name: string
@@ -198203,6 +206224,8 @@ export namespace Prisma {
     dealer: ParkingDealerCreateNestedOneWithoutListingsInput
     bookings?: ParkingBookingCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingUncheckedCreateWithoutSlotWindowsInput = {
@@ -198223,11 +206246,53 @@ export namespace Prisma {
     updatedAt?: Date | string
     bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingCreateOrConnectWithoutSlotWindowsInput = {
     where: ParkingListingWhereUniqueInput
     create: XOR<ParkingListingCreateWithoutSlotWindowsInput, ParkingListingUncheckedCreateWithoutSlotWindowsInput>
+  }
+
+  export type ParkingWalkInCreateWithoutSlotWindowInput = {
+    id?: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    listing: ParkingListingCreateNestedOneWithoutWalkInsInput
+    employee?: ParkingEmployeeCreateNestedOneWithoutWalkInsInput
+    settlement?: ParkingSettlementCreateNestedOneWithoutWalkInsInput
+  }
+
+  export type ParkingWalkInUncheckedCreateWithoutSlotWindowInput = {
+    id?: string
+    listingId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingWalkInCreateOrConnectWithoutSlotWindowInput = {
+    where: ParkingWalkInWhereUniqueInput
+    create: XOR<ParkingWalkInCreateWithoutSlotWindowInput, ParkingWalkInUncheckedCreateWithoutSlotWindowInput>
+  }
+
+  export type ParkingWalkInCreateManySlotWindowInputEnvelope = {
+    data: ParkingWalkInCreateManySlotWindowInput | ParkingWalkInCreateManySlotWindowInput[]
+    skipDuplicates?: boolean
   }
 
   export type ParkingListingUpsertWithoutSlotWindowsInput = {
@@ -198259,6 +206324,8 @@ export namespace Prisma {
     dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
     bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingUncheckedUpdateWithoutSlotWindowsInput = {
@@ -198279,6 +206346,320 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingWalkInUpsertWithWhereUniqueWithoutSlotWindowInput = {
+    where: ParkingWalkInWhereUniqueInput
+    update: XOR<ParkingWalkInUpdateWithoutSlotWindowInput, ParkingWalkInUncheckedUpdateWithoutSlotWindowInput>
+    create: XOR<ParkingWalkInCreateWithoutSlotWindowInput, ParkingWalkInUncheckedCreateWithoutSlotWindowInput>
+  }
+
+  export type ParkingWalkInUpdateWithWhereUniqueWithoutSlotWindowInput = {
+    where: ParkingWalkInWhereUniqueInput
+    data: XOR<ParkingWalkInUpdateWithoutSlotWindowInput, ParkingWalkInUncheckedUpdateWithoutSlotWindowInput>
+  }
+
+  export type ParkingWalkInUpdateManyWithWhereWithoutSlotWindowInput = {
+    where: ParkingWalkInScalarWhereInput
+    data: XOR<ParkingWalkInUpdateManyMutationInput, ParkingWalkInUncheckedUpdateManyWithoutSlotWindowInput>
+  }
+
+  export type ParkingListingCreateWithoutWalkInsInput = {
+    id?: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutListingsInput
+    slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingUncheckedCreateWithoutWalkInsInput = {
+    id?: string
+    dealerId: string
+    name: string
+    addressLine: string
+    city: string
+    latitude: number
+    longitude: number
+    fourWheelerCapacity?: number
+    twoWheelerCapacity?: number
+    hourlyRatePaise: number
+    dailyRatePaise?: number | null
+    photos?: ParkingListingCreatephotosInput | string[]
+    status?: $Enums.ListingStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+    waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput
+  }
+
+  export type ParkingListingCreateOrConnectWithoutWalkInsInput = {
+    where: ParkingListingWhereUniqueInput
+    create: XOR<ParkingListingCreateWithoutWalkInsInput, ParkingListingUncheckedCreateWithoutWalkInsInput>
+  }
+
+  export type ParkingSlotWindowCreateWithoutWalkInsInput = {
+    id?: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
+    listing: ParkingListingCreateNestedOneWithoutSlotWindowsInput
+  }
+
+  export type ParkingSlotWindowUncheckedCreateWithoutWalkInsInput = {
+    id?: string
+    listingId: string
+    date: Date | string
+    startHour: number
+    endHour: number
+    capacity: number
+    booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
+  }
+
+  export type ParkingSlotWindowCreateOrConnectWithoutWalkInsInput = {
+    where: ParkingSlotWindowWhereUniqueInput
+    create: XOR<ParkingSlotWindowCreateWithoutWalkInsInput, ParkingSlotWindowUncheckedCreateWithoutWalkInsInput>
+  }
+
+  export type ParkingEmployeeCreateWithoutWalkInsInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutEmployeesInput
+    assignedListings?: ParkingEmployeeListingCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeUncheckedCreateWithoutWalkInsInput = {
+    id?: string
+    dealerId: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+    assignedListings?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutEmployeeInput
+  }
+
+  export type ParkingEmployeeCreateOrConnectWithoutWalkInsInput = {
+    where: ParkingEmployeeWhereUniqueInput
+    create: XOR<ParkingEmployeeCreateWithoutWalkInsInput, ParkingEmployeeUncheckedCreateWithoutWalkInsInput>
+  }
+
+  export type ParkingSettlementCreateWithoutWalkInsInput = {
+    id?: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutSettlementsInput
+    bookings?: ParkingBookingCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementUncheckedCreateWithoutWalkInsInput = {
+    id?: string
+    dealerId: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    bookings?: ParkingBookingUncheckedCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementCreateOrConnectWithoutWalkInsInput = {
+    where: ParkingSettlementWhereUniqueInput
+    create: XOR<ParkingSettlementCreateWithoutWalkInsInput, ParkingSettlementUncheckedCreateWithoutWalkInsInput>
+  }
+
+  export type ParkingListingUpsertWithoutWalkInsInput = {
+    update: XOR<ParkingListingUpdateWithoutWalkInsInput, ParkingListingUncheckedUpdateWithoutWalkInsInput>
+    create: XOR<ParkingListingCreateWithoutWalkInsInput, ParkingListingUncheckedCreateWithoutWalkInsInput>
+    where?: ParkingListingWhereInput
+  }
+
+  export type ParkingListingUpdateToOneWithWhereWithoutWalkInsInput = {
+    where?: ParkingListingWhereInput
+    data: XOR<ParkingListingUpdateWithoutWalkInsInput, ParkingListingUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingListingUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
+    slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingListingUncheckedUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    addressLine?: StringFieldUpdateOperationsInput | string
+    city?: StringFieldUpdateOperationsInput | string
+    latitude?: FloatFieldUpdateOperationsInput | number
+    longitude?: FloatFieldUpdateOperationsInput | number
+    fourWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    twoWheelerCapacity?: IntFieldUpdateOperationsInput | number
+    hourlyRatePaise?: IntFieldUpdateOperationsInput | number
+    dailyRatePaise?: NullableIntFieldUpdateOperationsInput | number | null
+    photos?: ParkingListingUpdatephotosInput | string[]
+    status?: EnumListingStatusFieldUpdateOperationsInput | $Enums.ListingStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+    waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingSlotWindowUpsertWithoutWalkInsInput = {
+    update: XOR<ParkingSlotWindowUpdateWithoutWalkInsInput, ParkingSlotWindowUncheckedUpdateWithoutWalkInsInput>
+    create: XOR<ParkingSlotWindowCreateWithoutWalkInsInput, ParkingSlotWindowUncheckedCreateWithoutWalkInsInput>
+    where?: ParkingSlotWindowWhereInput
+  }
+
+  export type ParkingSlotWindowUpdateToOneWithWhereWithoutWalkInsInput = {
+    where?: ParkingSlotWindowWhereInput
+    data: XOR<ParkingSlotWindowUpdateWithoutWalkInsInput, ParkingSlotWindowUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingSlotWindowUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
+    listing?: ParkingListingUpdateOneRequiredWithoutSlotWindowsNestedInput
+  }
+
+  export type ParkingSlotWindowUncheckedUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    startHour?: IntFieldUpdateOperationsInput | number
+    endHour?: IntFieldUpdateOperationsInput | number
+    capacity?: IntFieldUpdateOperationsInput | number
+    booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ParkingEmployeeUpsertWithoutWalkInsInput = {
+    update: XOR<ParkingEmployeeUpdateWithoutWalkInsInput, ParkingEmployeeUncheckedUpdateWithoutWalkInsInput>
+    create: XOR<ParkingEmployeeCreateWithoutWalkInsInput, ParkingEmployeeUncheckedCreateWithoutWalkInsInput>
+    where?: ParkingEmployeeWhereInput
+  }
+
+  export type ParkingEmployeeUpdateToOneWithWhereWithoutWalkInsInput = {
+    where?: ParkingEmployeeWhereInput
+    data: XOR<ParkingEmployeeUpdateWithoutWalkInsInput, ParkingEmployeeUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingEmployeeUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutEmployeesNestedInput
+    assignedListings?: ParkingEmployeeListingUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingEmployeeUncheckedUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedListings?: ParkingEmployeeListingUncheckedUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingSettlementUpsertWithoutWalkInsInput = {
+    update: XOR<ParkingSettlementUpdateWithoutWalkInsInput, ParkingSettlementUncheckedUpdateWithoutWalkInsInput>
+    create: XOR<ParkingSettlementCreateWithoutWalkInsInput, ParkingSettlementUncheckedCreateWithoutWalkInsInput>
+    where?: ParkingSettlementWhereInput
+  }
+
+  export type ParkingSettlementUpdateToOneWithWhereWithoutWalkInsInput = {
+    where?: ParkingSettlementWhereInput
+    data: XOR<ParkingSettlementUpdateWithoutWalkInsInput, ParkingSettlementUncheckedUpdateWithoutWalkInsInput>
+  }
+
+  export type ParkingSettlementUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutSettlementsNestedInput
+    bookings?: ParkingBookingUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingSettlementUncheckedUpdateWithoutWalkInsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutSettlementNestedInput
   }
 
   export type CustomerCreateWithoutParkingBookingsInput = {
@@ -198392,6 +206773,8 @@ export namespace Prisma {
     dealer: ParkingDealerCreateNestedOneWithoutListingsInput
     slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingUncheckedCreateWithoutBookingsInput = {
@@ -198412,11 +206795,44 @@ export namespace Prisma {
     updatedAt?: Date | string
     slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
     waitlist?: ParkingWaitlistEntryUncheckedCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingCreateOrConnectWithoutBookingsInput = {
     where: ParkingListingWhereUniqueInput
     create: XOR<ParkingListingCreateWithoutBookingsInput, ParkingListingUncheckedCreateWithoutBookingsInput>
+  }
+
+  export type ParkingSettlementCreateWithoutBookingsInput = {
+    id?: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    dealer: ParkingDealerCreateNestedOneWithoutSettlementsInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementUncheckedCreateWithoutBookingsInput = {
+    id?: string
+    dealerId: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutSettlementInput
+  }
+
+  export type ParkingSettlementCreateOrConnectWithoutBookingsInput = {
+    where: ParkingSettlementWhereUniqueInput
+    create: XOR<ParkingSettlementCreateWithoutBookingsInput, ParkingSettlementUncheckedCreateWithoutBookingsInput>
   }
 
   export type CustomerUpsertWithoutParkingBookingsInput = {
@@ -198547,6 +206963,8 @@ export namespace Prisma {
     dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
     slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingUncheckedUpdateWithoutBookingsInput = {
@@ -198567,6 +206985,243 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type ParkingSettlementUpsertWithoutBookingsInput = {
+    update: XOR<ParkingSettlementUpdateWithoutBookingsInput, ParkingSettlementUncheckedUpdateWithoutBookingsInput>
+    create: XOR<ParkingSettlementCreateWithoutBookingsInput, ParkingSettlementUncheckedCreateWithoutBookingsInput>
+    where?: ParkingSettlementWhereInput
+  }
+
+  export type ParkingSettlementUpdateToOneWithWhereWithoutBookingsInput = {
+    where?: ParkingSettlementWhereInput
+    data: XOR<ParkingSettlementUpdateWithoutBookingsInput, ParkingSettlementUncheckedUpdateWithoutBookingsInput>
+  }
+
+  export type ParkingSettlementUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    dealer?: ParkingDealerUpdateOneRequiredWithoutSettlementsNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingSettlementUncheckedUpdateWithoutBookingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dealerId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingDealerCreateWithoutSettlementsInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    commissionRate?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listings?: ParkingListingCreateNestedManyWithoutDealerInput
+    employees?: ParkingEmployeeCreateNestedManyWithoutDealerInput
+  }
+
+  export type ParkingDealerUncheckedCreateWithoutSettlementsInput = {
+    id?: string
+    ownerName: string
+    phoneNumber: string
+    email?: string | null
+    passwordHash: string
+    status?: $Enums.DealerStatus
+    commissionRate?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listings?: ParkingListingUncheckedCreateNestedManyWithoutDealerInput
+    employees?: ParkingEmployeeUncheckedCreateNestedManyWithoutDealerInput
+  }
+
+  export type ParkingDealerCreateOrConnectWithoutSettlementsInput = {
+    where: ParkingDealerWhereUniqueInput
+    create: XOR<ParkingDealerCreateWithoutSettlementsInput, ParkingDealerUncheckedCreateWithoutSettlementsInput>
+  }
+
+  export type ParkingBookingCreateWithoutSettlementInput = {
+    id?: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerCreateNestedOneWithoutParkingBookingsInput
+    listing: ParkingListingCreateNestedOneWithoutBookingsInput
+  }
+
+  export type ParkingBookingUncheckedCreateWithoutSettlementInput = {
+    id?: string
+    customerId: string
+    listingId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingBookingCreateOrConnectWithoutSettlementInput = {
+    where: ParkingBookingWhereUniqueInput
+    create: XOR<ParkingBookingCreateWithoutSettlementInput, ParkingBookingUncheckedCreateWithoutSettlementInput>
+  }
+
+  export type ParkingBookingCreateManySettlementInputEnvelope = {
+    data: ParkingBookingCreateManySettlementInput | ParkingBookingCreateManySettlementInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingWalkInCreateWithoutSettlementInput = {
+    id?: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    listing: ParkingListingCreateNestedOneWithoutWalkInsInput
+    slotWindow: ParkingSlotWindowCreateNestedOneWithoutWalkInsInput
+    employee?: ParkingEmployeeCreateNestedOneWithoutWalkInsInput
+  }
+
+  export type ParkingWalkInUncheckedCreateWithoutSettlementInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+  }
+
+  export type ParkingWalkInCreateOrConnectWithoutSettlementInput = {
+    where: ParkingWalkInWhereUniqueInput
+    create: XOR<ParkingWalkInCreateWithoutSettlementInput, ParkingWalkInUncheckedCreateWithoutSettlementInput>
+  }
+
+  export type ParkingWalkInCreateManySettlementInputEnvelope = {
+    data: ParkingWalkInCreateManySettlementInput | ParkingWalkInCreateManySettlementInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ParkingDealerUpsertWithoutSettlementsInput = {
+    update: XOR<ParkingDealerUpdateWithoutSettlementsInput, ParkingDealerUncheckedUpdateWithoutSettlementsInput>
+    create: XOR<ParkingDealerCreateWithoutSettlementsInput, ParkingDealerUncheckedCreateWithoutSettlementsInput>
+    where?: ParkingDealerWhereInput
+  }
+
+  export type ParkingDealerUpdateToOneWithWhereWithoutSettlementsInput = {
+    where?: ParkingDealerWhereInput
+    data: XOR<ParkingDealerUpdateWithoutSettlementsInput, ParkingDealerUncheckedUpdateWithoutSettlementsInput>
+  }
+
+  export type ParkingDealerUpdateWithoutSettlementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listings?: ParkingListingUpdateManyWithoutDealerNestedInput
+    employees?: ParkingEmployeeUpdateManyWithoutDealerNestedInput
+  }
+
+  export type ParkingDealerUncheckedUpdateWithoutSettlementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ownerName?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    status?: EnumDealerStatusFieldUpdateOperationsInput | $Enums.DealerStatus
+    commissionRate?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listings?: ParkingListingUncheckedUpdateManyWithoutDealerNestedInput
+    employees?: ParkingEmployeeUncheckedUpdateManyWithoutDealerNestedInput
+  }
+
+  export type ParkingBookingUpsertWithWhereUniqueWithoutSettlementInput = {
+    where: ParkingBookingWhereUniqueInput
+    update: XOR<ParkingBookingUpdateWithoutSettlementInput, ParkingBookingUncheckedUpdateWithoutSettlementInput>
+    create: XOR<ParkingBookingCreateWithoutSettlementInput, ParkingBookingUncheckedCreateWithoutSettlementInput>
+  }
+
+  export type ParkingBookingUpdateWithWhereUniqueWithoutSettlementInput = {
+    where: ParkingBookingWhereUniqueInput
+    data: XOR<ParkingBookingUpdateWithoutSettlementInput, ParkingBookingUncheckedUpdateWithoutSettlementInput>
+  }
+
+  export type ParkingBookingUpdateManyWithWhereWithoutSettlementInput = {
+    where: ParkingBookingScalarWhereInput
+    data: XOR<ParkingBookingUpdateManyMutationInput, ParkingBookingUncheckedUpdateManyWithoutSettlementInput>
+  }
+
+  export type ParkingWalkInUpsertWithWhereUniqueWithoutSettlementInput = {
+    where: ParkingWalkInWhereUniqueInput
+    update: XOR<ParkingWalkInUpdateWithoutSettlementInput, ParkingWalkInUncheckedUpdateWithoutSettlementInput>
+    create: XOR<ParkingWalkInCreateWithoutSettlementInput, ParkingWalkInUncheckedCreateWithoutSettlementInput>
+  }
+
+  export type ParkingWalkInUpdateWithWhereUniqueWithoutSettlementInput = {
+    where: ParkingWalkInWhereUniqueInput
+    data: XOR<ParkingWalkInUpdateWithoutSettlementInput, ParkingWalkInUncheckedUpdateWithoutSettlementInput>
+  }
+
+  export type ParkingWalkInUpdateManyWithWhereWithoutSettlementInput = {
+    where: ParkingWalkInScalarWhereInput
+    data: XOR<ParkingWalkInUpdateManyMutationInput, ParkingWalkInUncheckedUpdateManyWithoutSettlementInput>
   }
 
   export type CustomerCreateWithoutWaitlistEntriesInput = {
@@ -198680,6 +207335,8 @@ export namespace Prisma {
     dealer: ParkingDealerCreateNestedOneWithoutListingsInput
     slotWindows?: ParkingSlotWindowCreateNestedManyWithoutListingInput
     bookings?: ParkingBookingCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingUncheckedCreateWithoutWaitlistInput = {
@@ -198700,6 +207357,8 @@ export namespace Prisma {
     updatedAt?: Date | string
     slotWindows?: ParkingSlotWindowUncheckedCreateNestedManyWithoutListingInput
     bookings?: ParkingBookingUncheckedCreateNestedManyWithoutListingInput
+    walkIns?: ParkingWalkInUncheckedCreateNestedManyWithoutListingInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type ParkingListingCreateOrConnectWithoutWaitlistInput = {
@@ -198835,6 +207494,8 @@ export namespace Prisma {
     dealer?: ParkingDealerUpdateOneRequiredWithoutListingsNestedInput
     slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingUncheckedUpdateWithoutWaitlistInput = {
@@ -198855,6 +207516,8 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput
   }
 
   export type CustomerVehicleCreateWithoutQrTokenInput = {
@@ -204424,6 +213087,13 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -205241,9 +213911,16 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutBookingsNestedInput
   }
 
   export type ParkingBookingUncheckedUpdateWithoutCustomerInput = {
@@ -205257,6 +213934,13 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -205272,6 +213956,13 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -209682,6 +218373,26 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type ParkingEmployeeCreateManyDealerInput = {
+    id?: string
+    name: string
+    phoneNumber: string
+    passwordHash: string
+    isActive?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingSettlementCreateManyDealerInput = {
+    id?: string
+    date: Date | string
+    totalCollected: number
+    gupioCommission: number
+    amountSettled: number
+    status?: $Enums.SettlementStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type ParkingListingUpdateWithoutDealerInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -209700,6 +218411,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingUncheckedUpdateWithoutDealerInput = {
@@ -209720,6 +218433,8 @@ export namespace Prisma {
     slotWindows?: ParkingSlotWindowUncheckedUpdateManyWithoutListingNestedInput
     bookings?: ParkingBookingUncheckedUpdateManyWithoutListingNestedInput
     waitlist?: ParkingWaitlistEntryUncheckedUpdateManyWithoutListingNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutListingNestedInput
+    assignedEmployees?: ParkingEmployeeListingUncheckedUpdateManyWithoutListingNestedInput
   }
 
   export type ParkingListingUncheckedUpdateManyWithoutDealerInput = {
@@ -209739,6 +218454,158 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ParkingEmployeeUpdateWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walkIns?: ParkingWalkInUpdateManyWithoutEmployeeNestedInput
+    assignedListings?: ParkingEmployeeListingUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingEmployeeUncheckedUpdateWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutEmployeeNestedInput
+    assignedListings?: ParkingEmployeeListingUncheckedUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type ParkingEmployeeUncheckedUpdateManyWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phoneNumber?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSettlementUpdateWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: ParkingBookingUpdateManyWithoutSettlementNestedInput
+    walkIns?: ParkingWalkInUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingSettlementUncheckedUpdateWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    bookings?: ParkingBookingUncheckedUpdateManyWithoutSettlementNestedInput
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutSettlementNestedInput
+  }
+
+  export type ParkingSettlementUncheckedUpdateManyWithoutDealerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    totalCollected?: IntFieldUpdateOperationsInput | number
+    gupioCommission?: IntFieldUpdateOperationsInput | number
+    amountSettled?: IntFieldUpdateOperationsInput | number
+    status?: EnumSettlementStatusFieldUpdateOperationsInput | $Enums.SettlementStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWalkInCreateManyEmployeeInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingEmployeeListingCreateManyEmployeeInput = {
+    id?: string
+    listingId: string
+    createdAt?: Date | string
+  }
+
+  export type ParkingWalkInUpdateWithoutEmployeeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    listing?: ParkingListingUpdateOneRequiredWithoutWalkInsNestedInput
+    slotWindow?: ParkingSlotWindowUpdateOneRequiredWithoutWalkInsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutWalkInsNestedInput
+  }
+
+  export type ParkingWalkInUncheckedUpdateWithoutEmployeeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutEmployeeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingEmployeeListingUpdateWithoutEmployeeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: ParkingListingUpdateOneRequiredWithoutAssignedEmployeesNestedInput
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateWithoutEmployeeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateManyWithoutEmployeeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ParkingSlotWindowCreateManyListingInput = {
     id?: string
     date: Date | string
@@ -209746,6 +218613,8 @@ export namespace Prisma {
     endHour: number
     capacity: number
     booked?: number
+    manualOccupiedCars?: number
+    manualOccupiedBikes?: number
   }
 
   export type ParkingBookingCreateManyListingInput = {
@@ -209759,6 +218628,13 @@ export namespace Prisma {
     status?: $Enums.BookingStatus
     orderId?: string | null
     idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    settlementId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -209771,6 +218647,27 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type ParkingWalkInCreateManyListingInput = {
+    id?: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingEmployeeListingCreateManyListingInput = {
+    id?: string
+    employeeId: string
+    createdAt?: Date | string
+  }
+
   export type ParkingSlotWindowUpdateWithoutListingInput = {
     id?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -209778,6 +218675,9 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
+    walkIns?: ParkingWalkInUpdateManyWithoutSlotWindowNestedInput
   }
 
   export type ParkingSlotWindowUncheckedUpdateWithoutListingInput = {
@@ -209787,6 +218687,9 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
+    walkIns?: ParkingWalkInUncheckedUpdateManyWithoutSlotWindowNestedInput
   }
 
   export type ParkingSlotWindowUncheckedUpdateManyWithoutListingInput = {
@@ -209796,6 +218699,8 @@ export namespace Prisma {
     endHour?: IntFieldUpdateOperationsInput | number
     capacity?: IntFieldUpdateOperationsInput | number
     booked?: IntFieldUpdateOperationsInput | number
+    manualOccupiedCars?: IntFieldUpdateOperationsInput | number
+    manualOccupiedBikes?: IntFieldUpdateOperationsInput | number
   }
 
   export type ParkingBookingUpdateWithoutListingInput = {
@@ -209808,9 +218713,16 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutBookingsNestedInput
   }
 
   export type ParkingBookingUncheckedUpdateWithoutListingInput = {
@@ -209824,6 +218736,13 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -209839,6 +218758,13 @@ export namespace Prisma {
     status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -209865,6 +218791,277 @@ export namespace Prisma {
     desiredDate?: DateTimeFieldUpdateOperationsInput | Date | string
     notified?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWalkInUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    slotWindow?: ParkingSlotWindowUpdateOneRequiredWithoutWalkInsNestedInput
+    employee?: ParkingEmployeeUpdateOneWithoutWalkInsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutWalkInsNestedInput
+  }
+
+  export type ParkingWalkInUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingEmployeeListingUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    employee?: ParkingEmployeeUpdateOneRequiredWithoutAssignedListingsNestedInput
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    employeeId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingEmployeeListingUncheckedUpdateManyWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    employeeId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWalkInCreateManySlotWindowInput = {
+    id?: string
+    listingId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+    settlementId?: string | null
+  }
+
+  export type ParkingWalkInUpdateWithoutSlotWindowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    listing?: ParkingListingUpdateOneRequiredWithoutWalkInsNestedInput
+    employee?: ParkingEmployeeUpdateOneWithoutWalkInsNestedInput
+    settlement?: ParkingSettlementUpdateOneWithoutWalkInsNestedInput
+  }
+
+  export type ParkingWalkInUncheckedUpdateWithoutSlotWindowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutSlotWindowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    settlementId?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type ParkingBookingCreateManySettlementInput = {
+    id?: string
+    customerId: string
+    listingId: string
+    slotWindowId: string
+    vehicleId?: string | null
+    startTime: Date | string
+    endTime: Date | string
+    amountPaise: number
+    status?: $Enums.BookingStatus
+    orderId?: string | null
+    idempotencyKey?: string | null
+    checkedInAt?: Date | string | null
+    actualCheckOutTime?: Date | string | null
+    extraAmountPaise?: number | null
+    extraOrderId?: string | null
+    isSettled?: boolean
+    extraSettled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ParkingWalkInCreateManySettlementInput = {
+    id?: string
+    listingId: string
+    slotWindowId: string
+    vehicleType: $Enums.ParkingVehicleType
+    vehicleNumber: string
+    amountPaise?: number
+    paymentMethod?: $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: Date | string | null
+    employeeId?: string | null
+    enteredAt?: Date | string
+    exitedAt?: Date | string | null
+    isSettled?: boolean
+  }
+
+  export type ParkingBookingUpdateWithoutSettlementInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerUpdateOneRequiredWithoutParkingBookingsNestedInput
+    listing?: ParkingListingUpdateOneRequiredWithoutBookingsNestedInput
+  }
+
+  export type ParkingBookingUncheckedUpdateWithoutSettlementInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingBookingUncheckedUpdateManyWithoutSettlementInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    status?: EnumBookingStatusFieldUpdateOperationsInput | $Enums.BookingStatus
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    checkedInAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    actualCheckOutTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    extraAmountPaise?: NullableIntFieldUpdateOperationsInput | number | null
+    extraOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    extraSettled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingWalkInUpdateWithoutSettlementInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+    listing?: ParkingListingUpdateOneRequiredWithoutWalkInsNestedInput
+    slotWindow?: ParkingSlotWindowUpdateOneRequiredWithoutWalkInsNestedInput
+    employee?: ParkingEmployeeUpdateOneWithoutWalkInsNestedInput
+  }
+
+  export type ParkingWalkInUncheckedUpdateWithoutSettlementInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type ParkingWalkInUncheckedUpdateManyWithoutSettlementInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    slotWindowId?: StringFieldUpdateOperationsInput | string
+    vehicleType?: EnumParkingVehicleTypeFieldUpdateOperationsInput | $Enums.ParkingVehicleType
+    vehicleNumber?: StringFieldUpdateOperationsInput | string
+    amountPaise?: IntFieldUpdateOperationsInput | number
+    paymentMethod?: NullableEnumParkingPaymentMethodFieldUpdateOperationsInput | $Enums.ParkingPaymentMethod | null
+    onlinePaymentConfirmedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    employeeId?: NullableStringFieldUpdateOperationsInput | string | null
+    enteredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    exitedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isSettled?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type MessageCreateManyConversationInput = {

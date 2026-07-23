@@ -18,7 +18,7 @@ export const availabilitySchema = z.object({
 export const createBookingSchema = z
   .object({
     listingId: z.string().min(1),
-    vehicleId: z.string().optional(),
+    vehicleId: z.string().min(1, "Select which vehicle you're parking"),
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
     /** Client-generated, stable across retries of the same tap — prevents double-booking on network retry. */
@@ -29,10 +29,28 @@ export const createBookingSchema = z
     path: ["endTime"],
   });
 
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+});
+export type PaginationInput = z.infer<typeof paginationSchema>;
+
+export const bookingsListSchema = paginationSchema.extend({
+  scope: z.enum(["active", "history"]).default("active"),
+  /** Free-text match against vehicle number, customer name/phone, or listing name. */
+  q: z.string().trim().min(1).max(100).optional(),
+  from: z.coerce.date().optional(),
+  to: z.coerce.date().optional(),
+});
+export type BookingsListInput = z.infer<typeof bookingsListSchema>;
+
 export const joinWaitlistSchema = z.object({
   listingId: z.string().min(1),
   desiredDate: z.coerce.date(),
 });
+
+/** Same shape as joining — leaving needs the same compound key to find the entry. */
+export const leaveWaitlistSchema = joinWaitlistSchema;
 
 // ── Dealer-facing ────────────────────────────────────────────────
 
@@ -75,12 +93,47 @@ export const createSlotWindowsSchema = z.object({
   capacity: z.coerce.number().int().positive(),
 });
 
+export const checkInWalkInSchema = z.object({
+  vehicleType: z.enum(["CAR", "BIKE"]),
+  vehicleNumber: z.string().min(1).max(20),
+});
+
+/** Amount isn't collected here — checkOutWalkIn computes it from actual duration parked. */
+export const checkOutWalkInSchema = z.object({
+  paymentMethod: z.enum(["CASH", "ONLINE"]),
+});
+
+export const createEmployeeSchema = z.object({
+  name: z.string().min(1),
+  phoneNumber: z.string().min(6),
+  password: z.string().min(8),
+  /** Which lot(s) this employee can see/work — can be empty and assigned later. */
+  listingIds: z.array(z.string().min(1)).default([]),
+});
+
+export const setEmployeeListingsSchema = z.object({
+  listingIds: z.array(z.string().min(1)),
+});
+
+// ── Employee-facing (dealer's on-ground staff) ──────────────────
+
+export const employeeLoginSchema = z.object({
+  phoneNumber: z.string().min(6),
+  password: z.string().min(1),
+});
+
 export type SearchListingsInput = z.infer<typeof searchListingsSchema>;
 export type AvailabilityInput = z.infer<typeof availabilitySchema>;
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export type JoinWaitlistInput = z.infer<typeof joinWaitlistSchema>;
+export type LeaveWaitlistInput = z.infer<typeof leaveWaitlistSchema>;
 export type DealerLoginInput = z.infer<typeof dealerLoginSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type UpdateListingInput = z.infer<typeof updateListingSchema>;
 export type CreateSlotWindowsInput = z.infer<typeof createSlotWindowsSchema>;
 export type AdminCreateDealerInput = z.infer<typeof adminCreateDealerSchema>;
+export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
+export type SetEmployeeListingsInput = z.infer<typeof setEmployeeListingsSchema>;
+export type EmployeeLoginInput = z.infer<typeof employeeLoginSchema>;
+export type CheckInWalkInInput = z.infer<typeof checkInWalkInSchema>;
+export type CheckOutWalkInInput = z.infer<typeof checkOutWalkInSchema>;

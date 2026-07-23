@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, RefreshControl, Alert, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { parkingService, type ParkingBooking, type ParkingBookingStatus } from '../../services/parkingService';
+import { openRazorpayCheckout, paymentsService } from '../../services/paymentsService';
 import { useParkingStore } from '../../store/parkingStore';
 
 const STATUS_STYLE: Record<ParkingBookingStatus, { label: string; bg: string; fg: string }> = {
@@ -25,16 +26,23 @@ export default function MyParkingBookingsScreen() {
   const version = useParkingStore((s) => s.version);
   const notifyBookingChanged = useParkingStore((s) => s.notifyBookingChanged);
 
+  const PAGE_SIZE = 20;
   const [bookings, setBookings] = useState<ParkingBooking[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [payingExtraId, setPayingExtraId] = useState<string | null>(null);
 
   const load = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
-      const data = await parkingService.listMyBookings();
-      setBookings(data);
+      const result = await parkingService.listMyBookings({ page: 1, limit: PAGE_SIZE });
+      setBookings(result.data);
+      setPage(1);
+      setTotalPages(result.pagination.totalPages);
     } catch (e: any) {
       Alert.alert('Could not load bookings', e?.message || 'Please try again.');
     } finally {
@@ -50,6 +58,22 @@ export default function MyParkingBookingsScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     load(true);
+  };
+
+  const loadMore = async () => {
+    if (loadingMore || page >= totalPages) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const result = await parkingService.listMyBookings({ page: nextPage, limit: PAGE_SIZE });
+      setBookings((prev) => [...prev, ...result.data]);
+      setPage(nextPage);
+      setTotalPages(result.pagination.totalPages);
+    } catch {
+      // Silent — the user can just scroll again or pull to refresh.
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   const onCancel = (booking: ParkingBooking) => {
@@ -71,6 +95,31 @@ export default function MyParkingBookingsScreen() {
         },
       },
     ]);
+  };
+
+  const onPayExtra = async (booking: ParkingBooking) => {
+    setPayingExtraId(booking.id);
+    try {
+      const payment = await parkingService.getExtraPayment(booking.id);
+      const result = await openRazorpayCheckout({
+        keyId: payment.keyId,
+        razorpayOrderId: payment.razorpayOrderId,
+        amountPaise: payment.amountPaise,
+        currency: payment.currency,
+        name: booking.listing?.name || 'Parking',
+        description: 'Overstay charge',
+      });
+      await paymentsService.verifyOrder(payment.orderId, {
+        razorpayPaymentId: result.razorpay_payment_id,
+        razorpaySignature: result.razorpay_signature,
+      }).catch(() => {});
+      notifyBookingChanged(booking.id);
+      Alert.alert('Payment received', "We're confirming it now — checkout will complete in a few seconds.");
+    } catch (e: any) {
+      Alert.alert('Payment not completed', e?.description || e?.message || 'Please try again.');
+    } finally {
+      setPayingExtraId(null);
+    }
   };
 
   return (
@@ -99,9 +148,13 @@ export default function MyParkingBookingsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+          onEndReachedThreshold={0.4}
+          onEndReached={loadMore}
+          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#FFBF00" style={styles.footerLoader} /> : null}
           renderItem={({ item }) => {
             const statusStyle = STATUS_STYLE[item.status];
-            const cancellable = item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED';
+            const cancellable = (item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED') && !item.actualCheckOutTime;
+            const awaitingOverstayPayment = item.status === 'CONFIRMED' && !!item.actualCheckOutTime && item.extraAmountPaise != null;
             return (
               <View style={styles.card}>
                 <View style={styles.cardTop}>
@@ -119,9 +172,27 @@ export default function MyParkingBookingsScreen() {
                     {format(new Date(item.startTime), 'MMM d, h:mm a')} – {format(new Date(item.endTime), 'h:mm a')}
                   </Text>
                 </View>
+                {awaitingOverstayPayment && (
+                  <View style={styles.overstayBanner}>
+                    <IconMC name="clock-alert-outline" size={wp(3.8)} color="#f59e0b" />
+                    <Text style={styles.overstayText}>
+                      Stayed longer than booked — pay ₹{((item.extraAmountPaise ?? 0) / 100).toFixed(0)} to complete checkout
+                    </Text>
+                  </View>
+                )}
                 <View style={styles.cardBottom}>
                   <Text style={styles.amountText}>₹{(item.amountPaise / 100).toFixed(0)}</Text>
-                  {cancellable && (
+                  {awaitingOverstayPayment ? (
+                    <TouchableOpacity
+                      style={styles.payExtraBtn}
+                      onPress={() => onPayExtra(item)}
+                      disabled={payingExtraId === item.id}
+                    >
+                      <Text style={styles.payExtraBtnText}>
+                        {payingExtraId === item.id ? 'Processing…' : `Pay ₹${((item.extraAmountPaise ?? 0) / 100).toFixed(0)}`}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : cancellable ? (
                     <TouchableOpacity
                       style={styles.cancelBtn}
                       onPress={() => onCancel(item)}
@@ -129,7 +200,7 @@ export default function MyParkingBookingsScreen() {
                     >
                       <Text style={styles.cancelBtnText}>{cancellingId === item.id ? 'Cancelling…' : 'Cancel'}</Text>
                     </TouchableOpacity>
-                  )}
+                  ) : null}
                 </View>
               </View>
             );
@@ -160,7 +231,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   searchBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3.6) },
-  listContent: { paddingHorizontal: wp(5), paddingBottom: hp(4) },
+  // The bottom tab bar floats via position:'absolute' (MainBottomTabs.tsx) and
+  // doesn't reserve layout space, so the list's last card needs to clear it manually.
+  listContent: { paddingHorizontal: wp(5), paddingBottom: (Platform.OS === 'ios' ? hp(10) : hp(8)) + hp(2) },
+  footerLoader: { marginVertical: hp(2) },
   card: {
     backgroundColor: '#111',
     borderRadius: 18,
@@ -186,4 +260,21 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   cancelBtnText: { color: '#ef4444', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
+  overstayBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1.5),
+    backgroundColor: 'rgba(245,158,11,0.1)',
+    borderRadius: 10,
+    padding: wp(2.5),
+    marginBottom: hp(1.2),
+  },
+  overstayText: { flex: 1, color: '#f59e0b', fontFamily: 'Outfit-Medium', fontSize: wp(3) },
+  payExtraBtn: {
+    backgroundColor: '#FFBF00',
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(0.8),
+    borderRadius: 10,
+  },
+  payExtraBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
 });
