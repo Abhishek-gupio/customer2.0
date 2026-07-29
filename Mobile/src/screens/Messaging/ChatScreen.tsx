@@ -397,6 +397,7 @@ export default function ChatScreen() {
         {relevantQuickReplies.length > 0 && conversation.status !== 'CLOSED' && (
           <FlatList
             horizontal
+            style={{ flexGrow: 0 }}
             data={relevantQuickReplies}
             keyExtractor={(item) => item.key}
             showsHorizontalScrollIndicator={false}

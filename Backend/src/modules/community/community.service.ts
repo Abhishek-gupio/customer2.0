@@ -2,6 +2,7 @@ import { dbInstances, Prisma } from "@repo/db-customer";
 import { AppError } from "../../utils/AppError";
 import { logger } from "../../config/logger";
 import { notificationService } from "../../services/notification.service";
+import { storageService } from "../../services/storage.service";
 import type {
   CreateCommunityInput,
   DiscoverCommunitiesInput,
@@ -48,6 +49,17 @@ async function assertMembership(communityId: string, customerId: string) {
 
 function postAuthorSelect() {
   return { select: { id: true, fullName: true, profilePic: true } } as const;
+}
+
+async function transformAuthorPic<T extends { author: { profilePic: string | null } } | null>(item: T): Promise<T> {
+  if (item && item.author && item.author.profilePic) {
+    item.author.profilePic = await storageService.ensureReadableUrl(item.author.profilePic);
+  }
+  return item;
+}
+
+async function transformAuthorPics<T extends { author: { profilePic: string | null } }>(items: T[]): Promise<T[]> {
+  return Promise.all(items.map((item) => transformAuthorPic(item)));
 }
 
 export const communityService = {
@@ -186,7 +198,7 @@ export const communityService = {
       await dbInstances.community.update({ where: { id: input.communityId }, data: { postCount: { increment: 1 } } });
     }
 
-    return post;
+    return transformAuthorPic(post);
   },
 
   async getPost(postId: string) {
@@ -195,7 +207,7 @@ export const communityService = {
       include: { author: postAuthorSelect(), community: { select: { id: true, name: true, slug: true } } },
     });
     if (!post || post.status !== "PUBLISHED") throw AppError.notFound("Post not found");
-    return post;
+    return transformAuthorPic(post);
   },
 
   async deletePost(customerId: string, postId: string) {
@@ -242,7 +254,8 @@ export const communityService = {
         include: { author: postAuthorSelect(), community: { select: { id: true, name: true, slug: true } } },
       });
       const byId = new Map(posts.map((p) => [p.id, p]));
-      return ids.map((id) => byId.get(id)).filter(Boolean);
+      const sorted = ids.map((id) => byId.get(id)).filter(Boolean) as any[];
+      return transformAuthorPics(sorted);
     }
 
     if (input.feedType === "following") {
@@ -254,7 +267,7 @@ export const communityService = {
       const communityIds = memberships.map((m) => m.communityId);
       if (authorIds.length === 0 && communityIds.length === 0) return [];
 
-      return dbInstances.post.findMany({
+      const posts = await dbInstances.post.findMany({
         where: {
           status: "PUBLISHED",
           OR: [
@@ -267,10 +280,11 @@ export const communityService = {
         take: input.limit,
         include: { author: postAuthorSelect(), community: { select: { id: true, name: true, slug: true } } },
       });
+      return transformAuthorPics(posts);
     }
 
     // latest
-    return dbInstances.post.findMany({
+    const posts = await dbInstances.post.findMany({
       where: {
         status: "PUBLISHED",
         ...(input.communityId ? { communityId: input.communityId } : {}),
@@ -280,6 +294,7 @@ export const communityService = {
       take: input.limit,
       include: { author: postAuthorSelect(), community: { select: { id: true, name: true, slug: true } } },
     });
+    return transformAuthorPics(posts);
   },
 
   async search(input: { q: string; limit: number }) {
@@ -333,17 +348,18 @@ export const communityService = {
       });
     }
 
-    return comment;
+    return transformAuthorPic(comment);
   },
 
   async listComments(postId: string) {
     const post = await dbInstances.post.findUnique({ where: { id: postId } });
     if (!post) throw AppError.notFound("Post not found");
-    return dbInstances.comment.findMany({
+    const comments = await dbInstances.comment.findMany({
       where: { postId, status: "PUBLISHED" },
       orderBy: { createdAt: "asc" },
       include: { author: postAuthorSelect() },
     });
+    return transformAuthorPics(comments);
   },
 
   // ── Reactions ──
