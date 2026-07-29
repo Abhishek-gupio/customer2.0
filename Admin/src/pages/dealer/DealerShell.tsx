@@ -1,15 +1,17 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ParkingSquare, LayoutList, CalendarRange, Users, LogOut, History, Wallet } from 'lucide-react';
+import { ParkingSquare, LayoutList, CalendarRange, Users, LogOut, History, Wallet, BarChart3 } from 'lucide-react';
 import { useDealerAuth } from '../../context/DealerAuthContext';
 import { cn } from '../../lib/cn';
 
 const navItems = [
   { to: '/dealer/listings', label: 'Listings', icon: LayoutList },
+  { to: '/dealer/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/dealer/bookings', label: 'Online Bookings', icon: CalendarRange },
   { to: '/dealer/employees', label: 'Employees', icon: Users },
   { to: '/dealer/history', label: 'History', icon: History },
   { to: '/dealer/settlements', label: 'Settlements', icon: Wallet },
 ];
+
 
 export default function DealerShell() {
   const { dealer, logout } = useDealerAuth();

@@ -9,6 +9,7 @@ const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
 const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
 const LAST_RECEIVED_OTP_KEY = 'last_received_otp';
 const LAST_RECEIVED_OTP_AT_KEY = 'last_received_otp_at_ms';
+const DIY_GUIDES_CACHE_KEY = 'diy_guides_cache';
 
 const AUTH_KEYS = new Set([
   ACCESS_TOKEN_KEY,
@@ -282,6 +283,20 @@ export function getPrimaryVehicleId(): string | null {
 export function setLastReceivedOtp(otp: string, receivedAt = Date.now()): void {
   storage.set(LAST_RECEIVED_OTP_KEY, otp);
   storage.set(LAST_RECEIVED_OTP_AT_KEY, String(Math.floor(receivedAt)));
+}
+
+export function getDIYGuidesCache(): unknown {
+  const s = storage.getString(DIY_GUIDES_CACHE_KEY);
+  if (!s) return null;
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+
+export function setDIYGuidesCache(guides: unknown): void {
+  storage.set(DIY_GUIDES_CACHE_KEY, JSON.stringify(guides));
 }
 
 export function getLastReceivedOtp():

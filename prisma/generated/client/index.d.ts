@@ -472,6 +472,11 @@ export type ParkingSettlement = $Result.DefaultSelection<Prisma.$ParkingSettleme
  */
 export type ParkingWaitlistEntry = $Result.DefaultSelection<Prisma.$ParkingWaitlistEntryPayload>
 /**
+ * Model ParkingSearchLog
+ * 
+ */
+export type ParkingSearchLog = $Result.DefaultSelection<Prisma.$ParkingSearchLogPayload>
+/**
  * Model VehicleQrToken
  * Opaque, rotatable token encoded in the printed QR sticker — never the raw
  * vehicleId, so a compromised/public sticker can be invalidated without
@@ -2763,6 +2768,16 @@ export class PrismaClient<
   get parkingWaitlistEntry(): Prisma.ParkingWaitlistEntryDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.parkingSearchLog`: Exposes CRUD operations for the **ParkingSearchLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ParkingSearchLogs
+    * const parkingSearchLogs = await prisma.parkingSearchLog.findMany()
+    * ```
+    */
+  get parkingSearchLog(): Prisma.ParkingSearchLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.vehicleQrToken`: Exposes CRUD operations for the **VehicleQrToken** model.
     * Example usage:
     * ```ts
@@ -3494,6 +3509,7 @@ export namespace Prisma {
     ParkingBooking: 'ParkingBooking',
     ParkingSettlement: 'ParkingSettlement',
     ParkingWaitlistEntry: 'ParkingWaitlistEntry',
+    ParkingSearchLog: 'ParkingSearchLog',
     VehicleQrToken: 'VehicleQrToken',
     Conversation: 'Conversation',
     Message: 'Message',
@@ -3530,7 +3546,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingEmployee" | "parkingEmployeeListing" | "parkingListing" | "parkingSlotWindow" | "parkingWalkIn" | "parkingBooking" | "parkingSettlement" | "parkingWaitlistEntry" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry" | "community" | "communityMembership" | "hashtag" | "post" | "postHashtag" | "comment" | "reaction" | "follow" | "contentReport" | "washPartner" | "washTechnician" | "washCenter" | "washSlot" | "washBooking"
+      modelProps: "user" | "adminUser" | "customer" | "customerDevice" | "vehicleDocument" | "drivingLicense" | "fastagDocument" | "digiLockerConnection" | "customerVehicle" | "vehicleCatalog" | "vehicleAsset" | "odometerLog" | "challan" | "vehicleAccess" | "vehicleHealthScore" | "inAppNotification" | "chatSession" | "chatMessage" | "documentEmbedding" | "chatAnalytics" | "expense" | "expenseBudget" | "fuelPriceCache" | "discoveryContent" | "serviceRecord" | "servicePart" | "partReplacementInterval" | "telematicsDevice" | "drivingTrip" | "plannedTrip" | "drivingEvent" | "sOSRequest" | "emergencyContact" | "supportTicket" | "ticketMessage" | "fAQ" | "bankAccountDetails" | "client" | "clientNotification" | "contactForm" | "public_Customer" | "customerRequest" | "document" | "helpSupport" | "invoice" | "invoiceItem" | "leaveRequest" | "operatorClientAssignment" | "parkingSlot" | "payment" | "paymentAuditLog" | "paymentTransaction" | "pickup" | "razorpayOrder" | "razorpayWebhookLog" | "refund" | "selfParking" | "shiftAttendance" | "site" | "siteAssigned" | "ticket" | "ticketComment" | "public_User" | "vehicle" | "admin_email_verifications" | "admin_password_resets" | "admins" | "approval_logs" | "client_email_verifications" | "client_password_resets" | "customer_fcm_tokens" | "departments" | "fcm_tokens" | "permissions" | "role_permissions" | "roles" | "customerOrder" | "customerPaymentAttempt" | "customerRefund" | "webhookEvent" | "parkingDealer" | "parkingEmployee" | "parkingEmployeeListing" | "parkingListing" | "parkingSlotWindow" | "parkingWalkIn" | "parkingBooking" | "parkingSettlement" | "parkingWaitlistEntry" | "parkingSearchLog" | "vehicleQrToken" | "conversation" | "message" | "blockedContact" | "conversationReport" | "guestConversation" | "guestMessageEntry" | "community" | "communityMembership" | "hashtag" | "post" | "postHashtag" | "comment" | "reaction" | "follow" | "contentReport" | "washPartner" | "washTechnician" | "washCenter" | "washSlot" | "washBooking"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -10120,6 +10136,80 @@ export namespace Prisma {
           }
         }
       }
+      ParkingSearchLog: {
+        payload: Prisma.$ParkingSearchLogPayload<ExtArgs>
+        fields: Prisma.ParkingSearchLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ParkingSearchLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ParkingSearchLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>
+          }
+          findFirst: {
+            args: Prisma.ParkingSearchLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ParkingSearchLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>
+          }
+          findMany: {
+            args: Prisma.ParkingSearchLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>[]
+          }
+          create: {
+            args: Prisma.ParkingSearchLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>
+          }
+          createMany: {
+            args: Prisma.ParkingSearchLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ParkingSearchLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>[]
+          }
+          delete: {
+            args: Prisma.ParkingSearchLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>
+          }
+          update: {
+            args: Prisma.ParkingSearchLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.ParkingSearchLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ParkingSearchLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ParkingSearchLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.ParkingSearchLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ParkingSearchLogPayload>
+          }
+          aggregate: {
+            args: Prisma.ParkingSearchLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateParkingSearchLog>
+          }
+          groupBy: {
+            args: Prisma.ParkingSearchLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ParkingSearchLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ParkingSearchLogCountArgs<ExtArgs>
+            result: $Utils.Optional<ParkingSearchLogCountAggregateOutputType> | number
+          }
+        }
+      }
       VehicleQrToken: {
         payload: Prisma.$VehicleQrTokenPayload<ExtArgs>
         fields: Prisma.VehicleQrTokenFieldRefs
@@ -11871,6 +11961,7 @@ export namespace Prisma {
     parkingBooking?: ParkingBookingOmit
     parkingSettlement?: ParkingSettlementOmit
     parkingWaitlistEntry?: ParkingWaitlistEntryOmit
+    parkingSearchLog?: ParkingSearchLogOmit
     vehicleQrToken?: VehicleQrTokenOmit
     conversation?: ConversationOmit
     message?: MessageOmit
@@ -119623,6 +119714,1147 @@ export namespace Prisma {
 
 
   /**
+   * Model ParkingSearchLog
+   */
+
+  export type AggregateParkingSearchLog = {
+    _count: ParkingSearchLogCountAggregateOutputType | null
+    _avg: ParkingSearchLogAvgAggregateOutputType | null
+    _sum: ParkingSearchLogSumAggregateOutputType | null
+    _min: ParkingSearchLogMinAggregateOutputType | null
+    _max: ParkingSearchLogMaxAggregateOutputType | null
+  }
+
+  export type ParkingSearchLogAvgAggregateOutputType = {
+    lat: number | null
+    lng: number | null
+    radiusKm: number | null
+    startHour: number | null
+    endHour: number | null
+    resultsCount: number | null
+  }
+
+  export type ParkingSearchLogSumAggregateOutputType = {
+    lat: number | null
+    lng: number | null
+    radiusKm: number | null
+    startHour: number | null
+    endHour: number | null
+    resultsCount: number | null
+  }
+
+  export type ParkingSearchLogMinAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    lat: number | null
+    lng: number | null
+    radiusKm: number | null
+    date: Date | null
+    startHour: number | null
+    endHour: number | null
+    resultsCount: number | null
+    hasAvailableSpots: boolean | null
+    createdAt: Date | null
+  }
+
+  export type ParkingSearchLogMaxAggregateOutputType = {
+    id: string | null
+    customerId: string | null
+    lat: number | null
+    lng: number | null
+    radiusKm: number | null
+    date: Date | null
+    startHour: number | null
+    endHour: number | null
+    resultsCount: number | null
+    hasAvailableSpots: boolean | null
+    createdAt: Date | null
+  }
+
+  export type ParkingSearchLogCountAggregateOutputType = {
+    id: number
+    customerId: number
+    lat: number
+    lng: number
+    radiusKm: number
+    date: number
+    startHour: number
+    endHour: number
+    resultsCount: number
+    matchedListingIds: number
+    hasAvailableSpots: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ParkingSearchLogAvgAggregateInputType = {
+    lat?: true
+    lng?: true
+    radiusKm?: true
+    startHour?: true
+    endHour?: true
+    resultsCount?: true
+  }
+
+  export type ParkingSearchLogSumAggregateInputType = {
+    lat?: true
+    lng?: true
+    radiusKm?: true
+    startHour?: true
+    endHour?: true
+    resultsCount?: true
+  }
+
+  export type ParkingSearchLogMinAggregateInputType = {
+    id?: true
+    customerId?: true
+    lat?: true
+    lng?: true
+    radiusKm?: true
+    date?: true
+    startHour?: true
+    endHour?: true
+    resultsCount?: true
+    hasAvailableSpots?: true
+    createdAt?: true
+  }
+
+  export type ParkingSearchLogMaxAggregateInputType = {
+    id?: true
+    customerId?: true
+    lat?: true
+    lng?: true
+    radiusKm?: true
+    date?: true
+    startHour?: true
+    endHour?: true
+    resultsCount?: true
+    hasAvailableSpots?: true
+    createdAt?: true
+  }
+
+  export type ParkingSearchLogCountAggregateInputType = {
+    id?: true
+    customerId?: true
+    lat?: true
+    lng?: true
+    radiusKm?: true
+    date?: true
+    startHour?: true
+    endHour?: true
+    resultsCount?: true
+    matchedListingIds?: true
+    hasAvailableSpots?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ParkingSearchLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingSearchLog to aggregate.
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSearchLogs to fetch.
+     */
+    orderBy?: ParkingSearchLogOrderByWithRelationInput | ParkingSearchLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ParkingSearchLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSearchLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSearchLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ParkingSearchLogs
+    **/
+    _count?: true | ParkingSearchLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ParkingSearchLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ParkingSearchLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ParkingSearchLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ParkingSearchLogMaxAggregateInputType
+  }
+
+  export type GetParkingSearchLogAggregateType<T extends ParkingSearchLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateParkingSearchLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateParkingSearchLog[P]>
+      : GetScalarType<T[P], AggregateParkingSearchLog[P]>
+  }
+
+
+
+
+  export type ParkingSearchLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ParkingSearchLogWhereInput
+    orderBy?: ParkingSearchLogOrderByWithAggregationInput | ParkingSearchLogOrderByWithAggregationInput[]
+    by: ParkingSearchLogScalarFieldEnum[] | ParkingSearchLogScalarFieldEnum
+    having?: ParkingSearchLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ParkingSearchLogCountAggregateInputType | true
+    _avg?: ParkingSearchLogAvgAggregateInputType
+    _sum?: ParkingSearchLogSumAggregateInputType
+    _min?: ParkingSearchLogMinAggregateInputType
+    _max?: ParkingSearchLogMaxAggregateInputType
+  }
+
+  export type ParkingSearchLogGroupByOutputType = {
+    id: string
+    customerId: string | null
+    lat: number
+    lng: number
+    radiusKm: number
+    date: Date | null
+    startHour: number | null
+    endHour: number | null
+    resultsCount: number
+    matchedListingIds: string[]
+    hasAvailableSpots: boolean
+    createdAt: Date
+    _count: ParkingSearchLogCountAggregateOutputType | null
+    _avg: ParkingSearchLogAvgAggregateOutputType | null
+    _sum: ParkingSearchLogSumAggregateOutputType | null
+    _min: ParkingSearchLogMinAggregateOutputType | null
+    _max: ParkingSearchLogMaxAggregateOutputType | null
+  }
+
+  type GetParkingSearchLogGroupByPayload<T extends ParkingSearchLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ParkingSearchLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ParkingSearchLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ParkingSearchLogGroupByOutputType[P]>
+            : GetScalarType<T[P], ParkingSearchLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ParkingSearchLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    lat?: boolean
+    lng?: boolean
+    radiusKm?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    resultsCount?: boolean
+    matchedListingIds?: boolean
+    hasAvailableSpots?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["parkingSearchLog"]>
+
+  export type ParkingSearchLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    lat?: boolean
+    lng?: boolean
+    radiusKm?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    resultsCount?: boolean
+    matchedListingIds?: boolean
+    hasAvailableSpots?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["parkingSearchLog"]>
+
+  export type ParkingSearchLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    customerId?: boolean
+    lat?: boolean
+    lng?: boolean
+    radiusKm?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    resultsCount?: boolean
+    matchedListingIds?: boolean
+    hasAvailableSpots?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["parkingSearchLog"]>
+
+  export type ParkingSearchLogSelectScalar = {
+    id?: boolean
+    customerId?: boolean
+    lat?: boolean
+    lng?: boolean
+    radiusKm?: boolean
+    date?: boolean
+    startHour?: boolean
+    endHour?: boolean
+    resultsCount?: boolean
+    matchedListingIds?: boolean
+    hasAvailableSpots?: boolean
+    createdAt?: boolean
+  }
+
+  export type ParkingSearchLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "customerId" | "lat" | "lng" | "radiusKm" | "date" | "startHour" | "endHour" | "resultsCount" | "matchedListingIds" | "hasAvailableSpots" | "createdAt", ExtArgs["result"]["parkingSearchLog"]>
+
+  export type $ParkingSearchLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ParkingSearchLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      customerId: string | null
+      lat: number
+      lng: number
+      radiusKm: number
+      date: Date | null
+      startHour: number | null
+      endHour: number | null
+      resultsCount: number
+      matchedListingIds: string[]
+      hasAvailableSpots: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["parkingSearchLog"]>
+    composites: {}
+  }
+
+  type ParkingSearchLogGetPayload<S extends boolean | null | undefined | ParkingSearchLogDefaultArgs> = $Result.GetResult<Prisma.$ParkingSearchLogPayload, S>
+
+  type ParkingSearchLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ParkingSearchLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ParkingSearchLogCountAggregateInputType | true
+    }
+
+  export interface ParkingSearchLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ParkingSearchLog'], meta: { name: 'ParkingSearchLog' } }
+    /**
+     * Find zero or one ParkingSearchLog that matches the filter.
+     * @param {ParkingSearchLogFindUniqueArgs} args - Arguments to find a ParkingSearchLog
+     * @example
+     * // Get one ParkingSearchLog
+     * const parkingSearchLog = await prisma.parkingSearchLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ParkingSearchLogFindUniqueArgs>(args: SelectSubset<T, ParkingSearchLogFindUniqueArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ParkingSearchLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ParkingSearchLogFindUniqueOrThrowArgs} args - Arguments to find a ParkingSearchLog
+     * @example
+     * // Get one ParkingSearchLog
+     * const parkingSearchLog = await prisma.parkingSearchLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ParkingSearchLogFindUniqueOrThrowArgs>(args: SelectSubset<T, ParkingSearchLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingSearchLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogFindFirstArgs} args - Arguments to find a ParkingSearchLog
+     * @example
+     * // Get one ParkingSearchLog
+     * const parkingSearchLog = await prisma.parkingSearchLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ParkingSearchLogFindFirstArgs>(args?: SelectSubset<T, ParkingSearchLogFindFirstArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ParkingSearchLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogFindFirstOrThrowArgs} args - Arguments to find a ParkingSearchLog
+     * @example
+     * // Get one ParkingSearchLog
+     * const parkingSearchLog = await prisma.parkingSearchLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ParkingSearchLogFindFirstOrThrowArgs>(args?: SelectSubset<T, ParkingSearchLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ParkingSearchLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ParkingSearchLogs
+     * const parkingSearchLogs = await prisma.parkingSearchLog.findMany()
+     * 
+     * // Get first 10 ParkingSearchLogs
+     * const parkingSearchLogs = await prisma.parkingSearchLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const parkingSearchLogWithIdOnly = await prisma.parkingSearchLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ParkingSearchLogFindManyArgs>(args?: SelectSubset<T, ParkingSearchLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ParkingSearchLog.
+     * @param {ParkingSearchLogCreateArgs} args - Arguments to create a ParkingSearchLog.
+     * @example
+     * // Create one ParkingSearchLog
+     * const ParkingSearchLog = await prisma.parkingSearchLog.create({
+     *   data: {
+     *     // ... data to create a ParkingSearchLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends ParkingSearchLogCreateArgs>(args: SelectSubset<T, ParkingSearchLogCreateArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ParkingSearchLogs.
+     * @param {ParkingSearchLogCreateManyArgs} args - Arguments to create many ParkingSearchLogs.
+     * @example
+     * // Create many ParkingSearchLogs
+     * const parkingSearchLog = await prisma.parkingSearchLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ParkingSearchLogCreateManyArgs>(args?: SelectSubset<T, ParkingSearchLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ParkingSearchLogs and returns the data saved in the database.
+     * @param {ParkingSearchLogCreateManyAndReturnArgs} args - Arguments to create many ParkingSearchLogs.
+     * @example
+     * // Create many ParkingSearchLogs
+     * const parkingSearchLog = await prisma.parkingSearchLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ParkingSearchLogs and only return the `id`
+     * const parkingSearchLogWithIdOnly = await prisma.parkingSearchLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ParkingSearchLogCreateManyAndReturnArgs>(args?: SelectSubset<T, ParkingSearchLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ParkingSearchLog.
+     * @param {ParkingSearchLogDeleteArgs} args - Arguments to delete one ParkingSearchLog.
+     * @example
+     * // Delete one ParkingSearchLog
+     * const ParkingSearchLog = await prisma.parkingSearchLog.delete({
+     *   where: {
+     *     // ... filter to delete one ParkingSearchLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ParkingSearchLogDeleteArgs>(args: SelectSubset<T, ParkingSearchLogDeleteArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ParkingSearchLog.
+     * @param {ParkingSearchLogUpdateArgs} args - Arguments to update one ParkingSearchLog.
+     * @example
+     * // Update one ParkingSearchLog
+     * const parkingSearchLog = await prisma.parkingSearchLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ParkingSearchLogUpdateArgs>(args: SelectSubset<T, ParkingSearchLogUpdateArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ParkingSearchLogs.
+     * @param {ParkingSearchLogDeleteManyArgs} args - Arguments to filter ParkingSearchLogs to delete.
+     * @example
+     * // Delete a few ParkingSearchLogs
+     * const { count } = await prisma.parkingSearchLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ParkingSearchLogDeleteManyArgs>(args?: SelectSubset<T, ParkingSearchLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingSearchLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ParkingSearchLogs
+     * const parkingSearchLog = await prisma.parkingSearchLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ParkingSearchLogUpdateManyArgs>(args: SelectSubset<T, ParkingSearchLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ParkingSearchLogs and returns the data updated in the database.
+     * @param {ParkingSearchLogUpdateManyAndReturnArgs} args - Arguments to update many ParkingSearchLogs.
+     * @example
+     * // Update many ParkingSearchLogs
+     * const parkingSearchLog = await prisma.parkingSearchLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ParkingSearchLogs and only return the `id`
+     * const parkingSearchLogWithIdOnly = await prisma.parkingSearchLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ParkingSearchLogUpdateManyAndReturnArgs>(args: SelectSubset<T, ParkingSearchLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ParkingSearchLog.
+     * @param {ParkingSearchLogUpsertArgs} args - Arguments to update or create a ParkingSearchLog.
+     * @example
+     * // Update or create a ParkingSearchLog
+     * const parkingSearchLog = await prisma.parkingSearchLog.upsert({
+     *   create: {
+     *     // ... data to create a ParkingSearchLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ParkingSearchLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ParkingSearchLogUpsertArgs>(args: SelectSubset<T, ParkingSearchLogUpsertArgs<ExtArgs>>): Prisma__ParkingSearchLogClient<$Result.GetResult<Prisma.$ParkingSearchLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ParkingSearchLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogCountArgs} args - Arguments to filter ParkingSearchLogs to count.
+     * @example
+     * // Count the number of ParkingSearchLogs
+     * const count = await prisma.parkingSearchLog.count({
+     *   where: {
+     *     // ... the filter for the ParkingSearchLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends ParkingSearchLogCountArgs>(
+      args?: Subset<T, ParkingSearchLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ParkingSearchLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ParkingSearchLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ParkingSearchLogAggregateArgs>(args: Subset<T, ParkingSearchLogAggregateArgs>): Prisma.PrismaPromise<GetParkingSearchLogAggregateType<T>>
+
+    /**
+     * Group by ParkingSearchLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ParkingSearchLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ParkingSearchLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ParkingSearchLogGroupByArgs['orderBy'] }
+        : { orderBy?: ParkingSearchLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ParkingSearchLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetParkingSearchLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ParkingSearchLog model
+   */
+  readonly fields: ParkingSearchLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ParkingSearchLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ParkingSearchLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ParkingSearchLog model
+   */
+  interface ParkingSearchLogFieldRefs {
+    readonly id: FieldRef<"ParkingSearchLog", 'String'>
+    readonly customerId: FieldRef<"ParkingSearchLog", 'String'>
+    readonly lat: FieldRef<"ParkingSearchLog", 'Float'>
+    readonly lng: FieldRef<"ParkingSearchLog", 'Float'>
+    readonly radiusKm: FieldRef<"ParkingSearchLog", 'Float'>
+    readonly date: FieldRef<"ParkingSearchLog", 'DateTime'>
+    readonly startHour: FieldRef<"ParkingSearchLog", 'Int'>
+    readonly endHour: FieldRef<"ParkingSearchLog", 'Int'>
+    readonly resultsCount: FieldRef<"ParkingSearchLog", 'Int'>
+    readonly matchedListingIds: FieldRef<"ParkingSearchLog", 'String[]'>
+    readonly hasAvailableSpots: FieldRef<"ParkingSearchLog", 'Boolean'>
+    readonly createdAt: FieldRef<"ParkingSearchLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ParkingSearchLog findUnique
+   */
+  export type ParkingSearchLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * Filter, which ParkingSearchLog to fetch.
+     */
+    where: ParkingSearchLogWhereUniqueInput
+  }
+
+  /**
+   * ParkingSearchLog findUniqueOrThrow
+   */
+  export type ParkingSearchLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * Filter, which ParkingSearchLog to fetch.
+     */
+    where: ParkingSearchLogWhereUniqueInput
+  }
+
+  /**
+   * ParkingSearchLog findFirst
+   */
+  export type ParkingSearchLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * Filter, which ParkingSearchLog to fetch.
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSearchLogs to fetch.
+     */
+    orderBy?: ParkingSearchLogOrderByWithRelationInput | ParkingSearchLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingSearchLogs.
+     */
+    cursor?: ParkingSearchLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSearchLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSearchLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSearchLogs.
+     */
+    distinct?: ParkingSearchLogScalarFieldEnum | ParkingSearchLogScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSearchLog findFirstOrThrow
+   */
+  export type ParkingSearchLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * Filter, which ParkingSearchLog to fetch.
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSearchLogs to fetch.
+     */
+    orderBy?: ParkingSearchLogOrderByWithRelationInput | ParkingSearchLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ParkingSearchLogs.
+     */
+    cursor?: ParkingSearchLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSearchLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSearchLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSearchLogs.
+     */
+    distinct?: ParkingSearchLogScalarFieldEnum | ParkingSearchLogScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSearchLog findMany
+   */
+  export type ParkingSearchLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * Filter, which ParkingSearchLogs to fetch.
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ParkingSearchLogs to fetch.
+     */
+    orderBy?: ParkingSearchLogOrderByWithRelationInput | ParkingSearchLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ParkingSearchLogs.
+     */
+    cursor?: ParkingSearchLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ParkingSearchLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ParkingSearchLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ParkingSearchLogs.
+     */
+    distinct?: ParkingSearchLogScalarFieldEnum | ParkingSearchLogScalarFieldEnum[]
+  }
+
+  /**
+   * ParkingSearchLog create
+   */
+  export type ParkingSearchLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * The data needed to create a ParkingSearchLog.
+     */
+    data: XOR<ParkingSearchLogCreateInput, ParkingSearchLogUncheckedCreateInput>
+  }
+
+  /**
+   * ParkingSearchLog createMany
+   */
+  export type ParkingSearchLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ParkingSearchLogs.
+     */
+    data: ParkingSearchLogCreateManyInput | ParkingSearchLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingSearchLog createManyAndReturn
+   */
+  export type ParkingSearchLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many ParkingSearchLogs.
+     */
+    data: ParkingSearchLogCreateManyInput | ParkingSearchLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ParkingSearchLog update
+   */
+  export type ParkingSearchLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * The data needed to update a ParkingSearchLog.
+     */
+    data: XOR<ParkingSearchLogUpdateInput, ParkingSearchLogUncheckedUpdateInput>
+    /**
+     * Choose, which ParkingSearchLog to update.
+     */
+    where: ParkingSearchLogWhereUniqueInput
+  }
+
+  /**
+   * ParkingSearchLog updateMany
+   */
+  export type ParkingSearchLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ParkingSearchLogs.
+     */
+    data: XOR<ParkingSearchLogUpdateManyMutationInput, ParkingSearchLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingSearchLogs to update
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * Limit how many ParkingSearchLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSearchLog updateManyAndReturn
+   */
+  export type ParkingSearchLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * The data used to update ParkingSearchLogs.
+     */
+    data: XOR<ParkingSearchLogUpdateManyMutationInput, ParkingSearchLogUncheckedUpdateManyInput>
+    /**
+     * Filter which ParkingSearchLogs to update
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * Limit how many ParkingSearchLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSearchLog upsert
+   */
+  export type ParkingSearchLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * The filter to search for the ParkingSearchLog to update in case it exists.
+     */
+    where: ParkingSearchLogWhereUniqueInput
+    /**
+     * In case the ParkingSearchLog found by the `where` argument doesn't exist, create a new ParkingSearchLog with this data.
+     */
+    create: XOR<ParkingSearchLogCreateInput, ParkingSearchLogUncheckedCreateInput>
+    /**
+     * In case the ParkingSearchLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ParkingSearchLogUpdateInput, ParkingSearchLogUncheckedUpdateInput>
+  }
+
+  /**
+   * ParkingSearchLog delete
+   */
+  export type ParkingSearchLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+    /**
+     * Filter which ParkingSearchLog to delete.
+     */
+    where: ParkingSearchLogWhereUniqueInput
+  }
+
+  /**
+   * ParkingSearchLog deleteMany
+   */
+  export type ParkingSearchLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ParkingSearchLogs to delete
+     */
+    where?: ParkingSearchLogWhereInput
+    /**
+     * Limit how many ParkingSearchLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ParkingSearchLog without action
+   */
+  export type ParkingSearchLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ParkingSearchLog
+     */
+    select?: ParkingSearchLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ParkingSearchLog
+     */
+    omit?: ParkingSearchLogOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model VehicleQrToken
    */
 
@@ -145708,6 +146940,24 @@ export namespace Prisma {
   export type ParkingWaitlistEntryScalarFieldEnum = (typeof ParkingWaitlistEntryScalarFieldEnum)[keyof typeof ParkingWaitlistEntryScalarFieldEnum]
 
 
+  export const ParkingSearchLogScalarFieldEnum: {
+    id: 'id',
+    customerId: 'customerId',
+    lat: 'lat',
+    lng: 'lng',
+    radiusKm: 'radiusKm',
+    date: 'date',
+    startHour: 'startHour',
+    endHour: 'endHour',
+    resultsCount: 'resultsCount',
+    matchedListingIds: 'matchedListingIds',
+    hasAvailableSpots: 'hasAvailableSpots',
+    createdAt: 'createdAt'
+  };
+
+  export type ParkingSearchLogScalarFieldEnum = (typeof ParkingSearchLogScalarFieldEnum)[keyof typeof ParkingSearchLogScalarFieldEnum]
+
+
   export const VehicleQrTokenScalarFieldEnum: {
     id: 'id',
     vehicleId: 'vehicleId',
@@ -155282,6 +156532,95 @@ export namespace Prisma {
     desiredDate?: DateTimeWithAggregatesFilter<"ParkingWaitlistEntry"> | Date | string
     notified?: BoolWithAggregatesFilter<"ParkingWaitlistEntry"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ParkingWaitlistEntry"> | Date | string
+  }
+
+  export type ParkingSearchLogWhereInput = {
+    AND?: ParkingSearchLogWhereInput | ParkingSearchLogWhereInput[]
+    OR?: ParkingSearchLogWhereInput[]
+    NOT?: ParkingSearchLogWhereInput | ParkingSearchLogWhereInput[]
+    id?: StringFilter<"ParkingSearchLog"> | string
+    customerId?: StringNullableFilter<"ParkingSearchLog"> | string | null
+    lat?: FloatFilter<"ParkingSearchLog"> | number
+    lng?: FloatFilter<"ParkingSearchLog"> | number
+    radiusKm?: FloatFilter<"ParkingSearchLog"> | number
+    date?: DateTimeNullableFilter<"ParkingSearchLog"> | Date | string | null
+    startHour?: IntNullableFilter<"ParkingSearchLog"> | number | null
+    endHour?: IntNullableFilter<"ParkingSearchLog"> | number | null
+    resultsCount?: IntFilter<"ParkingSearchLog"> | number
+    matchedListingIds?: StringNullableListFilter<"ParkingSearchLog">
+    hasAvailableSpots?: BoolFilter<"ParkingSearchLog"> | boolean
+    createdAt?: DateTimeFilter<"ParkingSearchLog"> | Date | string
+  }
+
+  export type ParkingSearchLogOrderByWithRelationInput = {
+    id?: SortOrder
+    customerId?: SortOrderInput | SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    date?: SortOrderInput | SortOrder
+    startHour?: SortOrderInput | SortOrder
+    endHour?: SortOrderInput | SortOrder
+    resultsCount?: SortOrder
+    matchedListingIds?: SortOrder
+    hasAvailableSpots?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingSearchLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ParkingSearchLogWhereInput | ParkingSearchLogWhereInput[]
+    OR?: ParkingSearchLogWhereInput[]
+    NOT?: ParkingSearchLogWhereInput | ParkingSearchLogWhereInput[]
+    customerId?: StringNullableFilter<"ParkingSearchLog"> | string | null
+    lat?: FloatFilter<"ParkingSearchLog"> | number
+    lng?: FloatFilter<"ParkingSearchLog"> | number
+    radiusKm?: FloatFilter<"ParkingSearchLog"> | number
+    date?: DateTimeNullableFilter<"ParkingSearchLog"> | Date | string | null
+    startHour?: IntNullableFilter<"ParkingSearchLog"> | number | null
+    endHour?: IntNullableFilter<"ParkingSearchLog"> | number | null
+    resultsCount?: IntFilter<"ParkingSearchLog"> | number
+    matchedListingIds?: StringNullableListFilter<"ParkingSearchLog">
+    hasAvailableSpots?: BoolFilter<"ParkingSearchLog"> | boolean
+    createdAt?: DateTimeFilter<"ParkingSearchLog"> | Date | string
+  }, "id">
+
+  export type ParkingSearchLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    customerId?: SortOrderInput | SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    date?: SortOrderInput | SortOrder
+    startHour?: SortOrderInput | SortOrder
+    endHour?: SortOrderInput | SortOrder
+    resultsCount?: SortOrder
+    matchedListingIds?: SortOrder
+    hasAvailableSpots?: SortOrder
+    createdAt?: SortOrder
+    _count?: ParkingSearchLogCountOrderByAggregateInput
+    _avg?: ParkingSearchLogAvgOrderByAggregateInput
+    _max?: ParkingSearchLogMaxOrderByAggregateInput
+    _min?: ParkingSearchLogMinOrderByAggregateInput
+    _sum?: ParkingSearchLogSumOrderByAggregateInput
+  }
+
+  export type ParkingSearchLogScalarWhereWithAggregatesInput = {
+    AND?: ParkingSearchLogScalarWhereWithAggregatesInput | ParkingSearchLogScalarWhereWithAggregatesInput[]
+    OR?: ParkingSearchLogScalarWhereWithAggregatesInput[]
+    NOT?: ParkingSearchLogScalarWhereWithAggregatesInput | ParkingSearchLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ParkingSearchLog"> | string
+    customerId?: StringNullableWithAggregatesFilter<"ParkingSearchLog"> | string | null
+    lat?: FloatWithAggregatesFilter<"ParkingSearchLog"> | number
+    lng?: FloatWithAggregatesFilter<"ParkingSearchLog"> | number
+    radiusKm?: FloatWithAggregatesFilter<"ParkingSearchLog"> | number
+    date?: DateTimeNullableWithAggregatesFilter<"ParkingSearchLog"> | Date | string | null
+    startHour?: IntNullableWithAggregatesFilter<"ParkingSearchLog"> | number | null
+    endHour?: IntNullableWithAggregatesFilter<"ParkingSearchLog"> | number | null
+    resultsCount?: IntWithAggregatesFilter<"ParkingSearchLog"> | number
+    matchedListingIds?: StringNullableListFilter<"ParkingSearchLog">
+    hasAvailableSpots?: BoolWithAggregatesFilter<"ParkingSearchLog"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"ParkingSearchLog"> | Date | string
   }
 
   export type VehicleQrTokenWhereInput = {
@@ -166061,6 +167400,111 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ParkingSearchLogCreateInput = {
+    id?: string
+    customerId?: string | null
+    lat: number
+    lng: number
+    radiusKm?: number
+    date?: Date | string | null
+    startHour?: number | null
+    endHour?: number | null
+    resultsCount?: number
+    matchedListingIds?: ParkingSearchLogCreatematchedListingIdsInput | string[]
+    hasAvailableSpots?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingSearchLogUncheckedCreateInput = {
+    id?: string
+    customerId?: string | null
+    lat: number
+    lng: number
+    radiusKm?: number
+    date?: Date | string | null
+    startHour?: number | null
+    endHour?: number | null
+    resultsCount?: number
+    matchedListingIds?: ParkingSearchLogCreatematchedListingIdsInput | string[]
+    hasAvailableSpots?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingSearchLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    radiusKm?: FloatFieldUpdateOperationsInput | number
+    date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startHour?: NullableIntFieldUpdateOperationsInput | number | null
+    endHour?: NullableIntFieldUpdateOperationsInput | number | null
+    resultsCount?: IntFieldUpdateOperationsInput | number
+    matchedListingIds?: ParkingSearchLogUpdatematchedListingIdsInput | string[]
+    hasAvailableSpots?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSearchLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    radiusKm?: FloatFieldUpdateOperationsInput | number
+    date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startHour?: NullableIntFieldUpdateOperationsInput | number | null
+    endHour?: NullableIntFieldUpdateOperationsInput | number | null
+    resultsCount?: IntFieldUpdateOperationsInput | number
+    matchedListingIds?: ParkingSearchLogUpdatematchedListingIdsInput | string[]
+    hasAvailableSpots?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSearchLogCreateManyInput = {
+    id?: string
+    customerId?: string | null
+    lat: number
+    lng: number
+    radiusKm?: number
+    date?: Date | string | null
+    startHour?: number | null
+    endHour?: number | null
+    resultsCount?: number
+    matchedListingIds?: ParkingSearchLogCreatematchedListingIdsInput | string[]
+    hasAvailableSpots?: boolean
+    createdAt?: Date | string
+  }
+
+  export type ParkingSearchLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    radiusKm?: FloatFieldUpdateOperationsInput | number
+    date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startHour?: NullableIntFieldUpdateOperationsInput | number | null
+    endHour?: NullableIntFieldUpdateOperationsInput | number | null
+    resultsCount?: IntFieldUpdateOperationsInput | number
+    matchedListingIds?: ParkingSearchLogUpdatematchedListingIdsInput | string[]
+    hasAvailableSpots?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ParkingSearchLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    customerId?: NullableStringFieldUpdateOperationsInput | string | null
+    lat?: FloatFieldUpdateOperationsInput | number
+    lng?: FloatFieldUpdateOperationsInput | number
+    radiusKm?: FloatFieldUpdateOperationsInput | number
+    date?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    startHour?: NullableIntFieldUpdateOperationsInput | number | null
+    endHour?: NullableIntFieldUpdateOperationsInput | number | null
+    resultsCount?: IntFieldUpdateOperationsInput | number
+    matchedListingIds?: ParkingSearchLogUpdatematchedListingIdsInput | string[]
+    hasAvailableSpots?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type VehicleQrTokenCreateInput = {
     id?: string
     token: string
@@ -174397,6 +175841,67 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
+  export type ParkingSearchLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    resultsCount?: SortOrder
+    matchedListingIds?: SortOrder
+    hasAvailableSpots?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingSearchLogAvgOrderByAggregateInput = {
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    resultsCount?: SortOrder
+  }
+
+  export type ParkingSearchLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    resultsCount?: SortOrder
+    hasAvailableSpots?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingSearchLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    customerId?: SortOrder
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    date?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    resultsCount?: SortOrder
+    hasAvailableSpots?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ParkingSearchLogSumOrderByAggregateInput = {
+    lat?: SortOrder
+    lng?: SortOrder
+    radiusKm?: SortOrder
+    startHour?: SortOrder
+    endHour?: SortOrder
+    resultsCount?: SortOrder
+  }
+
   export type VehicleQrTokenCountOrderByAggregateInput = {
     id?: SortOrder
     vehicleId?: SortOrder
@@ -182067,6 +183572,15 @@ export namespace Prisma {
     upsert?: ParkingListingUpsertWithoutWaitlistInput
     connect?: ParkingListingWhereUniqueInput
     update?: XOR<XOR<ParkingListingUpdateToOneWithWhereWithoutWaitlistInput, ParkingListingUpdateWithoutWaitlistInput>, ParkingListingUncheckedUpdateWithoutWaitlistInput>
+  }
+
+  export type ParkingSearchLogCreatematchedListingIdsInput = {
+    set: string[]
+  }
+
+  export type ParkingSearchLogUpdatematchedListingIdsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type CustomerVehicleCreateNestedOneWithoutQrTokenInput = {

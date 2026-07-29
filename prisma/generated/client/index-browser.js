@@ -1367,6 +1367,21 @@ exports.Prisma.ParkingWaitlistEntryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ParkingSearchLogScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  lat: 'lat',
+  lng: 'lng',
+  radiusKm: 'radiusKm',
+  date: 'date',
+  startHour: 'startHour',
+  endHour: 'endHour',
+  resultsCount: 'resultsCount',
+  matchedListingIds: 'matchedListingIds',
+  hasAvailableSpots: 'hasAvailableSpots',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.VehicleQrTokenScalarFieldEnum = {
   id: 'id',
   vehicleId: 'vehicleId',
@@ -2299,6 +2314,7 @@ exports.Prisma.ModelName = {
   ParkingBooking: 'ParkingBooking',
   ParkingSettlement: 'ParkingSettlement',
   ParkingWaitlistEntry: 'ParkingWaitlistEntry',
+  ParkingSearchLog: 'ParkingSearchLog',
   VehicleQrToken: 'VehicleQrToken',
   Conversation: 'Conversation',
   Message: 'Message',

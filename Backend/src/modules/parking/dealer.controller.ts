@@ -202,4 +202,13 @@ export const dealerController = {
     const settlements = await settlementService.listDealerSettlements(req.dealer.id, query);
     success(res, settlements);
   }),
+
+  getSearchAnalytics: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.dealer?.id) throw AppError.unauthorized();
+    const periodDays = parseInt((req.query.period as string) || "7", 10);
+    const listingId = (req.query.listingId as string) || undefined;
+    const analytics = await parkingService.getDealerSearchAnalytics(req.dealer.id, periodDays, listingId);
+    success(res, analytics);
+  }),
 };
+

@@ -33,7 +33,7 @@ function parseInput<T>(
 export const parkingController = {
   search: asyncHandler(async (req: Request, res: Response) => {
     const query = parseInput(req.query, searchListingsSchema);
-    const results = await parkingService.searchListings(query);
+    const results = await parkingService.searchListings(query, req.customer?.id);
     success(res, results);
   }),
 

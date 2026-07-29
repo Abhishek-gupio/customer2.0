@@ -263,14 +263,3 @@ export default function ExpenseDetail() {
   );
 }
 
-function InfoItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-2 text-[9px] font-bold text-white/60 uppercase tracking-widest">
-        <Icon className="h-3 w-3" />
-        {label}
-      </div>
-      <div className="text-sm font-black text-white/90 truncate">{value}</div>
-    </div>
-  );
-}

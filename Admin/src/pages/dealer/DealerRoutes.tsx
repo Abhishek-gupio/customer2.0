@@ -9,6 +9,7 @@ import DealerBookings from './DealerBookings';
 import DealerEmployees from './DealerEmployees';
 import DealerHistory from './DealerHistory';
 import DealerSettlements from './DealerSettlements';
+import DealerAnalytics from './DealerAnalytics';
 
 function DealerProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useDealerAuth();
@@ -35,6 +36,7 @@ export default function DealerRoutes() {
         >
           <Route index element={<Navigate to="listings" replace />} />
           <Route path="listings" element={<DealerListings />} />
+          <Route path="analytics" element={<DealerAnalytics />} />
           <Route path="listings/:id/slots" element={<DealerListingSlots />} />
           <Route path="listings/:id/live" element={<DealerListingLive />} />
           <Route path="bookings" element={<DealerBookings />} />
@@ -46,3 +48,4 @@ export default function DealerRoutes() {
     </DealerAuthProvider>
   );
 }
+

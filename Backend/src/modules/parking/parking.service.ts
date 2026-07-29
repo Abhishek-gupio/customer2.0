@@ -105,7 +105,7 @@ function toDayStartUTC(date: Date): Date {
 
 async function findCoveringSlotWindow(listingId: string, date: Date, startHour: number, endHour: number) {
   const dayStart = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  return dbInstances.parkingSlotWindow.findFirst({
+  const window = await dbInstances.parkingSlotWindow.findFirst({
     where: {
       listingId,
       date: dayStart,
@@ -113,6 +113,10 @@ async function findCoveringSlotWindow(listingId: string, date: Date, startHour: 
       endHour: { gte: endHour },
     },
   });
+  if (window) {
+    await expireAbandonedBookingsForSlotWindow(window.id).catch(() => {});
+  }
+  return window;
 }
 
 /** True if `err` is a Prisma unique-constraint violation (P2002) on the given field. */
@@ -386,7 +390,7 @@ async function expireAbandonedBookingsForSlotWindow(slotWindowId: string): Promi
 export const parkingService = {
   // ── Customer-facing ────────────────────────────────────────────
 
-  async searchListings(input: SearchListingsInput) {
+  async searchListings(input: SearchListingsInput, customerId?: string) {
     const boxDegrees = input.radiusKm / 111; // ~111km per degree latitude, good enough for a pre-filter
     const candidates = await dbInstances.parkingListing.findMany({
       where: {
@@ -427,7 +431,7 @@ export const parkingService = {
       }),
     );
 
-    return results
+    const filtered = results
       .filter((r) => r.distanceKm <= input.radiusKm)
       .sort((a, b) => {
         // Sold-out listings surface first (with a waitlist CTA), per the product spec —
@@ -435,6 +439,31 @@ export const parkingService = {
         if (a.soldOut !== b.soldOut) return a.soldOut ? -1 : 1;
         return a.distanceKm - b.distanceKm;
       });
+
+    // Log search event asynchronously for analytics (non-blocking)
+    const matchedListingIds = filtered.map((r) => r.id);
+    const hasAvailableSpots = filtered.some((r) => !r.soldOut && r.availableSpots > 0);
+
+    dbInstances.parkingSearchLog
+      .create({
+        data: {
+          customerId: customerId ?? null,
+          lat: input.lat,
+          lng: input.lng,
+          radiusKm: input.radiusKm,
+          date: input.date ? new Date(input.date) : null,
+          startHour: input.startHour ?? null,
+          endHour: input.endHour ?? null,
+          resultsCount: filtered.length,
+          matchedListingIds,
+          hasAvailableSpots,
+        },
+      })
+      .catch((err: unknown) => {
+        logger.error({ err }, "Failed to save ParkingSearchLog");
+      });
+
+    return filtered;
   },
 
   async getListingDetail(listingId: string) {
@@ -1628,7 +1657,210 @@ export const parkingService = {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   },
+
+  async getAdminSearchAnalytics(periodDays: number = 7) {
+    const days = Math.max(1, Math.min(90, periodDays));
+    const now = new Date();
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const prevStartDate = new Date(startDate.getTime() - days * 24 * 60 * 60 * 1000);
+
+    const [currentLogs, prevCount, currentBookings] = await Promise.all([
+      dbInstances.parkingSearchLog.findMany({
+        where: { createdAt: { gte: startDate } },
+        orderBy: { createdAt: "asc" },
+      }),
+      dbInstances.parkingSearchLog.count({
+        where: { createdAt: { gte: prevStartDate, lt: startDate } },
+      }),
+      dbInstances.parkingBooking.count({
+        where: { createdAt: { gte: startDate } },
+      }),
+    ]);
+
+    const totalSearches = currentLogs.length;
+    const searchGrowthPercent = prevCount > 0 
+      ? Math.round(((totalSearches - prevCount) / prevCount) * 100)
+      : totalSearches > 0 ? 100 : 0;
+
+    const searchesWithResults = currentLogs.filter((l: any) => l.resultsCount > 0).length;
+    const searchesWithAvailableSpots = currentLogs.filter((l: any) => l.hasAvailableSpots).length;
+    const unmetDemandCount = currentLogs.filter((l: any) => !l.hasAvailableSpots).length;
+    const unmetDemandPercent = totalSearches > 0 ? Math.round((unmetDemandCount / totalSearches) * 100) : 0;
+
+    const conversionRate = totalSearches > 0 
+      ? Math.round((currentBookings / totalSearches) * 1000) / 10
+      : 0;
+
+    // Peak hours breakdown (0..23)
+    const hourlyCounts = new Array(24).fill(0);
+    currentLogs.forEach((log: any) => {
+      const hr = new Date(log.createdAt).getHours();
+      hourlyCounts[hr] += 1;
+    });
+
+    const peakSearchHours = hourlyCounts.map((count, hour) => ({
+      hour: `${hour.toString().padStart(2, '0')}:00`,
+      searches: count,
+    }));
+
+    // Daily timeSeries aggregation
+    const timeSeriesMap = new Map<string, { date: string; searches: number; bookings: number; unmetDemand: number }>();
+
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const key = d.toISOString().split("T")[0]!;
+      timeSeriesMap.set(key, { date: key, searches: 0, bookings: 0, unmetDemand: 0 });
+    }
+
+    currentLogs.forEach((log: any) => {
+      const key = new Date(log.createdAt).toISOString().split("T")[0]!;
+      if (timeSeriesMap.has(key)) {
+        const item = timeSeriesMap.get(key)!;
+        item.searches += 1;
+        if (!log.hasAvailableSpots) item.unmetDemand += 1;
+      }
+    });
+
+    // Top Search Locations / Clusters
+    const cityMap = new Map<string, number>();
+    currentLogs.forEach((log: any) => {
+      const roundedLat = Math.round(log.lat * 100) / 100;
+      const roundedLng = Math.round(log.lng * 100) / 100;
+      const locKey = `${roundedLat}, ${roundedLng}`;
+      cityMap.set(locKey, (cityMap.get(locKey) || 0) + 1);
+    });
+
+    const topLocations = Array.from(cityMap.entries())
+      .map(([location, count]) => ({ location, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return {
+      periodDays: days,
+      totalSearches,
+      prevTotalSearches: prevCount,
+      searchGrowthPercent,
+      searchesWithResults,
+      searchesWithAvailableSpots,
+      unmetDemandCount,
+      unmetDemandPercent,
+      totalBookings: currentBookings,
+      conversionRate,
+      timeSeries: Array.from(timeSeriesMap.values()),
+      peakSearchHours,
+      topLocations,
+    };
+  },
+
+  async getDealerSearchAnalytics(dealerId: string, periodDays: number = 7, listingId?: string) {
+    const days = Math.max(1, Math.min(90, periodDays));
+    const now = new Date();
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+    const dealerListings = await dbInstances.parkingListing.findMany({
+      where: {
+        dealerId,
+        ...(listingId ? { id: listingId } : {}),
+      },
+      select: { id: true, name: true, latitude: true, longitude: true },
+    });
+
+    const listingIds = dealerListings.map((l) => l.id);
+    if (listingIds.length === 0) {
+      return {
+        periodDays: days,
+        totalImpressions: 0,
+        nearbySearchDemand: 0,
+        lostDemandCount: 0,
+        dealerBookings: 0,
+        conversionRate: 0,
+        timeSeries: [],
+        peakSearchHours: Array.from({ length: 24 }, (_, h) => ({ hour: `${h.toString().padStart(2, '0')}:00`, impressions: 0, nearbyDemand: 0 })),
+      };
+    }
+
+    const [logs, bookingsCount] = await Promise.all([
+      dbInstances.parkingSearchLog.findMany({
+        where: { createdAt: { gte: startDate } },
+        orderBy: { createdAt: "asc" },
+      }),
+      dbInstances.parkingBooking.count({
+        where: {
+          listingId: { in: listingIds },
+          createdAt: { gte: startDate },
+        },
+      }),
+    ]);
+
+    let totalImpressions = 0;
+    let nearbySearchDemand = 0;
+    let lostDemandCount = 0;
+
+    const hourlyImpressions = new Array(24).fill(0);
+    const hourlyNearby = new Array(24).fill(0);
+
+    const timeSeriesMap = new Map<string, { date: string; impressions: number; nearbyDemand: number; lostDemand: number }>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const key = d.toISOString().split("T")[0]!;
+      timeSeriesMap.set(key, { date: key, impressions: 0, nearbyDemand: 0, lostDemand: 0 });
+    }
+
+    logs.forEach((log: any) => {
+      const hr = new Date(log.createdAt).getHours();
+      const dateKey = new Date(log.createdAt).toISOString().split("T")[0]!;
+      
+      const isMatched = log.matchedListingIds.some((id: string) => listingIds.includes(id));
+      const isNearby = dealerListings.some(
+        (l) => distanceKm(log.lat, log.lng, l.latitude, l.longitude) <= 10
+      );
+
+
+      if (isMatched) {
+        totalImpressions += 1;
+        hourlyImpressions[hr] += 1;
+        if (!log.hasAvailableSpots) {
+          lostDemandCount += 1;
+        }
+        if (timeSeriesMap.has(dateKey)) {
+          const item = timeSeriesMap.get(dateKey)!;
+          item.impressions += 1;
+          if (!log.hasAvailableSpots) item.lostDemand += 1;
+        }
+      }
+
+      if (isNearby) {
+        nearbySearchDemand += 1;
+        hourlyNearby[hr] += 1;
+        if (timeSeriesMap.has(dateKey)) {
+          timeSeriesMap.get(dateKey)!.nearbyDemand += 1;
+        }
+      }
+    });
+
+    const conversionRate = totalImpressions > 0
+      ? Math.round((bookingsCount / totalImpressions) * 1000) / 10
+      : 0;
+
+    const peakSearchHours = hourlyImpressions.map((imp, hour) => ({
+      hour: `${hour.toString().padStart(2, '0')}:00`,
+      impressions: imp,
+      nearbyDemand: hourlyNearby[hour],
+    }));
+
+    return {
+      periodDays: days,
+      totalImpressions,
+      nearbySearchDemand,
+      lostDemandCount,
+      dealerBookings: bookingsCount,
+      conversionRate,
+      timeSeries: Array.from(timeSeriesMap.values()),
+      peakSearchHours,
+    };
+  },
 };
+
 
 // ── Admin-facing (Gupio ops — read-only visibility across every dealer) ──
 

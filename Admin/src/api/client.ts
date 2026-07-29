@@ -232,6 +232,9 @@ export const adminApi = {
     api<{ data: WalkInHistoryEntry[]; pagination: Pagination }>(
       `/v1/parking/admin/listings/${listingId}/walkins/history?page=${params?.page ?? 1}&limit=${params?.limit ?? 20}`,
     ),
+  getParkingSearchAnalytics: (period: number = 7) =>
+    api<AdminSearchAnalytics>(`/v1/parking/admin/analytics/search?period=${period}`),
+
 
   createWashPartner: (data: { name: string; phoneNumber: string; password: string }) =>
     api<WashPartnerListItem>('/v1/carwash/admin/partners', { method: 'POST', body: JSON.stringify(data) }),
@@ -650,5 +653,22 @@ export interface CommunityAnalytics {
   totalComments: number;
   pendingReports: number;
 }
+
+export interface AdminSearchAnalytics {
+  periodDays: number;
+  totalSearches: number;
+  prevTotalSearches: number;
+  searchGrowthPercent: number;
+  searchesWithResults: number;
+  searchesWithAvailableSpots: number;
+  unmetDemandCount: number;
+  unmetDemandPercent: number;
+  totalBookings: number;
+  conversionRate: number;
+  timeSeries: { date: string; searches: number; bookings: number; unmetDemand: number }[];
+  peakSearchHours: { hour: string; searches: number }[];
+  topLocations: { location: string; count: number }[];
+}
+
 
 

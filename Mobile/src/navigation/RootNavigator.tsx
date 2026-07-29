@@ -261,6 +261,7 @@ export function RootNavigator() {
       <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
       <Stack.Screen name="DLVerification" component={DLVerificationScreen} />
       <Stack.Screen name="Fastag" component={FastagScreen} />
+      <Stack.Screen name="DIYGuides" component={DIYGuides} />
       <Stack.Screen name="VehicleInbox" component={InboxScreen} />
       <Stack.Screen name="ScanQr" component={ScanQrScreen} />
       <Stack.Screen name="ChatConversation" component={ChatScreen} />

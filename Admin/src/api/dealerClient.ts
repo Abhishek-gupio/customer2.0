@@ -273,4 +273,24 @@ export const dealerApi = {
       method: 'PATCH',
       body: JSON.stringify({ listingIds }),
     }),
+
+  getSearchAnalytics: (params?: { period?: number; listingId?: string }) => {
+    const query = new URLSearchParams({
+      period: String(params?.period ?? 7),
+    });
+    if (params?.listingId) query.set('listingId', params.listingId);
+    return dealerApiRequest<DealerSearchAnalytics>(`/v1/parking/dealer/analytics/search?${query.toString()}`);
+  },
 };
+
+export interface DealerSearchAnalytics {
+  periodDays: number;
+  totalImpressions: number;
+  nearbySearchDemand: number;
+  lostDemandCount: number;
+  dealerBookings: number;
+  conversionRate: number;
+  timeSeries: { date: string; impressions: number; nearbyDemand: number; lostDemand: number }[];
+  peakSearchHours: { hour: string; impressions: number; nearbyDemand: number }[];
+}
+

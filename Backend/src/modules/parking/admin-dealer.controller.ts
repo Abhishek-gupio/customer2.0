@@ -82,4 +82,11 @@ export const adminDealerController = {
     const history = await parkingAdminLiveService.getListingWalkInHistory(req.params.id as string, query);
     success(res, history);
   }),
+
+  getSearchAnalytics: asyncHandler(async (req: Request, res: Response) => {
+    const periodDays = parseInt((req.query.period as string) || "7", 10);
+    const analytics = await parkingService.getAdminSearchAnalytics(periodDays);
+    success(res, analytics);
+  }),
 };
+

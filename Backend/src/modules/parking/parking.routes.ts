@@ -23,6 +23,7 @@ adminRouter.patch("/dealers/:id/commission", adminDealerController.updateCommiss
 adminRouter.get("/live-listings", adminDealerController.listLiveListings);
 adminRouter.get("/listings/:id/live", adminDealerController.getListingLiveStatus);
 adminRouter.get("/listings/:id/walkins/history", adminDealerController.getListingWalkInHistory);
+adminRouter.get("/analytics/search", adminDealerController.getSearchAnalytics);
 router.use("/admin", adminRouter);
 
 // ── Dealer-facing (separate auth) — mounted first since /dealer/auth/login
@@ -47,7 +48,9 @@ dealerRouter.post("/bookings/:id/no-show", dealerController.markBookingNoShow);
 dealerRouter.post("/bookings/:id/undo-no-show", dealerController.undoBookingNoShow);
 dealerRouter.post("/bookings/:id/checkin", dealerController.markBookingCheckedIn);
 dealerRouter.get("/settlements", dealerController.listSettlements);
+dealerRouter.get("/analytics/search", dealerController.getSearchAnalytics);
 dealerRouter.post("/employees", dealerController.createEmployee);
+
 dealerRouter.get("/employees", dealerController.listEmployees);
 dealerRouter.patch("/employees/:employeeId", dealerController.setEmployeeActive);
 dealerRouter.patch("/employees/:employeeId/listings", dealerController.setEmployeeListings);

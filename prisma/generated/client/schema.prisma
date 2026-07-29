@@ -2472,6 +2472,26 @@ model ParkingWaitlistEntry {
   @@schema("customer")
 }
 
+model ParkingSearchLog {
+  id                String    @id @default(cuid())
+  customerId        String?
+  lat               Float
+  lng               Float
+  radiusKm          Float     @default(5)
+  date              DateTime?
+  startHour         Int?
+  endHour           Int?
+  resultsCount      Int       @default(0)
+  matchedListingIds String[]
+  hasAvailableSpots Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([lat, lng])
+  @@index([customerId])
+  @@schema("customer")
+}
+
 enum DealerStatus {
   PENDING_VERIFICATION
   VERIFIED
