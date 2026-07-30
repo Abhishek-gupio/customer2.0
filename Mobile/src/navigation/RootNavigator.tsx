@@ -51,6 +51,7 @@ import ActiveSOS from '../screens/Profile/ActiveSOS';
 import Alerts from '../screens/Main/Alerts';
 import ValetService from '../screens/Main/ValetService';
 import VehicleSearch from '../screens/Main/VehicleSearch';
+import TrendingListScreen from '../screens/Main/TrendingListScreen';
 import TripExpenseScreen from '../screens/Other/TripExpenseScreen';
 import TripPlannerInsightsScreen from '../screens/Other/TripPlannerInsightsScreen';
 import DLVerification from '../screens/ServiceAndWarrenty/DLVerification';
@@ -261,6 +262,7 @@ export function RootNavigator() {
       <Stack.Screen name="SOS" component={SOSButton} />
       <Stack.Screen name="ActiveSOS" component={ActiveSOS} />
       <Stack.Screen name="VehicleSearch" component={VehicleSearch} />
+      <Stack.Screen name="TrendingList" component={TrendingListScreen} />
       <Stack.Screen name="TripExpense" component={TripExpenseScreen} />
       <Stack.Screen name="TripPlannerInsights" component={TripPlannerInsightsScreen} />
       <Stack.Screen name="DLVerification" component={DLVerificationScreen} />

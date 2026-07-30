@@ -85,7 +85,7 @@ export const PartStatusCard = React.memo(({
                             <View style={styles.titleArea}>
                                 <Text style={styles.title}>{title}</Text>
                                 <View style={styles.statusRow}>
-                                    <View style={[styles.dot, { backgroundColor: color || '#FFBF00' }]} />
+                                    <View style={[styles.dot, { backgroundColor: color || '#5F9EA0' }]} />
                                     <Text style={styles.statusLabel}>{statusText}</Text>
                                     {warrantyMonths != null && warrantyMonths > 0 && (
                                         <Text style={styles.warrantyTag}>• WARRANTY</Text>
@@ -103,7 +103,7 @@ export const PartStatusCard = React.memo(({
 
                     <View style={styles.progressContainer}>
                         <View style={styles.track}>
-                            <View style={[styles.bar, { width: `${displayPercentage}%`, backgroundColor: color || '#FFBF00' }]} />
+                            <View style={[styles.bar, { width: `${displayPercentage}%`, backgroundColor: color || '#5F9EA0' }]} />
                         </View>
                         <View style={styles.dueRow}>
                             <Text style={styles.odoText}>
@@ -127,7 +127,7 @@ export const PartStatusCard = React.memo(({
                     <View style={styles.divider} />
                     
                     <TouchableOpacity style={styles.secondaryBtn} onPress={onPressUpdate}>
-                        <Icon name="plus-circle" size={wp(4.2)} color="#FFBF00" />
+                        <Icon name="plus-circle" size={wp(4.2)} color="#5F9EA0" />
                         <Text style={styles.updateBtnText}>UPDATE</Text>
                     </TouchableOpacity>
 
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
         marginLeft: 6,
     },
     aiTag: {
-        color: '#F59E0B',
+        color: '#5F9EA0',
         fontSize: wp(2.2),
         fontFamily: 'Outfit-Black',
         marginLeft: 6,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit-Black',
     },
     updateBtnText: {
-        color: '#FFBF00',
+        color: '#5F9EA0',
         fontSize: wp(2.8),
         fontFamily: 'Outfit-Black',
     },

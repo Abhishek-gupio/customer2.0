@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,7 +9,8 @@ import {
 import { COLORS } from '../../../components/Vehicles/VehicleUI';
 import { getLastOdometerUpdate } from '../../../services/storage';
 import type { Vehicle } from '../../../services/vehicleService';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type OdometerSlideProps = {
   bannerWidth: number;
@@ -22,6 +23,8 @@ export const OdometerSlide = React.memo(function OdometerSlide({
   vehicle,
   onPress,
 }: OdometerSlideProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const lastUpdateNum = vehicle?.id
     ? getLastOdometerUpdate(vehicle.id)
     : undefined;

@@ -410,12 +410,12 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
   titleGroup: { alignItems: 'center' },
-  stepIndicator: { color: '#FFD700', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
+  stepIndicator: { color: '#5F9EA0', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
   stepTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold', marginTop: 2 },
   closeBtn: { padding: 5 },
   closeText: { color: '#666', fontSize: 18 },
   progressContainer: { height: 4, backgroundColor: '#111', borderRadius: 2, overflow: 'hidden' },
-  progressBar: { height: '100%', backgroundColor: '#FFD700' },
+  progressBar: { height: '100%', backgroundColor: '#5F9EA0' },
   stepRail: {
     marginTop: 10,
     flexDirection: 'row',
@@ -433,8 +433,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stepPillActive: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#5F9EA0',
   },
   stepPillDone: {
     borderColor: '#3C8F4A',
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   },
   nextBtn: { 
     height: 56, 
-    backgroundColor: '#FFD700', 
+    backgroundColor: '#5F9EA0', 
     borderRadius: 16, 
     flexDirection: 'row', 
     alignItems: 'center', 

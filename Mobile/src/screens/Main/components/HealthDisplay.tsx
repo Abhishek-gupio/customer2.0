@@ -1,12 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, Animated, Easing } from 'react-native';
-import { healthStyles } from '../homeStyles';
+import { createHealthStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 export const HealthDisplay = React.memo(function HealthDisplay({
   score,
 }: {
   score: number;
 }) {
+  const { colors } = useTheme();
+  const healthStyles = useMemo(() => createHealthStyles(colors), [colors]);
   const countAnim = useRef(new Animated.Value(0)).current;
   const barAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -49,7 +52,7 @@ export const HealthDisplay = React.memo(function HealthDisplay({
     };
   }, [score]);
 
-  const color = score >= 80 ? '#4ade80' : score >= 50 ? '#facc15' : '#f87171';
+  const color = score >= 80 ? '#4ade80' : score >= 50 ? '#5f9ea0' : '#f87171';
   const label = score >= 80 ? 'EXCELLENT' : score >= 50 ? 'GOOD' : 'CRITICAL';
   const barWidth = barAnim.interpolate({
     inputRange: [0, 100],

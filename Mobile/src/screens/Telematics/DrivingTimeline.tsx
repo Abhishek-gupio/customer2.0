@@ -156,8 +156,8 @@ export default function DrivingTimeline({ navigation }: { navigation: any }) {
           <View style={styles.tripHeader}>
             <Text style={styles.tripTimeText}>{timeRange}</Text>
             {item.safetyScore != null && (
-               <View style={[styles.miniScore, { backgroundColor: item.safetyScore >= 80 ? 'rgba(16,185,129,0.1)' : 'rgba(255,191,0,0.1)' }]}>
-                  <Text style={[styles.miniScoreText, { color: item.safetyScore >= 80 ? '#10B981' : '#FFBF00' }]}>{Math.round(item.safetyScore)}</Text>
+               <View style={[styles.miniScore, { backgroundColor: item.safetyScore >= 80 ? 'rgba(16,185,129,0.1)' : 'rgba(95, 158, 160,0.2)' }]}>
+                  <Text style={[styles.miniScoreText, { color: item.safetyScore >= 80 ? '#10B981' : '#5F9EA0' }]}>{Math.round(item.safetyScore)}</Text>
                </View>
             )}
           </View>
@@ -200,19 +200,19 @@ export default function DrivingTimeline({ navigation }: { navigation: any }) {
 
       <LinearGradient colors={['#111', '#0a0a0a']} style={styles.dateSelector}>
         <TouchableOpacity onPress={() => shiftDay(-1)} style={styles.arrowBox}>
-          <Ionicons name="chevron-back" size={wp(5)} color="#FFBF00" />
+          <Ionicons name="chevron-back" size={wp(5)} color="#5F9EA0" />
         </TouchableOpacity>
         <View style={styles.dateInfo}>
            <Text style={styles.dateText}>{dayTitle}</Text>
         </View>
         <TouchableOpacity onPress={() => shiftDay(1)} style={styles.arrowBox}>
-          <Ionicons name="chevron-forward" size={wp(5)} color="#FFBF00" />
+          <Ionicons name="chevron-forward" size={wp(5)} color="#5F9EA0" />
         </TouchableOpacity>
       </LinearGradient>
 
       {loading && !refreshing ? (
         <View style={styles.centerWrap}>
-          <ActivityIndicator color="#FFBF00" size="large" />
+          <ActivityIndicator color="#5F9EA0" size="large" />
           <Text style={styles.loadLabel}>Organizing your drives...</Text>
         </View>
       ) : (
@@ -223,7 +223,7 @@ export default function DrivingTimeline({ navigation }: { navigation: any }) {
             renderItem={renderTrip}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
             ListHeaderComponent={
               tripsForDay.length > 0 ? (
                 <View style={styles.dayStatsCard}>
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: 12,
-    backgroundColor: 'rgba(255,191,0,0.05)',
+    backgroundColor: 'rgba(95, 158, 160,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   statLab: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(2.8),
-    color: '#FFBF00',
+    color: '#5F9EA0',
     marginTop: 2,
     letterSpacing: 1,
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     width: wp(2.5),
     height: wp(2.5),
     borderRadius: wp(1.25),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     marginTop: hp(0.8),
     zIndex: 2,
   },
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   retryText: {
     fontFamily: 'Outfit-Black',
     fontSize: wp(3.5),
-    color: '#FFBF00',
+    color: '#5F9EA0',
     letterSpacing: 1,
   },
 });

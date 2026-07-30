@@ -189,7 +189,7 @@ export default function ParkingSearchScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header Bar - App Signature Accent #FFBF00 */}
+      {/* Header Bar - App Signature Accent #5F9EA0 */}
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
         <View style={styles.headerTitleWrap}>
@@ -206,7 +206,7 @@ export default function ParkingSearchScreen() {
           onPress={() => navigation.navigate('MyParkingBookings')}
           activeOpacity={0.8}
         >
-          <IconMC name="ticket-confirmation-outline" size={wp(4.5)} color="#FFBF00" />
+          <IconMC name="ticket-confirmation-outline" size={wp(4.5)} color="#5F9EA0" />
           <Text style={styles.myBookingsBtnText}>My Bookings</Text>
         </TouchableOpacity>
       </View>
@@ -214,7 +214,7 @@ export default function ParkingSearchScreen() {
       {/* Interactive Search Bar & Suggestions */}
       <View style={styles.searchWrap}>
         <View style={styles.searchInputWrap}>
-          <IconMC name="magnify" size={wp(5)} color="#FFBF00" />
+          <IconMC name="magnify" size={wp(5)} color="#5F9EA0" />
           <TextInput
             value={query}
             onChangeText={onChangeQuery}
@@ -229,7 +229,7 @@ export default function ParkingSearchScreen() {
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={useCurrentLocation} style={styles.gpsIconBtn}>
-            <IconMC name="crosshairs-gps" size={wp(4.5)} color="#FFBF00" />
+            <IconMC name="crosshairs-gps" size={wp(4.5)} color="#5F9EA0" />
           </TouchableOpacity>
         </View>
 
@@ -237,7 +237,7 @@ export default function ParkingSearchScreen() {
           <View style={styles.suggestionsBox}>
             <TouchableOpacity style={styles.suggestionRow} onPress={useCurrentLocation}>
               <View style={styles.suggestionIconWrap}>
-                <IconMC name="crosshairs-gps" size={wp(4.2)} color="#FFBF00" />
+                <IconMC name="crosshairs-gps" size={wp(4.2)} color="#5F9EA0" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.suggestionMain}>Use current GPS location</Text>
@@ -261,7 +261,7 @@ export default function ParkingSearchScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
         onScrollBeginDrag={() => setShowSuggestions(false)}
       >
         {/* Quick Vehicle & Filter Selector Bar */}
@@ -296,7 +296,7 @@ export default function ParkingSearchScreen() {
           </View>
 
           <View style={styles.instantBadge}>
-            <IconMC name="lightning-bolt" size={wp(3.5)} color="#FFBF00" />
+            <IconMC name="lightning-bolt" size={wp(3.5)} color="#5F9EA0" />
             <Text style={styles.instantBadgeText}>Instant Booking</Text>
           </View>
         </View>
@@ -365,7 +365,7 @@ export default function ParkingSearchScreen() {
         <View style={styles.timeRow}>
           <View style={styles.stepperCard}>
             <View style={styles.stepperHeader}>
-              <IconMC name="clock-outline" size={wp(3.8)} color="#FFBF00" />
+              <IconMC name="clock-outline" size={wp(3.8)} color="#5F9EA0" />
               <Text style={styles.stepperLabel}>Start Time</Text>
             </View>
             <View style={styles.stepperControls}>
@@ -388,7 +388,7 @@ export default function ParkingSearchScreen() {
 
           <View style={styles.stepperCard}>
             <View style={styles.stepperHeader}>
-              <IconMC name="timer-sand" size={wp(3.8)} color="#FFBF00" />
+              <IconMC name="timer-sand" size={wp(3.8)} color="#5F9EA0" />
               <Text style={styles.stepperLabel}>Duration</Text>
             </View>
             <View style={styles.stepperControls}>
@@ -418,19 +418,19 @@ export default function ParkingSearchScreen() {
                 : 'Available Parking'}
             </Text>
             <View style={styles.verifiedFilterBadge}>
-              <IconMC name="shield-check" size={wp(3.5)} color="#FFBF00" />
+              <IconMC name="shield-check" size={wp(3.5)} color="#5F9EA0" />
               <Text style={styles.verifiedFilterText}>Verified Spots</Text>
             </View>
           </View>
 
           {loading ? (
             <View style={styles.centerState}>
-              <ActivityIndicator size="large" color="#FFBF00" />
+              <ActivityIndicator size="large" color="#5F9EA0" />
               <Text style={styles.centerStateText}>Searching nearby parking spots…</Text>
             </View>
           ) : error ? (
             <View style={styles.centerState}>
-              <IconMC name="alert-circle-outline" size={wp(10)} color="#f59e0b" />
+              <IconMC name="alert-circle-outline" size={wp(10)} color="#5f9ea0" />
               <Text style={styles.centerStateText}>{error}</Text>
             </View>
           ) : results.length === 0 ? (
@@ -465,7 +465,7 @@ export default function ParkingSearchScreen() {
                   {/* Top Bar of Lot Card */}
                   <View style={styles.cardHeaderRow}>
                     <View style={styles.partnerBadgeWrap}>
-                      <IconMC name="shield-check" size={wp(3.4)} color="#FFBF00" />
+                      <IconMC name="shield-check" size={wp(3.4)} color="#5F9EA0" />
                       <Text style={styles.partnerBadgeText}>Verified Partner</Text>
                     </View>
                     <View style={styles.distanceBadgeWrap}>
@@ -501,7 +501,7 @@ export default function ParkingSearchScreen() {
                           r.soldOut
                             ? { width: '100%', backgroundColor: '#ef4444' }
                             : isLowSpots
-                            ? { width: '85%', backgroundColor: '#f59e0b' }
+                            ? { width: '85%', backgroundColor: '#5f9ea0' }
                             : { width: '40%', backgroundColor: '#32D74B' },
                         ]}
                       />
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
   },
   headerSubTitle: {
     color: 'rgba(255,255,255,0.5)',
@@ -619,12 +619,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(3.2),
     paddingVertical: hp(0.9),
     borderRadius: 12,
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.3)',
+    borderColor: 'rgba(95, 158, 160,0.6)',
   },
   myBookingsBtnText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3),
   },
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
   gpsIconBtn: {
     padding: wp(1.5),
     borderRadius: 10,
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
   },
   suggestionsBox: {
     marginTop: hp(0.8),
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
   vehicleToggleBtnActive: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
   },
   vehicleToggleText: {
     color: '#aaaaaa',
@@ -728,12 +728,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(2.8),
     paddingVertical: hp(0.7),
     borderRadius: 10,
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.25)',
+    borderColor: 'rgba(95, 158, 160,0.5)',
   },
   instantBadgeText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Bold',
     fontSize: wp(2.8),
   },
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
     fontSize: wp(3.8),
   },
   sectionValue: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.1),
   },
@@ -773,8 +773,8 @@ const styles = StyleSheet.create({
     borderColor: '#26262a',
   },
   dateChipActive: {
-    backgroundColor: '#FFBF00',
-    borderColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#5F9EA0',
   },
   dateChipDay: { color: '#777777', fontFamily: 'Outfit-Bold', fontSize: wp(2.5) },
   dateChipNum: { color: '#ffffff', fontFamily: 'Outfit-Bold', fontSize: wp(4), marginTop: 2 },
@@ -804,11 +804,11 @@ const styles = StyleSheet.create({
     borderColor: '#26262a',
   },
   presetChipActive: {
-    backgroundColor: 'rgba(255,191,0,0.15)',
-    borderColor: '#FFBF00',
+    backgroundColor: 'rgba(95, 158, 160,0.3)',
+    borderColor: '#5F9EA0',
   },
   presetChipText: { color: '#888888', fontFamily: 'Outfit-Medium', fontSize: wp(2.9) },
-  presetChipTextActive: { color: '#FFBF00', fontFamily: 'Outfit-Bold' },
+  presetChipTextActive: { color: '#5F9EA0', fontFamily: 'Outfit-Bold' },
 
   timeRow: {
     flexDirection: 'row',
@@ -861,7 +861,7 @@ const styles = StyleSheet.create({
     gap: wp(1),
   },
   verifiedFilterText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3),
   },
@@ -889,13 +889,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(1),
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     paddingHorizontal: wp(2.5),
     paddingVertical: hp(0.4),
     borderRadius: 8,
   },
   partnerBadgeText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Bold',
     fontSize: wp(2.7),
   },
@@ -932,7 +932,7 @@ const styles = StyleSheet.create({
   },
   capacityLabel: { color: '#777777', fontFamily: 'Outfit-Medium', fontSize: wp(2.8) },
   availableSpotsText: { color: '#32D74B', fontFamily: 'Outfit-Bold', fontSize: wp(2.9) },
-  lowSpotsText: { color: '#f59e0b', fontFamily: 'Outfit-Bold', fontSize: wp(2.9) },
+  lowSpotsText: { color: '#5f9ea0', fontFamily: 'Outfit-Bold', fontSize: wp(2.9) },
   soldOutText: { color: '#ef4444', fontFamily: 'Outfit-Bold', fontSize: wp(2.9) },
   progressBarTrack: {
     height: 4,
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
   },
-  priceCurrency: { color: '#FFBF00', fontFamily: 'Outfit-Bold', fontSize: wp(3.5), marginRight: 2 },
+  priceCurrency: { color: '#5F9EA0', fontFamily: 'Outfit-Bold', fontSize: wp(3.5), marginRight: 2 },
   priceValue: { color: '#ffffff', fontFamily: 'Outfit-Black', fontSize: wp(5.5), letterSpacing: -0.5 },
   priceUnit: { color: '#888888', fontFamily: 'Outfit-Medium', fontSize: wp(3), marginLeft: 3 },
   estTotalText: { color: '#777777', fontFamily: 'Outfit-Regular', fontSize: wp(2.8), marginTop: 1 },
@@ -965,7 +965,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(1.5),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(4.5),
     paddingVertical: hp(1.2),
     borderRadius: 14,
@@ -982,13 +982,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   waitlistBtn: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#5f9ea0',
   },
   waitlistBtnJoined: {
     backgroundColor: '#22222a',
     borderWidth: 1,
-    borderColor: '#FFBF00',
+    borderColor: '#5F9EA0',
   },
   waitlistBtnText: { color: '#000000', fontFamily: 'Outfit-Bold', fontSize: wp(3.2) },
-  waitlistBtnTextJoined: { color: '#FFBF00', fontFamily: 'Outfit-Bold', fontSize: wp(3.2) },
+  waitlistBtnTextJoined: { color: '#5F9EA0', fontFamily: 'Outfit-Bold', fontSize: wp(3.2) },
 });

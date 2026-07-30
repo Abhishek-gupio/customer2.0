@@ -125,7 +125,7 @@ export default function ValetService() {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'PENDING': return '#FFBF00';
+      case 'PENDING': return '#5F9EA0';
       case 'ACCEPTED': return '#10B981';
       case 'COMPLETED': return '#3B82F6';
       default: return '#64748B';
@@ -169,7 +169,7 @@ export default function ValetService() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
       >
         {/* HERO BANNER */}
         <View style={styles.heroSection}>
@@ -191,7 +191,7 @@ export default function ValetService() {
           <View style={styles.glassCard}>
             <Text style={styles.cardHeading}>Vehicle Verification</Text>
             <View style={styles.searchBar}>
-              <Icon name="car" size={wp(4)} color="#FFBF00" style={styles.searchIcon} />
+              <Icon name="car" size={wp(4)} color="#5F9EA0" style={styles.searchIcon} />
               <TextInput
                 value={vehicleNumber}
                 onChangeText={setVehicleNumber}
@@ -259,7 +259,7 @@ export default function ValetService() {
             {location && (
               <View style={styles.locationCard}>
                 <View style={styles.locationBadge}>
-                  <MaterialIcon name="map-marker-radius" size={wp(4)} color="#FFBF00" />
+                  <MaterialIcon name="map-marker-radius" size={wp(4)} color="#5F9EA0" />
                   <Text style={styles.locationText}>
                     LIVE: {location.latitude?.toFixed(5)}, {location.longitude?.toFixed(5)}
                   </Text>
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     fontSize: wp(4),
   },
   checkBtn: {
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1),
     borderRadius: 8,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   checkBtnText: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.2),
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   statusCard: {
     backgroundColor: '#111',
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   statusInsightText: {
     fontFamily: 'Outfit-Regular',
     fontSize: wp(3.2),
-    color: '#9CA3AF',
+    color: '#5F9EA0',
     lineHeight: hp(2.1),
   },
   stageRow: {
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     color: '#eee',
   },
   locationCard: {
-    backgroundColor: 'rgba(255,191,0,0.05)',
+    backgroundColor: 'rgba(95, 158, 160,0.1)',
     padding: wp(3),
     borderRadius: 12,
     gap: hp(1.2),
@@ -541,10 +541,10 @@ const styles = StyleSheet.create({
   locationText: {
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   mapActionBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 10,
     minHeight: hp(5),
     flexDirection: 'row',
@@ -561,13 +561,13 @@ const styles = StyleSheet.create({
     gap: hp(1.5),
   },
   primaryButton: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 16,
     height: hp(7),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

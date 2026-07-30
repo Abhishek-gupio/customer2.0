@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
   Platform,
   PermissionsAndroid,
 } from 'react-native';
@@ -20,6 +21,7 @@ import IconMC from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { carwashService, type WashCenter } from '../../services/carwashService';
+import { placesService, type SearchSuggestion } from '../../services/placesService';
 
 let Geolocation: any = null;
 try {
@@ -63,10 +65,17 @@ export default function WashSearchScreen() {
   const navigation = useNavigation<any>();
 
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationLabel, setLocationLabel] = useState('Current location');
   const [results, setResults] = useState<WashCenter[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runSearch = useCallback(async (isRefresh = false) => {
     if (!coords) return;
@@ -84,21 +93,60 @@ export default function WashSearchScreen() {
     }
   }, [coords]);
 
-  useEffect(() => {
-    (async () => {
+  const onUseCurrentLocation = useCallback(async () => {
+    setShowSuggestions(false);
+    setQuery('');
+    setDetectingLocation(true);
+    try {
       const permitted = await requestLocationPermission();
       if (!permitted) {
         setError('Allow location access to find nearby wash centers.');
         return;
       }
       const pos = await getCurrentPosition();
-      if (pos) setCoords(pos);
-    })();
+      if (pos) {
+        setLocationLabel('Current location');
+        setCoords(pos);
+      }
+    } finally {
+      setDetectingLocation(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    onUseCurrentLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (coords) runSearch();
   }, [coords, runSearch]);
+
+  const onChangeQuery = useCallback((text: string) => {
+    setQuery(text);
+    setShowSuggestions(true);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    if (text.trim().length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(async () => {
+      const list = await placesService.search(text);
+      setSuggestions(list);
+    }, 300);
+  }, []);
+
+  const onPickSuggestion = useCallback(async (s: SearchSuggestion) => {
+    setShowSuggestions(false);
+    setQuery(s.mainText);
+    const details = await placesService.getDetails(s.placeId);
+    if (!details) {
+      setError('Could not locate that place. Try a different search.');
+      return;
+    }
+    setLocationLabel(details.name || s.mainText);
+    setCoords({ lat: details.latitude, lng: details.longitude });
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -115,9 +163,46 @@ export default function WashSearchScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.searchWrap}>
+        <View style={styles.searchInputWrap}>
+          <TouchableOpacity onPress={onUseCurrentLocation} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            {detectingLocation ? (
+              <ActivityIndicator size="small" color="#5F9EA0" />
+            ) : (
+              <IconMC name="map-marker-radius" size={wp(4.5)} color="#5F9EA0" />
+            )}
+          </TouchableOpacity>
+          <TextInput
+            value={query}
+            onChangeText={onChangeQuery}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder={locationLabel}
+            placeholderTextColor="rgba(255,255,255,0.4)"
+            style={styles.searchInput}
+          />
+        </View>
+        {showSuggestions && query.length >= 3 && (
+          <View style={styles.suggestionsBox}>
+            {suggestions.length === 0 ? (
+              <Text style={styles.suggestionEmpty}>No matching places</Text>
+            ) : (
+              suggestions.map((s) => (
+                <TouchableOpacity key={s.placeId} style={styles.suggestionRow} onPress={() => onPickSuggestion(s)}>
+                  <IconMC name="map-marker-outline" size={wp(4)} color="#888" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.suggestionMain} numberOfLines={1}>{s.mainText}</Text>
+                    <Text style={styles.suggestionSecondary} numberOfLines={1}>{s.secondaryText}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
+      </View>
+
       <TouchableOpacity style={styles.doorstepBanner} onPress={() => navigation.navigate('DoorstepBooking')}>
         <View style={styles.doorstepIconWrap}>
-          <IconMC name="home-city-outline" size={wp(6)} color="#FFBF00" />
+          <IconMC name="home-city-outline" size={wp(6)} color="#5F9EA0" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.doorstepTitle}>Prefer doorstep wash?</Text>
@@ -128,17 +213,19 @@ export default function WashSearchScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
         contentContainerStyle={styles.resultsWrap}
+        onScrollBeginDrag={() => setShowSuggestions(false)}
+        keyboardShouldPersistTaps="handled"
       >
         {loading ? (
           <View style={styles.centerState}>
-            <ActivityIndicator size="large" color="#FFBF00" />
+            <ActivityIndicator size="large" color="#5F9EA0" />
             <Text style={styles.centerStateText}>Finding wash centers…</Text>
           </View>
         ) : error ? (
           <View style={styles.centerState}>
-            <IconMC name="alert-circle-outline" size={wp(10)} color="#f59e0b" />
+            <IconMC name="alert-circle-outline" size={wp(10)} color="#5f9ea0" />
             <Text style={styles.centerStateText}>{error}</Text>
           </View>
         ) : results.length === 0 ? (
@@ -163,7 +250,7 @@ export default function WashSearchScreen() {
                     <Text style={styles.metaText}>{r.distanceKm} km</Text>
                   </View>
                   <View style={styles.metaBadge}>
-                    <IconMC name="star" size={wp(3.4)} color="#FFBF00" />
+                    <IconMC name="star" size={wp(3.4)} color="#5F9EA0" />
                     <Text style={styles.metaTextAccent}>{r.partner.rating?.toFixed(1) ?? 'New'}</Text>
                   </View>
                 </View>
@@ -189,6 +276,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  searchWrap: {
+    paddingHorizontal: wp(5),
+    marginBottom: hp(1.5),
+    zIndex: 10,
+  },
+  searchInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2.5),
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: 14,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.4),
+  },
+  searchInput: {
+    flex: 1,
+    color: '#fff',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.6),
+    padding: 0,
+  },
+  suggestionsBox: {
+    marginTop: hp(0.8),
+    backgroundColor: '#141414',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2.5),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.3),
+    borderBottomWidth: 1,
+    borderBottomColor: '#1f1f1f',
+  },
+  suggestionMain: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.5) },
+  suggestionSecondary: { color: '#777', fontFamily: 'Outfit-Regular', fontSize: wp(3) },
+  suggestionEmpty: {
+    color: '#777',
+    fontFamily: 'Outfit-Regular',
+    fontSize: wp(3.3),
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.5),
+  },
   doorstepBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -205,7 +341,7 @@ const styles = StyleSheet.create({
     width: wp(11),
     height: wp(11),
     borderRadius: wp(5.5),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -230,5 +366,5 @@ const styles = StyleSheet.create({
   resultMetaRow: { flexDirection: 'row', gap: wp(3) },
   metaBadge: { flexDirection: 'row', alignItems: 'center', gap: wp(1) },
   metaText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.1) },
-  metaTextAccent: { color: '#FFBF00', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
+  metaTextAccent: { color: '#5F9EA0', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
 });

@@ -138,7 +138,7 @@ const DateSelector = ({ planning, onChange }: Props) => {
     <View style={styles.container}>
       <Text style={styles.label}>Arrival Date</Text>
       <TouchableOpacity style={styles.inputWrapper} onPress={() => openPicker('arrival')} activeOpacity={0.85}>
-        <Calendar size={18} color="#FFD700" />
+        <Calendar size={18} color="#5F9EA0" />
         <Text style={[styles.dateText, !planning.arrivalDate && styles.dateTextPlaceholder]}>
           {planning.arrivalDate || 'Tap to select arrival date'}
         </Text>
@@ -146,7 +146,7 @@ const DateSelector = ({ planning, onChange }: Props) => {
 
       <Text style={[styles.label, { marginTop: 20 }]}>Departure Date</Text>
       <TouchableOpacity style={styles.inputWrapper} onPress={() => openPicker('departure')} activeOpacity={0.85}>
-        <Calendar size={18} color="#FFD700" />
+        <Calendar size={18} color="#5F9EA0" />
         <Text style={[styles.dateText, !planning.departureDate && styles.dateTextPlaceholder]}>
           {planning.departureDate || 'Tap to select departure date'}
         </Text>
@@ -156,7 +156,7 @@ const DateSelector = ({ planning, onChange }: Props) => {
 
       {!dateError && arrivalDate && departureDate && (
         <View style={styles.infoBox}>
-          <Clock size={16} color="#FFD700" />
+          <Clock size={16} color="#5F9EA0" />
           <Text style={styles.infoText}>
             {planning.stayDays > 0 ? `Duration: ${planning.stayDays} Days Stay` : 'Same-day trip'}
           </Text>
@@ -247,13 +247,13 @@ const styles = StyleSheet.create({
   infoBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     padding: 12,
     borderRadius: 8,
     marginTop: 20,
     gap: 8,
   },
-  infoText: { color: '#FFD700', fontWeight: 'bold', fontSize: 14 },
+  infoText: { color: '#5F9EA0', fontWeight: 'bold', fontSize: 14 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     opacity: 0.35,
   },
   dayCellSelected: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
   },
   dayText: {
     color: '#FFF',
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   doneBtn: {
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
   },

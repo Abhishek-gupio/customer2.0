@@ -23,7 +23,7 @@ const BudgetInput = ({ planning, onChange }: Props) => {
   ) => (
     <View style={styles.categoryCard}>
       <View style={styles.categoryHead}>
-        <Icon size={14} color="#FFD700" />
+        <Icon size={14} color="#5F9EA0" />
         <Text style={styles.categoryLabel}>{label}</Text>
       </View>
       <View style={styles.categoryInputWrap}>
@@ -44,7 +44,7 @@ const BudgetInput = ({ planning, onChange }: Props) => {
     <View style={styles.container}>
       <Text style={styles.label}>Set your trip budget</Text>
       <View style={styles.inputWrapper}>
-        <Wallet size={18} color="#FFD700" />
+        <Wallet size={18} color="#5F9EA0" />
         <Text style={styles.currencySymbol}>₹</Text>
         <TextInput
           style={styles.input}
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 60,
   },
-  currencySymbol: { color: '#FFD700', fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
+  currencySymbol: { color: '#5F9EA0', fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
   input: { flex: 1, color: '#FFF', marginLeft: 8, fontSize: 22, fontWeight: 'bold' },
   sectionTitle: {
     color: '#C8C8C8',
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     height: 46,
   },
   categoryCurrency: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontSize: 15,
     fontWeight: '700',
   },

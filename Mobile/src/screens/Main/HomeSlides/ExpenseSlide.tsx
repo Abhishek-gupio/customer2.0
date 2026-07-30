@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type ExpenseSlideProps = {
   bannerWidth: number;
@@ -12,6 +13,8 @@ export const ExpenseSlide = React.memo(function ExpenseSlide({
   bannerWidth,
   onPress,
 }: ExpenseSlideProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={[styles.slideFull, { width: bannerWidth }]}>
       <TouchableOpacity
@@ -21,7 +24,7 @@ export const ExpenseSlide = React.memo(function ExpenseSlide({
       >
         <View style={styles.promoSlide}>
           <View style={styles.promoLeft}>
-            <Text style={[styles.promoSubtitle, { color: '#FFBF00' }]}>
+            <Text style={[styles.promoSubtitle, { color: '#5F9EA0' }]}>
               Smart Tracking
             </Text>
             <Text style={styles.promoTitle}>Expense Tracker</Text>
@@ -30,7 +33,7 @@ export const ExpenseSlide = React.memo(function ExpenseSlide({
             </Text>
             <View style={styles.promoAction}>
               <Text style={styles.promoActionText}>Try Now</Text>
-              <MaterialIcon name="chevron-right" size={18} color="#FFBF00" />
+              <MaterialIcon name="chevron-right" size={18} color="#5F9EA0" />
             </View>
           </View>
           <View style={styles.promoRight}>

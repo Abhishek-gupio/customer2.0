@@ -184,7 +184,7 @@ export default function TripDetail({ navigation, route }: Props) {
               </View>
             </View>
             <View style={styles.tipBox}>
-              <Icon name="rupee-sign" size={wp(3.5)} color="#FFBF00" style={styles.tipIcon} />
+              <Icon name="rupee-sign" size={wp(3.5)} color="#5F9EA0" style={styles.tipIcon} />
               <Text style={styles.tipText}>{summary.moneyTip}</Text>
             </View>
             <View style={styles.tipBox}>
@@ -320,7 +320,7 @@ export default function TripDetail({ navigation, route }: Props) {
                   <Polyline
                     coordinates={routeCoordinates}
                     strokeWidth={4}
-                    strokeColor="#ffbf00"
+                    strokeColor="#5f9ea0"
                   />
                   {startCoordinate && (
                     <Marker
@@ -401,9 +401,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#141414',
     borderRadius: wp(4),
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
   },
-  summaryTitle: { fontSize: wp(3.8), fontWeight: '700', color: '#FFBF00', marginBottom: hp(2), textTransform: 'uppercase', letterSpacing: 0.5 },
+  summaryTitle: { fontSize: wp(3.8), fontWeight: '700', color: '#5F9EA0', marginBottom: hp(2), textTransform: 'uppercase', letterSpacing: 0.5 },
   scoreRow: { flexDirection: 'row', alignItems: 'center', marginBottom: hp(2) },
   scoreCircle: {
     width: wp(18),
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   startMarker: { backgroundColor: '#10b981', width: 18, height: 18, borderRadius: 9 },
   endMarker: { backgroundColor: '#ef4444', width: 18, height: 18, borderRadius: 9 },
-  pathMarker: { backgroundColor: '#ffbf00' },
+  pathMarker: { backgroundColor: '#5f9ea0' },
   eventMarker: { backgroundColor: '#ef4444', width: 16, height: 16, borderRadius: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: hp(20) },
   footer: { paddingHorizontal: wp(5), paddingVertical: hp(1.5) },

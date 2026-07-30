@@ -21,7 +21,7 @@ const COLORS = {
     background: '#000000',
     surface: '#1C1C1E',
     border: '#2C2C2E',
-    primary: '#FFD700', // Gupio Yellow
+    primary: '#FFFFFF', // Monochrome White
     textMain: '#FFFFFF',
     textMuted: '#8E8E93',
     success: '#32D74B',
@@ -180,7 +180,13 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete, deleteLoadingId }: 
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}>
+            <ScrollView
+                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
+                showsVerticalScrollIndicator={false}
+                overScrollMode="never"
+                scrollEventThrottle={16}
+                decelerationRate="normal"
+            >
                 <View style={styles.statsCard}>
                     <View style={[styles.statBox, { borderRightWidth: 1, borderRightColor: COLORS.border }]}>
                         <Text style={styles.statVal}>{vehicles.length}</Text>
@@ -582,7 +588,7 @@ const styles = StyleSheet.create({
     addTitle: { fontSize: 20, fontFamily: 'Outfit-Bold', color: '#FFF', textAlign: 'center', marginTop: 24 },
     addSub: { color: '#888', fontSize: 14, fontFamily: 'Outfit-Regular', textAlign: 'center', marginTop: 8, maxWidth: 220 },
     graphicContainer: { height: 160, marginTop: 40, alignItems: 'center', justifyContent: 'center', width: '100%' },
-    glow: { position: 'absolute', width: 200, height: 100, backgroundColor: 'rgba(255, 215, 0, 0.15)', borderRadius: 100 },
+    glow: { position: 'absolute', width: 200, height: 100, backgroundColor: 'rgba(95, 158, 160, 0.3)', borderRadius: 100 },
     carShape: { backgroundColor: '#1A1A1A', borderTopLeftRadius: 50, borderTopRightRadius: 50, borderWidth: 1, borderTopColor: '#333', borderLeftColor: '#333', borderRightColor: '#333', borderBottomWidth: 0 },
     addBottomCard: { backgroundColor: COLORS.surface, padding: 32, paddingBottom: Dimensions.get('window').height > 800 ? 48 : 32, borderTopLeftRadius: 40, borderTopRightRadius: 40, borderTopWidth: 1, borderTopColor: COLORS.border },
     inputLabel: { color: '#888', fontSize: 12, fontFamily: 'Outfit-Bold', marginBottom: 12, paddingHorizontal: 8 },
@@ -607,8 +613,8 @@ const styles = StyleSheet.create({
     listTitle: { fontSize: 18, fontFamily: 'Outfit-Bold', color: '#FFF', marginBottom: 4 },
     listSub: { fontSize: 12, fontFamily: 'Outfit-Bold', color: '#888', textTransform: 'uppercase' },
     delBtn: { padding: 12, backgroundColor: 'rgba(255, 69, 58, 0.1)', borderRadius: 16 },
-    addNewCard: { borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed', borderRadius: 32, padding: 24, flexDirection: 'row', alignItems: 'center', gap: 20, backgroundColor: 'rgba(255, 215, 0, 0.05)' },
-    addNewIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' },
+    addNewCard: { borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed', borderRadius: 32, padding: 24, flexDirection: 'row', alignItems: 'center', gap: 20, backgroundColor: 'rgba(95, 158, 160, 0.1)' },
+    addNewIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(95, 158, 160, 0.6)' },
     addNewTitle: { fontSize: 18, fontFamily: 'Outfit-Bold', color: COLORS.primary, fontStyle: 'italic' },
     addNewSub: { fontSize: 10, fontFamily: 'Outfit-Bold', color: '#888', textTransform: 'uppercase' },
 
@@ -622,12 +628,12 @@ const styles = StyleSheet.create({
     heroImgBox: { width: '100%', height: 280, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     heroFallbackFrame: { width: '90%', height: 230, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden', backgroundColor: '#0B0B0B' },
     heroFallbackImage: { width: '100%', height: '100%' },
-    heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderRadius: 150 },
+    heroGlow: { position: 'absolute', width: 250, height: 150, backgroundColor: 'rgba(95, 158, 160, 0.2)', borderRadius: 150 },
     detailModel: { fontSize: 32, fontFamily: 'Outfit-Black', color: '#FFF', fontStyle: 'italic', textAlign: 'center', marginTop: 12 },
     horizVehicleList: { paddingHorizontal: 24, paddingVertical: 24, gap: 16, alignItems: 'center' },
-    addMiniBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(255, 215, 0, 0.05)', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)', alignItems: 'center', justifyContent: 'center' },
+    addMiniBtn: { width: 68, height: 68, borderRadius: 34, backgroundColor: 'rgba(95, 158, 160, 0.1)', borderWidth: 1, borderColor: 'rgba(95, 158, 160, 0.4)', alignItems: 'center', justifyContent: 'center' },
     miniAvatarWrap: { width: 68, height: 68, borderRadius: 34, padding: 4, borderWidth: 2, borderColor: 'transparent', backgroundColor: COLORS.surface },
-    miniAvatarActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(255, 215, 0, 0.1)' },
+    miniAvatarActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(95, 158, 160, 0.2)' },
     miniAvatar: { flex: 1, borderRadius: 34, backgroundColor: '#000', overflow: 'hidden' },
     contentPad: { paddingHorizontal: 24 },
     feedbackCard: { backgroundColor: COLORS.surface, borderRadius: 40, padding: 32, borderWidth: 1, borderColor: COLORS.border, marginTop: 32, alignItems: 'center' },
@@ -635,7 +641,7 @@ const styles = StyleSheet.create({
     feedbackSub: { fontSize: 12, fontFamily: 'Outfit-Bold', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 24 },
     starRow: { flexDirection: 'row', gap: 12, marginBottom: 32 },
     feedbackInput: { width: '100%', backgroundColor: '#000', borderWidth: 1, borderColor: COLORS.border, borderRadius: 24, height: 120, padding: 20, color: '#FFF', textAlignVertical: 'top' },
-    successIconBox: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255, 215, 0, 0.1)', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    successIconBox: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(95, 158, 160, 0.2)', borderWidth: 1, borderColor: 'rgba(95, 158, 160, 0.4)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     resetFeedback: { fontSize: 10, fontFamily: 'Outfit-Bold', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 1, borderBottomWidth: 1, borderBottomColor: COLORS.primary },
     subTabRow: { marginBottom: 32, borderBottomWidth: 1, borderBottomColor: '#333' },
     subTab: { paddingBottom: 12, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: 'transparent' },

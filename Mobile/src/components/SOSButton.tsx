@@ -525,7 +525,7 @@ const SOSButton = () => {
               </Text>
             </Animated.View>
             <TouchableOpacity style={styles.heroChip} onPress={fetchLocation}>
-              <Ionicons name="location-outline" size={14} color="#FFD700" />
+              <Ionicons name="location-outline" size={14} color="#5F9EA0" />
               <Text style={styles.heroChipText}>
                 {showRetryHint ? 'Tap to retry' : locationLabel}
               </Text>
@@ -562,7 +562,7 @@ const SOSButton = () => {
                 height: 160,
                 borderRadius: 80,
                 borderWidth: 6,
-                borderColor: 'rgba(255, 215, 0, 0.3)',
+                borderColor: 'rgba(95, 158, 160, 0.6)',
                 transform: [{ scale: 1.1 }]
               }} />
               
@@ -575,7 +575,7 @@ const SOSButton = () => {
                 }],
                 opacity: progressAnim,
                 borderWidth: 6,
-                borderColor: '#FFD700',
+                borderColor: '#5F9EA0',
               }]} />
 
               <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
@@ -665,7 +665,7 @@ const SOSButton = () => {
             <ActionButton
               icon="construct-outline"
               label={"Vehicle\nHelp"}
-              color="#eab308"
+              color="#5f9ea0"
               onPress={() => handleSOS('MECHANICAL')}
             />
             <ActionButton
@@ -923,13 +923,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: wp(1.5),
-    backgroundColor: "rgba(255, 215, 0, 0.08)",
+    backgroundColor: "rgba(95, 158, 160, 0.16)",
     paddingHorizontal: wp(3.5),
     paddingVertical: hp(0.6),
     borderRadius: wp(5),
   },
   heroChipText: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.4),
   },
@@ -950,26 +950,26 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 1.5,
-    borderColor: '#FFD700',
+    borderColor: '#5F9EA0',
   },
   sosOuter: {
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: "rgba(255, 215, 0, 0.03)",
+    backgroundColor: "rgba(95, 158, 160, 0.06)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.5,
-    borderColor: "rgba(255, 215, 0, 0.1)",
+    borderColor: "rgba(95, 158, 160, 0.2)",
   },
   sosButton: {
     width: 130,
     height: 130,
     borderRadius: 65,
-    backgroundColor: "#FFD700",
+    backgroundColor: "#5F9EA0",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#FFD700",
+    shadowColor: "#5F9EA0",
     shadowOpacity: 0.8,
     shadowRadius: 40,
     elevation: 25,
@@ -996,15 +996,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: wp(2),
-    backgroundColor: "rgba(255, 191, 0, 0.15)",
+    backgroundColor: "rgba(95, 158, 160, 0.3)",
     borderWidth: 1,
-    borderColor: "#FFBF00",
+    borderColor: "#5F9EA0",
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.8),
     borderRadius: wp(5),
   },
   settingsButtonText: {
-    color: "#FFBF00",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.4),
   },
@@ -1037,7 +1037,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   sectionMeta: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
   },
@@ -1116,7 +1116,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     flex: 0.4,
-    backgroundColor: "#FFD700",
+    backgroundColor: "#5F9EA0",
     borderRadius: wp(3),
     alignItems: "center",
     justifyContent: "center",
@@ -1144,15 +1144,15 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "rgba(255, 215, 0, 0.1)",
+    backgroundColor: "rgba(95, 158, 160, 0.2)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: wp(3.5),
     borderWidth: 0.5,
-    borderColor: "rgba(255, 215, 0, 0.2)",
+    borderColor: "rgba(95, 158, 160, 0.4)",
   },
   contactAvatarText: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.5),
   },
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
     marginTop: hp(1.5),
   },
   contactEmail: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Regular',
     fontSize: wp(3.2),
     marginTop: 2,

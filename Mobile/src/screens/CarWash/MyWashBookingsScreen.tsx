@@ -18,7 +18,7 @@ import {
 import { useCarwashStore } from '../../store/carwashStore';
 
 const STATUS_STYLE: Record<WashBookingStatus, { label: string; bg: string; fg: string }> = {
-  PENDING_PAYMENT: { label: 'Awaiting payment', bg: 'rgba(245,158,11,0.15)', fg: '#f59e0b' },
+  PENDING_PAYMENT: { label: 'Awaiting payment', bg: 'rgba(95, 158, 160,0.3)', fg: '#5f9ea0' },
   CONFIRMED: { label: 'Confirmed', bg: 'rgba(34,197,94,0.15)', fg: '#4ade80' },
   TECHNICIAN_ASSIGNED: { label: 'Technician assigned', bg: 'rgba(59,130,246,0.15)', fg: '#60a5fa' },
   IN_PROGRESS: { label: 'In progress', bg: 'rgba(99,102,241,0.15)', fg: '#818cf8' },
@@ -89,7 +89,7 @@ export default function MyWashBookingsScreen() {
 
       {loading ? (
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       ) : bookings.length === 0 ? (
         <View style={styles.centerState}>
@@ -105,7 +105,7 @@ export default function MyWashBookingsScreen() {
           data={bookings}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
           renderItem={({ item }) => {
             const statusStyle = STATUS_STYLE[item.status];
             const cancellable = item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED';
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: hp(1), paddingHorizontal: wp(8) },
   emptyTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.5), marginTop: hp(1) },
   emptyText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.4), textAlign: 'center' },
-  searchBtn: { marginTop: hp(2), backgroundColor: '#FFBF00', paddingHorizontal: wp(6), paddingVertical: hp(1.4), borderRadius: 12 },
+  searchBtn: { marginTop: hp(2), backgroundColor: '#5F9EA0', paddingHorizontal: wp(6), paddingVertical: hp(1.4), borderRadius: 12 },
   searchBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3.6) },
   listContent: { paddingHorizontal: wp(5), paddingBottom: hp(4) },
   card: { backgroundColor: '#111', borderRadius: 18, padding: wp(4.5), marginBottom: hp(1.6), borderWidth: 1, borderColor: '#222' },
@@ -174,14 +174,14 @@ const styles = StyleSheet.create({
   bookingTitle: { flex: 1, color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4), marginRight: wp(2) },
   statusBadge: { paddingHorizontal: wp(2.5), paddingVertical: hp(0.5), borderRadius: 8 },
   statusText: { fontFamily: 'Outfit-Bold', fontSize: wp(2.8) },
-  washTypeText: { color: '#FFBF00', fontFamily: 'Outfit-Bold', fontSize: wp(3.1), marginBottom: hp(0.4) },
+  washTypeText: { color: '#5F9EA0', fontFamily: 'Outfit-Bold', fontSize: wp(3.1), marginBottom: hp(0.4) },
   addressText: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.1), marginBottom: hp(0.8) },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: wp(1.5), marginBottom: hp(0.8) },
   metaText: { color: '#aaa', fontFamily: 'Outfit-Medium', fontSize: wp(3.1) },
   photoRow: { flexDirection: 'row', gap: wp(1.5), marginBottom: hp(1) },
   photoThumb: { width: wp(12), height: wp(12), borderRadius: 8, backgroundColor: '#222' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  amountText: { color: '#FFBF00', fontFamily: 'Outfit-Black', fontSize: wp(4) },
+  amountText: { color: '#5F9EA0', fontFamily: 'Outfit-Black', fontSize: wp(4) },
   cancelBtn: { borderWidth: 1, borderColor: '#ef4444', paddingHorizontal: wp(4), paddingVertical: hp(0.8), borderRadius: 10 },
   cancelBtnText: { color: '#ef4444', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
 });

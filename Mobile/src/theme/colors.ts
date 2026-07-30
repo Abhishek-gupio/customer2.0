@@ -26,7 +26,7 @@ export const colors: COLORS = {
   Primary: '#fff',
   Secondary: '#888',
   Success: '#32D74B',
-  Warning: '#f59e0b',
+  Warning: '#5f9ea0',
   Error: '#ef4444',
   Info: '#6366f1',
   Light: '#f8f9fa',

@@ -40,16 +40,16 @@ const C = {
   bg: '#000000',
   card: '#1C1C1E',
   cardBorder: '#2C2C2E',
-  accent: '#FFD700',
-  accentLight: 'rgba(255, 215, 0, 0.1)',
-  accentBg: 'rgba(255, 215, 0, 0.1)',
+  accent: '#5F9EA0',
+  accentLight: 'rgba(95, 158, 160, 0.2)',
+  accentBg: 'rgba(95, 158, 160, 0.2)',
   text: '#FFFFFF',
   textSecondary: '#8E8E93',
   textMuted: '#555555',
   green: '#32D74B',
   greenBg: 'rgba(50, 215, 75, 0.12)',
-  orange: '#FF9F0A',
-  orangeBg: 'rgba(255, 159, 10, 0.12)',
+  orange: '#4A7C7E',
+  orangeBg: 'rgba(74, 124, 126, 0.24)',
   red: '#FF453A',
   inputBg: '#1A1A1A',
   inputBorder: '#2C2C2E',
@@ -719,7 +719,7 @@ export default function TripExpenseScreen() {
       const summaryTo = result?.to || to;
       const html = `
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
-          <h1 style="color: #FFBF00;">Trip Cost Summary</h1>
+          <h1 style="color: #5F9EA0;">Trip Cost Summary</h1>
           <p><strong>From:</strong> ${summaryFrom}</p>
           <p><strong>To:</strong> ${summaryTo}</p>
           <hr/>
@@ -1061,7 +1061,7 @@ export default function TripExpenseScreen() {
             accessibilityState={{ disabled: loading, busy: loading }}
           >
             <LinearGradient
-              colors={[C.accent, '#FFA800']}
+              colors={[C.accent, '#5F9EA0']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={s.premiumCalcBtn}
@@ -1285,7 +1285,7 @@ export default function TripExpenseScreen() {
 
                  {/* Total Cost Hero (Premium) */}
                 <LinearGradient
-                   colors={[C.accent, '#FFB800']}
+                   colors={[C.accent, '#5F9EA0']}
                    start={{ x: 0, y: 0 }}
                    end={{ x: 1, y: 1 }}
                    style={s.premiumHeroCard}
@@ -1595,7 +1595,7 @@ export default function TripExpenseScreen() {
                 <LinearGradient
                   colors={hasItinerarySelections
                     ? ['rgba(50, 215, 75, 0.15)', 'rgba(50, 215, 75, 0.05)']
-                    : ['rgba(255, 215, 0, 0.15)', 'rgba(255, 159, 10, 0.05)']}
+                    : ['rgba(95, 158, 160, 0.3)', 'rgba(74, 124, 126, 0.1)']}
                   style={s.planningCtaInner}
                 >
                   <View style={[s.iconCircle, hasItinerarySelections && { backgroundColor: 'rgba(50, 215, 75, 0.1)' }]}>
@@ -1968,7 +1968,7 @@ const s = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
   },
   manifestBadgeText: {
     fontSize: wp(2.5),
@@ -2004,7 +2004,7 @@ const s = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
   },
   planningCtaInner: {
     flexDirection: 'row',
@@ -2040,7 +2040,7 @@ const s = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2489,7 +2489,7 @@ const s = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 215, 0, 0.08)',
+    backgroundColor: 'rgba(95, 158, 160, 0.16)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2602,7 +2602,7 @@ const s = StyleSheet.create({
   tollCostPill: {
     flex: 1,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 215, 0, 0.08)',
+    backgroundColor: 'rgba(95, 158, 160, 0.16)',
     paddingHorizontal: wp(2.2),
     paddingVertical: hp(0.7),
   },
@@ -2678,7 +2678,7 @@ const s = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: C.card,
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(4),
@@ -2687,7 +2687,7 @@ const s = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -2815,7 +2815,7 @@ const s = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -2890,7 +2890,7 @@ const s = StyleSheet.create({
   historyButton: {
     padding: 10,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
   },
   headerActions: {
     flexDirection: 'row',

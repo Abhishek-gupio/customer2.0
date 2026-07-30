@@ -491,7 +491,7 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
             <MapPin size={12} color="#888" />
             <Text style={styles.distanceText}>{item.distance}</Text>
             <Text style={styles.dot}>•</Text>
-            <Text style={[styles.openStatusText, item.openNow === false && { color: '#FF9F0A' }]}>
+            <Text style={[styles.openStatusText, item.openNow === false && { color: '#4A7C7E' }]}>
               {item.openNow === true ? 'Open now' : item.openNow === false ? 'Closed now' : 'Timing unknown'}
             </Text>
           </View>
@@ -536,7 +536,7 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
           </View>
 
           <View style={styles.comparisonHeader}>
-            <BadgePercent size={14} color="#FFD700" />
+            <BadgePercent size={14} color="#5F9EA0" />
             <Text style={styles.comparisonHeaderText}>Live Rates from all providers</Text>
           </View>
 
@@ -618,7 +618,7 @@ const HotelList = ({ planning, onChange, tripResult, selectedRouteIndex }: Props
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFD700" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingText}>Scanning stays within 20km of your destination...</Text>
         </View>
       ) : null}
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     backgroundColor: '#151515',
   },
-  filterChipActive: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  filterChipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   filterChipText: { color: '#bbb', fontSize: 11, fontWeight: '700' },
   filterChipTextActive: { color: '#000' },
   sortBtn: {
@@ -702,8 +702,8 @@ const styles = StyleSheet.create({
     borderColor: '#222',
   },
   activeSortBtn: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#5F9EA0',
   },
   sortBtnText: { color: '#888', fontSize: 12, fontWeight: '700' },
   activeSortBtnText: { color: '#000' },
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.995 }],
     opacity: 0.96,
   },
-  selectedHotelCard: { borderColor: '#FFD700', borderWidth: 1.5 },
+  selectedHotelCard: { borderColor: '#5F9EA0', borderWidth: 1.5 },
   hotelImage: { width: '100%', height: 160 },
   oyoBadge: {
     position: 'absolute',
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
   hotelName: { color: '#FFF', fontSize: 18, fontWeight: 'bold', flex: 1 },
   ratingBadge: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
@@ -770,8 +770,8 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   selectStayBtnActive: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#5F9EA0',
   },
   selectStayBtnText: { color: '#DDD', fontSize: 11, fontWeight: '800' },
   selectStayBtnTextActive: { color: '#000' },
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7,

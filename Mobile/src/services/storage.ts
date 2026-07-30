@@ -6,6 +6,7 @@ const VOICE_LANGUAGE_INDEX_KEY = 'voice_language_index';
 const TELEMATICS_PROVIDER_KEY = 'telematics_provider';
 const TELEMATICS_AUTO_MODE_KEY = 'telematics_auto_mode_enabled';
 const AUTO_EXPENSE_ENABLED_KEY = 'auto_expense_enabled';
+const THEME_MODE_KEY = 'theme_mode';
 const PRIMARY_VEHICLE_ID_KEY = 'primary_vehicle_id';
 const LAST_RECEIVED_OTP_KEY = 'last_received_otp';
 const LAST_RECEIVED_OTP_AT_KEY = 'last_received_otp_at_ms';
@@ -261,6 +262,15 @@ export function getAutoExpenseEnabled(): boolean {
 
 export function setAutoExpenseEnabled(val: boolean): void {
   storage.set(AUTO_EXPENSE_ENABLED_KEY, val ? 'true' : 'false');
+}
+
+export function getThemeMode(): 'light' | 'dark' | null {
+  const s = storage.getString(THEME_MODE_KEY);
+  return s === 'light' || s === 'dark' ? s : null;
+}
+
+export function setThemeMode(mode: 'light' | 'dark'): void {
+  storage.set(THEME_MODE_KEY, mode);
 }
 
 export function setPrimaryVehicleId(id: string | null | undefined): void {

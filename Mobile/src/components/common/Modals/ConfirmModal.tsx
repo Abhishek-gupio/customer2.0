@@ -50,7 +50,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <MaterialIcon 
               name={type === 'logout' ? 'logout' : type === 'delete' ? 'delete-outline' : 'info-outline'} 
               size={wp(10)} 
-              color={type === 'logout' ? '#FFBF00' : type === 'delete' ? '#FF453A' : '#FFF'} 
+              color={type === 'logout' ? '#5F9EA0' : type === 'delete' ? '#FF453A' : '#FFF'} 
             />
           </View>
           <Text style={styles.title}>{title}</Text>
@@ -66,7 +66,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <TouchableOpacity
               style={[
                 styles.confirmBtn,
-                { backgroundColor: type === 'delete' ? '#FF453A' : type === 'logout' ? '#FFBF00' : '#FFF' }
+                { backgroundColor: type === 'delete' ? '#FF453A' : type === 'logout' ? '#5F9EA0' : '#FFF' }
               ]}
               onPress={onConfirm}
             >
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 69, 58, 0.1)',
   },
   iconCircleLogout: {
-    backgroundColor: 'rgba(255, 191, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
   },
   title: {
     fontSize: wp(5.5),

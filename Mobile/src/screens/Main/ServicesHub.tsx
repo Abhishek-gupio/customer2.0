@@ -76,7 +76,7 @@ const SERVICE_ITEMS: ServiceItem[] = [
 const CATEGORIES: { title: string; itemIds: ServiceId[]; color: string }[] = [
   { title: 'Vehicle Health & Care', itemIds: ['PartsWarranty', 'ServiceHistory', 'DIYMode', 'VehicleMessages', 'CarWash', 'Parking'], color: '#ef4444' }, // Red
   { title: 'Community', itemIds: ['Community'], color: '#8b5cf6' }, // Violet
-  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#FFBF00' }, // Yellow
+  { title: 'Information & RTO', itemIds: ['CheckChallan', 'RTO', 'DLVerification', 'Fastag'], color: '#5F9EA0' }, // Gray
   { title: 'Travel & Planning', itemIds: ['TripExpense'], color: '#6366f1' }, // Indigo
 ];
 
@@ -86,7 +86,7 @@ const ADS_DATA = [
     title: 'Traffic Challans',
     subtitle: 'Check & Settle Fines',
     desc: 'Avoid late fees and court visits. Check your vehicle status now.',
-    theme: '#fbbf24',
+    theme: '#5f9ea0',
     icon: 'gavel',
     iconSet: 'fa',
     target: 'CheckChallan',
@@ -345,7 +345,13 @@ export default function ServicesHub() {
         </View>
       ) : null}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
+        scrollEventThrottle={16}
+        decelerationRate="normal"
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Ad Carousel */}
         <View style={styles.adsWrapper}>
           <FlatList

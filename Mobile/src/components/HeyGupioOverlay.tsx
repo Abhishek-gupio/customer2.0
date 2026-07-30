@@ -1020,6 +1020,6 @@ const styles = StyleSheet.create({
   fabLabel: {
     fontSize: 12,
     fontFamily: 'Outfit-Medium',
-    color: '#d1d5db',
+    color: '#a9cccc',
   },
 });

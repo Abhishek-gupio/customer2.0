@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   progressTextRight: {
     fontSize: 10,
     fontFamily: 'Outfit-Bold',
-    color: '#FF9800',
+    color: '#5F9EA0',
     letterSpacing: 1,
   },
   headerSpacer: {

@@ -11,7 +11,7 @@ import {
   type TripPlannerAnalyticsRange,
 } from '../../services/analytics';
 
-const statColor = '#FFD700';
+const statColor = '#5F9EA0';
 const RANGE_OPTIONS: { id: TripPlannerAnalyticsRange; label: string }[] = [
   { id: '7d', label: '7D' },
   { id: '30d', label: '30D' },
@@ -149,7 +149,7 @@ export default function TripPlannerInsightsScreen() {
           accessibilityHint="Loads latest planner analytics metrics"
           accessibilityState={{ busy: refreshing }}
         >
-          <RefreshCw size={18} color={refreshing ? '#FFD700' : '#FFF'} />
+          <RefreshCw size={18} color={refreshing ? '#5F9EA0' : '#FFF'} />
         </TouchableOpacity>
       </View>
 
@@ -285,9 +285,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: '#131313',
   },
-  rangeChipActive: { borderColor: '#FFD700', backgroundColor: 'rgba(255, 215, 0, 0.14)' },
+  rangeChipActive: { borderColor: '#5F9EA0', backgroundColor: 'rgba(95, 158, 160, 0.28)' },
   rangeChipText: { color: '#A8A8A8', fontSize: 11, fontWeight: '800' },
-  rangeChipTextActive: { color: '#FFD700' },
+  rangeChipTextActive: { color: '#5F9EA0' },
   resetBtn: {
     borderWidth: 1,
     borderColor: 'rgba(255, 69, 58, 0.6)',

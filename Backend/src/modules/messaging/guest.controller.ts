@@ -79,4 +79,10 @@ export const guestController = {
     const conversation = await guestService.ownerUpdateStatus(req.customer.id, req.params.id as string, body.status);
     success(res, conversation);
   }),
+
+  ownerDelete: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    await guestService.ownerDeleteConversation(req.customer.id, req.params.id as string);
+    success(res, { ok: true });
+  }),
 };

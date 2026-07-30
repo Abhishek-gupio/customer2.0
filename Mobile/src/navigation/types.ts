@@ -47,6 +47,7 @@ export type RootStackParamList = {
 
   TripPlannerInsights: undefined;
   DIYGuides: undefined;
+  TrendingList: { type: 'videos' | 'news'; title: string; items: any[] };
 
   VehicleInbox: undefined;
   ScanQr: undefined;

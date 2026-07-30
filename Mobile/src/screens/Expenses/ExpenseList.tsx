@@ -1382,7 +1382,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: wp(6),
     borderWidth: 1,
-    borderColor: '#b4bd79',
+    borderColor: '#5f9ea0',
     margin: wp(4),
   },
   timelineContainer: {
@@ -1481,7 +1481,7 @@ const styles = StyleSheet.create({
     borderColor: colors.Yellow,
   },
   rangeChipLabel: {
-    color: '#9ca3af',
+    color: '#5f9ea0',
     fontSize: wp(3),
     marginBottom: hp(0.3),
   },
@@ -1505,7 +1505,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.Yellow,
   },
   dayCellInRange: {
-    backgroundColor: '#3a341a',
+    backgroundColor: '#2a2a2a',
   },
   dayText: {
     color: '#fff',

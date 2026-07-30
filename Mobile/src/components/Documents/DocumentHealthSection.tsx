@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
   },
   healthMetricWarning: {
-    color: '#F59E0B',
+    color: '#5F9EA0',
   },
   healthMetricLabel: {
     marginTop: 4,
@@ -142,12 +142,12 @@ const styles = StyleSheet.create({
   },
   nextActionCaption: {
     marginTop: 4,
-    color: '#9CA3AF',
+    color: '#5F9EA0',
     fontSize: 12,
     fontFamily: 'Outfit-Medium',
   },
   nextActionBody: {
-    color: '#D1D5DB',
+    color: '#A9CCCC',
     fontSize: 13,
     lineHeight: 20,
     fontFamily: 'Outfit-Regular',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   nextActionPrimaryBtn: {
     flex: 1,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#5F9EA0',
     borderRadius: 12,
     paddingVertical: 13,
     alignItems: 'center',

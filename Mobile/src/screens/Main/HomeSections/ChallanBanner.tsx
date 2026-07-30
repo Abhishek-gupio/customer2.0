@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type ChallanBannerProps = {
   onPress: () => void;
@@ -9,6 +10,8 @@ type ChallanBannerProps = {
 export const ChallanBanner = React.memo(function ChallanBanner({
   onPress,
 }: ChallanBannerProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.bannerSection}>
       <View style={styles.insuranceBanner}>

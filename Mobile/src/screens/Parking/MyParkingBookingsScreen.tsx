@@ -14,7 +14,7 @@ import { openRazorpayCheckout, paymentsService } from '../../services/paymentsSe
 import { useParkingStore } from '../../store/parkingStore';
 
 const STATUS_STYLE: Record<ParkingBookingStatus, { label: string; bg: string; fg: string }> = {
-  PENDING_PAYMENT: { label: 'Awaiting payment', bg: 'rgba(245,158,11,0.15)', fg: '#f59e0b' },
+  PENDING_PAYMENT: { label: 'Awaiting payment', bg: 'rgba(95, 158, 160,0.3)', fg: '#5f9ea0' },
   CONFIRMED: { label: 'Confirmed', bg: 'rgba(34,197,94,0.15)', fg: '#4ade80' },
   CANCELLED: { label: 'Cancelled', bg: 'rgba(148,163,184,0.15)', fg: '#94a3b8' },
   COMPLETED: { label: 'Completed', bg: 'rgba(99,102,241,0.15)', fg: '#818cf8' },
@@ -131,7 +131,7 @@ export default function MyParkingBookingsScreen() {
 
       {loading ? (
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       ) : bookings.length === 0 ? (
         <View style={styles.centerState}>
@@ -147,10 +147,10 @@ export default function MyParkingBookingsScreen() {
           data={bookings}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
           onEndReachedThreshold={0.4}
           onEndReached={loadMore}
-          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#FFBF00" style={styles.footerLoader} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator size="small" color="#5F9EA0" style={styles.footerLoader} /> : null}
           renderItem={({ item }) => {
             const statusStyle = STATUS_STYLE[item.status];
             const cancellable = (item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED') && !item.actualCheckOutTime;
@@ -174,7 +174,7 @@ export default function MyParkingBookingsScreen() {
                 </View>
                 {awaitingOverstayPayment && (
                   <View style={styles.overstayBanner}>
-                    <IconMC name="clock-alert-outline" size={wp(3.8)} color="#f59e0b" />
+                    <IconMC name="clock-alert-outline" size={wp(3.8)} color="#5f9ea0" />
                     <Text style={styles.overstayText}>
                       Stayed longer than booked — pay ₹{((item.extraAmountPaise ?? 0) / 100).toFixed(0)} to complete checkout
                     </Text>
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   emptyText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.4), textAlign: 'center' },
   searchBtn: {
     marginTop: hp(2),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(6),
     paddingVertical: hp(1.4),
     borderRadius: 12,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: wp(1.5), marginBottom: hp(1.2) },
   metaText: { color: '#aaa', fontFamily: 'Outfit-Medium', fontSize: wp(3.1) },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  amountText: { color: '#FFBF00', fontFamily: 'Outfit-Black', fontSize: wp(4) },
+  amountText: { color: '#5F9EA0', fontFamily: 'Outfit-Black', fontSize: wp(4) },
   cancelBtn: {
     borderWidth: 1,
     borderColor: '#ef4444',
@@ -264,14 +264,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(1.5),
-    backgroundColor: 'rgba(245,158,11,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     borderRadius: 10,
     padding: wp(2.5),
     marginBottom: hp(1.2),
   },
-  overstayText: { flex: 1, color: '#f59e0b', fontFamily: 'Outfit-Medium', fontSize: wp(3) },
+  overstayText: { flex: 1, color: '#5f9ea0', fontFamily: 'Outfit-Medium', fontSize: wp(3) },
   payExtraBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.8),
     borderRadius: 10,

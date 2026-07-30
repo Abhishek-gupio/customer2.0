@@ -131,13 +131,13 @@ const PLACE_API_TYPE: Partial<Record<PlaceType, NearbyPlaceType>> = {
 };
 
 const SERVICE_MARKER_STYLE: Record<PlaceType, { iconSet: 'fa' | 'mc'; icon: string; bg: string; fg: string }> = {
-  FuelStations: { iconSet: 'mc', icon: 'gas-station', bg: '#FFBF00', fg: '#111111' },
+  FuelStations: { iconSet: 'mc', icon: 'gas-station', bg: '#5F9EA0', fg: '#111111' },
   ChargingStation: { iconSet: 'mc', icon: 'ev-station', bg: '#22c55e', fg: '#0a0a0a' },
   Mechanics: { iconSet: 'fa', icon: 'wrench', bg: '#60a5fa', fg: '#0a0a0a' },
   CarWash: { iconSet: 'mc', icon: 'car-wash', bg: '#38bdf8', fg: '#0a0a0a' },
   Hospital: { iconSet: 'fa', icon: 'hospital', bg: '#ef4444', fg: '#ffffff' },
   PoliceStation: { iconSet: 'fa', icon: 'building', bg: '#6366f1', fg: '#ffffff' },
-  Hotel: { iconSet: 'fa', icon: 'hotel', bg: '#f59e0b', fg: '#111111' },
+  Hotel: { iconSet: 'fa', icon: 'hotel', bg: '#5f9ea0', fg: '#111111' },
   TouristAttraction: { iconSet: 'fa', icon: 'map-marked-alt', bg: '#e879f9', fg: '#111111' },
   Parking: { iconSet: 'fa', icon: 'parking', bg: '#a3e635', fg: '#111111' },
   RTO: { iconSet: 'fa', icon: 'landmark', bg: '#f97316', fg: '#111111' },
@@ -341,7 +341,7 @@ function NearbyPlacesListScreen({
 
       {location && (
         <View style={styles.locationPill}>
-          <Icon name="map-marker-alt" size={wp(3.5)} color="#FFBF00" />
+          <Icon name="map-marker-alt" size={wp(3.5)} color="#5F9EA0" />
           <Text style={styles.locationPillText}>
             Near {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
           </Text>
@@ -370,7 +370,7 @@ function NearbyPlacesListScreen({
 
       {locationError && !location && (
         <View style={styles.errorBanner}>
-          <Icon name="exclamation-circle" size={wp(4)} color="#f59e0b" />
+          <Icon name="exclamation-circle" size={wp(4)} color="#5f9ea0" />
           <Text style={styles.errorBannerText}>{locationError}</Text>
           <TouchableOpacity onPress={onRefresh} style={styles.errorRetryBtn}>
             <Text style={styles.errorRetryText}>Retry</Text>
@@ -380,7 +380,7 @@ function NearbyPlacesListScreen({
 
       {loading && !refreshing ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingText}>Finding nearby {title.toLowerCase()}…</Text>
         </View>
       ) : permissionDenied ? (
@@ -415,7 +415,7 @@ function NearbyPlacesListScreen({
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#FFBF00"
+              tintColor="#5F9EA0"
             />
           }
           contentContainerStyle={styles.fuelListContent}
@@ -423,7 +423,7 @@ function NearbyPlacesListScreen({
             <View style={styles.fuelCard}>
               <View style={styles.fuelCardLeft}>
                 <View style={styles.fuelCardIconWrap}>
-                   <Icon name="map-pin" size={wp(5)} color="#FFBF00" />
+                   <Icon name="map-pin" size={wp(5)} color="#5F9EA0" />
                 </View>
                 <View style={styles.fuelCardBody}>
                   <Text style={styles.fuelCardName} numberOfLines={1}>{place.name}</Text>
@@ -437,7 +437,7 @@ function NearbyPlacesListScreen({
                     </View>
                     {place.rating != null && (
                       <View style={styles.ratingBadge}>
-                        <Icon name="star" size={wp(3)} color="#FFBF00" solid />
+                        <Icon name="star" size={wp(3)} color="#5F9EA0" solid />
                         <Text style={styles.ratingText}>{place.rating.toFixed(1)}</Text>
                       </View>
                     )}
@@ -777,9 +777,9 @@ export default function NearbyPlaces() {
         <View style={styles.searchInputWrap}>
           <TouchableOpacity onPress={onUseCurrentLocation} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             {detectingLocation ? (
-              <ActivityIndicator size="small" color="#FFBF00" />
+              <ActivityIndicator size="small" color="#5F9EA0" />
             ) : (
-              <IconMC name="map-marker-radius" size={wp(4.5)} color="#FFBF00" />
+              <IconMC name="map-marker-radius" size={wp(4.5)} color="#5F9EA0" />
             )}
           </TouchableOpacity>
           <TextInput
@@ -794,7 +794,7 @@ export default function NearbyPlaces() {
         {showSuggestions && (query.length > 0 ? suggestions.length > 0 : true) && (
           <View style={styles.suggestionsBox}>
             <TouchableOpacity style={styles.suggestionRow} onPress={onUseCurrentLocation}>
-              <IconMC name="crosshairs-gps" size={wp(4)} color="#FFBF00" />
+              <IconMC name="crosshairs-gps" size={wp(4)} color="#5F9EA0" />
               <Text style={styles.suggestionMain}>Use current location</Text>
             </TouchableOpacity>
             {suggestions.map((s) => (
@@ -812,7 +812,7 @@ export default function NearbyPlaces() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
         onScrollBeginDrag={() => setShowSuggestions(false)}
       >
         <Text style={styles.mapHintText}>
@@ -892,7 +892,7 @@ export default function NearbyPlaces() {
           )}
           {loading ? (
             <View style={styles.mapLoadingOverlay}>
-              <ActivityIndicator size="small" color="#FFBF00" />
+              <ActivityIndicator size="small" color="#5F9EA0" />
               <Text style={styles.mapLoadingText}>Loading places...</Text>
             </View>
           ) : null}
@@ -908,7 +908,7 @@ export default function NearbyPlaces() {
             </View>
             {dealerParkingLoading ? (
               <View style={styles.centerStateInline}>
-                <ActivityIndicator size="small" color="#FFBF00" />
+                <ActivityIndicator size="small" color="#5F9EA0" />
                 <Text style={styles.mapFallbackText}>Finding tied-up parking…</Text>
               </View>
             ) : dealerParking.length === 0 ? (
@@ -938,7 +938,7 @@ export default function NearbyPlaces() {
                         <Text style={styles.metaText}>{listing.distanceKm} km</Text>
                       </View>
                       <View style={styles.metaBadge}>
-                        <IconMC name="currency-inr" size={wp(3.4)} color="#FFBF00" />
+                        <IconMC name="currency-inr" size={wp(3.4)} color="#5F9EA0" />
                         <Text style={styles.metaTextAccent}>{(listing.hourlyRatePaise / 100).toFixed(0)}/hr</Text>
                       </View>
                     </View>
@@ -1106,12 +1106,12 @@ const styles = StyleSheet.create({
     borderColor: '#374151',
   },
   mapMarkerFuel: {
-    backgroundColor: '#FFBF00',
-    borderColor: '#D9A300',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#4A7C7E',
   },
   dealerMarkerPin: {
-    backgroundColor: '#FFBF00',
-    borderColor: '#D9A300',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#4A7C7E',
   },
   gridSection: {
     paddingHorizontal: wp(5),
@@ -1173,7 +1173,7 @@ const styles = StyleSheet.create({
   metaTextAccent: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3),
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   dealerAvailableBadge: {
     backgroundColor: 'rgba(34,197,94,0.15)',
@@ -1214,8 +1214,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   serviceChipActive: {
-    backgroundColor: '#FFBF00',
-    borderColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#5F9EA0',
   },
   serviceChipIcon: {
     width: wp(8),
@@ -1318,7 +1318,7 @@ const styles = StyleSheet.create({
     marginHorizontal: wp(5),
     marginBottom: hp(2),
     padding: wp(4),
-    backgroundColor: 'rgba(245,158,11,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     borderRadius: 16,
     gap: wp(2),
   },
@@ -1326,7 +1326,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: wp(3.5),
     fontFamily: 'Outfit-Medium',
-    color: '#f59e0b',
+    color: '#5f9ea0',
   },
   errorRetryBtn: {
     paddingHorizontal: wp(3),
@@ -1334,7 +1334,7 @@ const styles = StyleSheet.create({
   errorRetryText: {
     fontSize: wp(3.5),
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   loadingWrap: {
     flex: 1,
@@ -1379,7 +1379,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   fuelListContent: {
     paddingHorizontal: wp(5),
@@ -1406,7 +1406,7 @@ const styles = StyleSheet.create({
     width: wp(12),
     height: wp(12),
     borderRadius: wp(6),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3),
@@ -1449,10 +1449,10 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.2),
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   navigateBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.2),
     borderRadius: 12,

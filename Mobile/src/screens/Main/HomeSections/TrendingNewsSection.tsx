@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -7,29 +7,42 @@ import {
   View,
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import { styles } from '../homeStyles';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type TrendingNewsSectionProps = {
   news: any[];
   loading: boolean;
   onNewsPress: (url: string) => void;
+  onViewMorePress?: () => void;
 };
 
 export const TrendingNewsSection = React.memo(function TrendingNewsSection({
   news,
   loading,
   onNewsPress,
+  onViewMorePress,
 }: TrendingNewsSectionProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Trending News</Text>
-        {loading ? <ActivityIndicator size="small" color="#FFBF00" /> : null}
+        {loading ? (
+          <ActivityIndicator size="small" color="#5F9EA0" />
+        ) : news.length > 0 && onViewMorePress ? (
+          <TouchableOpacity style={styles.viewAllRow} onPress={onViewMorePress}>
+            <Text style={styles.viewAllText}>View more</Text>
+            <MaterialIcon name="chevron-right" size={16} color="#ccc" />
+          </TouchableOpacity>
+        ) : null}
       </View>
       {loading && news.length === 0 ? (
         <View style={styles.discoveryPlaceholder}>
           <View style={styles.discoveryLoadingRow}>
-            <ActivityIndicator size="small" color="#FFBF00" />
+            <ActivityIndicator size="small" color="#5F9EA0" />
             <Text style={styles.discoveryPlaceholderText}>
               Loading news\u2026
             </Text>

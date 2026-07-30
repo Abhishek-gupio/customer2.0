@@ -161,7 +161,7 @@ export default function Odometer() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={[styles.centered, { flex: 1 }]}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingHint}>Loading your vehicle...</Text>
         </View>
       </SafeAreaView>
@@ -191,7 +191,7 @@ export default function Odometer() {
         style={styles.keyboard}
       >
         <LinearGradient 
-             colors={['rgba(255, 191, 0, 0.1)', 'transparent']}
+             colors={['rgba(95, 158, 160, 0.2)', 'transparent']}
              style={styles.headerGradient}
         >
           <Text style={styles.headerTitle}>Vehicle Odometer</Text>
@@ -209,6 +209,9 @@ export default function Odometer() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+          scrollEventThrottle={16}
+          decelerationRate="normal"
         >
           <View style={styles.currentCardWrapper}>
             <LinearGradient
@@ -248,7 +251,7 @@ export default function Odometer() {
                 onChangeText={setReading}
                 keyboardType="number-pad"
                 editable={!submitting}
-                selectionColor="#FFBF00"
+                selectionColor="#5F9EA0"
               />
             </View>
 
@@ -259,7 +262,7 @@ export default function Odometer() {
               disabled={submitting || !reading.trim()}
             >
               <LinearGradient
-                colors={['#FFBF00', '#D97706']}
+                colors={['#5F9EA0', '#4A7C7E']}
                 style={styles.btnPrimaryGradient}
               >
                 {submitting ? (
@@ -291,7 +294,7 @@ export default function Odometer() {
                   <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <>
-                    <MaterialIcon name="camera-iris" size={wp(5.5)} color="#FFBF00" style={styles.btnIcon} />
+                    <MaterialIcon name="camera-iris" size={wp(5.5)} color="#5F9EA0" style={styles.btnIcon} />
                     <Text style={styles.btnSecondaryText}>Scan Dashboard Photo</Text>
                   </>
                 )}
@@ -338,18 +341,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   vehicleBadge: {
-    backgroundColor: 'rgba(255, 191, 0, 0.15)',
+    backgroundColor: 'rgba(95, 158, 160, 0.3)',
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.5),
     borderRadius: wp(2),
     alignSelf: 'flex-start',
     marginTop: hp(1),
     borderWidth: 1,
-    borderColor: 'rgba(255, 191, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
   },
   vehicleSub: {
     fontSize: wp(3.8),
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Bold',
     letterSpacing: 1,
   },
@@ -448,7 +451,7 @@ const styles = StyleSheet.create({
   btnPrimaryWrapper: {
     borderRadius: wp(4),
     overflow: 'hidden',
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -10,7 +10,8 @@ import FastImage from 'react-native-fast-image';
 import LinearGradient from 'react-native-linear-gradient';
 import type { Vehicle } from '../../../services/vehicleService';
 import { HealthDisplay } from '../components/HealthDisplay';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type VehicleSlideProps = {
   bannerWidth: number;
@@ -29,6 +30,8 @@ export const VehicleSlide = React.memo(function VehicleSlide({
   navigateToGarageTab,
   getBannerVehicleShortName,
 }: VehicleSlideProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const heroImageSource = useMemo<ImageSourcePropType>(() => {
     const vehicleImageUrl = vehicle?.imageUrl as string | undefined;
     const fallbackHeroImage = (

@@ -29,7 +29,7 @@ export const getExpenseColor = (category: string) => {
         case 'FUEL':
             return '#4caf50'; // Green
         case 'SERVICE':
-            return '#ff9800'; // Orange
+            return '#5f9ea0'; // Orange
         case 'TOLL':
         case 'TOLLS':
             return '#2196f3'; // Blue

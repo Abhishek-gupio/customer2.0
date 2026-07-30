@@ -15,14 +15,14 @@ interface Props {
 }
 
 const iconConfig = {
-  insurance: { icon: "shield-outline", color: "#FFC107" },
+  insurance: { icon: "shield-outline", color: "#5F9EA0" },
   service: { icon: "build-outline", color: "#00E676" },
   expense: { icon: "wallet-outline", color: "#3B82F6" },
   maintenance: { icon: "construct-outline", color: "#8B5CF6" },
   parking: { icon: "car-outline", color: "#06B6D4" },
   fuel: { icon: "water-outline", color: "#22C55E" },
   alert: { icon: "warning-outline", color: "#EF4444" },
-  odometer: { icon: "speedometer-outline", color: "#F59E0B" },
+  odometer: { icon: "speedometer-outline", color: "#5F9EA0" },
 };
 
 const NotificationCard: React.FC<Props> = ({
@@ -66,7 +66,7 @@ const NotificationCard: React.FC<Props> = ({
             <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
             {item.pinned ? (
               <View style={styles.pinBadge}>
-                <MaterialCommunityIcons name="pin-outline" size={14} color="#FFBF00" />
+                <MaterialCommunityIcons name="pin-outline" size={14} color="#5F9EA0" />
               </View>
             ) : null}
           </View>
@@ -85,7 +85,7 @@ const NotificationCard: React.FC<Props> = ({
             <MaterialCommunityIcons
               name={isSelected ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
               size={22}
-              color={isSelected ? '#FFBF00' : 'rgba(255,255,255,0.35)'}
+              color={isSelected ? '#5F9EA0' : 'rgba(255,255,255,0.35)'}
             />
           </View>
         ) : item.unread ? (
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   cardSelected: {
-    backgroundColor: 'rgba(255,191,0,0.08)',
+    backgroundColor: 'rgba(95, 158, 160,0.16)',
   },
   container: {
     flexDirection: "row",
@@ -154,9 +154,9 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.35)',
+    borderColor: 'rgba(95, 158, 160,0.7)',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: "#FFBF00",
+    backgroundColor: "#5F9EA0",
     marginLeft: 12,
     marginTop: 6,
   },

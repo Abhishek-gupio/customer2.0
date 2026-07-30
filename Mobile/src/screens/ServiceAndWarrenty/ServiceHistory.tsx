@@ -196,7 +196,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                     </View>
 
                     <View style={styles.vehiclePill}>
-                        <MaterialIcon name="car" size={wp(4.5)} color="#FFBF00" />
+                        <MaterialIcon name="car" size={wp(4.5)} color="#5F9EA0" />
                         <Text style={styles.vehicle} numberOfLines={1}>
                             {vehicle?.registrationNumber ?? 'No primary vehicle selected'}
                         </Text>
@@ -217,7 +217,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                             <MaterialIcon
                                 name="filter-variant"
                                 size={wp(4)}
-                                color="#FFBF00"
+                                color="#5F9EA0"
                             />
                             <Text style={styles.statFilter} numberOfLines={1}>
                                 {headerFilterLabel}
@@ -228,7 +228,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
 
                 {loading ? (
                     <View style={styles.loading}>
-                        <ActivityIndicator size="large" color="#FFBF00" />
+                        <ActivityIndicator size="large" color="#5F9EA0" />
                     </View>
                 ) : (
                     <FlashListAny
@@ -264,7 +264,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                                         >
                                             {isActive ? (
                                                 <LinearGradient
-                                                    colors={['#FFD466', '#FFBF00']}
+                                                    colors={['#A9CCCC', '#5F9EA0']}
                                                     start={{ x: 0, y: 0 }}
                                                     end={{ x: 1, y: 1 }}
                                                     style={[
@@ -299,7 +299,7 @@ export default function ServiceHistoryScreen({ navigation, route }: ServiceHisto
                                     <MaterialIcon
                                         name="history"
                                         size={wp(8)}
-                                        color="#FFBF00"
+                                        color="#5F9EA0"
                                     />
                                 </View>
                                 <Text style={styles.emptyTitle}>
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
         width: wp(72),
         height: wp(72),
         borderRadius: wp(36),
-        backgroundColor: 'rgba(255, 191, 0, 0.08)',
+        backgroundColor: 'rgba(95, 158, 160, 0.16)',
     },
 
     container: {
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
         marginTop: hp(1.6),
         borderRadius: wp(4),
         borderWidth: 1,
-        borderColor: 'rgba(255,191,0,0.22)',
-        backgroundColor: 'rgba(255,191,0,0.08)',
+        borderColor: 'rgba(95, 158, 160,0.44)',
+        backgroundColor: 'rgba(95, 158, 160,0.16)',
         paddingHorizontal: wp(3.5),
         paddingVertical: hp(0.9),
         flexDirection: 'row',
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     },
 
     filterChipActive: {
-        borderColor: '#FFBF00',
+        borderColor: '#5F9EA0',
     },
 
     filterText: {
@@ -520,9 +520,9 @@ const styles = StyleSheet.create({
         borderRadius: wp(8),
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,191,0,0.14)',
+        backgroundColor: 'rgba(95, 158, 160,0.28)',
         borderWidth: 1,
-        borderColor: 'rgba(255,191,0,0.3)',
+        borderColor: 'rgba(95, 158, 160,0.6)',
         marginBottom: hp(1.4),
     },
 

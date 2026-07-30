@@ -16,7 +16,7 @@ const WeatherBanner = ({ planning, onChange }: Props) => {
     <View style={styles.container}>
       <View style={styles.banner}>
         <View style={styles.weatherInfo}>
-          {isRainy ? <CloudRain size={32} color="#4A90E2" /> : <Sun size={32} color="#FFD700" />}
+          {isRainy ? <CloudRain size={32} color="#4A90E2" /> : <Sun size={32} color="#5F9EA0" />}
           <View style={styles.textGroup}>
             <Text style={styles.temp}>24°C</Text>
             <Text style={styles.condition}>{isRainy ? 'Occasional Showers' : 'Mostly Sunny'}</Text>
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   condition: { color: '#888', fontSize: 10, textAlign: 'center' },
   verticalDivider: { width: 1, height: '80%', backgroundColor: '#222', marginHorizontal: 15 },
   advice: { flex: 1 },
-  adviceTitle: { color: '#FFD700', fontSize: 13, fontWeight: 'bold', marginBottom: 4 },
+  adviceTitle: { color: '#5F9EA0', fontSize: 13, fontWeight: 'bold', marginBottom: 4 },
   adviceText: { color: '#BBB', fontSize: 11, lineHeight: 16 },
 });
 

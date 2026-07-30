@@ -144,10 +144,10 @@ const CostPerKmCard: React.FC<Props> = ({
           <MaterialCommunityIcons
             name="tune-variant"
             size={18}
-            color="#9ca3af"
+            color="#5f9ea0"
             style={{ marginRight: 6 }}
           />
-          <Text style={{ color: '#9ca3af', fontSize: 14 }}>
+          <Text style={{ color: '#5f9ea0', fontSize: 14 }}>
             Cost per KM{period ? ` • ${period}` : ''}
           </Text>
         </View>      

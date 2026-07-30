@@ -199,7 +199,7 @@ export default function PrivacyPolicy() {
                 onPress={() => Linking.openURL('mailto:privacy@gupio.io')}
               >
                 <Text style={styles.actionBtnText}>Contact Privacy Officer</Text>
-                <Icon name="arrow-right" size={10} color="#FFD700" />
+                <Icon name="arrow-right" size={10} color="#5F9EA0" />
               </TouchableOpacity>
             </View>
           }
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   contactValue: { color: '#aaa', fontSize: wp(3.4), fontFamily: 'Outfit-Regular', lineHeight: wp(4.5) },
 
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: wp(2) },
-  actionBtnText: { color: '#FFD700', fontSize: wp(3.5), fontFamily: 'Outfit-Bold' },
+  actionBtnText: { color: '#5F9EA0', fontSize: wp(3.5), fontFamily: 'Outfit-Bold' },
 
   securityFooter: {
     marginTop: hp(2),

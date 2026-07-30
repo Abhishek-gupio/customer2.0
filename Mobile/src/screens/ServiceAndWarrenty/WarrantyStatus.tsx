@@ -129,7 +129,7 @@ export const WarrantyStatus = () => {
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case 'OVERDUE': return '#EF4444';
-      case 'DUE_BY_KM': return '#F59E0B';
+      case 'DUE_BY_KM': return '#5F9EA0';
       case 'DUE_SOON': return '#F97316';
       default: return '#22C55E';
     }
@@ -407,7 +407,7 @@ export const WarrantyStatus = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />
         }
         renderItem={({ item }) => (
           <PartStatusCard
@@ -636,9 +636,9 @@ const styles = StyleSheet.create({
   oemWarningBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: 'rgba(95, 158, 160, 0.3)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(245, 158, 11, 0.4)',
+    borderBottomColor: 'rgba(95, 158, 160, 0.8)',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
   },
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   oemWarningText: {
     flex: 1,
     fontSize: wp(3.2),
-    color: '#F59E0B',
+    color: '#5F9EA0',
     lineHeight: 18,
   },
   modalBackdrop: {
@@ -757,8 +757,8 @@ const styles = StyleSheet.create({
   },
   partPickerItemSelected: {
     borderWidth: 1,
-    borderColor: '#FFBF00',
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    borderColor: '#5F9EA0',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
   },
   partPickerItemText: {
     color: '#fff',
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   updateButton: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: wp(4),
     alignItems: 'center',
     justifyContent: 'center',

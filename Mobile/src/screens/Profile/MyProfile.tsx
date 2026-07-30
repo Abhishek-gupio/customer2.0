@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -43,6 +43,7 @@ import BackButton from '../../components/BackButton';
 import LoaderButton from '../../components/Button';
 import StatusModal from '../../components/common/Modals/StatusModal';
 import ConfirmModal from '../../components/common/Modals/ConfirmModal';
+import { useTheme, ThemeColors } from '../../theme/ThemeContext';
 
 // GPS-based location (same pattern as SOSButton)
 let Geolocation: any = null;
@@ -92,6 +93,8 @@ const AVATAR_ITEM_SIZE = (SCREEN_WIDTH - wp(12) - (AVATAR_GRID_COLS - 1) * 12) /
 
 export default function MyProfile() {
   const navigation = useNavigation<ProfileNavProp>();
+  const { colors, mode, toggleMode } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -200,7 +203,7 @@ export default function MyProfile() {
         </TouchableOpacity>
       );
     },
-    [selectedAvatar]
+    [selectedAvatar, styles]
   );
 
 
@@ -585,7 +588,10 @@ export default function MyProfile() {
   if (!profile || !editData) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <StatusBar
+          barStyle={colors.statusBarStyle}
+          backgroundColor={Platform.OS === 'android' ? colors.background : undefined}
+        />
         <View style={styles.topBar}>
           <View style={styles.headerLeft}>
             <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -613,7 +619,10 @@ export default function MyProfile() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <StatusBar
+        barStyle={colors.statusBarStyle}
+        backgroundColor={Platform.OS === 'android' ? colors.background : undefined}
+      />
       {loading ? (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#e5e5e5" />
@@ -685,8 +694,8 @@ export default function MyProfile() {
                     style={styles.premiumOption}
                     onPress={handleCameraOption}
                   >
-                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(255, 191, 0, 0.1)' }]}>
-                      <MaterialIcon name="photo-camera" size={22} color="#FFBF00" />
+                    <View style={[styles.premiumOptionIcon, { backgroundColor: 'rgba(95, 158, 160, 0.2)' }]}>
+                      <MaterialIcon name="photo-camera" size={22} color="#5F9EA0" />
                     </View>
                     <Text style={styles.premiumOptionText}>Take Photo</Text>
                   </TouchableOpacity>
@@ -806,7 +815,7 @@ export default function MyProfile() {
               <View style={styles.headerActions}>
                 {!isEditing ? (
                   <TouchableOpacity style={styles.editPill} onPress={handleEdit}>
-                    <Icon name="pen" size={10} color="#FFBF00" />
+                    <Icon name="pen" size={10} color="#5F9EA0" />
                     <Text style={styles.editPillText}>Edit</Text>
                   </TouchableOpacity>
                 ) : (
@@ -857,6 +866,7 @@ export default function MyProfile() {
                   isEditing={isEditing}
                   onChange={(v: string) => updateField('fullName', v)}
                   error={errors.fullName}
+                  styles={styles}
                 />
 
                 <VerticalInfoRow
@@ -867,6 +877,7 @@ export default function MyProfile() {
                   onChange={(v: string) => updateField('email', v)}
                   keyboardType="email-address"
                   error={errors.email}
+                  styles={styles}
                 />
 
                 <VerticalInfoRow
@@ -877,6 +888,7 @@ export default function MyProfile() {
                   onChange={(v: string) => updateField('phone', v)}
                   keyboardType="phone-pad"
                   error={errors.phone}
+                  styles={styles}
                 />
 
                 <VerticalInfoRow
@@ -884,6 +896,7 @@ export default function MyProfile() {
                   label="Member Since"
                   value={profile.memberSince}
                   isEditing={false}
+                  styles={styles}
                 />
 
                 <VerticalInfoRow
@@ -893,6 +906,7 @@ export default function MyProfile() {
                   isEditing={false}
                   numberOfLines={2}
                   fixedHeight
+                  styles={styles}
                 />
               </View>
 
@@ -929,7 +943,7 @@ export default function MyProfile() {
         {/* ── Identity: Improved Avatar + Premium Badge ── */}
         <View style={styles.premiumHeaderBackground}>
           <LinearGradient
-            colors={['rgba(255, 215, 0, 0.08)', 'transparent']}
+            colors={['rgba(95, 158, 160, 0.16)', 'transparent']}
             style={StyleSheet.absoluteFill}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
@@ -986,19 +1000,22 @@ export default function MyProfile() {
               icon="car"
               label="Vehicles"
               value={String(stats.vehicles)}
-              color="#FFD700"
+              color="#5F9EA0"
+              styles={styles}
             />
             <StatCard
               icon="receipt"
               label="Expenses"
               value={String(stats.expenses)}
               color="#00F2FF"
+              styles={styles}
             />
             <StatCard
               icon="file-alt"
               label="Docs"
               value={String(stats.documents)}
               color="#FF4B2B"
+              styles={styles}
             />
           </View>
         </View>
@@ -1014,6 +1031,16 @@ export default function MyProfile() {
               onPress={() => setInfoModal(true)}
               color="#00F2FF"
               bgColor="rgba(0, 242, 255, 0.1)"
+              styles={styles}
+            />
+            <MenuRow
+              icon={mode === 'dark' ? 'sun' : 'moon'}
+              label={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              onPress={toggleMode}
+              color="#5F9EA0"
+              bgColor="rgba(95, 158, 160, 0.2)"
+              borderColor="#5F9EA0"
+              styles={styles}
             />
             <MenuRow
               icon="shield-alt"
@@ -1022,6 +1049,7 @@ export default function MyProfile() {
               color="#FF4D4D"
               bgColor="rgba(255, 77, 77, 0.1)"
               borderColor="#FF4D4D"
+              styles={styles}
             />
 
             <MenuRow
@@ -1031,6 +1059,7 @@ export default function MyProfile() {
               color="#FFFFFF"
               bgColor="rgba(255, 255, 255, 0.1)"
               borderColor="#FFFFFF"
+              styles={styles}
             />
             <MenuRow
               icon="user-shield"
@@ -1039,14 +1068,16 @@ export default function MyProfile() {
               color="#7B61FF"
               bgColor="rgba(123, 97, 255, 0.1)"
               borderColor="#7B61FF"
+              styles={styles}
             />
             <MenuRow
               icon="question-circle"
               label="Help & Support"
               onPress={() => handleMenuPress('HelpSupport')}
-              color="#FFBF00"
-              bgColor="rgba(255, 191, 0, 0.1)"
-              borderColor="#FFBF00"
+              color="#5F9EA0"
+              bgColor="rgba(95, 158, 160, 0.2)"
+              borderColor="#5F9EA0"
+              styles={styles}
             />
             <MenuRow
               icon="sign-out-alt"
@@ -1054,6 +1085,7 @@ export default function MyProfile() {
               onPress={handleLogout}
               color="#F44336"
               isLast
+              styles={styles}
             />
           </View>
         </View>
@@ -1094,6 +1126,7 @@ function VerticalInfoRow({
   error,
   numberOfLines,
   fixedHeight,
+  styles,
 }: any) {
   return (
     <View style={styles.verticalRow}>
@@ -1130,11 +1163,12 @@ function VerticalInfoRow({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1181,7 +1215,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(5.5),
     fontFamily: 'Outfit-Black',
     marginLeft: wp(3),
@@ -1193,7 +1227,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#111',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1219,8 +1253,8 @@ const styles = StyleSheet.create({
     borderRadius: wp(14),
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
-    shadowColor: '#FFD700',
+    borderColor: 'rgba(95, 158, 160, 0.6)',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 15,
@@ -1251,7 +1285,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     borderWidth: 3,
     borderColor: '#000',
     alignItems: 'center',
@@ -1262,7 +1296,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -10,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -1283,7 +1317,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontFamily: 'Outfit-Black',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: wp(6),
     letterSpacing: 1.5,
   },
@@ -1297,7 +1331,7 @@ const styles = StyleSheet.create({
   },
   /* ── Personal Info Card ── */
   infoCard: {
-    backgroundColor: '#121212',
+    backgroundColor: colors.surface,
     marginHorizontal: wp(4),
     marginTop: hp(1),
     paddingTop: wp(6),
@@ -1315,7 +1349,7 @@ const styles = StyleSheet.create({
   },
   cardInfoTitle: {
     fontFamily: 'Outfit-Bold',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: wp(4.8),
     letterSpacing: -0.2,
   },
@@ -1327,17 +1361,17 @@ const styles = StyleSheet.create({
   editPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 191, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FFBF00',
+    borderColor: '#5F9EA0',
     gap: 6,
   },
   editPillText: {
     fontFamily: 'Outfit-SemiBold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: 12,
   },
   cancelBtn: {
@@ -1353,7 +1387,7 @@ const styles = StyleSheet.create({
   savePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
@@ -1378,7 +1412,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: wp(3),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border,
     backgroundColor: '#0A0A0A',
   },
   vContentWrap: {
@@ -1396,14 +1430,14 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     backgroundColor: '#0A0A0A',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border,
   },
   inputContainerFixed: {
     minHeight: 44,
     justifyContent: 'flex-start',
   },
   inputContainerActive: {
-    borderColor: '#FFFFFF',
+    borderColor: colors.textPrimary,
     backgroundColor: 'transparent',
   },
   inputContainerError: {
@@ -1418,13 +1452,13 @@ const styles = StyleSheet.create({
   },
   vValue: {
     fontFamily: 'Outfit-Bold',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: wp(4),
     letterSpacing: -0.1,
   },
   vInput: {
     fontFamily: 'Outfit-Bold',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: wp(4),
     padding: 0,
     letterSpacing: -0.1,
@@ -1450,7 +1484,7 @@ const styles = StyleSheet.create({
   },
   glassStatCard: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: colors.surface,
     padding: wp(4),
     borderRadius: 20,
     borderWidth: 1,
@@ -1467,7 +1501,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontFamily: 'Outfit-Black',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: wp(5.5),
     marginBottom: 2,
   },
@@ -1486,14 +1520,14 @@ const styles = StyleSheet.create({
   integratedSettingsTitle: {
     fontSize: wp(3.5),
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
     marginBottom: hp(1.2),
     paddingLeft: wp(1),
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   integratedGroupCard: {
-    backgroundColor: '#121212',
+    backgroundColor: colors.surface,
     borderRadius: wp(4),
     overflow: 'hidden',
     borderWidth: 1,
@@ -1513,7 +1547,7 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: wp(5),
-    backgroundColor: '#000',
+    backgroundColor: colors.surfaceSunken,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
@@ -1524,14 +1558,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
-    color: '#fff',
+    color: colors.textPrimary,
   },
   menuBadge: {
     minWidth: 24,
     height: 24,
     borderRadius: 12,
     paddingHorizontal: 8,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -1591,7 +1625,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: colors.border,
   },
   bottomSheetHeaderBtn: {
     width: 40,
@@ -1600,7 +1634,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bottomSheetTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: 20,
     fontFamily: 'Outfit-Bold',
   },
@@ -1640,7 +1674,7 @@ const styles = StyleSheet.create({
     paddingTop: hp(5),
     paddingBottom: hp(2),
     borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: colors.border,
   },
   avatarModalBackBtn: {
     width: 40,
@@ -1651,7 +1685,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarModalTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: 20,
     fontFamily: 'Outfit-Bold',
   },
@@ -1674,8 +1708,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1b1f',
   },
   avatarGridItemSelected: {
-    borderColor: '#FFBF00',
-    backgroundColor: 'rgba(255,191,0,0.08)',
+    borderColor: '#5F9EA0',
+    backgroundColor: 'rgba(95, 158, 160,0.16)',
   },
   avatarGridImage: {
     width: AVATAR_ITEM_SIZE - 24,
@@ -1690,7 +1724,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1701,7 +1735,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   avatarGridLabelSelected: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   avatarConfirmWrap: {
     position: 'absolute',
@@ -1713,10 +1747,10 @@ const styles = StyleSheet.create({
     paddingTop: hp(2),
     backgroundColor: '#0a0b0e',
     borderTopWidth: 0.5,
-    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderTopColor: colors.border,
   },
   avatarConfirmBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 14,
     paddingVertical: hp(1.8),
     alignItems: 'center',
@@ -1756,7 +1790,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   popupTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: 18,
     fontFamily: 'Outfit-Bold',
   },
@@ -1773,7 +1807,7 @@ const styles = StyleSheet.create({
   },
   popupBtnTextMinimal: {
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: 15,
     letterSpacing: 0.5,
   },
@@ -1810,7 +1844,7 @@ const styles = StyleSheet.create({
   advancedModalTitle: {
     fontFamily: 'Outfit-Black',
     fontSize: wp(5.5),
-    color: '#fff',
+    color: colors.textPrimary,
     letterSpacing: 0.5,
   },
   advancedModalSubtitle: {
@@ -1834,7 +1868,7 @@ const styles = StyleSheet.create({
     height: wp(16),
     borderRadius: wp(8),
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: '#5F9EA0',
     overflow: 'hidden',
   },
   modalIdentityText: {
@@ -1843,7 +1877,7 @@ const styles = StyleSheet.create({
   modalName: {
     fontFamily: 'Outfit-Bold',
     fontSize: wp(4.5),
-    color: '#fff',
+    color: colors.textPrimary,
   },
   modalEmail: {
     fontFamily: 'Outfit-Medium',
@@ -1864,7 +1898,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   modalCloseText: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(4),
   },
 
@@ -1875,7 +1909,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   premiumModalContent: {
-    backgroundColor: '#121212',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
@@ -1892,7 +1926,7 @@ const styles = StyleSheet.create({
   premiumModalTitle: {
     fontSize: 22,
     fontFamily: 'Outfit-Bold',
-    color: '#fff',
+    color: colors.textPrimary,
   },
   premiumCloseBtn: {
     padding: 4,
@@ -1921,7 +1955,7 @@ const styles = StyleSheet.create({
   premiumOptionText: {
     fontSize: 16,
     fontFamily: 'Outfit-Bold',
-    color: '#fff',
+    color: colors.textPrimary,
   },
   premiumCancelBtn: {
     alignItems: 'center',
@@ -1939,12 +1973,13 @@ const styles = StyleSheet.create({
   confirmConfirmText: {
     fontSize: wp(4),
     fontFamily: 'Outfit-Bold',
-    color: '#FFF',
+    color: colors.textPrimary,
   },
-});
+  });
+}
 
 /* ── Menu Row Sub-component with Animation ── */
-function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borderColor = "rgba(255,255,255,0.1)", isLast = false, badgeCount = 0 }: any) {
+function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borderColor = "rgba(255,255,255,0.1)", isLast = false, badgeCount = 0, styles }: any) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -1989,7 +2024,7 @@ function MenuRow({ icon, label, onPress, color = "#aaa", bgColor = "#000", borde
 }
 
 /* ── Stat Card Sub-component ── */
-function StatCard({ icon, label, value, color }: any) {
+function StatCard({ icon, label, value, color, styles }: any) {
   return (
     <View style={styles.glassStatCard}>
       <View style={[styles.statIconBox, { backgroundColor: `${color}15` }]}>

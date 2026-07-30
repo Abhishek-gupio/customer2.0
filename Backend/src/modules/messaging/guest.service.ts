@@ -181,4 +181,13 @@ export const guestService = {
     }
     return dbInstances.guestConversation.update({ where: { id }, data: { status } });
   },
+
+  async ownerDeleteConversation(ownerId: string, id: string) {
+    const conversation = await dbInstances.guestConversation.findUnique({ where: { id } });
+    if (!conversation || conversation.ownerId !== ownerId) {
+      throw AppError.notFound("Conversation not found");
+    }
+    await dbInstances.guestMessageEntry.deleteMany({ where: { conversationId: id } });
+    await dbInstances.guestConversation.delete({ where: { id } });
+  },
 };

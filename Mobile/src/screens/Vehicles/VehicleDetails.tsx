@@ -36,7 +36,7 @@ const ActionBox = ({
   icon,
   label,
   onPress,
-  color = '#FFBF00',
+  color = '#5F9EA0',
 }: {
   icon: string;
   label: string;
@@ -162,7 +162,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
   const getHealthStatus = (score: number) => {
     if (score >= 80) return { label: 'Excellent', color: '#22c55e' };
-    if (score >= 60) return { label: 'Good', color: '#f59e0b' };
+    if (score >= 60) return { label: 'Good', color: '#5f9ea0' };
     return { label: 'Poor', color: '#ef4444' };
   };
 
@@ -465,7 +465,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
                 onPress={() => setExpandWhyScore((v) => !v)}
                 activeOpacity={0.7}
               >
-                <FontAwesome5 name="info-circle" size={wp(4)} color="#FFBF00" />
+                <FontAwesome5 name="info-circle" size={wp(4)} color="#5F9EA0" />
                 <Text style={styles.whyScoreLabel}>
                   Score changed because…
                 </Text>
@@ -496,7 +496,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
                   onPress={() => setExpandNextActions((v) => !v)}
                   activeOpacity={0.7}
                 >
-                  <FontAwesome5 name="tasks" size={wp(4)} color="#FFBF00" />
+                  <FontAwesome5 name="tasks" size={wp(4)} color="#5F9EA0" />
                   <Text style={styles.whyScoreLabel}>What to do next</Text>
                   <FontAwesome5
                     name={expandNextActions ? 'chevron-up' : 'chevron-down'}
@@ -516,7 +516,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
                           else if (r.toLowerCase().includes('service') || r.toLowerCase().includes('puc')) navigation.navigate('ServiceHistory' as any);
                         }}
                       >
-                        <FontAwesome5 name="chevron-right" size={wp(3)} color="#FFBF00" />
+                        <FontAwesome5 name="chevron-right" size={wp(3)} color="#5F9EA0" />
                         <Text style={styles.nextActionText}>{r}</Text>
                       </TouchableOpacity>
                     ))}
@@ -540,7 +540,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
                   marginRight: wp(2),
                 }}
               >
-                <FontAwesome5 name="sync-alt" size={wp(4)} color="#FFBF00" />
+                <FontAwesome5 name="sync-alt" size={wp(4)} color="#5F9EA0" />
               </Animated.View>
               <Text style={styles.recalcText}>
                 {isRecalculating ? 'Calculating...' : 'Recalculate Health'}
@@ -606,7 +606,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
                   onPress={() => setExpandMoreDetails(v => !v)}
                   activeOpacity={0.7}
                 >
-                  <FontAwesome5 name="list-ul" size={wp(4)} color="#FFBF00" />
+                  <FontAwesome5 name="list-ul" size={wp(4)} color="#5F9EA0" />
                   <Text style={styles.whyScoreLabel}>More Details</Text>
                   <FontAwesome5
                     name={expandMoreDetails ? 'chevron-up' : 'chevron-down'}
@@ -656,7 +656,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
               onPress={() => setIsOdoModalVisible(true)}
               activeOpacity={0.7}
             >
-              <FontAwesome5 name="camera" size={wp(4)} color="#FFBF00" />
+              <FontAwesome5 name="camera" size={wp(4)} color="#5F9EA0" />
               <Text style={styles.updateBtnText}>Update Odometer</Text>
             </TouchableOpacity>
           </View>
@@ -678,7 +678,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
               <ActionBox
                 icon="share-alt"
                 label="Share"
-                color="#FFBF00"
+                color="#5F9EA0"
                 onPress={() => setShowShareModal(true)}
               />
             </View>
@@ -743,7 +743,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
 
                 {isSavingOdometer ? (
                   <View style={styles.modalSavingRow}>
-                    <ActivityIndicator size="small" color="#FFBF00" />
+                    <ActivityIndicator size="small" color="#5F9EA0" />
                     <Text style={styles.modalSavingText}>Updating odometer...</Text>
                   </View>
                 ) : null}
@@ -775,7 +775,7 @@ const VehicleDetails = ({ navigation, route }: any) => {
                   disabled={isSavingOdometer}
                   activeOpacity={0.8}
                 >
-                  <FontAwesome5 name="camera" size={wp(4)} color="#FFBF00" />
+                  <FontAwesome5 name="camera" size={wp(4)} color="#5F9EA0" />
                   <Text style={styles.modalAiText}>Scan via Camera (AI)</Text>
                 </TouchableOpacity>
               </View>
@@ -908,24 +908,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: hp(2.5),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     paddingVertical: hp(1.8),
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
   },
   recalcBtnDisabled: { opacity: 0.5 },
-  recalcText: { color: '#FFBF00', fontSize: wp(3.5), fontWeight: '600' },
+  recalcText: { color: '#5F9EA0', fontSize: wp(3.5), fontWeight: '600' },
 
   healthBasedOnCard: {
-    backgroundColor: 'rgba(255,191,0,0.06)',
+    backgroundColor: 'rgba(95, 158, 160,0.12)',
     borderRadius: 12,
     padding: wp(4),
     marginTop: hp(2),
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
   },
-  healthBasedOnTitle: { fontSize: wp(3.2), fontWeight: '700', color: '#FFBF00', marginBottom: hp(1), textTransform: 'uppercase', letterSpacing: 0.5 },
+  healthBasedOnTitle: { fontSize: wp(3.2), fontWeight: '700', color: '#5F9EA0', marginBottom: hp(1), textTransform: 'uppercase', letterSpacing: 0.5 },
   healthBasedOnItem: { fontSize: wp(3.2), color: '#aaa', marginTop: 4, lineHeight: 20 },
 
   whyScoreRow: {
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 10,
     borderLeftWidth: 3,
-    borderLeftColor: '#FFBF00',
+    borderLeftColor: '#5F9EA0',
   },
   whyScoreText: { color: '#ccc', fontSize: wp(3.6), lineHeight: 22 },
   explanationsList: { marginTop: hp(1.2) },
@@ -994,12 +994,12 @@ const styles = StyleSheet.create({
     gap: wp(2),
     marginTop: hp(2),
     paddingVertical: hp(1.8),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
   },
-  updateBtnText: { color: '#FFBF00', fontSize: wp(3.5), fontWeight: '600' },
+  updateBtnText: { color: '#5F9EA0', fontSize: wp(3.5), fontWeight: '600' },
 
   actionsCard: {
     backgroundColor: '#121212',
@@ -1091,7 +1091,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modalSubmitBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 14,
     paddingVertical: hp(2),
     alignItems: 'center',
@@ -1108,7 +1108,7 @@ const styles = StyleSheet.create({
     gap: wp(2),
   },
   modalSavingText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: wp(3.6),
     fontWeight: '600',
   },
@@ -1138,17 +1138,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(2),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     borderRadius: 14,
     paddingVertical: hp(2),
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
   },
   modalAiBtnDisabled: {
     opacity: 0.5,
   },
   modalAiText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: wp(4),
     fontWeight: '600',
   },

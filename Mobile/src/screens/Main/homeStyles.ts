@@ -4,11 +4,13 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import { COLORS } from '../../components/Vehicles/VehicleUI';
+import type { ThemeColors } from '../../theme/ThemeContext';
 
-export const styles = StyleSheet.create({
+export function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.background,
   },
   scroll: {
     flex: 1,
@@ -28,12 +30,12 @@ export const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: 'Outfit-Bold',
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: wp(5),
   },
   sectionSubtitle: {
     marginTop: hp(0.35),
-    color: 'rgba(255,255,255,0.62)',
+    color: colors.textSecondary,
     fontSize: wp(3.2),
     fontFamily: 'Outfit-Regular',
   },
@@ -61,7 +63,7 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   timelineCardUrgent: {
-    borderColor: 'rgba(245, 158, 11, 0.45)',
+    borderColor: 'rgba(95, 158, 160, 0.85)',
   },
   timelineCardGood: {
     borderColor: 'rgba(74, 222, 128, 0.35)',
@@ -127,7 +129,7 @@ export const styles = StyleSheet.create({
     maxWidth: wp(24),
   },
   timelineStageNow: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: 'rgba(95, 158, 160, 0.4)',
   },
   timelineStageNext: {
     backgroundColor: 'rgba(56, 189, 248, 0.2)',
@@ -188,10 +190,10 @@ export const styles = StyleSheet.create({
   discoveryPlaceholder: {
     paddingVertical: hp(2),
     paddingHorizontal: wp(2),
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: colors.border,
   },
   discoveryLoadingRow: {
     flexDirection: 'row',
@@ -204,12 +206,10 @@ export const styles = StyleSheet.create({
     fontSize: wp(3.4),
     fontFamily: 'Outfit-Medium',
   },
-  sectionTitleCenter: {
-    fontFamily: 'Outfit-Bold',
-    fontSize: wp(5),
-    color: '#FFFFFF',
-    marginBottom: hp(2),
-    textAlign: 'center',
+  viewAllRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
   },
   viewAllText: {
     fontFamily: 'Outfit-Medium',
@@ -611,7 +611,7 @@ export const styles = StyleSheet.create({
     gap: wp(1),
   },
   promoActionText: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: wp(4),
     fontWeight: '700',
   },
@@ -668,12 +668,12 @@ export const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   odometerBadge: {
-    backgroundColor: 'rgba(255,215,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     paddingHorizontal: wp(2.5),
     paddingVertical: hp(0.4),
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
     marginTop: hp(1.2),
     alignSelf: 'flex-start',
   },
@@ -733,10 +733,10 @@ export const styles = StyleSheet.create({
   numberPlateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.border,
     height: hp(5.5),
     overflow: 'hidden',
   },
@@ -765,7 +765,7 @@ export const styles = StyleSheet.create({
   },
   numberPlatePlaceholderText: {
     fontFamily: 'Outfit-Bold',
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(4.5),
     letterSpacing: 1.5,
   },
@@ -780,13 +780,13 @@ export const styles = StyleSheet.create({
     marginBottom: hp(2.5),
   },
   vehicleTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(4.5),
     fontWeight: '700',
     marginBottom: hp(1.5),
   },
   vehicleCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: wp(4),
     flexDirection: 'row',
@@ -821,7 +821,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   detailValue: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(3.2),
     fontFamily: 'Outfit-SemiBold',
   },
@@ -835,14 +835,14 @@ export const styles = StyleSheet.create({
     marginBottom: hp(2.5),
   },
   insuranceBanner: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: wp(4),
     paddingVertical: wp(4),
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: colors.border,
     gap: wp(3),
   },
   bannerImage: {
@@ -856,7 +856,7 @@ export const styles = StyleSheet.create({
   },
   bannerTitle: {
     fontFamily: 'Outfit-Bold',
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(4),
     marginBottom: hp(0.5),
   },
@@ -867,7 +867,7 @@ export const styles = StyleSheet.create({
     lineHeight: hp(2.2),
   },
   payNowButton: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.6),
     borderRadius: 6,
@@ -889,17 +889,17 @@ export const styles = StyleSheet.create({
   videoCard: {
     width: wp(60),
     marginRight: wp(4),
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: colors.border,
   },
   videoTag: {
     position: 'absolute',
     top: wp(2),
     left: wp(2),
-    backgroundColor: 'rgba(255,215,0,0.9)',
+    backgroundColor: 'rgba(95, 158, 160,0.9)',
     paddingHorizontal: wp(2),
     paddingVertical: hp(0.4),
     borderRadius: 4,
@@ -944,7 +944,7 @@ export const styles = StyleSheet.create({
     zIndex: 11,
   },
   videoTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(3.5),
     fontFamily: 'Outfit-SemiBold',
     padding: wp(3),
@@ -955,7 +955,7 @@ export const styles = StyleSheet.create({
     gap: hp(0.5),
   },
   videoCardTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(3.3),
     fontFamily: 'Outfit-Bold',
     lineHeight: wp(4.5),
@@ -988,18 +988,18 @@ export const styles = StyleSheet.create({
 
   /* NEWS CARDS */
   newsCard: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: wp(4.5),
     marginBottom: hp(1.5),
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: colors.border,
   },
   newsContent: {
     flex: 1,
   },
   newsTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(4),
     fontFamily: 'Outfit-SemiBold',
     marginBottom: hp(0.5),
@@ -1020,12 +1020,12 @@ export const styles = StyleSheet.create({
     marginBottom: hp(2.5),
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: colors.border,
   },
   fuelHeaderBanner: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(4),
     paddingVertical: hp(1.5),
     flexDirection: 'row',
@@ -1067,7 +1067,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'Outfit-Bold',
   },
   fuelContentCard: {
-    backgroundColor: '#111111',
+    backgroundColor: colors.surface,
     paddingHorizontal: wp(2),
     paddingVertical: hp(2.5),
     gap: hp(1.5),
@@ -1088,7 +1088,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   fuelInlineValue: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: wp(4.2),
     fontFamily: 'Outfit-Bold',
   },
@@ -1098,7 +1098,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#333',
   },
   viewTrendsButton: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.surface,
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.8),
     borderRadius: 6,
@@ -1106,7 +1106,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   viewTrendsText: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(3.2),
     fontFamily: 'Outfit-SemiBold',
   },
@@ -1121,34 +1121,12 @@ export const styles = StyleSheet.create({
   },
 
   /* COMING SOON */
-  featureRow: {
-    flexDirection: 'row',
-    gap: wp(3),
-    justifyContent: 'space-between',
-  },
-  featureCard: {
-    flex: 1,
-    backgroundColor: '#111111',
-    borderRadius: 16,
-    paddingVertical: hp(2.5),
-    paddingHorizontal: wp(2),
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
   comingSoonBadge: {
     width: wp(90),
     height: hp(40),
     alignSelf: 'center',
     marginTop: hp(-4),
     marginBottom: hp(-15),
-  },
-  featureTitle: {
-    color: '#fff',
-    fontSize: wp(3.2),
-    fontFamily: 'Outfit-SemiBold',
-    marginTop: hp(1),
-    textAlign: 'center',
   },
 
   /* STATE SELECTION MODAL */
@@ -1158,7 +1136,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: hp(80),
@@ -1171,10 +1149,10 @@ export const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingBottom: hp(2),
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(5),
     fontFamily: 'Outfit-Bold',
   },
@@ -1185,13 +1163,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: colors.border,
   },
   selectedStateOption: {
-    backgroundColor: 'rgba(255,215,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
   },
   stateOptionText: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(4),
     fontFamily: 'Outfit-Medium',
   },
@@ -1229,7 +1207,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fullAdTitle: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: wp(5),
     fontWeight: '700',
     alignSelf: 'flex-start',
@@ -1241,7 +1219,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
   },
   exploreAdButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(12),
     paddingVertical: hp(1.6),
     borderRadius: 8,
@@ -1353,12 +1331,17 @@ export const styles = StyleSheet.create({
   /* ACTIVE VIDEO CARD (currently playing) */
   videoCardActive: {
     borderWidth: 2,
-    borderColor: '#FFBF00',
+    borderColor: '#5F9EA0',
     borderRadius: 12,
   },
-});
+  });
+}
 
-export const healthStyles = StyleSheet.create({
+// NOTE: healthStyles is rendered over the vehicle-photo hero banner (see
+// VehicleSlide.tsx / HealthDisplay.tsx) with text-shadow treatments tuned for
+// legibility over an image — left un-themed intentionally (see report).
+export function createHealthStyles(_colors: ThemeColors) {
+  return StyleSheet.create({
   container: { marginTop: hp(1.5) },
   row: {
     flexDirection: 'row',
@@ -1405,4 +1388,5 @@ export const healthStyles = StyleSheet.create({
     fontSize: wp(2.2),
     letterSpacing: 1.5,
   },
-});
+  });
+}

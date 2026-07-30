@@ -2,8 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, Image, ScrollView,
     StyleSheet, ActivityIndicator, Alert, Dimensions, Modal, Platform, PermissionsAndroid,
-    Animated, Easing
+    Animated, Easing, LayoutAnimation, UIManager
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { useRef } from 'react';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop, Path } from 'react-native-svg';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -22,7 +26,8 @@ import {
     Trash2, FileText, Wrench, AlertCircle, User, Settings,
     ShieldCheck, Droplets, Cpu, CheckCircle2, Star, Tag, Gauge,
     Clock, FileCheck, Activity, IdCard, Weight, Building, Plus, Type,
-    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash, ChevronRight
+    Calendar, Bookmark, Upload, X, Download, Share2, Info, ChevronUp, ChevronDown, Hash, ChevronRight,
+    QrCode, CreditCard, Car
 } from 'lucide-react-native';
 
 import BackButton from '../../components/BackButton';
@@ -131,7 +136,7 @@ export const DetailsScreen = ({
 
     const getHealthStatus = (score: number) => {
         if (score >= 80) return { label: 'EXCELLENT', color: '#22C55E', desc: 'Your vehicle is in top shape. Maintenance is up to date.' };
-        if (score >= 50) return { label: 'GOOD', color: '#F59E0B', desc: 'Some parts need your attention soon to maintain peak performance.' };
+        if (score >= 50) return { label: 'GOOD', color: '#5F9EA0', desc: 'Some parts need your attention soon to maintain peak performance.' };
         return { label: 'CRITICAL', color: '#EF4444', desc: 'Immediate service recommended. Essential parts are overdue.' };
     };
 
@@ -586,7 +591,12 @@ export const DetailsScreen = ({
 
         return (
             <TouchableOpacity onPress={handlePress} style={styles.gloveboxItem}>
-                <View style={styles.gloveboxIconBox}>
+                <LinearGradient
+                    colors={['#25293A', '#131520']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.gloveboxIconBox}
+                >
                     {doc ? (
                         <Image 
                             source={{ uri: doc.imageUri }} 
@@ -595,9 +605,9 @@ export const DetailsScreen = ({
                             blurRadius={25}
                         />
                     ) : (
-                        Icon && <Icon size={20} color="#666" />
+                        Icon && <Icon size={20} color="#5F9EA0" />
                     )}
-                </View>
+                </LinearGradient>
                 <Text style={styles.gloveboxLabel} numberOfLines={1}>{label}</Text>
             </TouchableOpacity>
         );
@@ -613,7 +623,10 @@ export const DetailsScreen = ({
                     {(['Alerts', 'Details'] as MainTab[]).map(t => (
                         <TouchableOpacity
                             key={t}
-                            onPress={() => setMainTab(t)}
+                            onPress={() => {
+                                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                                setMainTab(t);
+                            }}
                             style={[styles.tabPill, mainTab === t && styles.tabPillActive]}
                         >
                             <Text style={[styles.tabPillText, mainTab === t && { color: '#000' }]}>{t}</Text>
@@ -637,17 +650,25 @@ export const DetailsScreen = ({
                 </View>
             </View>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: hp('12%') }} showsVerticalScrollIndicator={false}>
+            <ScrollView
+                contentContainerStyle={{ paddingBottom: hp('12%') }}
+                showsVerticalScrollIndicator={false}
+                overScrollMode="never"
+                scrollEventThrottle={16}
+                decelerationRate="normal"
+            >
                 {/* ── Hero section as per mockup ── */}
                 <View style={styles.heroSection}>
-                    <View style={styles.heroImageFrame}>
-                        <Image
-                            source={heroImageSource}
-                            style={styles.heroImage}
-                            resizeMode="cover"
-                            onError={() => setHeroError(true)}
-                        />
-                    </View>
+                    {mainTab === 'Alerts' && (
+                        <View style={styles.heroImageFrame}>
+                            <Image
+                                source={heroImageSource}
+                                style={styles.heroImage}
+                                resizeMode="cover"
+                                onError={() => setHeroError(true)}
+                            />
+                        </View>
+                    )}
 
                     <Text style={styles.brandName}>{activeVehicle.make?.toUpperCase() || 'VEHICLE'}</Text>
                     <Text style={styles.modelName}>{activeVehicle.model?.toUpperCase() || 'MODEL'}</Text>
@@ -726,28 +747,214 @@ export const DetailsScreen = ({
                 <View style={styles.sectionPad}>
                     {mainTab === 'Alerts' ? (
                         <>
-                            {/* ── Status List (Challans & Health) ── */}
-                            <View style={styles.statusVerticalStack}>
-                                <StatusCard
-                                    icon={FileText}
-                                    label="TRAFFIC CHALLANS"
-                                    value="Check your pending fines"
-                                    onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
-                                />
-                                {activeVehicle.isPrimary && (
-                                    <StatusCard
-                                        icon={ShieldCheck}
-                                        label="VEHICLE HEALTH"
-                                        value="Detailed health report"
+                            {/* ── Worry-Free Vehicle Ownership Command Center ── */}
+                            <View style={styles.ownershipSection}>
+                                <View style={styles.sectionHeaderRow}>
+                                    <Text style={styles.sectionHeading}>WORRY-FREE VEHICLE SERVICES</Text>
+                                    <Text style={styles.sectionSubHeading}>Real-time vehicle tools, policies & smart alerts</Text>
+                                </View>
+
+                                <View style={styles.ownershipGrid}>
+                                    {/* 1. Traffic Challans */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
+                                        onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgeFree}>
+                                                <Text style={styles.badgeFreeText}>FREE CHECK</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#FF453A', '#801510']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#FF6961' }]}
+                                            >
+                                                <FileText size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Traffic Challans</Text>
+                                            <Text style={styles.ownershipDesc}>Check & pay pending fines</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    {/* 2. Recharge FASTag */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
+                                        onPress={() => navigation.navigate('Fastag')}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgeInstant}>
+                                                <Text style={styles.badgeInstantText}>INSTANT</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#34C759', '#0E5221']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#54D675' }]}
+                                            >
+                                                <CreditCard size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Recharge FASTag</Text>
+                                            <Text style={styles.ownershipDesc}>Toll balance & top-up</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    {/* 3. Policies & Insurance */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
+                                        onPress={() => navigation.navigate('DocumentList')}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgeBlue}>
+                                                <Text style={styles.badgeBlueText}>{getInsuranceStatus() === 'VALID' ? 'PROTECTED' : 'RENEW'}</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#0A84FF', '#003A7A']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#409CFF' }]}
+                                            >
+                                                <ShieldCheck size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Policies & Insurance</Text>
+                                            <Text style={styles.ownershipDesc}>{getInsuranceStatus() === 'VALID' ? 'Policy Active & Valid' : 'Check Policy Renewal'}</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    {/* 4. Vehicle QR Code */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
+                                        onPress={() => navigation.navigate('MyVehicleQrCode', { vehicleId: activeVehicle.id, registrationNumber: activeVehicle.registrationNumber })}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgeNew}>
+                                                <Text style={styles.badgeNewText}>QR LINKED</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#5F9EA0', '#204547']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#7BB5B7' }]}
+                                            >
+                                                <QrCode size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Vehicle QR Code</Text>
+                                            <Text style={styles.ownershipDesc}>Owner contact & alerts</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    {/* 5. Service & Care */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
+                                        onPress={() => navigation.navigate('ServiceHistory')}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgePurple}>
+                                                <Text style={styles.badgePurpleText}>SERVICE</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#BF5AF2', '#5D197A']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#D383F5' }]}
+                                            >
+                                                <Wrench size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Service & History</Text>
+                                            <Text style={styles.ownershipDesc}>Maintenance & parts log</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    {/* 6. Expense Tracker */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
+                                        onPress={() => navigation.navigate('Expenses')}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgeOrange}>
+                                                <Text style={styles.badgeOrangeText}>EXPENSES</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#FF9F0A', '#804C00']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#FFB84D' }]}
+                                            >
+                                                <Gauge size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Expense Tracker</Text>
+                                            <Text style={styles.ownershipDesc}>Fuel & vehicle costs</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+
+                                    {/* 7. Vehicle Health */}
+                                    <TouchableOpacity
+                                        style={styles.ownershipCardContainer}
+                                        activeOpacity={0.82}
                                         onPress={() => navigation.navigate('WarrantyStatus')}
-                                    />
-                                )}
+                                    >
+                                        <LinearGradient
+                                            colors={['#1F2130', '#11121B']}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={styles.ownershipCardGradient}
+                                        >
+                                            <View style={styles.badgeGreen}>
+                                                <Text style={styles.badgeGreenText}>{healthVal}/100</Text>
+                                            </View>
+                                            <LinearGradient
+                                                colors={['#30D158', '#116124']}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={[styles.ownershipIconWrap, { borderColor: '#5FE07E' }]}
+                                            >
+                                                <Activity size={22} color="#FFFFFF" />
+                                            </LinearGradient>
+                                            <Text style={styles.ownershipTitle}>Vehicle Health</Text>
+                                            <Text style={styles.ownershipDesc}>{healthStatus.label} Condition</Text>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
 
-
-
-                            {/* ── Your GloverBox ── */}
-                            <View style={{ marginTop: hp('4%') }}>
+                            {/* ── Your Glovebox ── */}
+                            <View style={{ marginTop: hp('2%') }}>
                                 <Text style={styles.sectionHeading}>YOUR GLOVEBOX</Text>
                                 <View style={styles.gloveboxGrid}>
                                     <GloveboxImageItem label="reg certificate" icon={Upload} onPress={() => navigation.navigate('DocumentList')} />
@@ -767,12 +974,15 @@ export const DetailsScreen = ({
                     ) : (
                         /* ── Details Tab (Sub-Tab Navigation) ── */
                         <View>
-                            <View style={{ alignItems: 'center' }}>
+                            <View style={{ width: '100%' }}>
                                 <View style={styles.subTabNav}>
                                     {(['Health', 'Owner', 'Vehicle', 'Documents'] as SubTab[]).map(st => (
                                         <TouchableOpacity
                                             key={st}
-                                            onPress={() => setSubTab(st)}
+                                            onPress={() => {
+                                                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                                                setSubTab(st);
+                                            }}
                                             style={[styles.subTabItem, subTab === st && styles.subTabItemActive]}
                                         >
                                             <Text style={[styles.subTabText, subTab === st && styles.subTabTextActive]}>
@@ -807,12 +1017,12 @@ export const DetailsScreen = ({
                                                     <Defs>
                                                         <SvgGradient id="gaugeTrack" x1="0" y1="0" x2="1" y2="0">
                                                             <Stop offset="0" stopColor="#EF4444" stopOpacity="0.1" />
-                                                            <Stop offset="0.4" stopColor="#F59E0B" stopOpacity="0.1" />
+                                                            <Stop offset="0.4" stopColor="#5F9EA0" stopOpacity="0.1" />
                                                             <Stop offset="1" stopColor="#22C55E" stopOpacity="0.1" />
                                                         </SvgGradient>
                                                         <SvgGradient id="gaugeFill" x1="0" y1="0" x2="1" y2="0">
                                                             <Stop offset="0" stopColor="#EF4444" />
-                                                            <Stop offset="0.4" stopColor="#F59E0B" />
+                                                            <Stop offset="0.4" stopColor="#5F9EA0" />
                                                             <Stop offset="1" stopColor="#22C55E" />
                                                         </SvgGradient>
                                                     </Defs>
@@ -1304,7 +1514,7 @@ const styles = StyleSheet.create({
         marginHorizontal: wp('4%')
     },
     tabPill: { flex: 1, paddingVertical: hp('1%'), alignItems: 'center', borderRadius: wp('8%') },
-    tabPillActive: { backgroundColor: COLORS.primary },
+    tabPillActive: { backgroundColor: '#FFFFFF' },
     tabPillText: { fontSize: hp('1.5%'), fontFamily: 'Outfit-Black', color: '#888' },
 
     // Hero Section
@@ -1317,7 +1527,7 @@ const styles = StyleSheet.create({
 
     // Switcher Row
     switcherRow: { flexDirection: 'row', alignItems: 'center', gap: wp('4%'), marginTop: hp('5%'), paddingHorizontal: wp('6%'), paddingBottom: hp('3%') },
-    addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 215, 0, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: hp('0.15%'), borderColor: 'rgba(255, 215, 0, 0.2)' },
+    addCircleBtn: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), backgroundColor: 'rgba(255, 255, 255, 0.05)', alignItems: 'center', justifyContent: 'center', borderWidth: hp('0.15%'), borderColor: 'rgba(255, 255, 255, 0.2)' },
     miniCircleWrap: { alignItems: 'center', gap: hp('0.5%') },
     miniCircleInner: { width: wp('16%'), height: wp('16%'), borderRadius: wp('8%'), padding: wp('1%'), borderWidth: hp('0.2%'), borderColor: '#333', backgroundColor: '#1A1A1A', overflow: 'hidden' },
     miniCircleActive: { transform: [{ scale: 1.1 }] },
@@ -1328,7 +1538,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: wp('1%'),
         right: wp('1%'),
-        backgroundColor: COLORS.primary,
+        backgroundColor: '#FFFFFF',
         width: wp('4.5%'),
         height: wp('4.5%'),
         borderRadius: wp('2.25%'),
@@ -1342,7 +1552,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: wp('1.5%'),
-        backgroundColor: COLORS.primary,
+        backgroundColor: '#FFFFFF',
         paddingHorizontal: wp('4%'),
         paddingVertical: hp('0.8%'),
         borderRadius: wp('5%'),
@@ -1359,14 +1569,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: wp('1.5%'),
         borderWidth: hp('0.15%'),
-        borderColor: COLORS.primary,
+        borderColor: '#FFFFFF',
         paddingHorizontal: wp('4%'),
         paddingVertical: hp('0.8%'),
         borderRadius: wp('5%'),
         marginTop: hp('2%')
     },
     setPrimaryBtnText: {
-        color: COLORS.primary,
+        color: '#FFFFFF',
         fontSize: hp('1.4%'),
         fontFamily: 'Outfit-Bold'
     },
@@ -1395,10 +1605,10 @@ const styles = StyleSheet.create({
     viewAllDocsText: { color: COLORS.primary, fontSize: hp('1.6%'), fontFamily: 'Outfit-Black', textTransform: 'uppercase', letterSpacing: wp('0.4%') },
 
     // Health Score Styles
-    subTabNav: { flexDirection: 'row', paddingBottom: hp('3%'), gap: wp('2%'), justifyContent: 'center', alignItems: 'center' },
-    subTabItem: { paddingHorizontal: wp('4%'), paddingVertical: hp('1.2%'), borderRadius: wp('3%'), alignItems: 'center' },
-    subTabItemActive: { backgroundColor: 'rgba(255, 215, 0, 0.05)' },
-    subTabText: { fontSize: hp('1.4%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', textTransform: 'uppercase' },
+    subTabNav: { flexDirection: 'row', width: '100%', paddingBottom: hp('2.5%'), gap: wp('1%'), justifyContent: 'space-between', alignItems: 'center' },
+    subTabItem: { flex: 1, paddingVertical: hp('1.2%'), paddingHorizontal: wp('1%'), borderRadius: wp('3%'), alignItems: 'center', justifyContent: 'center' },
+    subTabItemActive: { backgroundColor: 'rgba(95, 158, 160, 0.1)' },
+    subTabText: { fontSize: hp('1.3%'), fontFamily: 'Outfit-Bold', color: '#8E8E93', textTransform: 'uppercase' },
     subTabTextActive: { color: COLORS.primary },
     subTabIndicator: { width: wp('4%'), height: hp('0.25%'), backgroundColor: COLORS.primary, marginTop: hp('0.5%'), borderRadius: wp('1%') },
 
@@ -1633,7 +1843,7 @@ const styles = StyleSheet.create({
         width: wp('9%'),
         height: wp('9%'),
         borderRadius: wp('4.5%'),
-        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        backgroundColor: 'rgba(95, 158, 160, 0.2)',
         alignItems: 'center',
         justifyContent: 'center'
     },
@@ -1883,5 +2093,185 @@ const styles = StyleSheet.create({
         fontSize: hp('1%'),
         color: '#166534',
         fontFamily: 'Outfit-Black'
+    },
+    ownershipSection: {
+        marginBottom: hp('3%'),
+    },
+    premiumHeaderBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: wp('2%'),
+    },
+    goldDot: {
+        width: wp('2%'),
+        height: wp('2%'),
+        borderRadius: wp('1%'),
+        backgroundColor: '#5F9EA0',
+    },
+    sectionHeaderRow: {
+        marginBottom: hp('1.8%'),
+    },
+    sectionSubHeading: {
+        fontSize: hp('1.35%'),
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Regular',
+        marginTop: hp('0.3%'),
+    },
+    ownershipGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    ownershipCardContainer: {
+        width: '48.5%',
+        borderRadius: wp('4.5%'),
+        marginBottom: hp('1.5%'),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    ownershipCardGradient: {
+        width: '100%',
+        borderRadius: wp('4.5%'),
+        padding: wp('4%'),
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.12)',
+        position: 'relative',
+    },
+    badgeFree: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(255, 69, 58, 0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 69, 58, 0.4)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgeFreeText: {
+        color: '#FF453A',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    badgeInstant: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(52, 199, 89, 0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(52, 199, 89, 0.4)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgeInstantText: {
+        color: '#34C759',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    badgeBlue: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(10, 132, 255, 0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(10, 132, 255, 0.4)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgeBlueText: {
+        color: '#0A84FF',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    badgeNew: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgeNewText: {
+        color: '#FFFFFF',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    badgePurple: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(191, 90, 242, 0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(191, 90, 242, 0.4)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgePurpleText: {
+        color: '#BF5AF2',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    badgeOrange: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(74, 124, 126, 0.4)',
+        borderWidth: 1,
+        borderColor: 'rgba(74, 124, 126, 0.8)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgeOrangeText: {
+        color: '#4A7C7E',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    badgeGreen: {
+        position: 'absolute',
+        top: wp('3%'),
+        right: wp('3%'),
+        backgroundColor: 'rgba(48, 209, 88, 0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(48, 209, 88, 0.4)',
+        paddingHorizontal: wp('1.8%'),
+        paddingVertical: hp('0.2%'),
+        borderRadius: wp('1.5%'),
+    },
+    badgeGreenText: {
+        color: '#30D158',
+        fontSize: hp('0.82%'),
+        fontFamily: 'Outfit-Bold',
+    },
+    ownershipIconWrap: {
+        width: wp('12.5%'),
+        height: wp('12.5%'),
+        borderRadius: wp('6.25%'),
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: hp('1.2%'),
+        borderWidth: 1.5,
+        overflow: 'hidden',
+    },
+    ownershipTitle: {
+        fontSize: hp('1.55%'),
+        color: '#FFFFFF',
+        fontFamily: 'Outfit-Bold',
+        marginBottom: hp('0.3%'),
+    },
+    ownershipDesc: {
+        fontSize: hp('1.18%'),
+        color: '#8E8E93',
+        fontFamily: 'Outfit-Regular',
+        lineHeight: hp('1.6%'),
     }
 });

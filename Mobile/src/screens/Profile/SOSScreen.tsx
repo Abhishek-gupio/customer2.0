@@ -366,7 +366,7 @@ const SOSScreen = () => {
       </View>
       {loading ? (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFD700" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingBannerText}>Initializing Secure SOS...</Text>
         </View>
       ) : null}
@@ -392,7 +392,7 @@ const SOSScreen = () => {
                <Marker 
                  coordinate={{ latitude: location.latitude, longitude: location.longitude }}
                  title="Your Current Location" 
-                 pinColor="#FFD700" 
+                 pinColor="#5F9EA0" 
                />
                
                {nearbyHelp.map((item, index) => item.location && (
@@ -407,7 +407,7 @@ const SOSScreen = () => {
              </MapView>
           ) : (
              <View style={styles.locationPendingWrap}>
-                 <ActivityIndicator size="small" color="#FFD700" />
+                 <ActivityIndicator size="small" color="#5F9EA0" />
                  <Text style={styles.locationPendingText}>Getting accurate location...</Text>
              </View>
           )}
@@ -425,7 +425,7 @@ const SOSScreen = () => {
               <Text style={styles.heroBadgeText}>ENCRYPTED</Text>
             </View>
             <View style={styles.heroChip}>
-              <Ionicons name="flash" size={14} color="#FFD700" />
+              <Ionicons name="flash" size={14} color="#5F9EA0" />
               <Text style={styles.heroChipText}>Priority 1</Text>
             </View>
           </View>
@@ -475,15 +475,15 @@ const SOSScreen = () => {
 
           <View style={styles.incidentActionRow}>
             <TouchableOpacity style={styles.incidentActionBtn} onPress={handleShareLocation}>
-              <Ionicons name="share-social" size={18} color="#FFD700" />
+              <Ionicons name="share-social" size={18} color="#5F9EA0" />
               <Text style={styles.incidentActionText}>Share location</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.incidentActionBtn} onPress={handleOpenCurrentLocation}>
-              <Ionicons name="map" size={18} color="#FFD700" />
+              <Ionicons name="map" size={18} color="#5F9EA0" />
               <Text style={styles.incidentActionText}>Open map</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.incidentActionBtn} onPress={handleCallPrimaryContact}>
-              <Ionicons name="call" size={18} color="#FFD700" />
+              <Ionicons name="call" size={18} color="#5F9EA0" />
               <Text style={styles.incidentActionText}>Call contact</Text>
             </TouchableOpacity>
           </View>
@@ -552,7 +552,7 @@ const SOSScreen = () => {
                 <Ionicons 
                   name={getIconForType(type)} 
                   size={18} 
-                  color={sosType === type ? '#000' : '#FFD700'} 
+                  color={sosType === type ? '#000' : '#5F9EA0'} 
                 />
                 <Text style={[styles.typeText, sosType === type && styles.typeTextActive]}>{type}</Text>
               </TouchableOpacity>
@@ -564,7 +564,7 @@ const SOSScreen = () => {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Nearby Response Resources</Text>
-            {searchingHelp && <ActivityIndicator size="small" color="#FFD700" />}
+            {searchingHelp && <ActivityIndicator size="small" color="#5F9EA0" />}
           </View>
 
           {nearbyHelp.length === 0 ? (
@@ -624,7 +624,7 @@ const SOSScreen = () => {
                   <Ionicons 
                     name="mail" 
                     size={18} 
-                    color={contact.email ? "#FFD700" : "rgba(255, 255, 255, 0.2)"} 
+                    color={contact.email ? "#5F9EA0" : "rgba(255, 255, 255, 0.2)"} 
                     onPress={() => {
                       if (contact.email) {
                         Linking.openURL(`mailto:${contact.email}?subject=Emergency Update`);
@@ -657,7 +657,7 @@ const getNearbyColor = (type?: string) => {
     case 'hospital': return '#ef4444';
     case 'police': return '#3b82f6';
     case 'fire_station': return '#f97316';
-    default: return '#6b7280';
+    default: return '#4a7c7e';
   }
 };
 
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
   },
   loaderText: {
     marginTop: 20,
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontSize: 16,
     fontFamily: 'Outfit-Bold',
   },
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   loadingBannerText: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontSize: wp(3.4),
     fontFamily: 'Outfit-Medium',
     marginTop: hp(1.2),
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: '#5F9EA0',
   },
   headerAvatarPlaceholder: {
     width: 38,
@@ -764,7 +764,7 @@ const styles = StyleSheet.create({
     borderRadius: wp(6),
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.1)',
+    borderColor: 'rgba(95, 158, 160,0.2)',
     marginBottom: hp(2),
   },
   map: {
@@ -822,13 +822,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: wp(1.5),
-    backgroundColor: "rgba(255, 215, 0, 0.08)",
+    backgroundColor: "rgba(95, 158, 160, 0.16)",
     paddingHorizontal: wp(3.5),
     paddingVertical: hp(0.6),
     borderRadius: wp(5),
   },
   heroChipText: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.4),
   },
@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: '#5F9EA0',
   },
   pulseRingVisible: {
     opacity: 0.3,
@@ -852,20 +852,20 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: "rgba(255, 215, 0, 0.03)",
+    backgroundColor: "rgba(95, 158, 160, 0.06)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 0.5,
-    borderColor: "rgba(255, 215, 0, 0.1)",
+    borderColor: "rgba(95, 158, 160, 0.2)",
   },
   sosButton: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#FFD700",
+    backgroundColor: "#5F9EA0",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#FFD700",
+    shadowColor: "#5F9EA0",
     shadowOpacity: 0.8,
     shadowRadius: 20,
     elevation: 15,
@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(1.5),
   },
   sectionMeta: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
   },
@@ -953,17 +953,17 @@ const styles = StyleSheet.create({
   },
   incidentActionBtn: {
     flex: 1,
-    backgroundColor: 'rgba(255,215,0,0.06)',
+    backgroundColor: 'rgba(95, 158, 160,0.12)',
     borderRadius: wp(4),
     paddingVertical: hp(1.4),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.15)',
+    borderColor: 'rgba(95, 158, 160,0.3)',
     gap: hp(0.6),
   },
   incidentActionText: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Medium',
     fontSize: wp(2.8),
     textAlign: 'center',
@@ -980,14 +980,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,215,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3),
     marginTop: 1,
   },
   guideIndexText: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Bold',
     fontSize: wp(2.9),
   },
@@ -1022,15 +1022,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     borderRadius: wp(5),
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.1)',
+    borderColor: 'rgba(95, 158, 160,0.2)',
   },
   typeButtonActive: {
-    backgroundColor: '#FFD700',
-    borderColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
+    borderColor: '#5F9EA0',
   },
   typeText: {
     marginLeft: wp(2),
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Medium',
     fontSize: wp(3.2),
   },
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   nearbyMeta: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontFamily: 'Outfit-Medium',
     fontSize: wp(2.6),
     marginTop: hp(0.7),
@@ -1088,13 +1088,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "rgba(255, 215, 0, 0.1)",
+    backgroundColor: "rgba(95, 158, 160, 0.2)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: wp(3),
   },
   contactAvatarText: {
-    color: "#FFD700",
+    color: "#5F9EA0",
     fontFamily: 'Outfit-Bold',
     fontSize: wp(3.5),
   },

@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   flagBlueDot: {
     width: 6,
     height: 6,
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 3,
     marginBottom: 2,
   },

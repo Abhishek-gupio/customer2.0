@@ -209,7 +209,7 @@ export default function TermsConditions() {
               style={styles.contactBtn}
               onPress={() => Linking.openURL('mailto:legal@gupio.io')}
             >
-              <Icon name="envelope" size={12} color="#FFD700" />
+              <Icon name="envelope" size={12} color="#5F9EA0" />
               <Text style={styles.contactBtnText}>Email Legal</Text>
             </TouchableOpacity>
             
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
-  versionBadgeText: { fontSize: wp(2.5), color: '#FFD700', fontFamily: 'Outfit-Bold' },
+  versionBadgeText: { fontSize: wp(2.5), color: '#5F9EA0', fontFamily: 'Outfit-Bold' },
   headerSubtitle: { fontSize: wp(3), color: '#888', fontFamily: 'Outfit-Medium' },
   
   scroll: { flex: 1 },
@@ -291,14 +291,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3),
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
+    borderColor: 'rgba(95, 158, 160, 0.6)',
   },
-  indexText: { color: '#FFD700', fontSize: wp(3.2), fontFamily: 'Outfit-Bold' },
+  indexText: { color: '#5F9EA0', fontSize: wp(3.2), fontFamily: 'Outfit-Bold' },
   sectionTitle: { fontSize: wp(4.2), color: '#fff', fontFamily: 'Outfit-Bold' },
   sectionBody: { borderTopWidth: 0.5, borderTopColor: 'rgba(255,255,255,0.05)', paddingTop: hp(1.5) },
   
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(0.5),
   },
   bulletRow: { flexDirection: 'row', marginBottom: hp(0.8), paddingRight: wp(5) },
-  bullet: { color: '#FFD700', marginRight: wp(3), fontSize: wp(4) },
+  bullet: { color: '#5F9EA0', marginRight: wp(3), fontSize: wp(4) },
   bulletText: { flex: 1, fontSize: wp(3.6), color: '#bbb', fontFamily: 'Outfit-Regular' },
 
   contactFooter: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     padding: wp(5),
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.1)',
+    borderColor: 'rgba(95, 158, 160, 0.2)',
   },
   footerHeading: { fontSize: wp(4), color: '#fff', fontFamily: 'Outfit-Bold', marginBottom: hp(0.5) },
   footerSubText: { fontSize: wp(3), color: '#888', textAlign: 'center', marginBottom: hp(2) },
@@ -334,17 +334,17 @@ const styles = StyleSheet.create({
   contactBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    backgroundColor: 'rgba(95, 158, 160, 0.1)',
     paddingHorizontal: wp(3.5),
     paddingVertical: hp(1),
     borderRadius: wp(3),
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
     gap: wp(2),
   },
   supportBtn: {
     backgroundColor: '#4CAF50',
     borderColor: '#45a049',
   },
-  contactBtnText: { color: '#FFD700', fontSize: wp(3.2), fontFamily: 'Outfit-Bold' },
+  contactBtnText: { color: '#5F9EA0', fontSize: wp(3.2), fontFamily: 'Outfit-Bold' },
 });

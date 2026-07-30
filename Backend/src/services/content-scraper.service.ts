@@ -157,8 +157,7 @@ export const contentScraperService = {
     },
 
     /**
-     * Fetches latest automotive news via Google News RSS
-     * Updated to return exactly 2 items as requested.
+     * Fetches latest automotive news via Rushlane RSS.
      */
     async fetchCarNews(): Promise<any[]> {
         logger.info("🗞️ Fetching Car News from Rushlane...");
@@ -171,7 +170,7 @@ export const contentScraperService = {
             const raw: RawNews[] = [];
             
             $("item").each((i, item) => {
-                if (i >= 10) return; 
+                if (i >= 30) return;
 
                 const fullTitle = $(item).find("title").text();
                 const link = $(item).find("link").text();
@@ -260,12 +259,12 @@ export const contentScraperService = {
                 for (const m of matches) {
                     const id = m.replace(/.*"videoId":"([a-zA-Z0-9_-]{11})".*/, "$1");
                     if (id && !idSet.has(id)) idSet.add(id);
-                    if (idSet.size >= 18) break;
+                    if (idSet.size >= 40) break;
                 }
-                if (idSet.size >= 18) break;
+                if (idSet.size >= 40) break;
             }
 
-            const ids = Array.from(idSet).slice(0, 12);
+            const ids = Array.from(idSet).slice(0, 24);
             if (ids.length === 0) return [];
 
             // 2) Resolve title/channel dynamically via oEmbed.
@@ -299,7 +298,7 @@ export const contentScraperService = {
                 }),
             );
 
-            return resolved.slice(0, 8);
+            return resolved.slice(0, 24);
         } catch (err) {
             logger.error({ err }, "❌ Video feed fetch failed");
             return [];

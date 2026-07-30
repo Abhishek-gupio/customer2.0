@@ -461,8 +461,8 @@ const styles = StyleSheet.create({
   },
   permissionCard: {
     width: '100%',
-    backgroundColor: 'rgba(255,191,0,0.12)',
-    borderColor: 'rgba(255,191,0,0.4)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
+    borderColor: 'rgba(95, 158, 160,0.8)',
     borderWidth: 1,
     borderRadius: 16,
     padding: 16,
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   },
   permissionButton: {
     alignSelf: 'center',
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 10,
     paddingHorizontal: wp(6),
     paddingVertical: hp(1.2),
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   resendButton: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 10,
     paddingHorizontal: wp(6),
     paddingVertical: hp(1.2),
@@ -575,10 +575,10 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     width: '100%',
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 18,
     height: 62,
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 10,

@@ -207,6 +207,9 @@ export default function CheckChallan() {
           contentContainerStyle={[styles.scrollContent, isFocused && { paddingTop: hp(2) }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+          scrollEventThrottle={16}
+          decelerationRate="normal"
           scrollEnabled={!isFocused}
         >
           {/* Animated Hero Section */}
@@ -371,7 +374,7 @@ const styles = StyleSheet.create({
     width: wp(20),
     height: wp(20),
     borderRadius: wp(10),
-    backgroundColor: 'rgba(255,191,0,0.05)',
+    backgroundColor: 'rgba(95, 158, 160,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -458,12 +461,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Black',
   },
   primaryBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 18,
     height: 62,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

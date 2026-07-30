@@ -723,7 +723,7 @@ export default function DrivingSummary({ navigation }: any) {
     const getScoreColor = (val: number | null) => {
         if (val === null) return '#444';
         if (val >= 85) return '#10B981';
-        if (val >= 70) return '#FFBF00';
+        if (val >= 70) return '#5F9EA0';
         return '#EF4444';
     };
 
@@ -769,7 +769,7 @@ export default function DrivingSummary({ navigation }: any) {
                                 <Text style={styles.sectionLabelPremium}>SAFETY PERFORMANCE</Text>
                             </View>
                             <TouchableOpacity onPress={() => fetchTelemetry(true)} activeOpacity={0.7} style={styles.refreshBadge}>
-                                <Icon name="sync-alt" size={wp(3)} color="#FFBF00" />
+                                <Icon name="sync-alt" size={wp(3)} color="#5F9EA0" />
                             </TouchableOpacity>
                         </View>
                         
@@ -795,7 +795,7 @@ export default function DrivingSummary({ navigation }: any) {
                                 {/* HUB CONTENT */}
                                 <View style={styles.gaugeContent}>
                                     {loading ? (
-                                        <ActivityIndicator size="small" color="#FFBF00" />
+                                        <ActivityIndicator size="small" color="#5F9EA0" />
                                     ) : (
                                         <View style={styles.scoreHub}>
                                             <Text style={[styles.scoreBigPremium, { color: getScoreColor(score), textShadowColor: getScoreColor(score) + '40', textShadowRadius: 10 }]}>
@@ -851,12 +851,12 @@ export default function DrivingSummary({ navigation }: any) {
                 <View style={styles.gridContainer}>
                     <View style={styles.gridRow}>
                         <View style={styles.gridCard}>
-                            <Icon name="road" size={wp(5)} color="#FFBF00" />
+                            <Icon name="road" size={wp(5)} color="#5F9EA0" />
                             <Text style={styles.gridVal}>{metrics.distance}</Text>
                             <Text style={styles.gridLab}>Distance</Text>
                         </View>
                         <View style={styles.gridSubtitleCard}>
-                            <Icon name="clock" size={wp(5)} color="#FFBF00" />
+                            <Icon name="clock" size={wp(5)} color="#5F9EA0" />
                             <Text style={styles.gridVal}>{metrics.duration}</Text>
                             <Text style={styles.gridLab}>Duration</Text>
                         </View>
@@ -867,8 +867,8 @@ export default function DrivingSummary({ navigation }: any) {
                             <Text style={styles.gridVal}>{metrics.harshBraking}</Text>
                             <Text style={styles.gridLab}>Harsh Braking</Text>
                         </View>
-                        <View style={[styles.gridCard, { borderLeftColor: '#F59E0B', borderLeftWidth: 3 }]}>
-                            <MaterialIcon name="speedometer" size={wp(6)} color="#F59E0B" />
+                        <View style={[styles.gridCard, { borderLeftColor: '#5F9EA0', borderLeftWidth: 3 }]}>
+                            <MaterialIcon name="speedometer" size={wp(6)} color="#5F9EA0" />
                             <Text style={styles.gridVal}>{metrics.hardAccel}</Text>
                             <Text style={styles.gridLab}>Hard Accel</Text>
                         </View>
@@ -917,7 +917,7 @@ export default function DrivingSummary({ navigation }: any) {
 
                 {!linkDone && primaryVehicle && (
                     <TouchableOpacity style={styles.linkCard} onPress={handleLinkDevice} disabled={linkLoading}>
-                        <LinearGradient colors={['#FFBF00', '#F59E0B']} style={styles.linkGrad} start={{x:0, y:0}} end={{x:1, y:1}}>
+                        <LinearGradient colors={['#5F9EA0', '#5F9EA0']} style={styles.linkGrad} start={{x:0, y:0}} end={{x:1, y:1}}>
                             <View style={styles.linkInfo}>
                                 <Text style={styles.linkTitle}>Link Your Device</Text>
                                 <Text style={styles.linkDesc}>
@@ -986,7 +986,7 @@ export default function DrivingSummary({ navigation }: any) {
 
                         {locationServicesEnabled === false && (
                             <View style={styles.locationWarningBanner}>
-                                <MaterialIcon name="crosshairs-gps" size={wp(4.3)} color="#FFBF00" />
+                                <MaterialIcon name="crosshairs-gps" size={wp(4.3)} color="#5F9EA0" />
                                 <View style={styles.locationWarningContent}>
                                     <Text style={styles.locationWarningTitle}>Location is off</Text>
                                     <Text style={styles.locationWarningText}>
@@ -1080,8 +1080,8 @@ export default function DrivingSummary({ navigation }: any) {
                         <View style={styles.tipsSection}>
                             {latestTrip.moneyTip && (
                                 <View style={styles.insightBox}>
-                                    <View style={[styles.insightIconWrap, { backgroundColor: 'rgba(255,191,0,0.1)' }]}>
-                                        <Icon name="rupee-sign" size={wp(3)} color="#FFBF00" />
+                                    <View style={[styles.insightIconWrap, { backgroundColor: 'rgba(95, 158, 160,0.2)' }]}>
+                                        <Icon name="rupee-sign" size={wp(3)} color="#5F9EA0" />
                                     </View>
                                     <Text style={styles.insightText} numberOfLines={2}>{latestTrip.moneyTip}</Text>
                                 </View>
@@ -1117,7 +1117,7 @@ export default function DrivingSummary({ navigation }: any) {
                         
                         <View style={styles.mapWrapper}>
                             {latestPathLoading ? (
-                                <View style={styles.mapLoader}><ActivityIndicator color="#FFBF00" /></View>
+                                <View style={styles.mapLoader}><ActivityIndicator color="#5F9EA0" /></View>
                             ) : (
                                 <MapView
                                     ref={latestMapRef}
@@ -1133,7 +1133,7 @@ export default function DrivingSummary({ navigation }: any) {
                                             <Polyline 
                                                 coordinates={latestPath.map(p => ({ latitude: Number(p.lat), longitude: Number(p.lon) }))} 
                                                 strokeWidth={4} 
-                                                strokeColor="#FFBF00" 
+                                                strokeColor="#5F9EA0" 
                                             />
                                             <Marker coordinate={{ latitude: Number(latestPath[0].lat), longitude: Number(latestPath[0].lon) }}>
                                                 <View style={styles.markerContainer}>
@@ -1156,11 +1156,11 @@ export default function DrivingSummary({ navigation }: any) {
                                                 let label = 'EVENT';
 
                                                 if (eventType.includes('speed')) { 
-                                                    icon = 'tachometer-alt'; color = '#F59E0B'; label = 'SPEEDING'; 
+                                                    icon = 'tachometer-alt'; color = '#5F9EA0'; label = 'SPEEDING'; 
                                                 } else if (eventType.includes('braking')) { 
                                                     icon = 'car-brake-alert'; color = '#EF4444'; label = 'BRAKING'; 
                                                 } else if (eventType.includes('acceleration')) { 
-                                                    icon = 'bolt'; color = '#FFBF00'; label = 'ACCEL'; 
+                                                    icon = 'bolt'; color = '#5F9EA0'; label = 'ACCEL'; 
                                                 } else if (eventType.includes('cornering')) {
                                                     icon = 'vector-square'; color = '#818CF8'; label = 'CORNER';
                                                 } else if (eventType.includes('phone')) {
@@ -1192,7 +1192,7 @@ export default function DrivingSummary({ navigation }: any) {
                             </TouchableOpacity>
                         </View>
                         <View style={styles.addressFooter}>
-                            <MaterialIcon name="place" size={wp(3.5)} color="#FFBF00" />
+                            <MaterialIcon name="place" size={wp(3.5)} color="#5F9EA0" />
                             <Text style={styles.addressText} numberOfLines={1}>
                                 {mapFooterAddress}
                             </Text>
@@ -1233,7 +1233,7 @@ export default function DrivingSummary({ navigation }: any) {
                                 <Polyline 
                                     coordinates={latestPath.map(p => ({ latitude: Number(p.lat), longitude: Number(p.lon) }))} 
                                     strokeWidth={5} 
-                                    strokeColor="#FFBF00" 
+                                    strokeColor="#5F9EA0" 
                                 />
                                 <Marker coordinate={{ latitude: Number(latestPath[0].lat), longitude: Number(latestPath[0].lon) }}>
                                     <View style={styles.markerContainer}>
@@ -1254,11 +1254,11 @@ export default function DrivingSummary({ navigation }: any) {
                                     let label = 'EVENT';
 
                                     if (eventType.includes('speed')) { 
-                                        icon = 'tachometer-alt'; color = '#F59E0B'; label = 'SPEEDING'; 
+                                        icon = 'tachometer-alt'; color = '#5F9EA0'; label = 'SPEEDING'; 
                                     } else if (eventType.includes('braking')) { 
                                         icon = 'car-brake-alert'; color = '#EF4444'; label = 'BRAKING'; 
                                     } else if (eventType.includes('acceleration')) { 
-                                        icon = 'bolt'; color = '#FFBF00'; label = 'ACCEL'; 
+                                        icon = 'bolt'; color = '#5F9EA0'; label = 'ACCEL'; 
                                     } else if (eventType.includes('cornering')) {
                                         icon = 'vector-square'; color = '#818CF8'; label = 'CORNER';
                                     } else if (eventType.includes('phone')) {
@@ -1384,7 +1384,7 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: 'rgba(255,191,0,0.1)',
+        backgroundColor: 'rgba(95, 158, 160,0.2)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -1656,8 +1656,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.03)',
     },
     providerToggleBtnActive: {
-        borderColor: '#FFBF00',
-        backgroundColor: 'rgba(255,191,0,0.18)',
+        borderColor: '#5F9EA0',
+        backgroundColor: 'rgba(95, 158, 160,0.36)',
     },
     providerToggleText: {
         fontFamily: 'Outfit-Bold',
@@ -1665,7 +1665,7 @@ const styles = StyleSheet.create({
         color: '#d1d1d1',
     },
     providerToggleTextActive: {
-        color: '#FFBF00',
+        color: '#5F9EA0',
     },
     inHouseRecorderCard: {
         marginHorizontal: wp(5),
@@ -1674,7 +1674,7 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         backgroundColor: '#111',
         borderWidth: 1,
-        borderColor: 'rgba(255,191,0,0.25)',
+        borderColor: 'rgba(95, 158, 160,0.5)',
     },
     inHouseRecorderHeader: {
         flexDirection: 'row',
@@ -1715,8 +1715,8 @@ const styles = StyleSheet.create({
         marginBottom: hp(0.8),
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255,191,0,0.3)',
-        backgroundColor: 'rgba(255,191,0,0.08)',
+        borderColor: 'rgba(95, 158, 160,0.6)',
+        backgroundColor: 'rgba(95, 158, 160,0.16)',
         paddingHorizontal: wp(3.5),
         paddingVertical: hp(1),
         flexDirection: 'row',
@@ -1729,13 +1729,13 @@ const styles = StyleSheet.create({
     locationWarningTitle: {
         fontFamily: 'Outfit-Bold',
         fontSize: wp(3.1),
-        color: '#FFE29A',
+        color: '#A9CCCC',
         marginBottom: hp(0.15),
     },
     locationWarningText: {
         fontFamily: 'Outfit-Medium',
         fontSize: wp(2.9),
-        color: '#E7D7A7',
+        color: '#A9CCCC',
         lineHeight: hp(1.9),
     },
     autoModeRow: {
@@ -1773,10 +1773,10 @@ const styles = StyleSheet.create({
         paddingVertical: hp(1.2),
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFBF00',
+        backgroundColor: '#5F9EA0',
     },
     inHouseRecorderButtonStop: {
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#5F9EA0',
     },
     inHouseRecorderButtonText: {
         fontFamily: 'Outfit-Bold',
@@ -1931,17 +1931,17 @@ const styles = StyleSheet.create({
         marginBottom: hp(2),
     },
     cityBadge: {
-        backgroundColor: 'rgba(255,191,0,0.1)',
+        backgroundColor: 'rgba(95, 158, 160,0.2)',
         paddingHorizontal: wp(3),
         paddingVertical: hp(0.5),
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: 'rgba(255,191,0,0.2)',
+        borderColor: 'rgba(95, 158, 160,0.4)',
     },
     cityText: {
         fontFamily: 'Outfit-Bold',
         fontSize: wp(3),
-        color: '#FFBF00',
+        color: '#5F9EA0',
     },
     addressFooter: {
         flexDirection: 'row',

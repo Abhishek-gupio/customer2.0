@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -26,6 +27,7 @@ function generateIdempotencyKey(): string {
 
 export default function DoorstepBookingScreen() {
   const navigation = useNavigation<any>();
+  const tabBarHeight = useBottomTabBarHeight();
   const notifyBookingChanged = useCarwashStore((s) => s.notifyBookingChanged);
 
   const [partners, setPartners] = useState<WashPartnerOption[]>([]);
@@ -93,6 +95,14 @@ export default function DoorstepBookingScreen() {
 
   const canSubmit = !!partnerId && addressLine.trim().length > 0;
 
+  const bookBtnLabel = booking
+    ? 'Processing…'
+    : !partnerId
+      ? 'No wash partner available'
+      : addressLine.trim().length === 0
+        ? 'Enter your address'
+        : 'Book & Pay';
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -116,7 +126,7 @@ export default function DoorstepBookingScreen() {
 
         <Text style={styles.sectionTitle}>Wash partner</Text>
         {loadingPartners ? (
-          <ActivityIndicator color="#FFBF00" style={{ marginVertical: hp(1.5) }} />
+          <ActivityIndicator color="#5F9EA0" style={{ marginVertical: hp(1.5) }} />
         ) : partners.length === 0 ? (
           <Text style={styles.emptyText}>No doorstep wash partners available in your area yet.</Text>
         ) : (
@@ -135,7 +145,7 @@ export default function DoorstepBookingScreen() {
 
         <Text style={styles.sectionTitle}>Address</Text>
         <View style={styles.addressInputWrap}>
-          <IconMC name="map-marker-outline" size={wp(4.5)} color="#FFBF00" />
+          <IconMC name="map-marker-outline" size={wp(4.5)} color="#5F9EA0" />
           <TextInput
             value={addressLine}
             onChangeText={setAddressLine}
@@ -154,14 +164,14 @@ export default function DoorstepBookingScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: wp(5) + tabBarHeight }]}>
         <TouchableOpacity
           style={[styles.bookBtn, !canSubmit && styles.bookBtnDisabled]}
           activeOpacity={0.85}
           onPress={handleBookAndPay}
           disabled={booking || !canSubmit}
         >
-          <Text style={styles.bookBtnText}>{booking ? 'Processing…' : 'Book & Pay'}</Text>
+          <Text style={[styles.bookBtnText, !canSubmit && styles.bookBtnTextDisabled]}>{bookBtnLabel}</Text>
         </TouchableOpacity>
       </View>
       <LoadingSpinner visible={booking} />
@@ -177,7 +187,7 @@ const styles = StyleSheet.create({
   sectionTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.8), marginBottom: hp(1.2), marginTop: hp(1) },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(2), marginBottom: hp(1) },
   chip: { paddingHorizontal: wp(3.5), paddingVertical: hp(0.9), borderRadius: 12, backgroundColor: '#141414', borderWidth: 1, borderColor: '#2a2a2a' },
-  chipActive: { backgroundColor: '#FFBF00', borderColor: '#FFBF00' },
+  chipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   chipText: { color: '#aaa', fontFamily: 'Outfit-Medium', fontSize: wp(3.2) },
   chipTextActive: { color: '#111', fontFamily: 'Outfit-Bold' },
   emptyText: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.3), marginBottom: hp(1) },
@@ -206,7 +216,8 @@ const styles = StyleSheet.create({
   },
   infoBannerText: { flex: 1, color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3), lineHeight: wp(4.3) },
   footer: { padding: wp(5), borderTopWidth: 1, borderTopColor: '#1a1a1a' },
-  bookBtn: { backgroundColor: '#FFBF00', borderRadius: 16, paddingVertical: hp(1.8), alignItems: 'center' },
+  bookBtn: { backgroundColor: '#5F9EA0', borderRadius: 16, paddingVertical: hp(1.8), alignItems: 'center' },
   bookBtnDisabled: { backgroundColor: '#333' },
   bookBtnText: { color: '#111', fontFamily: 'Outfit-Black', fontSize: wp(4) },
+  bookBtnTextDisabled: { color: '#999' },
 });

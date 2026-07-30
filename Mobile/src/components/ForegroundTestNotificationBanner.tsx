@@ -18,6 +18,8 @@ export default function ForegroundTestNotificationBanner() {
   const chimeTimerRef = useRef<any>(null);
   const autoDismissTimerRef = useRef<any>(null);
 
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+
   useEffect(() => {
     Tts.getInitStatus().then(() => {
       Tts.setDefaultLanguage('en-US').catch(() => {});
@@ -25,12 +27,13 @@ export default function ForegroundTestNotificationBanner() {
     }).catch(() => {});
 
     // Continuous pulse effect on emergency alert icon
-    Animated.loop(
+    pulseLoopRef.current = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.18, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.18, duration: 800, useNativeDriver: false }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: false }),
       ])
-    ).start();
+    );
+    pulseLoopRef.current.start();
 
     const start15SecChimeRingtone = (textToAnnounce: string) => {
       let elapsedMs = 0;
@@ -57,6 +60,7 @@ export default function ForegroundTestNotificationBanner() {
     const stopRingtone = () => {
       if (chimeTimerRef.current) clearInterval(chimeTimerRef.current);
       if (autoDismissTimerRef.current) clearTimeout(autoDismissTimerRef.current);
+      try { pulseLoopRef.current?.stop(); } catch (e) {}
       try { Tts.stop(); } catch (e) {}
     };
 
@@ -140,7 +144,7 @@ export default function ForegroundTestNotificationBanner() {
             <View style={styles.centerIconWrap}>
               <Animated.View style={[styles.pulseCircle, { transform: [{ scale: pulseAnim }] }]} />
               <LinearGradient
-                colors={['#FFD700', '#FF9900']}
+                colors={['#FFFFFF', '#A9CCCC']}
                 style={styles.iconCircle}
               >
                 <IconMC name="car-emergency" size={36} color="#0d0e17" />
@@ -175,7 +179,7 @@ export default function ForegroundTestNotificationBanner() {
                 }}
               >
                 <LinearGradient
-                  colors={['#FFD700', '#FFA500']}
+                  colors={['#FFFFFF', '#E5E7EB']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.viewMessageBtn}
@@ -205,10 +209,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 215, 0, 0.45)',
-    shadowColor: '#FFD700',
+    borderColor: 'rgba(255, 255, 255, 0.45)',
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 16,
   },
@@ -226,22 +230,22 @@ const styles = StyleSheet.create({
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 215, 0, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.35)',
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   liveDot: {
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#FFFFFF',
     marginRight: 7,
   },
   liveBadgeText: {
-    color: '#FFD700',
+    color: '#FFFFFF',
     fontSize: 11,
     fontFamily: 'Outfit-Bold',
     letterSpacing: 0.8,
@@ -258,13 +262,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 12,
+    width: 80,
+    height: 80,
   },
   pulseCircle: {
     position: 'absolute',
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: 'rgba(255, 215, 0, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   iconCircle: {
     width: 68,
@@ -272,11 +278,11 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFD700',
+    elevation: 8,
+    shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
-    elevation: 6,
   },
   modalTitle: {
     color: '#FFFFFF',

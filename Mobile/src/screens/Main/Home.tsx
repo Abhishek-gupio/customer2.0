@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTheme } from '../../theme/ThemeContext';
 import {
   Animated,
   BackHandler,
@@ -43,7 +44,7 @@ import { GEO } from '../../config';
 import { getLastOdometerUpdate } from '../../services/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchDocuments } from '../../store/slices/documentsSlice';
-import { styles } from './homeStyles';
+import { createStyles } from './homeStyles';
 import {
   ComingSoonSection,
   ChallanBanner,
@@ -83,6 +84,8 @@ import {
 const PLACEHOLDERS = ['MH01CH4322', 'AP39CH5621', 'UP31CH4259'];
 
 export default function Home() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const dispatch = useAppDispatch();
   const documents = useAppSelector(state => state.documents.documents);
   const navigation =
@@ -477,6 +480,8 @@ export default function Home() {
         handleHelpPress();
       } else if (id === 'tripcost' || id === 'trip_planner') {
         navigateToRootScreen('TripExpense');
+      } else if (id === 'more') {
+        navigation.navigate('Services' as any);
       }
     },
     [
@@ -529,6 +534,22 @@ export default function Home() {
       console.error('Error opening URL:', error);
     }
   }, []);
+
+  const handleViewMoreVideos = useCallback(() => {
+    (navigation as any).navigate('TrendingList', {
+      type: 'videos',
+      title: 'Trending Videos',
+      items: trendingVideos,
+    });
+  }, [navigation, trendingVideos]);
+
+  const handleViewMoreNews = useCallback(() => {
+    (navigation as any).navigate('TrendingList', {
+      type: 'news',
+      title: 'Trending News',
+      items: trendingNews,
+    });
+  }, [navigation, trendingNews]);
 
 
   const handleStateSelect = useCallback(
@@ -586,7 +607,7 @@ export default function Home() {
         : 'Ready';
   const documentAccent =
     missingDocumentTypes.length > 0
-      ? '#f59e0b'
+      ? '#5f9ea0'
       : documentsNeedingReview.length > 0
         ? '#fb7185'
         : '#22c55e';
@@ -617,7 +638,7 @@ export default function Home() {
     serviceAlertCount > 0
       ? '#fb7185'
       : serviceDueSoonCount > 0
-        ? '#f59e0b'
+        ? '#5f9ea0'
         : '#4ade80';
   const serviceTitle = vehicle
     ? serviceAlertCount > 0
@@ -643,7 +664,7 @@ export default function Home() {
       : monthlyExpenseCount > 0
         ? 'Monthly spend'
         : 'Cost view';
-  const spendAccent = expenseAlertCount > 0 ? '#f59e0b' : '#60a5fa';
+  const spendAccent = expenseAlertCount > 0 ? '#5f9ea0' : '#60a5fa';
   const spendSummary =
     monthlySpendTotal !== null && monthlyExpenseCount > 0
       ? `${expenseHeadline} ${fuelSummary}`
@@ -728,7 +749,7 @@ export default function Home() {
         accent:
           !lastOdometerUpdate ||
           (odometerAgeDays !== null && odometerAgeDays > 7)
-            ? '#f59e0b'
+            ? '#5f9ea0'
             : '#38bdf8',
         badge: !lastOdometerUpdate
           ? 'Missing'
@@ -966,8 +987,8 @@ export default function Home() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#FFBF00"
-            colors={['#FFBF00']}
+            tintColor="#5F9EA0"
+            colors={['#5F9EA0']}
           />
         }
       >
@@ -1064,6 +1085,7 @@ export default function Home() {
           selectedVideoId={selectedVideo?.id}
           onVideoPress={handleVideoPress}
           getYouTubeVideoId={getYouTubeVideoId}
+          onViewMorePress={handleViewMoreVideos}
         />
 
         <FuelPricesSection
@@ -1079,6 +1101,7 @@ export default function Home() {
           news={trendingNews}
           loading={discoveryLoading}
           onNewsPress={handleNewsPress}
+          onViewMorePress={handleViewMoreNews}
         />
 
         <ComingSoonSection />

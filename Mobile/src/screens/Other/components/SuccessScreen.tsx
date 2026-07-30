@@ -98,7 +98,7 @@ const SuccessScreen = ({
     <View style={styles.container}>
       <Animated.View style={[styles.card, { transform: [{ scale }], opacity }]}>
         <View style={styles.iconContainer}>
-          <CheckCircle2 size={60} color="#FFD700" />
+          <CheckCircle2 size={60} color="#5F9EA0" />
         </View>
 
         <Text style={styles.title}>Trip Summary</Text>
@@ -109,7 +109,7 @@ const SuccessScreen = ({
           {/* Route Info */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <MapPin size={16} color="#FFD700" />
+              <MapPin size={16} color="#5F9EA0" />
               <Text style={styles.sectionTitle}>Route</Text>
             </View>
             <Text style={styles.sectionValue}>{routeFrom} → {routeTo}</Text>
@@ -119,7 +119,7 @@ const SuccessScreen = ({
           <View style={styles.row}>
             <View style={[styles.section, { flex: 1, marginRight: 10 }]}>
                <View style={styles.sectionHeader}>
-                 <Calendar size={16} color="#FFD700" />
+                 <Calendar size={16} color="#5F9EA0" />
                  <Text style={styles.sectionTitle}>Dates</Text>
                </View>
                <Text style={styles.sectionValue}>
@@ -128,7 +128,7 @@ const SuccessScreen = ({
             </View>
             <View style={[styles.section, { flex: 1 }]}>
                <View style={styles.sectionHeader}>
-                 <Wallet size={16} color="#FFD700" />
+                 <Wallet size={16} color="#5F9EA0" />
                  <Text style={styles.sectionTitle}>Trip Budget</Text>
                </View>
                <Text style={styles.sectionValue}>₹{effectiveBudget.toLocaleString('en-IN')}</Text>
@@ -162,7 +162,7 @@ const SuccessScreen = ({
           {/* Transport Estimates */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Fuel size={16} color="#FFD700" />
+              <Fuel size={16} color="#5F9EA0" />
               <Text style={styles.sectionTitle}>Transport Estimates</Text>
             </View>
             <View style={styles.costRow}>
@@ -196,7 +196,7 @@ const SuccessScreen = ({
           {/* Planned Features */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Hotel size={16} color="#FFD700" />
+              <Hotel size={16} color="#5F9EA0" />
               <Text style={styles.sectionTitle}>Planned Add-ons</Text>
             </View>
             <View style={styles.addonDetailCard}>
@@ -251,7 +251,7 @@ const SuccessScreen = ({
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Calendar size={16} color="#FFD700" />
+              <Calendar size={16} color="#5F9EA0" />
               <Text style={styles.sectionTitle}>Day-wise Flow</Text>
             </View>
             {Array.from({ length: previewDays }, (_, index) => {
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
-  sectionTitle: { color: '#FFD700', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
+  sectionTitle: { color: '#5F9EA0', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
   sectionValue: { color: '#FFF', fontSize: 15, fontWeight: '600' },
   sectionSubValue: { color: '#8F8F8F', fontSize: 11, marginTop: 4, lineHeight: 16 },
   row: { flexDirection: 'row' },
@@ -367,10 +367,10 @@ const styles = StyleSheet.create({
   costValue: { color: '#FFF', fontSize: 14, fontWeight: '500' },
   costDivider: { height: 1, backgroundColor: '#333', marginVertical: 8 },
   costTotalLabel: { color: '#FFF', fontSize: 15, fontWeight: 'bold' },
-  costTotalValue: { color: '#FFD700', fontSize: 15, fontWeight: 'bold' },
+  costTotalValue: { color: '#5F9EA0', fontSize: 15, fontWeight: 'bold' },
   budgetStatusText: { fontSize: 13, fontWeight: '700' },
   budgetUnderText: { color: '#32D74B' },
-  budgetOverText: { color: '#FF9F0A' },
+  budgetOverText: { color: '#4A7C7E' },
   addonDetailCard: {
     backgroundColor: '#141414',
     borderRadius: 12,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   dayFlowTitle: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   dayFlowLine: { color: '#BBB', fontSize: 12, lineHeight: 18 },
   saveBtn: {
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     height: 56,
     borderRadius: 16,
     width: '100%',
@@ -411,16 +411,16 @@ const styles = StyleSheet.create({
   saveBtnBusyRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   saveBtnText: { color: '#000', fontSize: 16, fontWeight: 'bold' },
   saveErrorBox: {
-    backgroundColor: 'rgba(255, 159, 10, 0.12)',
+    backgroundColor: 'rgba(74, 124, 126, 0.24)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 159, 10, 0.45)',
+    borderColor: 'rgba(74, 124, 126, 0.85)',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 10,
     marginTop: -6,
     marginBottom: 10,
   },
-  saveErrorText: { color: '#FFB84D', fontSize: 12, textAlign: 'center', fontWeight: '600' },
+  saveErrorText: { color: '#A9CCCC', fontSize: 12, textAlign: 'center', fontWeight: '600' },
   shareBtn: {
     height: 48,
     borderRadius: 12,

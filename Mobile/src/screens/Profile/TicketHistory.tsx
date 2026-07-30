@@ -47,7 +47,7 @@ export default function TicketHistory() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'OPEN': return '#2196F3';
-      case 'IN_PROGRESS': return '#FF9800';
+      case 'IN_PROGRESS': return '#5F9EA0';
       case 'RESOLVED': return '#4CAF50';
       case 'CLOSED': return '#F44336';
       default: return '#888';

@@ -90,7 +90,7 @@ export default function ScanQrScreen() {
           <View style={styles.resultCard}>
             <View style={styles.resultHeader}>
               <View style={styles.resultIconWrap}>
-                <IconMC name="car-sports" size={wp(8)} color="#FFBF00" />
+                <IconMC name="car-sports" size={wp(8)} color="#5F9EA0" />
               </View>
               <View style={styles.resultTitleWrap}>
                 <Text style={styles.resultPlateLabel}>IDENTIFIED VEHICLE</Text>
@@ -103,13 +103,13 @@ export default function ScanQrScreen() {
             <View style={styles.infoRowGrid}>
               {resolved.make ? (
                 <View style={styles.infoPill}>
-                  <IconMC name="car-info" size={wp(4)} color="#FFBF00" />
+                  <IconMC name="car-info" size={wp(4)} color="#5F9EA0" />
                   <Text style={styles.infoPillText}>{resolved.make} {resolved.model}</Text>
                 </View>
               ) : null}
               {resolved.color ? (
                 <View style={styles.infoPill}>
-                  <IconMC name="palette" size={wp(4)} color="#FFBF00" />
+                  <IconMC name="palette" size={wp(4)} color="#5F9EA0" />
                   <Text style={styles.infoPillText}>{resolved.color}</Text>
                 </View>
               ) : null}
@@ -163,7 +163,7 @@ export default function ScanQrScreen() {
             </View>
             <View style={styles.overlayBottom}>
               <View style={styles.hintBadge}>
-                <IconMC name="target" size={wp(4)} color="#FFBF00" />
+                <IconMC name="target" size={wp(4)} color="#5F9EA0" />
                 <Text style={styles.scanHint}>Align vehicle QR code within frame</Text>
               </View>
             </View>
@@ -171,7 +171,7 @@ export default function ScanQrScreen() {
 
           {resolving && (
             <View style={styles.resolvingOverlay}>
-              <ActivityIndicator size="large" color="#FFBF00" />
+              <ActivityIndicator size="large" color="#5F9EA0" />
               <Text style={styles.resolvingText}>Decoding QR Tag & Looking up owner…</Text>
             </View>
           )}
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: wp(6),
     height: wp(6),
-    borderColor: '#FFBF00',
+    borderColor: '#5F9EA0',
   },
   cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 8 },
   cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 8 },
@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
   laserLine: {
     width: '90%',
     height: 2,
-    backgroundColor: '#FFBF00',
-    shadowColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 8,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.2),
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 191, 0, 0.3)',
+    borderColor: 'rgba(95, 158, 160, 0.6)',
   },
   scanHint: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
   
@@ -272,14 +272,14 @@ const styles = StyleSheet.create({
     width: wp(14),
     height: wp(14),
     borderRadius: wp(7),
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.3)',
+    borderColor: 'rgba(95, 158, 160,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   resultTitleWrap: { flex: 1 },
-  resultPlateLabel: { fontSize: wp(2.6), fontFamily: 'Outfit-Bold', color: '#FFBF00', letterSpacing: 0.8 },
+  resultPlateLabel: { fontSize: wp(2.6), fontFamily: 'Outfit-Bold', color: '#5F9EA0', letterSpacing: 0.8 },
   resultReg: { color: '#fff', fontFamily: 'Outfit-Black', fontSize: wp(5.5), letterSpacing: 1, marginTop: 2 },
   divider: { height: 1, backgroundColor: '#1d2130', marginVertical: hp(1.8) },
   infoRowGrid: { gap: hp(1) },
@@ -301,11 +301,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(2.5),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingVertical: hp(1.8),
     borderRadius: 18,
     marginBottom: hp(1.5),
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 6,

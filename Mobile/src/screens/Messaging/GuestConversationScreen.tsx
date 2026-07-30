@@ -76,6 +76,29 @@ export default function GuestConversationScreen() {
     }
   };
 
+  const handleDeleteGuestConversation = () => {
+    Alert.alert(
+      'Delete Conversation',
+      'Are you sure you want to delete this guest message thread?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await messagingService.deleteGuestConversation(conversationId);
+              bumpVersion();
+              navigation.goBack();
+            } catch (e: any) {
+              Alert.alert('Error', e?.message || 'Could not delete conversation');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading || !conversation) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -83,7 +106,7 @@ export default function GuestConversationScreen() {
           <BackButton onPress={() => navigation.goBack()} />
         </View>
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       </SafeAreaView>
     );
@@ -102,6 +125,9 @@ export default function GuestConversationScreen() {
             <IconMC name="check-circle-outline" size={wp(5)} color="#4ade80" />
           </TouchableOpacity>
         )}
+        <TouchableOpacity style={[styles.resolveBtn, { marginLeft: wp(2) }]} onPress={handleDeleteGuestConversation}>
+          <IconMC name="trash-can-outline" size={wp(5)} color="#FF453A" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.infoBanner}>
@@ -212,7 +238,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  bubbleMine: { backgroundColor: '#FFBF00', borderBottomRightRadius: 4 },
+  bubbleMine: { backgroundColor: '#5F9EA0', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: '#161926', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#222636' },
   bubbleTextMine: { color: '#090a0f', fontFamily: 'Outfit-Medium', fontSize: wp(3.7), lineHeight: wp(5.2) },
   bubbleTextTheirs: { color: '#f1f5f9', fontFamily: 'Outfit-Medium', fontSize: wp(3.7), lineHeight: wp(5.2) },
@@ -248,10 +274,10 @@ const styles = StyleSheet.create({
     width: wp(10.5),
     height: wp(10.5),
     borderRadius: wp(5.25),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
     shadowRadius: 5,

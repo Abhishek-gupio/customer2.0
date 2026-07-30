@@ -40,8 +40,8 @@ export default function DocumentSourceModal({
 
               <View style={styles.modalOptions}>
                 <TouchableOpacity style={styles.modalOption} onPress={onTakePhoto}>
-                  <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(255, 193, 7, 0.1)' }]}>
-                    <Camera size={22} color="#FFC107" />
+                  <View style={[styles.modalOptionIcon, { backgroundColor: 'rgba(95, 158, 160, 0.2)' }]}>
+                    <Camera size={22} color="#5F9EA0" />
                   </View>
                   <Text style={styles.modalOptionText}>Take Photo</Text>
                 </TouchableOpacity>

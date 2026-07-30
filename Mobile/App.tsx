@@ -7,7 +7,6 @@ import {
   Platform,
   StatusBar,
   StyleSheet,
-  useColorScheme,
   View,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -28,6 +27,7 @@ import { initAgentEventHandlers } from './src/agent/eventHandlers';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
 import { registerDeviceWithBackend, setupNotifications } from './src/services/notification';
 import NetworkBanner from './src/components/NetworkBanner';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import ForegroundTestNotificationBanner from './src/components/ForegroundTestNotificationBanner';
 import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -82,8 +82,12 @@ function AppBoundaryTestCrash(): never {
   throw new Error('app boundary test');
 }
 
+function AppStatusBar() {
+  const { colors } = useTheme();
+  return <StatusBar barStyle={colors.statusBarStyle} backgroundColor={colors.background} />;
+}
+
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
   const [storageReady, setStorageReady] = useState(false);
   const [appResetKey, setAppResetKey] = useState(0);
   const ENABLE_APP_BOUNDARY_TEST = __DEV__ && false;
@@ -168,22 +172,24 @@ function App() {
   }, [storageReady]);
 
   const appContent = storageReady ? (
-    <Provider store={store}>
-      <GestureHandlerRootView style={styles.appRoot}>
-        <View style={styles.appContent}>
-          <SafeAreaProvider>
-            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <NetworkBanner />
-            <ForegroundTestNotificationBanner />
-            <NavigationContainer ref={navigationRef} linking={linking}>
-              <VoiceOwnerProvider>
-                <RootNavigator />
-              </VoiceOwnerProvider>
-            </NavigationContainer>
-          </SafeAreaProvider>
-        </View>
-      </GestureHandlerRootView>
-    </Provider>
+    <ThemeProvider>
+      <Provider store={store}>
+        <GestureHandlerRootView style={styles.appRoot}>
+          <View style={styles.appContent}>
+            <SafeAreaProvider>
+              <AppStatusBar />
+              <NetworkBanner />
+              <ForegroundTestNotificationBanner />
+              <NavigationContainer ref={navigationRef} linking={linking}>
+                <VoiceOwnerProvider>
+                  <RootNavigator />
+                </VoiceOwnerProvider>
+              </NavigationContainer>
+            </SafeAreaProvider>
+          </View>
+        </GestureHandlerRootView>
+      </Provider>
+    </ThemeProvider>
   ) : (
     <View style={styles.bootstrapLoader}>
       <ActivityIndicator size="large" color="#fff" />

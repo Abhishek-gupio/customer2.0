@@ -108,7 +108,7 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <History size={24} color="#FFD700" />
+            <History size={24} color="#5F9EA0" />
             <Text style={styles.headerTitle}>Trip History</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -158,7 +158,7 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
               return (
                 <LinearGradient
                   key={item.id}
-                  colors={['rgba(255, 215, 0, 0.22)', 'rgba(255, 215, 0, 0.05)', 'rgba(255, 255, 255, 0.03)']}
+                  colors={['rgba(95, 158, 160, 0.44)', 'rgba(95, 158, 160, 0.1)', 'rgba(255, 255, 255, 0.03)']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.historyCardGlow}
@@ -166,11 +166,11 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                 <View style={styles.historyCard}>
                   <View style={styles.cardHeader}>
                     <View style={styles.routeBox}>
-                      <MapPin size={14} color="#FFD700" />
+                      <MapPin size={14} color="#5F9EA0" />
                       <Text style={styles.routeText} numberOfLines={1}>{item.from} → {item.to}</Text>
                     </View>
                     <View style={styles.datePill}>
-                      <Calendar size={11} color="#FFD700" />
+                      <Calendar size={11} color="#5F9EA0" />
                       <Text style={styles.dateText}>{new Date(item.timestamp).toLocaleDateString()}</Text>
                     </View>
                   </View>
@@ -178,21 +178,21 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                   <View style={styles.statsRow}>
                     <View style={styles.statItem}>
                       <View style={styles.statIconWrap}>
-                        <Fuel size={13} color="#FFD700" />
+                        <Fuel size={13} color="#5F9EA0" />
                       </View>
                       <Text style={styles.statLabel}>Fuel</Text>
                       <Text style={styles.statValue}>₹{(activeRoute?.costs?.fuel || 0).toLocaleString('en-IN')}</Text>
                     </View>
                     <View style={styles.statItem}>
                       <View style={styles.statIconWrap}>
-                        <Receipt size={13} color="#FFD700" />
+                        <Receipt size={13} color="#5F9EA0" />
                       </View>
                       <Text style={styles.statLabel}>Toll</Text>
                       <Text style={styles.statValue}>₹{(activeRoute?.costs?.tollFastag || 0).toLocaleString('en-IN')}</Text>
                     </View>
                     <View style={styles.statItem}>
                       <View style={styles.statIconWrap}>
-                        <Wallet size={13} color="#FFD700" />
+                        <Wallet size={13} color="#5F9EA0" />
                       </View>
                       <Text style={styles.statLabel}>Budget</Text>
                       <Text style={styles.statValue}>₹{effectiveBudget.toLocaleString('en-IN')}</Text>
@@ -201,15 +201,15 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
 
                   <View style={styles.detailsRow}>
                     <View style={styles.detailBadge}>
-                      <Hotel size={12} color="#FFD700" />
+                      <Hotel size={12} color="#5F9EA0" />
                       <Text style={styles.detailText}>{selectedHotelName}</Text>
                     </View>
                     <View style={styles.detailBadge}>
-                      <Compass size={12} color="#FFD700" />
+                      <Compass size={12} color="#5F9EA0" />
                       <Text style={styles.detailText}>{selectedActivitiesCount} Activities</Text>
                     </View>
                     <View style={styles.detailBadge}>
-                      <Bike size={12} color="#FFD700" />
+                      <Bike size={12} color="#5F9EA0" />
                       <Text style={styles.detailText}>{selectedTransportName}</Text>
                     </View>
                   </View>
@@ -231,7 +231,7 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                             <Image source={{ uri: item.planning.selectedHotelDetails.image }} style={styles.savedItemImage} />
                           ) : (
                             <View style={styles.savedItemFallbackIcon}>
-                              <Hotel size={18} color="#FFD700" />
+                              <Hotel size={18} color="#5F9EA0" />
                             </View>
                           )}
                           <View style={styles.savedItemContent}>
@@ -271,7 +271,7 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                             <Image source={{ uri: item.planning.selectedTransportDetails.image }} style={styles.savedItemImage} />
                           ) : (
                             <View style={styles.savedItemFallbackIcon}>
-                              <Bike size={18} color="#FFD700" />
+                              <Bike size={18} color="#5F9EA0" />
                             </View>
                           )}
                           <View style={styles.savedItemContent}>
@@ -311,7 +311,7 @@ const TripHistoryModal = ({ isVisible, onClose, onSelectTrip }: Props) => {
                             <Image source={{ uri: activity.image }} style={styles.savedItemImage} />
                           ) : (
                             <View style={styles.savedItemFallbackIcon}>
-                              <Compass size={18} color="#FFD700" />
+                              <Compass size={18} color="#5F9EA0" />
                             </View>
                           )}
                           <View style={styles.savedItemContent}>
@@ -410,9 +410,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.35)',
+    borderColor: 'rgba(95, 158, 160, 0.7)',
     borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -434,15 +434,15 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 215, 0, 0.12)',
+    backgroundColor: 'rgba(95, 158, 160, 0.24)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   statLabel: { color: '#9A9A9A', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   statValue: { color: '#EDEDED', fontSize: 12, fontWeight: '800' },
   detailsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
-  detailBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  detailText: { color: '#FFD700', fontSize: 11, fontWeight: 'bold' },
+  detailBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(95, 158, 160, 0.2)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  detailText: { color: '#5F9EA0', fontSize: 11, fontWeight: 'bold' },
   metaLineText: { color: '#9A9A9A', fontSize: 11, lineHeight: 16, marginBottom: 6 },
   activityNamesText: { color: '#8B8B8B', fontSize: 11, lineHeight: 16, marginBottom: 12 },
   savedCardsSection: {
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   },
   savedItemContent: { flex: 1 },
   savedItemType: {
-    color: '#FFD700',
+    color: '#5F9EA0',
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     borderRadius: 999,
     paddingHorizontal: 9,
     paddingVertical: 5,
@@ -521,12 +521,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     gap: 6, 
-    backgroundColor: '#FFD700', 
+    backgroundColor: '#5F9EA0', 
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E3B800',
+    borderColor: '#4A7C7E',
   },
   viewBtnText: { color: '#000', fontSize: 14, fontWeight: 'bold' },
 });

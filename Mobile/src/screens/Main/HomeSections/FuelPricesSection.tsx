@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 import type { HomeFuelPrices } from '../types/home';
 
 type FuelPricesSectionProps = {
@@ -23,6 +24,8 @@ export const FuelPricesSection = React.memo(function FuelPricesSection({
   locationLoading,
   onStateModalOpen,
 }: FuelPricesSectionProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.fuelSection}>
       <View style={styles.fuelHeaderBanner}>

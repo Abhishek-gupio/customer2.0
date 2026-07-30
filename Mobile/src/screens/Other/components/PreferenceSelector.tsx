@@ -39,7 +39,7 @@ const PreferenceSelector = ({ planning, onChange }: Props) => {
               style={[styles.chip, isActive && styles.activeChip]}
               onPress={() => togglePreference(item.id)}
             >
-              <IconComp size={16} color={isActive ? '#000' : '#FFD700'} />
+              <IconComp size={16} color={isActive ? '#000' : '#5F9EA0'} />
               <Text style={[styles.chipLabel, isActive && styles.activeChipLabel]}>{item.label}</Text>
             </TouchableOpacity>
           );
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
   },
-  activeChip: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  activeChip: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   chipLabel: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
   activeChipLabel: { color: '#000' },
 });

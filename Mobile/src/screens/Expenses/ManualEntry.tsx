@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   saveBtnActive: {
-    backgroundColor: '#ffbf00',
+    backgroundColor: '#5f9ea0',
     opacity: 1,
   },
   saveText: {
@@ -899,7 +899,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   categoryItemSelected: {
-    backgroundColor: "rgba(255,191,0,0.14)",
+    backgroundColor: "rgba(95, 158, 160,0.28)",
   },
   categoryText: {
     color: "#fff",
@@ -953,7 +953,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   dayCellSelected: {
-    backgroundColor: "#ffbf00",
+    backgroundColor: "#5f9ea0",
   },
   dayText: {
     color: "#fff",

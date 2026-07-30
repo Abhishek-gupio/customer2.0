@@ -15,15 +15,14 @@ interface ServiceItem {
 }
 
 const SERVICES: ServiceItem[] = [
-  { id: 'service', icon: 'wrench', label: 'Service' },
-  { id: 'nearby', icon: 'map-marker-alt', label: 'Near By' },
-  { id: 'driving', icon: DrivingIcon, label: 'Driving' },
-  { id: 'support', icon: 'comments', label: 'Support' },
   { id: 'garage', icon: 'car', label: 'My Garage' },
   { id: 'document', icon: 'file-alt', label: 'Documents' },
   { id: 'expense', icon: 'wallet', label: 'Expenses' },
-  { id: 'tripcost', icon: 'map-signs', label: 'Trip Planner' },
-  { id: 'valet', icon: 'parking', label: 'Valet Parking' },
+  { id: 'driving', icon: DrivingIcon, label: 'Driving' },
+  { id: 'service', icon: 'wrench', label: 'Service' },
+  { id: 'nearby', icon: 'map-marker-alt', label: 'Near By' },
+  { id: 'support', icon: 'comments', label: 'Support' },
+  { id: 'more', icon: 'th-large', label: 'More' },
 ];
 
 type QuickServicesGridProps = {
@@ -34,7 +33,7 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        {SERVICES.slice(4, 8).map((item) => (
+        {SERVICES.slice(0, 4).map((item) => (
           <QuickServiceButton
             key={item.id}
             icon={item.icon}
@@ -44,7 +43,7 @@ export default function QuickServicesGrid({ onServicePress }: QuickServicesGridP
         ))}
       </View>
       <View style={[styles.row, { marginTop: hp(1.5) }]}>
-        {SERVICES.slice(0, 4).map((item) => (
+        {SERVICES.slice(4, 8).map((item) => (
           <QuickServiceButton
             key={item.id}
             icon={item.icon}

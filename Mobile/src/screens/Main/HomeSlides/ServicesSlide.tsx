@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type ServicesSlideProps = {
   bannerWidth: number;
@@ -12,6 +13,8 @@ export const ServicesSlide = React.memo(function ServicesSlide({
   bannerWidth,
   onPress,
 }: ServicesSlideProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={[styles.slideFull, { width: bannerWidth }]}>
       <TouchableOpacity

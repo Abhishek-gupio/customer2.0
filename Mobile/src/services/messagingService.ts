@@ -181,6 +181,14 @@ export const messagingService = {
     await api.post(`/v1/messaging/messages/${messageId}/reaction`, { emoji });
   },
 
+  deleteMessage: async (messageId: string): Promise<void> => {
+    await api.delete(`/v1/messaging/messages/${messageId}`);
+  },
+
+  deleteConversation: async (conversationId: string): Promise<void> => {
+    await api.delete(`/v1/messaging/conversations/${conversationId}`);
+  },
+
   reportConversation: async (conversationId: string, reason: string): Promise<void> => {
     await api.post(`/v1/messaging/conversations/${conversationId}/report`, { reason });
   },
@@ -219,5 +227,9 @@ export const messagingService = {
 
   updateGuestConversationStatus: async (id: string, status: GuestConversationStatus): Promise<void> => {
     await api.patch(`/v1/messaging/guest-conversations/${id}/status`, { status });
+  },
+
+  deleteGuestConversation: async (id: string): Promise<void> => {
+    await api.delete(`/v1/messaging/guest-conversations/${id}`);
   },
 };

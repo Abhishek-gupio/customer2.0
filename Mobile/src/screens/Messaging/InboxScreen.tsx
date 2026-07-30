@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
@@ -70,6 +70,33 @@ export default function InboxScreen() {
     load(true);
   };
 
+  const handleDeleteConversation = (item: InboxItem) => {
+    Alert.alert(
+      'Delete Vehicle Message',
+      'Are you sure you want to delete this conversation?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (item.kind === 'guest') {
+                await messagingService.deleteGuestConversation(item.id);
+              } else {
+                await messagingService.deleteConversation(item.id);
+              }
+              setItems((prev) => prev.filter((i) => i.id !== item.id));
+              bumpVersion();
+            } catch (e: any) {
+              Alert.alert('Error', e?.message || 'Failed to delete conversation');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const filtered = query.trim()
     ? items.filter((item) => {
         const q = query.toLowerCase();
@@ -92,7 +119,7 @@ export default function InboxScreen() {
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.qrBtn} onPress={() => navigation.navigate('MyVehicleQrCode')} activeOpacity={0.75}>
-            <IconMC name="qrcode" size={wp(5)} color="#FFBF00" />
+            <IconMC name="qrcode" size={wp(5)} color="#5F9EA0" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.scanBtn} onPress={() => navigation.navigate('ScanQr')} activeOpacity={0.75}>
             <IconMC name="qrcode-scan" size={wp(4.8)} color="#111" />
@@ -101,7 +128,7 @@ export default function InboxScreen() {
       </View>
 
       <View style={styles.searchWrap}>
-        <IconMC name="magnify" size={wp(4.5)} color="#FFBF00" />
+        <IconMC name="magnify" size={wp(4.5)} color="#5F9EA0" />
         <TextInput
           value={query}
           onChangeText={setQuery}
@@ -118,13 +145,13 @@ export default function InboxScreen() {
 
       {loading ? (
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingText}>Fetching conversations…</Text>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.centerState}>
           <View style={styles.emptyIconBg}>
-            <IconMC name="message-text-outline" size={wp(10)} color="#FFBF00" />
+            <IconMC name="message-text-outline" size={wp(10)} color="#5F9EA0" />
           </View>
           <Text style={styles.emptyTitle}>No messages yet</Text>
           <Text style={styles.emptyText}>Scan a vehicle's QR code or share your own to initiate instant, privacy-first alerts.</Text>
@@ -134,7 +161,12 @@ export default function InboxScreen() {
           data={filtered}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
+          showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+          removeClippedSubviews={Platform.OS === 'android'}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#5F9EA0" />}
           renderItem={({ item }) => {
             const isGuest = item.kind === 'guest';
             const roleLabel = isGuest ? 'Web Scan' : item.role === 'OWNER' ? 'Your Car' : 'Contacted';
@@ -146,9 +178,10 @@ export default function InboxScreen() {
                 onPress={() =>
                   navigation.navigate(isGuest ? 'GuestConversation' : 'ChatConversation', { conversationId: item.id })
                 }
+                onLongPress={() => handleDeleteConversation(item)}
               >
                 <View style={styles.avatarWrap}>
-                  <IconMC name={isGuest ? 'earth' : 'car-sports'} size={wp(6.5)} color="#FFBF00" />
+                  <IconMC name={isGuest ? 'earth' : 'car-sports'} size={wp(6.5)} color="#5F9EA0" />
                   {!isGuest && item.otherParty.online && <View style={styles.onlineDot} />}
                 </View>
 
@@ -178,6 +211,14 @@ export default function InboxScreen() {
                     )}
                   </View>
                 </View>
+
+                <TouchableOpacity
+                  style={{ paddingLeft: wp(2), paddingVertical: hp(0.5) }}
+                  onPress={() => handleDeleteConversation(item)}
+                  activeOpacity={0.7}
+                >
+                  <IconMC name="trash-can-outline" size={wp(5)} color="#FF453A" />
+                </TouchableOpacity>
               </TouchableOpacity>
             );
           }}
@@ -198,10 +239,10 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: wp(5),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -211,9 +252,9 @@ const styles = StyleSheet.create({
     width: wp(10),
     height: wp(10),
     borderRadius: wp(5),
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.25)',
+    borderColor: 'rgba(95, 158, 160,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -236,11 +277,11 @@ const styles = StyleSheet.create({
     width: wp(20),
     height: wp(20),
     borderRadius: wp(10),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.2)',
+    borderColor: 'rgba(95, 158, 160,0.4)',
   },
   emptyTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.8) },
   emptyText: { color: '#8890a6', fontFamily: 'Outfit-Regular', fontSize: wp(3.4), textAlign: 'center', lineHeight: wp(5) },
@@ -256,19 +297,19 @@ const styles = StyleSheet.create({
     borderColor: '#1d2130',
   },
   rowCardUnread: {
-    borderColor: 'rgba(255,191,0,0.4)',
+    borderColor: 'rgba(95, 158, 160,0.8)',
     backgroundColor: '#171a26',
   },
   avatarWrap: {
     width: wp(13),
     height: wp(13),
     borderRadius: wp(6.5),
-    backgroundColor: 'rgba(255,191,0,0.12)',
+    backgroundColor: 'rgba(95, 158, 160,0.24)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3.5),
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.25)',
+    borderColor: 'rgba(95, 158, 160,0.5)',
   },
   onlineDot: {
     position: 'absolute',
@@ -292,7 +333,7 @@ const styles = StyleSheet.create({
   },
   roleBadgeGuest: { backgroundColor: 'rgba(59, 130, 246, 0.15)' },
   roleBadgeOwner: { backgroundColor: 'rgba(16, 185, 129, 0.15)' },
-  roleBadgeOther: { backgroundColor: 'rgba(255, 191, 0, 0.15)' },
+  roleBadgeOther: { backgroundColor: 'rgba(95, 158, 160, 0.3)' },
   roleBadgeText: { fontSize: wp(2.6), fontFamily: 'Outfit-Bold', color: '#e2e8f0' },
   time: { color: '#64748b', fontFamily: 'Outfit-Regular', fontSize: wp(2.8) },
   rowBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(0.6) },
@@ -302,11 +343,11 @@ const styles = StyleSheet.create({
     minWidth: wp(5.5),
     height: wp(5.5),
     borderRadius: wp(2.75),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: wp(1.5),
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
     shadowRadius: 4,

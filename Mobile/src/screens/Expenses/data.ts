@@ -57,7 +57,7 @@ export const expenses: Expense[] = [
     date: 'Today',
     source: 'Manual',
     icon: 'tools',
-    color: '#ff9800',
+    color: '#5f9ea0',
   },
   {
     id: '5',
@@ -67,7 +67,7 @@ export const expenses: Expense[] = [
     date: '1 week ago',
     source: 'Garage',
     icon: 'tools',
-    color: '#ff9800',
+    color: '#5f9ea0',
   },
   {
     id: '6',

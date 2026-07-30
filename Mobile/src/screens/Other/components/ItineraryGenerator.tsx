@@ -52,7 +52,7 @@ const TimelineItem = ({ time, activity, sub, icon: IconComp }: any) => (
     </View>
     <View style={styles.itemRight}>
       <View style={styles.iconBox}>
-        <IconComp size={14} color="#FFD700" />
+        <IconComp size={14} color="#5F9EA0" />
       </View>
       <View style={styles.itemTextGroup}>
         <Text style={styles.itemActivity}>{activity}</Text>
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     borderColor: '#222',
   },
   dayHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-  dayBadge: { backgroundColor: '#FFD700', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  dayBadge: { backgroundColor: '#5F9EA0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   dayBadgeText: { color: '#000', fontSize: 11, fontWeight: 'bold' },
   dayTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
   timeline: { paddingLeft: 4 },
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   itemTime: { color: '#888', fontSize: 12, fontWeight: 'bold' },
   verticalLine: { width: 1, flex: 1, backgroundColor: '#333', marginVertical: 4 },
   itemRight: { flex: 1, flexDirection: 'row', gap: 12, paddingBottom: 15 },
-  iconBox: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255, 215, 0, 0.1)', alignItems: 'center', justifyContent: 'center', marginTop: -4 },
+  iconBox: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(95, 158, 160, 0.2)', alignItems: 'center', justifyContent: 'center', marginTop: -4 },
   itemTextGroup: { flex: 1 },
   itemActivity: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
   itemSub: { color: '#888', fontSize: 11, marginTop: 2 },

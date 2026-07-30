@@ -21,6 +21,7 @@ router.get("/qr/resolve/:token", qrController.resolveToken);
 router.post("/conversations", messagingController.createConversation);
 router.get("/conversations", messagingController.listConversations);
 router.get("/conversations/:id", messagingController.getConversation);
+router.delete("/conversations/:id", messagingController.deleteConversation);
 router.patch("/conversations/:id/status", messagingController.updateStatus);
 router.post("/conversations/:id/read", messagingController.markRead);
 router.post("/conversations/:id/delivered", messagingController.markDelivered);
@@ -34,6 +35,7 @@ router.post(
 
 // Messages
 router.post("/messages/:messageId/reaction", messagingController.addReaction);
+router.delete("/messages/:messageId", messagingController.deleteMessage);
 
 // Block list
 router.post("/block", messagingController.blockContact);
@@ -46,6 +48,7 @@ router.get("/quick-replies", messagingController.listQuickReplies);
 // Guest conversations (owner side — replying to someone who messaged via the web fallback)
 router.get("/guest-conversations", guestController.ownerListConversations);
 router.get("/guest-conversations/:id", guestController.ownerGetConversation);
+router.delete("/guest-conversations/:id", guestController.ownerDelete);
 router.post("/guest-conversations/:id/reply", guestController.ownerReply);
 router.patch("/guest-conversations/:id/status", guestController.ownerUpdateStatus);
 

@@ -97,6 +97,18 @@ export const messagingController = {
     success(res, message);
   }),
 
+  deleteMessage: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    await messagingService.deleteMessage(req.customer.id, req.params.messageId as string);
+    success(res, { ok: true });
+  }),
+
+  deleteConversation: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.customer?.id) throw AppError.unauthorized();
+    await messagingService.deleteConversation(req.customer.id, req.params.id as string);
+    success(res, { ok: true });
+  }),
+
   reportConversation: asyncHandler(async (req: Request, res: Response) => {
     if (!req.customer?.id) throw AppError.unauthorized();
     const body = parseInput(req.body, reportConversationSchema);

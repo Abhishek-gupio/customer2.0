@@ -8,7 +8,8 @@ import {
   View,
 } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 import { HOME_STATES } from '../types/home';
 
 type StateSelectionModalProps = {
@@ -24,6 +25,8 @@ export const StateSelectionModal = React.memo(function StateSelectionModal({
   onSelect,
   onClose,
 }: StateSelectionModalProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
 
   useEffect(() => {

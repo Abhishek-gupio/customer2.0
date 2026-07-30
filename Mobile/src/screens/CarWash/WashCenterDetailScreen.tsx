@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -29,6 +30,7 @@ function generateIdempotencyKey(): string {
 export default function WashCenterDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const tabBarHeight = useBottomTabBarHeight();
   const { centerId } = route.params as { centerId: string };
   const notifyBookingChanged = useCarwashStore((s) => s.notifyBookingChanged);
 
@@ -127,7 +129,7 @@ export default function WashCenterDetailScreen() {
           <Text style={styles.headerTitle}>Wash Center</Text>
         </View>
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       </SafeAreaView>
     );
@@ -141,7 +143,7 @@ export default function WashCenterDetailScreen() {
           <Text style={styles.headerTitle}>Wash Center</Text>
         </View>
         <View style={styles.centerState}>
-          <IconMC name="alert-circle-outline" size={wp(10)} color="#f59e0b" />
+          <IconMC name="alert-circle-outline" size={wp(10)} color="#5f9ea0" />
           <Text style={styles.centerStateText}>{error || 'Center not found.'}</Text>
         </View>
       </SafeAreaView>
@@ -158,7 +160,7 @@ export default function WashCenterDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <View style={styles.addressRow}>
-            <IconMC name="map-marker" size={wp(4.5)} color="#FFBF00" />
+            <IconMC name="map-marker" size={wp(4.5)} color="#5F9EA0" />
             <Text style={styles.addressText}>{center.address}</Text>
           </View>
           <Text style={styles.dealerText}>Managed by {center.partner.name}</Text>
@@ -196,7 +198,7 @@ export default function WashCenterDetailScreen() {
 
         <Text style={styles.sectionTitle}>Available slots</Text>
         {slotsLoading ? (
-          <ActivityIndicator color="#FFBF00" style={{ marginVertical: hp(2) }} />
+          <ActivityIndicator color="#5F9EA0" style={{ marginVertical: hp(2) }} />
         ) : slots.length === 0 ? (
           <Text style={styles.emptySlotsText}>No slots for this date — try another day.</Text>
         ) : (
@@ -221,14 +223,16 @@ export default function WashCenterDetailScreen() {
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: wp(5) + tabBarHeight }]}>
         <TouchableOpacity
           style={[styles.bookBtn, !selectedSlot && styles.bookBtnDisabled]}
           activeOpacity={0.85}
           onPress={handleBookAndPay}
           disabled={booking || !selectedSlot}
         >
-          <Text style={styles.bookBtnText}>{booking ? 'Processing…' : 'Book & Pay'}</Text>
+          <Text style={[styles.bookBtnText, !selectedSlot && styles.bookBtnTextDisabled]}>
+            {booking ? 'Processing…' : selectedSlot ? 'Book & Pay' : 'Select a time slot'}
+          </Text>
         </TouchableOpacity>
       </View>
       <LoadingSpinner visible={booking} />
@@ -250,24 +254,25 @@ const styles = StyleSheet.create({
   sectionTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.8), marginBottom: hp(1.2), marginTop: hp(0.5) },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(2), marginBottom: hp(1) },
   chip: { paddingHorizontal: wp(3.5), paddingVertical: hp(0.9), borderRadius: 12, backgroundColor: '#141414', borderWidth: 1, borderColor: '#2a2a2a' },
-  chipActive: { backgroundColor: '#FFBF00', borderColor: '#FFBF00' },
+  chipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   chipText: { color: '#aaa', fontFamily: 'Outfit-Medium', fontSize: wp(3.2) },
   chipTextActive: { color: '#111', fontFamily: 'Outfit-Bold' },
   dateRow: { flexDirection: 'row', gap: wp(2), marginBottom: hp(1) },
   dateChip: { flex: 1, alignItems: 'center', paddingVertical: hp(1), borderRadius: 12, backgroundColor: '#141414', borderWidth: 1, borderColor: '#2a2a2a' },
-  dateChipActive: { backgroundColor: '#FFBF00', borderColor: '#FFBF00' },
+  dateChipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   dateChipDay: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(2.8) },
   dateChipNum: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.8), marginTop: 2 },
   dateChipTextActive: { color: '#111' },
   emptySlotsText: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.3), marginBottom: hp(2) },
   slotsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(2), marginBottom: hp(2) },
   slotChip: { paddingHorizontal: wp(4), paddingVertical: hp(1), borderRadius: 12, backgroundColor: '#141414', borderWidth: 1, borderColor: '#2a2a2a' },
-  slotChipActive: { backgroundColor: '#FFBF00', borderColor: '#FFBF00' },
+  slotChipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   slotChipDisabled: { opacity: 0.35 },
   slotChipText: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
   slotChipTextDisabled: { color: '#666' },
   footer: { padding: wp(5), borderTopWidth: 1, borderTopColor: '#1a1a1a' },
-  bookBtn: { backgroundColor: '#FFBF00', borderRadius: 16, paddingVertical: hp(1.8), alignItems: 'center' },
+  bookBtn: { backgroundColor: '#5F9EA0', borderRadius: 16, paddingVertical: hp(1.8), alignItems: 'center' },
   bookBtnDisabled: { backgroundColor: '#333' },
   bookBtnText: { color: '#111', fontFamily: 'Outfit-Black', fontSize: wp(4) },
+  bookBtnTextDisabled: { color: '#999' },
 });

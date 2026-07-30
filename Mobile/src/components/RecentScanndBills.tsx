@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
 
   fallbackText: {
-    color: "#9ca3af",
+    color: "#5f9ea0",
     fontSize: hp(1.3),
   },
 
@@ -149,28 +149,28 @@ const styles = StyleSheet.create({
   },
 
   amount: {
-    color: "#d1d5db",
+    color: "#a9cccc",
     fontSize: hp(2.6),
     fontWeight: "800",
     marginVertical: hp(0.3),
   },
 
   meta: {
-    color: "#9ca3af",
+    color: "#5f9ea0",
     fontSize: hp(1.3),
   },
 
   warrantyPill: {
     borderWidth: 1,
-    borderColor: "#facc15",
-    backgroundColor: "#2a2a1a",
+    borderColor: "#5f9ea0",
+    backgroundColor: "#2a2a2a",
     paddingHorizontal: wp(3),
     paddingVertical: hp(0.6),
     borderRadius: wp(6),
   },
 
   warrantyText: {
-    color: "#facc15",
+    color: "#5f9ea0",
     fontSize: hp(1.3),
     fontWeight: "700",
   },

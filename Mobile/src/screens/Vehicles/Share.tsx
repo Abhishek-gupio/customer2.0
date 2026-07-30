@@ -115,7 +115,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'Owner':
-        return '#FFBF00';
+        return '#5F9EA0';
       case 'Editor':
         return '#10b981';
       case 'Viewer':
@@ -214,7 +214,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
                           <FontAwesome5
                             name="clock"
                             size={10}
-                            color="#f59e0b"
+                            color="#5f9ea0"
                           />
                           <Text style={styles.pendingText}>Pending</Text>
                         </View>
@@ -404,7 +404,7 @@ const ShareScreen: React.FC<ShareScreenProps> = ({
 
             <View style={styles.infoCard}>
               <View style={styles.infoIcon}>
-                <FontAwesome5 name="info" size={14} color="#FFBF00" />
+                <FontAwesome5 name="info" size={14} color="#5F9EA0" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.infoText}>
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   pendingText: {
-    color: '#f59e0b',
+    color: '#5f9ea0',
     fontSize: wp(2.5),
     fontWeight: '600',
   },
@@ -617,7 +617,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
   },
   countryCode: {
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: wp(4.5),
     fontWeight: 'bold',
     marginRight: wp(2),
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   shareBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 18,
     paddingVertical: hp(2.2),
     flexDirection: 'row',
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(2),
     marginTop: hp(1),
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -701,16 +701,16 @@ const styles = StyleSheet.create({
     gap: wp(3),
     marginTop: hp(3),
     padding: wp(4),
-    backgroundColor: 'rgba(255,191,0,0.05)',
+    backgroundColor: 'rgba(95, 158, 160,0.1)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.1)',
+    borderColor: 'rgba(95, 158, 160,0.2)',
   },
   infoIcon: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },

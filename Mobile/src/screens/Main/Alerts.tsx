@@ -399,7 +399,7 @@ export default function Alerts() {
             <MaterialCommunityIcons
               name={selectedItem?.pinned ? "pin-off-outline" : "pin-outline"}
               size={22}
-              color={selectedItem?.pinned ? "#FFBF00" : "#fff"}
+              color={selectedItem?.pinned ? "#5F9EA0" : "#fff"}
             />
             <Text style={styles.menuItemText}>
               {selectedItem?.pinned ? "Unpin from top" : "Pin to top"}

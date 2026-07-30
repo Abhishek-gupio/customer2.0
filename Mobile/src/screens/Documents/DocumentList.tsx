@@ -785,7 +785,7 @@ export default function DocumentList() {
 
       {isUploading || loading ? (
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#FFC107" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           {isUploading && <Text style={styles.loaderText}>{loaderMessage}</Text>}
         </View>
       ) : null}
@@ -987,7 +987,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#FF9800',
+    backgroundColor: '#5F9EA0',
     borderRadius: 2,
   },
 });

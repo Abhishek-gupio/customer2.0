@@ -1,9 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 import type { SelectedVideo } from '../types/home';
 import { openYouTubeExternally } from '../utils/youtubeHelpers';
 
@@ -46,6 +47,8 @@ export const FloatingVideoPlayer = React.memo(function FloatingVideoPlayer({
   onToggleExpanded,
   onClose,
 }: FloatingVideoPlayerProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const handleShouldStartLoad = useCallback(
     (request: any) => {
       if (!selectedVideo) {

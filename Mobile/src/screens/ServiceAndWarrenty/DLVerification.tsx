@@ -430,7 +430,7 @@ export default function DLVerification() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loaderCenter}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       </SafeAreaView>
     );
@@ -456,7 +456,7 @@ export default function DLVerification() {
                   style={[styles.actionIcon, loading && styles.disabledActionIcon]}
                   disabled={loading}
                 >
-                  <Icon name="share-2" size={22} color={loading ? "#444" : "#FFBF00"} />
+                  <Icon name="share-2" size={22} color={loading ? "#444" : "#5F9EA0"} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setVerificationResult(null)}
@@ -481,7 +481,7 @@ export default function DLVerification() {
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.iconContainer}>
               <View style={styles.iconCircle}>
-                <MaterialIcon name="card-account-details-outline" size={wp(12)} color="#FFBF00" />
+                <MaterialIcon name="card-account-details-outline" size={wp(12)} color="#5F9EA0" />
               </View>
             </View>
 
@@ -537,7 +537,7 @@ export default function DLVerification() {
             </View>
 
             <View style={styles.infoCard}>
-              <Icon name="info" size={18} color="#FFBF00" />
+              <Icon name="info" size={18} color="#5F9EA0" />
               <Text style={styles.infoText}>
                 IDSPay official verification ensures data privacy and government-sourced accuracy.
               </Text>
@@ -621,11 +621,11 @@ const styles = StyleSheet.create({
     width: wp(24),
     height: wp(24),
     borderRadius: wp(12),
-    backgroundColor: 'rgba(255, 191, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 191, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
   },
   title: {
     color: '#fff',
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   verifyButton: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     height: hp(7.5),
     borderRadius: 18,
     alignItems: 'center',
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 191, 0, 0.05)',
+    backgroundColor: 'rgba(95, 158, 160, 0.1)',
     padding: wp(4),
     borderRadius: 16,
     marginTop: hp(6),
@@ -696,7 +696,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    color: 'rgba(255, 191, 0, 0.8)',
+    color: 'rgba(95, 158, 160, 0.85)',
     fontSize: wp(3),
     fontFamily: 'Outfit-Medium',
     lineHeight: 18,

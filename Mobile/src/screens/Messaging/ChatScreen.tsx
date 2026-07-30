@@ -130,6 +130,10 @@ export default function ChatScreen() {
     const onReaction = (payload: { messageId: string; emoji: string }) => {
       setMessages((prev) => prev.map((m) => (m.id === payload.messageId ? { ...m, reaction: payload.emoji } : m)));
     };
+    const onMessageDeleted = (payload: { conversationId: string; messageId: string }) => {
+      if (payload.conversationId !== conversationId) return;
+      setMessages((prev) => prev.filter((m) => m.id !== payload.messageId));
+    };
     const onStatusChanged = (payload: { conversationId: string; status: string }) => {
       if (payload.conversationId !== conversationId) return;
       setConversation((prev) => (prev ? { ...prev, status: payload.status as any } : prev));
@@ -140,6 +144,7 @@ export default function ChatScreen() {
     socket.on('message_read', onRead);
     socket.on('message_delivered', onDelivered);
     socket.on('message_reaction', onReaction);
+    socket.on('message_deleted', onMessageDeleted);
     socket.on('conversation_status_changed', onStatusChanged);
 
     return () => {
@@ -148,6 +153,7 @@ export default function ChatScreen() {
       socket.off('message_read', onRead);
       socket.off('message_delivered', onDelivered);
       socket.off('message_reaction', onReaction);
+      socket.off('message_deleted', onMessageDeleted);
       socket.off('conversation_status_changed', onStatusChanged);
     };
   }, [conversationId, user?.id, bumpVersion]);
@@ -303,6 +309,46 @@ export default function ChatScreen() {
     ]);
   };
 
+  const handleDeleteConversation = () => {
+    setMenuOpen(false);
+    Alert.alert('Delete Conversation', 'Are you sure you want to delete this conversation?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await messagingService.deleteConversation(conversationId);
+            bumpVersion();
+            navigation.goBack();
+          } catch (e: any) {
+            Alert.alert('Error', e?.message || 'Could not delete conversation');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    setReactionTarget(null);
+    Alert.alert('Delete Message', 'Are you sure you want to delete this message?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await messagingService.deleteMessage(messageId);
+            setMessages((prev) => prev.filter((m) => m.id !== messageId));
+            bumpVersion();
+          } catch (e: any) {
+            Alert.alert('Error', e?.message || 'Could not delete message');
+          }
+        },
+      },
+    ]);
+  };
+
   const relevantQuickReplies = useMemo(
     () => (conversation ? quickReplies.filter((q) => q.category === conversation.category || q.category === 'GENERAL') : []),
     [quickReplies, conversation],
@@ -315,7 +361,7 @@ export default function ChatScreen() {
           <BackButton onPress={() => navigation.goBack()} />
         </View>
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       </SafeAreaView>
     );
@@ -354,6 +400,10 @@ export default function ChatScreen() {
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messagesList}
+          showsVerticalScrollIndicator={false}
+          overScrollMode="never"
+          removeClippedSubviews={Platform.OS === 'android'}
+          maxToRenderPerBatch={12}
           renderItem={({ item }) => {
             const mine = item.senderId === user?.id;
             return (
@@ -372,7 +422,7 @@ export default function ChatScreen() {
                   )}
                   {item.type === 'LOCATION' && item.latitude != null && (
                     <View style={styles.locationChip}>
-                      <IconMC name="map-marker" size={wp(4)} color="#FFBF00" />
+                      <IconMC name="map-marker" size={wp(4)} color="#5F9EA0" />
                       <Text style={styles.locationText}>Shared location</Text>
                     </View>
                   )}
@@ -423,10 +473,10 @@ export default function ChatScreen() {
         ) : (
           <View style={styles.inputRow}>
             <TouchableOpacity style={styles.iconBtn} onPress={sendPhotos} disabled={sending}>
-              <Icon name="camera" size={wp(4.2)} color="#FFBF00" />
+              <Icon name="camera" size={wp(4.2)} color="#5F9EA0" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn} onPress={sendLocation} disabled={sending}>
-              <IconMC name="map-marker-outline" size={wp(4.8)} color="#FFBF00" />
+              <IconMC name="map-marker-outline" size={wp(4.8)} color="#5F9EA0" />
             </TouchableOpacity>
             <TextInput
               value={text}
@@ -451,6 +501,14 @@ export default function ChatScreen() {
                 <Text style={styles.reactionOptionText}>{emoji}</Text>
               </TouchableOpacity>
             ))}
+            {reactionTarget && messages.find((m) => m.id === reactionTarget)?.senderId === user?.id && (
+              <TouchableOpacity
+                style={[styles.reactionOption, { paddingHorizontal: wp(3), borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.1)' }]}
+                onPress={() => reactionTarget && handleDeleteMessage(reactionTarget)}
+              >
+                <IconMC name="trash-can-outline" size={wp(5)} color="#FF453A" />
+              </TouchableOpacity>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -463,7 +521,7 @@ export default function ChatScreen() {
               <Text style={styles.actionMenuText}>Mark Resolved</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionMenuItem} onPress={handleReport}>
-              <IconMC name="flag-outline" size={wp(4.5)} color="#f59e0b" />
+              <IconMC name="flag-outline" size={wp(4.5)} color="#5f9ea0" />
               <Text style={styles.actionMenuText}>Report</Text>
             </TouchableOpacity>
             {isOwner && (
@@ -472,6 +530,10 @@ export default function ChatScreen() {
                 <Text style={styles.actionMenuText}>Block this person</Text>
               </TouchableOpacity>
             )}
+            <TouchableOpacity style={styles.actionMenuItem} onPress={handleDeleteConversation}>
+              <IconMC name="trash-can-outline" size={wp(4.5)} color="#ef4444" />
+              <Text style={[styles.actionMenuText, { color: '#ef4444' }]}>Delete Conversation</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -530,9 +592,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: wp(2),
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#5f9ea0',
     paddingVertical: hp(1),
-    shadowColor: '#f59e0b',
+    shadowColor: '#5f9ea0',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -555,7 +617,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  bubbleMine: { backgroundColor: '#FFBF00', borderBottomRightRadius: 4 },
+  bubbleMine: { backgroundColor: '#5F9EA0', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: '#161926', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#222636' },
   bubbleTextMine: { color: '#090a0f', fontFamily: 'Outfit-Medium', fontSize: wp(3.7), lineHeight: wp(5.2) },
   bubbleTextTheirs: { color: '#f1f5f9', fontFamily: 'Outfit-Medium', fontSize: wp(3.7), lineHeight: wp(5.2) },
@@ -591,12 +653,12 @@ const styles = StyleSheet.create({
   quickReplyChip: {
     backgroundColor: '#161926',
     borderWidth: 1,
-    borderColor: 'rgba(255,191,0,0.3)',
+    borderColor: 'rgba(95, 158, 160,0.6)',
     borderRadius: 999,
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.9),
   },
-  quickReplyText: { color: '#FFBF00', fontFamily: 'Outfit-Medium', fontSize: wp(3.2) },
+  quickReplyText: { color: '#5F9EA0', fontFamily: 'Outfit-Medium', fontSize: wp(3.2) },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -632,10 +694,10 @@ const styles = StyleSheet.create({
     width: wp(10.5),
     height: wp(10.5),
     borderRadius: wp(5.25),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
     shadowRadius: 5,
@@ -676,6 +738,6 @@ const styles = StyleSheet.create({
   reportActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: wp(3), marginTop: hp(2) },
   reportCancelBtn: { paddingHorizontal: wp(4), paddingVertical: hp(1.2) },
   reportCancelText: { color: '#8890a6', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
-  reportSubmitBtn: { backgroundColor: '#FFBF00', paddingHorizontal: wp(5.5), paddingVertical: hp(1.2), borderRadius: 12 },
+  reportSubmitBtn: { backgroundColor: '#5F9EA0', paddingHorizontal: wp(5.5), paddingVertical: hp(1.2), borderRadius: 12 },
   reportSubmitText: { color: '#090a0f', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
 });

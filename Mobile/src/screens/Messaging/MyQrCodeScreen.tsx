@@ -104,7 +104,7 @@ export default function MyQrCodeScreen() {
       {!selectedVehicle ? (
         loadingVehicles ? (
           <View style={styles.centerState}>
-            <ActivityIndicator size="large" color="#FFBF00" />
+            <ActivityIndicator size="large" color="#5F9EA0" />
           </View>
         ) : vehicles.length === 0 ? (
           <View style={styles.centerState}>
@@ -118,7 +118,7 @@ export default function MyQrCodeScreen() {
             contentContainerStyle={styles.pickerList}
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.pickerRow} onPress={() => setSelectedVehicle(item)} activeOpacity={0.8}>
-                <IconMC name="car" size={wp(6)} color="#FFBF00" />
+                <IconMC name="car" size={wp(6)} color="#5F9EA0" />
                 <View style={styles.pickerRowBody}>
                   <Text style={styles.pickerReg}>{item.registrationNumber}</Text>
                   {item.make ? <Text style={styles.pickerMakeModel}>{item.make} {item.model}</Text> : null}
@@ -130,7 +130,7 @@ export default function MyQrCodeScreen() {
         )
       ) : loadingToken ? (
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       ) : token ? (
         <View style={styles.content}>
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: wp(6),
     borderRadius: 24,
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -204,12 +204,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(2.5),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     paddingHorizontal: wp(8),
     paddingVertical: hp(1.6),
     borderRadius: 16,
     marginBottom: hp(1.5),
-    shadowColor: '#FFBF00',
+    shadowColor: '#5F9EA0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

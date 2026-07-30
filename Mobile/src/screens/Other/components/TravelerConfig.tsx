@@ -55,7 +55,7 @@ const TravelerConfig = ({ planning, onChange }: Props) => {
               onPress={() => handleTravelerTypeChange(item.id)}
             >
               <View style={[styles.iconBox, isActive && styles.activeIconBox]}>
-                <IconComp size={22} color={isActive ? '#000' : '#FFD700'} />
+                <IconComp size={22} color={isActive ? '#000' : '#5F9EA0'} />
               </View>
               <Text style={[styles.cardLabel, isActive && styles.activeCardLabel]}>{item.label}</Text>
             </TouchableOpacity>
@@ -65,7 +65,7 @@ const TravelerConfig = ({ planning, onChange }: Props) => {
 
       <Text style={[styles.label, { marginTop: 30 }]}>Number of People</Text>
       <View style={styles.inputWrapper}>
-        <Users size={18} color="#FFD700" />
+        <Users size={18} color="#5F9EA0" />
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -106,12 +106,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  activeCard: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  activeCard: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   iconBox: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -236,7 +236,7 @@ const TransportOptions = ({ planning, onChange, tripResult, selectedRouteIndex }
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFD700" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingText}>Finding rental providers near your destination...</Text>
         </View>
       ) : null}
@@ -340,7 +340,7 @@ const TransportOptions = ({ planning, onChange, tripResult, selectedRouteIndex }
                    <Image source={{ uri: item.image }} style={styles.rentalImage} />
                 ) : (
                   <View style={styles.iconBox}>
-                    <IconComp size={24} color="#FFD700" />
+                    <IconComp size={24} color="#5F9EA0" />
                   </View>
                 )}
                 
@@ -357,7 +357,7 @@ const TransportOptions = ({ planning, onChange, tripResult, selectedRouteIndex }
                   ) : null}
                   {item.rating && (
                     <View style={styles.ratingRow}>
-                      <Star size={10} color="#FFD700" fill="#FFD700" />
+                      <Star size={10} color="#5F9EA0" fill="#5F9EA0" />
                       <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
                       {item.ratingCount ? <Text style={styles.ratingCountText}>({item.ratingCount})</Text> : null}
                     </View>
@@ -401,7 +401,7 @@ const TransportOptions = ({ planning, onChange, tripResult, selectedRouteIndex }
           })
         ) : (
           <View style={styles.emptyContainer}>
-            <Bike size={40} color="#FFD700" />
+            <Bike size={40} color="#5F9EA0" />
             <Text style={styles.emptyText}>
               No transport options found with current filters. Try turning off "Open Now" or increasing budget.
             </Text>
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     backgroundColor: '#151515',
   },
-  filterChipActive: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  filterChipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   filterChipText: { color: '#bbb', fontSize: 11, fontWeight: '700' },
   filterChipTextActive: { color: '#000' },
   sortRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  sortChipActive: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  sortChipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   sortChipText: { color: '#888', fontSize: 11, fontWeight: '700' },
   sortChipTextActive: { color: '#000' },
   catList: { paddingRight: 20 },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#222',
   },
-  activeChip: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  activeChip: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   catLabel: { color: '#888', fontSize: 13, fontWeight: 'bold' },
   activeCatLabel: { color: '#000' },
   label: { color: '#888', fontSize: 11, fontWeight: 'bold', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 },
@@ -488,12 +488,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#222',
   },
-  selectedCard: { borderColor: '#FFD700', borderWidth: 1.5 },
+  selectedCard: { borderColor: '#5F9EA0', borderWidth: 1.5 },
   iconBox: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -508,9 +508,9 @@ const styles = StyleSheet.create({
   type: { color: '#888', fontSize: 12, marginTop: 2 },
   distanceText: { color: '#777', fontSize: 11, marginTop: 3 },
   openStatus: { color: '#32D74B', fontSize: 11, fontWeight: '700', marginTop: 3 },
-  closedStatus: { color: '#FF9F0A' },
+  closedStatus: { color: '#4A7C7E' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  ratingText: { color: '#FFD700', fontSize: 10, fontWeight: 'bold' },
+  ratingText: { color: '#5F9EA0', fontSize: 10, fontWeight: 'bold' },
   ratingCountText: { color: '#666', fontSize: 10 },
   navigationRow: {
     marginTop: 8,
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     borderRadius: 999,
     paddingHorizontal: 9,
     paddingVertical: 5,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   navigateBtnText: { color: '#000', fontSize: 10, fontWeight: '800' },
   navigateMetaText: { color: '#666', fontSize: 9, flex: 1, textAlign: 'right' },
   priceBox: { alignItems: 'flex-end', marginLeft: 10 },
-  price: { color: '#FFD700', fontSize: 12, fontWeight: 'bold', textAlign: 'right' },
+  price: { color: '#5F9EA0', fontSize: 12, fontWeight: 'bold', textAlign: 'right' },
   priceSub: { color: '#666', fontSize: 10, marginTop: 3 },
   infoBox: { flexDirection: 'row', gap: 10, marginTop: 20, alignItems: 'center' },
   infoText: { color: '#888', fontSize: 12, flex: 1 },

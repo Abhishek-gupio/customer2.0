@@ -230,7 +230,7 @@ export default function Fastag() {
           <View style={styles.divider} />
 
           <View style={styles.verifiedBadge}>
-            <MaterialIcon name="shield-check" size={20} color="#FFBF00" />
+            <MaterialIcon name="shield-check" size={20} color="#5F9EA0" />
             <Text style={styles.badgeText}>Verified via IDSPay Pennyless V2</Text>
           </View>
         </View>
@@ -287,7 +287,7 @@ export default function Fastag() {
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.iconContainer}>
               <View style={styles.iconCircle}>
-                <MaterialIcon name="bank-check" size={wp(12)} color="#FFBF00" />
+                <MaterialIcon name="bank-check" size={wp(12)} color="#5F9EA0" />
               </View>
             </View>
 
@@ -341,7 +341,7 @@ export default function Fastag() {
             <LoadingSpinner visible={loading} />
 
             <View style={styles.infoCard}>
-              <Icon name="shield" size={18} color="#FFBF00" />
+              <Icon name="shield" size={18} color="#5F9EA0" />
               <Text style={styles.infoText}>
                 Secure pennyless verification ensures no money is deducted from your account.
               </Text>
@@ -428,11 +428,11 @@ const styles = StyleSheet.create({
     width: wp(24),
     height: wp(24),
     borderRadius: wp(12),
-    backgroundColor: 'rgba(255, 191, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 191, 0, 0.2)',
+    borderColor: 'rgba(95, 158, 160, 0.4)',
   },
   title: {
     color: '#fff',
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Outfit-Medium',
   },
   verifyButton: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     height: hp(7.5),
     borderRadius: 18,
     alignItems: 'center',
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 191, 0, 0.05)',
+    backgroundColor: 'rgba(95, 158, 160, 0.1)',
     padding: wp(4),
     borderRadius: 16,
     marginTop: hp(6),
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    color: 'rgba(255, 191, 0, 0.8)',
+    color: 'rgba(95, 158, 160, 0.85)',
     fontSize: wp(3),
     fontFamily: 'Outfit-Medium',
     lineHeight: 18,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
       width: wp(16),
       height: wp(16),
       borderRadius: wp(8),
-      backgroundColor: '#FFBF00',
+      backgroundColor: '#5F9EA0',
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: hp(2),
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
       borderColor: 'rgba(255,255,255,0.05)',
   },
   cardSectionTitle: {
-      color: 'rgba(255, 191, 0, 0.8)',
+      color: 'rgba(95, 158, 160, 0.85)',
       fontFamily: 'Outfit-Bold',
       fontSize: wp(3.2),
       textTransform: 'uppercase',
@@ -575,12 +575,12 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      backgroundColor: 'rgba(255, 191, 0, 0.05)',
+      backgroundColor: 'rgba(95, 158, 160, 0.1)',
       padding: 12,
       borderRadius: 12,
   },
   badgeText: {
-      color: '#FFBF00',
+      color: '#5F9EA0',
       fontFamily: 'Outfit-Bold',
       fontSize: wp(3),
   },

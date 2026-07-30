@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import LinearGradient from 'react-native-linear-gradient';
@@ -6,7 +6,8 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 import type { TimelineItem } from '../types/home';
 
 const FlashListAny = FlashList as any;
@@ -22,6 +23,8 @@ export const OwnershipTimeline = React.memo(function OwnershipTimeline({
   recommendedId,
   entranceAnim,
 }: OwnershipTimelineProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const renderItem = useCallback(
     ({ item, index }: { item: TimelineItem; index: number }) => (
       <Animated.View

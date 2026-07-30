@@ -87,7 +87,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   TOLL: "#9c27b0",
   TOLLS: "#9c27b0",
   INSURANCE: "#00bcd4",
-  PARKING: "#ffeb3b",
+  PARKING: "#5f9ea0",
   CHALLAN: "#f44336",
   EMI: "#4caf50",
   REPAIR: "#ff5722",
@@ -266,7 +266,7 @@ const buildTrendSeries = (expenses: any[], timeFrame: TimeFrame) => {
     series: [
       {
         name: "Total",
-        color: "#ffbf00",
+        color: "#5f9ea0",
         data: totals,
       },
     ],
@@ -925,7 +925,7 @@ export default function ExpenseAnalytics() {
 
     <View style={styles.keyInsights}>
       <View style={styles.kryInsightsHeader}>
-        <Iconi name="lightbulb-on" size={25} color="#FFD700" style={{ marginRight: 8 }} />
+        <Iconi name="lightbulb-on" size={25} color="#5F9EA0" style={{ marginRight: 8 }} />
         <Text style={styles.title}>Key Insights</Text>
       </View>
       {analyticsError ? (
@@ -1125,7 +1125,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(0.7),
   },
   preparingText: {
-    color: "#9ca3af",
+    color: "#5f9ea0",
     fontSize: hp(1.7),
     lineHeight: hp(2.3),
   },

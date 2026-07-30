@@ -75,7 +75,7 @@ export const WarrantySummary = React.memo(({ active, expired, health }: Warranty
                             <SvgGradient id="fillGrad" x1="0" y1="0" x2="1" y2="0">
                                 <Stop offset="0" stopColor="#444" />
                                 <Stop offset="0.5" stopColor="#FFF" />
-                                <Stop offset="1" stopColor="#FFBF00" />
+                                <Stop offset="1" stopColor="#5F9EA0" />
                             </SvgGradient>
                         </Defs>
                         
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: '#FFBF00',
+        backgroundColor: '#5F9EA0',
     },
     liveText: {
         color: '#fff',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type TrendingVideosSectionProps = {
   videos: any[];
@@ -16,6 +17,7 @@ type TrendingVideosSectionProps = {
   selectedVideoId?: string | null;
   onVideoPress: (url: unknown, title: unknown) => void;
   getYouTubeVideoId: (url: unknown) => string | null;
+  onViewMorePress?: () => void;
 };
 
 export const TrendingVideosSection = React.memo(function TrendingVideosSection({
@@ -24,17 +26,27 @@ export const TrendingVideosSection = React.memo(function TrendingVideosSection({
   selectedVideoId,
   onVideoPress,
   getYouTubeVideoId,
+  onViewMorePress,
 }: TrendingVideosSectionProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Trending Videos</Text>
-        {loading ? <ActivityIndicator size="small" color="#FFBF00" /> : null}
+        {loading ? (
+          <ActivityIndicator size="small" color="#5F9EA0" />
+        ) : videos.length > 0 && onViewMorePress ? (
+          <TouchableOpacity style={styles.viewAllRow} onPress={onViewMorePress}>
+            <Text style={styles.viewAllText}>View more</Text>
+            <MaterialIcon name="chevron-right" size={16} color="#ccc" />
+          </TouchableOpacity>
+        ) : null}
       </View>
       {loading && videos.length === 0 ? (
         <View style={styles.discoveryPlaceholder}>
           <View style={styles.discoveryLoadingRow}>
-            <ActivityIndicator size="small" color="#FFBF00" />
+            <ActivityIndicator size="small" color="#5F9EA0" />
             <Text style={styles.discoveryPlaceholderText}>
               Loading videos\u2026
             </Text>

@@ -45,7 +45,7 @@ const PRIORITIES = [
   {
     label: 'Medium',
     value: 'MEDIUM',
-    color: '#FF9800',
+    color: '#5F9EA0',
     desc: 'Issue needs fix',
   },
   {
@@ -487,7 +487,7 @@ const CustomAlertModal = React.memo(
                 alertConfig.type === 'success'
                   ? '#4CAF50'
                   : alertConfig.type === 'warning'
-                    ? '#FFBF00'
+                    ? '#5F9EA0'
                     : '#2196F3'
               }
             />
@@ -717,11 +717,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(95, 158, 160,0.2)',
   },
   popupBtnTextMinimal: {
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
     fontSize: 15,
     fontWeight: '700',
   },

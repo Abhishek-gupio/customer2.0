@@ -167,7 +167,7 @@ export default function ParkingListingDetailScreen() {
           <Text style={styles.headerTitle}>Parking</Text>
         </View>
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color="#FFBF00" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       </SafeAreaView>
     );
@@ -181,7 +181,7 @@ export default function ParkingListingDetailScreen() {
           <Text style={styles.headerTitle}>Parking</Text>
         </View>
         <View style={styles.centerState}>
-          <IconMC name="alert-circle-outline" size={wp(10)} color="#f59e0b" />
+          <IconMC name="alert-circle-outline" size={wp(10)} color="#5f9ea0" />
           <Text style={styles.centerStateText}>{error || 'Listing not found.'}</Text>
         </View>
       </SafeAreaView>
@@ -198,7 +198,7 @@ export default function ParkingListingDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <View style={styles.addressRow}>
-            <IconMC name="map-marker" size={wp(4.5)} color="#FFBF00" />
+            <IconMC name="map-marker" size={wp(4.5)} color="#5F9EA0" />
             <Text style={styles.addressText}>{listing.addressLine}, {listing.city}</Text>
           </View>
           <View style={styles.dealerRow}>
@@ -214,7 +214,7 @@ export default function ParkingListingDetailScreen() {
             activeOpacity={0.8}
             onPress={() => setShowVehiclePicker(true)}
           >
-            <IconMC name="car" size={wp(4.5)} color="#FFBF00" />
+            <IconMC name="car" size={wp(4.5)} color="#5F9EA0" />
             <Text style={styles.vehicleSelectorText} numberOfLines={1}>
               {selectedVehicle
                 ? `${selectedVehicle.registrationNumber}${selectedVehicle.isPrimary ? ' (Primary)' : ''}`
@@ -262,7 +262,9 @@ export default function ParkingListingDetailScreen() {
           onPress={handleBookAndPay}
           disabled={booking || !selectedVehicleId}
         >
-          <Text style={styles.bookBtnText}>{booking ? 'Processing…' : `Book & Pay ₹${(totalPaise / 100).toFixed(0)}`}</Text>
+          <Text style={[styles.bookBtnText, !selectedVehicleId && styles.bookBtnTextDisabled]}>
+            {booking ? 'Processing…' : selectedVehicleId ? `Book & Pay ₹${(totalPaise / 100).toFixed(0)}` : 'Select a vehicle'}
+          </Text>
         </TouchableOpacity>
       </View>
       <LoadingSpinner visible={booking} />
@@ -288,7 +290,7 @@ export default function ParkingListingDetailScreen() {
                   <IconMC
                     name={v.id === selectedVehicleId ? 'radiobox-marked' : 'radiobox-blank'}
                     size={wp(5)}
-                    color={v.id === selectedVehicleId ? '#FFBF00' : '#555'}
+                    color={v.id === selectedVehicleId ? '#5F9EA0' : '#555'}
                   />
                   <Text style={styles.vehicleOptionText}>
                     {v.registrationNumber} {v.isPrimary ? '(Primary)' : ''}
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
   summaryValue: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
   divider: { height: 1, backgroundColor: '#222', marginVertical: hp(1) },
   totalLabel: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4) },
-  totalValue: { color: '#FFBF00', fontFamily: 'Outfit-Black', fontSize: wp(4.5) },
+  totalValue: { color: '#5F9EA0', fontFamily: 'Outfit-Black', fontSize: wp(4.5) },
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -363,13 +365,14 @@ const styles = StyleSheet.create({
     borderTopColor: '#1a1a1a',
   },
   bookBtn: {
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     borderRadius: 16,
     paddingVertical: hp(1.8),
     alignItems: 'center',
   },
-  bookBtnDisabled: { backgroundColor: '#4a4020' },
+  bookBtnDisabled: { backgroundColor: '#3a3a3a' },
   bookBtnText: { color: '#111', fontFamily: 'Outfit-Black', fontSize: wp(4) },
+  bookBtnTextDisabled: { color: '#999' },
   vehicleSelector: {
     flexDirection: 'row',
     alignItems: 'center',

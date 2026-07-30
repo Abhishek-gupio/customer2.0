@@ -158,10 +158,10 @@ const styles = StyleSheet.create({
     listTitle: { fontSize: 18, fontWeight: '900', color: '#FFF', marginBottom: 4 },
     listSub: { fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase' },
     delBtn: { padding: 12, backgroundColor: 'rgba(255, 69, 58, 0.1)', borderRadius: 16 },
-    addNewCard: { borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed', borderRadius: 32, padding: 24, flexDirection: 'row', alignItems: 'center', gap: 20, backgroundColor: 'rgba(255, 215, 0, 0.05)' },
-    addNewIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' },
+    addNewCard: { borderWidth: 2, borderColor: COLORS.border, borderStyle: 'dashed', borderRadius: 32, padding: 24, flexDirection: 'row', alignItems: 'center', gap: 20, backgroundColor: 'rgba(95, 158, 160, 0.1)' },
+    addNewIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(95, 158, 160, 0.6)' },
     addNewTitle: { fontSize: 18, fontWeight: '900', color: COLORS.primary, fontStyle: 'italic' },
     addNewSub: { fontSize: 10, fontWeight: 'bold', color: '#888', textTransform: 'uppercase' },
-    primaryBadge: { backgroundColor: 'rgba(255, 215, 0, 0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.3)' },
+    primaryBadge: { backgroundColor: 'rgba(95, 158, 160, 0.2)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(95, 158, 160, 0.6)' },
     primaryText: { color: COLORS.primary, fontSize: 8, fontWeight: '900', letterSpacing: 0.5 },
 });

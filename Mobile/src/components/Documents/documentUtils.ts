@@ -32,9 +32,9 @@ export function getDocumentStatusMeta(doc?: DocumentItem | null) {
     return {
       label: 'Expiring',
       caption: `Due ${formatDocDate(doc.expiryDate)}`,
-      tone: '#F59E0B',
-      bg: 'rgba(245,158,11,0.14)',
-      border: 'rgba(245,158,11,0.35)',
+      tone: '#5F9EA0',
+      bg: 'rgba(95, 158, 160,0.28)',
+      border: 'rgba(95, 158, 160,0.7)',
     };
   }
 

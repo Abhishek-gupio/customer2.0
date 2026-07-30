@@ -119,7 +119,7 @@ export default function Settings() {
               <Text style={styles.sosTitle}>SOS Emergency</Text>
               <Text style={styles.sosSub}>24/7 Emergency assistance</Text>
             </View>
-            <Icon name="chevron-right" size={wp(3.5)} color="#FFBF00" />
+            <Icon name="chevron-right" size={wp(3.5)} color="#5F9EA0" />
           </TouchableOpacity>
         </View>
 
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: wp(3.5),
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
     marginBottom: hp(1),
     paddingLeft: wp(1),
     textTransform: 'uppercase',
@@ -283,17 +283,17 @@ const styles = StyleSheet.create({
   sosCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 191, 0, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.2)',
     borderRadius: wp(4),
     padding: wp(4.5),
     borderWidth: 1.2,
-    borderColor: 'rgba(255, 191, 0, 0.3)',
+    borderColor: 'rgba(95, 158, 160, 0.6)',
   },
   sosIconWrap: {
     width: wp(12),
     height: wp(12),
     borderRadius: wp(6),
-    backgroundColor: '#FFBF00',
+    backgroundColor: '#5F9EA0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: wp(3.5),
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   sosTitle: {
     fontSize: wp(4.5),
     fontFamily: 'Outfit-Bold',
-    color: '#FFBF00',
+    color: '#5F9EA0',
   },
   sosSub: {
     fontSize: wp(3.3),

@@ -290,6 +290,65 @@ export const messagingService = {
     return updated;
   },
 
+  async deleteMessage(userId: string, messageId: string) {
+    const message = await dbInstances.message.findUnique({
+      where: { id: messageId },
+      include: { conversation: true },
+    });
+    if (!message) throw AppError.notFound("Message not found");
+    const { conversation } = message;
+    if (conversation.customerId !== userId && conversation.ownerId !== userId) {
+      throw AppError.notFound("Message not found");
+    }
+    if (message.senderId !== userId) {
+      throw AppError.forbidden("You can only delete your own messages");
+    }
+
+    await dbInstances.message.delete({ where: { id: messageId } });
+
+    const receiverIsOwner = message.receiverId === conversation.ownerId;
+    const conversationUpdate: Record<string, unknown> = {};
+    // Keep the receiver's unread counter honest if the deleted message was never read.
+    if (!message.isRead && (receiverIsOwner ? conversation.unreadCountOwner : conversation.unreadCountCustomer) > 0) {
+      conversationUpdate[receiverIsOwner ? "unreadCountOwner" : "unreadCountCustomer"] = { decrement: 1 };
+    }
+    // If the deleted message was the newest one, re-derive the inbox preview.
+    if (conversation.lastMessageAt && message.createdAt >= conversation.lastMessageAt) {
+      const latest = await dbInstances.message.findFirst({
+        where: { conversationId: conversation.id },
+        orderBy: { createdAt: "desc" },
+      });
+      conversationUpdate.lastMessage = latest
+        ? truncatePreview({ type: latest.type, text: latest.text ?? undefined } as SendMessageInput)
+        : null;
+      conversationUpdate.lastMessageAt = latest?.createdAt ?? null;
+      conversationUpdate.lastSenderId = latest?.senderId ?? null;
+    }
+    if (Object.keys(conversationUpdate).length > 0) {
+      await dbInstances.conversation.update({ where: { id: conversation.id }, data: conversationUpdate });
+    }
+
+    try {
+      getIO()
+        .to(otherPartyId(conversation, userId))
+        .emit("message_deleted", { conversationId: conversation.id, messageId });
+    } catch (err) {
+      logger.error({ err, messageId }, "Failed to emit message_deleted socket event");
+    }
+  },
+
+  async deleteConversation(userId: string, conversationId: string) {
+    const conversation = await dbInstances.conversation.findUnique({
+      where: { id: conversationId },
+    });
+    if (!conversation) throw AppError.notFound("Conversation not found");
+    if (conversation.customerId !== userId && conversation.ownerId !== userId) {
+      throw AppError.notFound("Conversation not found");
+    }
+    await dbInstances.message.deleteMany({ where: { conversationId } });
+    await dbInstances.conversation.delete({ where: { id: conversationId } });
+  },
+
   async reportConversation(userId: string, conversationId: string, reason: string) {
     const conversation = await dbInstances.conversation.findUnique({ where: { id: conversationId } });
     if (!conversation || (conversation.customerId !== userId && conversation.ownerId !== userId)) {

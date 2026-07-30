@@ -89,6 +89,13 @@ export const setupNotifications = async () => {
     // 4. Handle Foreground Messages
     messaging().onMessage(async (remoteMessage: any) => {
       console.log('FCM Message received in Foreground:', remoteMessage);
+
+      // The urgent full-screen alert is only for someone scanning this vehicle's QR
+      // code and messaging in as a guest — not for every push notification (payment
+      // confirmations, reminders, etc. shouldn't trigger a siren-style modal).
+      const isGuestVehicleMessage = remoteMessage?.data?.type === 'VEHICLE_GUEST_MESSAGE';
+      if (!isGuestVehicleMessage) return;
+
       const title = remoteMessage?.notification?.title || remoteMessage?.data?.title || '🚨 Vehicle Alert';
       const body = remoteMessage?.notification?.body || remoteMessage?.data?.body || 'New alert received!';
       const conversationId = remoteMessage?.data?.conversationId || remoteMessage?.data?.id;

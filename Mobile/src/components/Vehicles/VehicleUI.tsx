@@ -11,7 +11,7 @@ export const COLORS = {
     background: '#000000',
     surface: '#1C1C1E',
     border: '#2C2C2E',
-    primary: '#FFD700', // Gupio Yellow
+    primary: '#FFFFFF', // Monochrome White
     textMain: '#FFFFFF',
     textMuted: '#8E8E93',
     success: '#32D74B',
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         color: '#FFF', fontSize: hp('1.8%'), fontFamily: 'Outfit-Black'
     },
     statusAction: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 215, 0, 0.08)', 
+        flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(95, 158, 160, 0.16)', 
         paddingVertical: 8, paddingHorizontal: 14, borderRadius: 14, gap: 4, marginLeft: 12
     },
     actionText: {

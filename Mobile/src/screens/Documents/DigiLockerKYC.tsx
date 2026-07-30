@@ -72,14 +72,14 @@ export default function DigiLockerKYC() {
         <View style={styles.errorContainer}>
            <Text style={styles.errorText}>Invalid verification link.</Text>
            <TouchableOpacity onPress={() => navigation.goBack()} style={{marginTop: 20}}>
-             <Text style={{color: '#FFC107'}}>Go Back</Text>
+             <Text style={{color: '#5F9EA0'}}>Go Back</Text>
            </TouchableOpacity>
         </View>
       )}
 
       {loading && (
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#FFC107" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
         </View>
       )}
     </SafeAreaView>

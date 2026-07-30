@@ -235,7 +235,7 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
           <Text style={styles.activityName}>{item.name}</Text>
           <View style={styles.infoRow}>
             <Clock size={12} color="#888" />
-            <Text style={[styles.infoText, item.openNow === false && { color: '#FF9F0A' }]}>{item.openTime}</Text>
+            <Text style={[styles.infoText, item.openNow === false && { color: '#4A7C7E' }]}>{item.openTime}</Text>
             <Text style={styles.dot}>•</Text>
             <MapPin size={12} color="#888" />
             <Text style={styles.infoText}>{item.location}</Text>
@@ -291,7 +291,7 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
     <View style={styles.container}>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFD700" />
+          <ActivityIndicator size="large" color="#5F9EA0" />
           <Text style={styles.loadingText}>Finding activities near your destination...</Text>
         </View>
       ) : null}
@@ -325,7 +325,7 @@ const ActivityList = ({ planning, onChange, tripResult, selectedRouteIndex }: Pr
 
       {filteredActivities.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Compass size={40} color="#FFD700" />
+          <Compass size={40} color="#5F9EA0" />
           <Text style={styles.emptyText}>
             No activities match this category/filter. Try another category, higher budget, or disable "Open Now".
           </Text>
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     backgroundColor: '#151515',
   },
-  filterChipActive: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  filterChipActive: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   filterChipText: { color: '#bbb', fontSize: 11, fontWeight: '700' },
   filterChipTextActive: { color: '#000' },
   catList: { paddingRight: 20 },
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#222',
   },
-  activeChip: { backgroundColor: '#FFD700', borderColor: '#FFD700' },
+  activeChip: { backgroundColor: '#5F9EA0', borderColor: '#5F9EA0' },
   catLabel: { color: '#888', fontSize: 13, fontWeight: 'bold' },
   activeCatLabel: { color: '#000' },
   labelCompact: { color: '#888', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1 },
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     overflow: 'hidden',
   },
-  selectedActivityCard: { borderColor: '#FFD700', borderWidth: 2 },
+  selectedActivityCard: { borderColor: '#5F9EA0', borderWidth: 2 },
   activityImage: { width: '100%', height: 160 },
   overlay: { position: 'absolute', top: 12, left: 12 },
   categoryBadge: {
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 4 },
   infoText: { color: '#888', fontSize: 12 },
   dot: { color: '#444', marginHorizontal: 2 },
-  priceText: { color: '#FFD700', fontSize: 14, fontWeight: 'bold' },
+  priceText: { color: '#5F9EA0', fontSize: 14, fontWeight: 'bold' },
   priceTextMuted: { color: '#888' },
   navigationRow: {
     marginTop: 10,
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#5F9EA0',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,

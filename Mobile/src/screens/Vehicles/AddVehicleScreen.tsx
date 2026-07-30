@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     confirmRow: { paddingVertical: 14 },
     confirmLabel: { color: COLORS.textMuted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 4 },
     confirmValue: { color: '#FFF', fontSize: 14, fontWeight: '900', fontStyle: 'italic' },
-    infoBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,215,0,0.05)', padding: 16, borderRadius: 16, marginTop: 24, gap: 12, borderWidth: 1, borderColor: 'rgba(255,215,0,0.1)' },
+    infoBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(95, 158, 160,0.1)', padding: 16, borderRadius: 16, marginTop: 24, gap: 12, borderWidth: 1, borderColor: 'rgba(95, 158, 160,0.2)' },
     infoText: { color: '#888', fontSize: 11, flex: 1, fontWeight: '500' },
     saveBtn: {
         backgroundColor: COLORS.primary, height: 64, borderRadius: 32,

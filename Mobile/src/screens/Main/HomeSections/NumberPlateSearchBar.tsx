@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { styles } from '../homeStyles';
+import { createStyles } from '../homeStyles';
+import { useTheme } from '../../../theme/ThemeContext';
 
 type NumberPlateSearchBarProps = {
   animatedPlaceholder: string;
@@ -12,6 +13,8 @@ export const NumberPlateSearchBar = React.memo(function NumberPlateSearchBar({
   animatedPlaceholder,
   onPress,
 }: NumberPlateSearchBarProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.numberPlateSection}>
       <TouchableOpacity
