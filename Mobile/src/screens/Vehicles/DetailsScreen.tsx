@@ -46,6 +46,9 @@ import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { RootState } from '../../store';
 import { fetchDocuments, removeDocumentAsync } from '../../store/slices/documentsSlice';
 import LoaderButton from '../../components/Button';
+import { triggerHaptic } from '../../utils/haptics';
+import GlassToast from '../../components/common/GlassToast';
+import VehicleActionSheet from '../../components/common/VehicleActionSheet';
 
 const CarImage = { uri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400' };
 const BikeImage = { uri: 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?auto=format&fit=crop&q=80&w=400' };
@@ -158,6 +161,16 @@ export const DetailsScreen = ({
     const [showViewerModal, setShowViewerModal] = useState(false);
     const [viewingDoc, setViewingDoc] = useState<any>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+
+    const [toastVisible, setToastVisible] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [actionSheetVisible, setActionSheetVisible] = useState(false);
+    const [actionSheetVehicle, setActionSheetVehicle] = useState<any>(null);
+
+    const showToast = (msg: string) => {
+        setToastMessage(msg);
+        setToastVisible(true);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -514,7 +527,8 @@ export const DetailsScreen = ({
             }
 
             setIsProcessing(false);
-            showStatus('Success', `Document downloaded successfully! You can find it in your Downloads folder as ${fileName}`);
+            triggerHaptic('success');
+            showToast(`Downloaded ${doc?.type || 'Document'} as PDF to your Downloads folder!`);
         } catch (error: any) {
             setIsProcessing(false);
             showStatus('Error', error.message || 'Could not download document as PDF', 'error');
@@ -624,6 +638,7 @@ export const DetailsScreen = ({
                         <TouchableOpacity
                             key={t}
                             onPress={() => {
+                                triggerHaptic('light');
                                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                                 setMainTab(t);
                             }}
@@ -710,7 +725,15 @@ export const DetailsScreen = ({
                             .map((v: Vehicle) => (
                                 <TouchableOpacity
                                     key={v.id}
-                                    onPress={() => setActiveVehicle(v)}
+                                    onPress={() => {
+                                        triggerHaptic('light');
+                                        setActiveVehicle(v);
+                                    }}
+                                    onLongPress={() => {
+                                        triggerHaptic('medium');
+                                        setActionSheetVehicle(v);
+                                        setActionSheetVisible(true);
+                                    }}
                                     style={[
                                         styles.miniCircleWrap,
                                         activeVehicle.id === v.id && styles.miniCircleActive
@@ -747,6 +770,17 @@ export const DetailsScreen = ({
                 <View style={styles.sectionPad}>
                     {mainTab === 'Alerts' ? (
                         <>
+                            {/* ── Live Vehicle System Status Pulse Bar ── */}
+                            <View style={styles.liveSecuredPill}>
+                                <View style={styles.livePulseDotOuter}>
+                                    <View style={styles.livePulseDotInner} />
+                                </View>
+                                <Text style={styles.liveSecuredText}>VEHICLE SECURED & MONITORED</Text>
+                                <View style={styles.liveShieldIconWrap}>
+                                    <ShieldCheck size={14} color="#30D158" />
+                                </View>
+                            </View>
+
                             {/* ── Worry-Free Vehicle Ownership Command Center ── */}
                             <View style={styles.ownershipSection}>
                                 <View style={styles.sectionHeaderRow}>
@@ -1460,13 +1494,40 @@ export const DetailsScreen = ({
                     </ScrollView>
 
                     <View style={styles.viewerFooter}>
-                        <TouchableOpacity style={styles.viewerActionBtn} onPress={() => handleShareDoc(viewingDoc)}>
-                            <Share2 size={20} color="#FFF" />
-                            <Text style={styles.viewerActionText}>Share as PDF</Text>
+                        <TouchableOpacity
+                            style={[styles.viewerActionBtn, { padding: 0, overflow: 'hidden' }]}
+                            onPress={() => {
+                                triggerHaptic('light');
+                                handleShareDoc(viewingDoc);
+                            }}
+                        >
+                            <LinearGradient
+                                colors={['#0A84FF', '#0055B3']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderRadius: 12, gap: 8 }}
+                            >
+                                <Share2 size={18} color="#FFF" />
+                                <Text style={styles.viewerActionText}>Share as PDF</Text>
+                            </LinearGradient>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.viewerActionBtn, styles.viewerActionBtnOutline]} onPress={() => handleDownloadDoc(viewingDoc)}>
-                            <Download size={20} color="#FFF" />
-                            <Text style={styles.viewerActionText}>Download PDF</Text>
+
+                        <TouchableOpacity
+                            style={[styles.viewerActionBtn, styles.viewerActionBtnOutline, { padding: 0, overflow: 'hidden' }]}
+                            onPress={() => {
+                                triggerHaptic('light');
+                                handleDownloadDoc(viewingDoc);
+                            }}
+                        >
+                            <LinearGradient
+                                colors={['#25293A', '#131520']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.2)', gap: 8 }}
+                            >
+                                <Download size={18} color="#FFF" />
+                                <Text style={styles.viewerActionText}>Download PDF</Text>
+                            </LinearGradient>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -1494,6 +1555,20 @@ export const DetailsScreen = ({
                 confirmText={confirmModal.confirmText}
                 onConfirm={confirmModal.onConfirm}
                 onCancel={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+            />
+
+            <VehicleActionSheet
+                visible={actionSheetVisible}
+                vehicle={actionSheetVehicle}
+                onClose={() => setActionSheetVisible(false)}
+                onNavigate={(screen, params) => navigation.navigate(screen as any, params)}
+                onShowToast={showToast}
+            />
+
+            <GlassToast
+                visible={toastVisible}
+                message={toastMessage}
+                onHide={() => setToastVisible(false)}
             />
         </SafeAreaView>
     );
@@ -2273,5 +2348,42 @@ const styles = StyleSheet.create({
         color: '#8E8E93',
         fontFamily: 'Outfit-Regular',
         lineHeight: hp('1.6%'),
+    },
+    liveSecuredPill: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(48, 209, 88, 0.08)',
+        borderColor: 'rgba(48, 209, 88, 0.25)',
+        borderWidth: 1,
+        borderRadius: wp('6%'),
+        paddingHorizontal: wp('3.5%'),
+        paddingVertical: hp('0.8%'),
+        marginBottom: hp('1.8%'),
+        alignSelf: 'flex-start',
+    },
+    livePulseDotOuter: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: 'rgba(48, 209, 88, 0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: wp('2%'),
+    },
+    livePulseDotInner: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#30D158',
+    },
+    liveSecuredText: {
+        fontSize: hp('1.15%'),
+        color: '#30D158',
+        fontFamily: 'Outfit-Bold',
+        letterSpacing: 0.8,
+        marginRight: wp('2%'),
+    },
+    liveShieldIconWrap: {
+        marginLeft: 'auto',
     }
 });

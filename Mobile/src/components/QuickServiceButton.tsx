@@ -6,6 +6,8 @@ import {
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
+import { triggerHaptic } from '../utils/haptics';
+
 type QuickServiceButtonProps = {
   icon: string | ImageSourcePropType;
   label: string;
@@ -15,11 +17,16 @@ type QuickServiceButtonProps = {
 export default function QuickServiceButton({ icon, label, onPress }: QuickServiceButtonProps) {
   const isImageIcon = typeof icon !== 'string';
 
+  const handlePress = () => {
+    triggerHaptic('light');
+    onPress?.();
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       style={styles.button}
-      onPress={onPress}
+      onPress={handlePress}
     >
       <View style={styles.iconBox}>
         {isImageIcon ? (

@@ -44,6 +44,7 @@ import { GEO } from '../../config';
 import { getLastOdometerUpdate } from '../../services/storage';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchDocuments } from '../../store/slices/documentsSlice';
+import { triggerHaptic } from '../../utils/haptics';
 import { createStyles } from './homeStyles';
 import {
   ComingSoonSection,
@@ -226,7 +227,10 @@ export default function Home() {
     }, [dispatch, fetchDiscoveryContent, fetchPrimaryVehicle]),
   );
 
+import { triggerHaptic } from '../../utils/haptics';
+
   const handleRefresh = useCallback(async () => {
+    triggerHaptic('medium');
     setRefreshing(true);
     try {
       await Promise.allSettled([

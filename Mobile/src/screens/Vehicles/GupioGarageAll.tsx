@@ -11,6 +11,10 @@ import {
 } from 'lucide-react-native';
 import { vehicleService, Vehicle } from '../../services/vehicleService';
 import LoaderButton from '../../components/Button';
+import { triggerHaptic } from '../../utils/haptics';
+import GlassToast from '../../components/common/GlassToast';
+import VehicleActionSheet from '../../components/common/VehicleActionSheet';
+import { useNavigation } from '../../lib/react-navigation-native';
 
 const { width } = Dimensions.get('window');
 
@@ -158,6 +162,17 @@ const AddVehicleScreen = ({ onBack, onDone, isFirst }: any) => {
 };
 
 const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete, deleteLoadingId }: any) => {
+    const navigation = useNavigation<any>();
+    const [actionSheetVisible, setActionSheetVisible] = useState(false);
+    const [actionSheetVehicle, setActionSheetVehicle] = useState<any>(null);
+    const [toastVisible, setToastVisible] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+
+    const showToast = (msg: string) => {
+        setToastMessage(msg);
+        setToastVisible(true);
+    };
+
     // Calculate average health from vehicle health scores
     const avgHealth = Math.round(
         vehicles.reduce((acc: number, v: Vehicle) => acc + (v.healthScore?.overallScore || 0), 0) / (vehicles.length || 1)
@@ -205,7 +220,16 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete, deleteLoadingId }: 
                         <TouchableOpacity
                             key={v.id}
                             style={styles.vehicleListCard}
-                            onPress={() => onSelect(v)}
+                            activeOpacity={0.82}
+                            onPress={() => {
+                                triggerHaptic('light');
+                                onSelect(v);
+                            }}
+                            onLongPress={() => {
+                                triggerHaptic('medium');
+                                setActionSheetVehicle(v);
+                                setActionSheetVisible(true);
+                            }}
                         >
                             <View style={styles.listImgBox}>
                                 <Image source={{ uri: v.imageUrl || v.rtoDetails?.imageUrl || FALLBACK_IMAGE }} style={StyleSheet.absoluteFill} resizeMode="cover" />
@@ -240,6 +264,20 @@ const GarageScreen = ({ vehicles, onAdd, onSelect, onDelete, deleteLoadingId }: 
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            <VehicleActionSheet
+                visible={actionSheetVisible}
+                vehicle={actionSheetVehicle}
+                onClose={() => setActionSheetVisible(false)}
+                onNavigate={(screen, params) => navigation.navigate(screen, params)}
+                onShowToast={showToast}
+            />
+
+            <GlassToast
+                visible={toastVisible}
+                message={toastMessage}
+                onHide={() => setToastVisible(false)}
+            />
         </View>
     );
 };
