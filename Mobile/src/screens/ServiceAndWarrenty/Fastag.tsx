@@ -463,10 +463,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#161926',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.12)',
     paddingHorizontal: wp(4),
     height: hp(7),
   },
@@ -494,7 +494,9 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(95, 158, 160, 0.1)',
+    backgroundColor: 'rgba(95, 158, 160, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(95, 158, 160, 0.25)',
     padding: wp(4),
     borderRadius: 16,
     marginTop: hp(6),
@@ -538,11 +540,11 @@ const styles = StyleSheet.create({
       fontSize: wp(3.8),
   },
   resultCard: {
-      backgroundColor: '#111',
-      borderRadius: 24,
+      backgroundColor: '#12141F',
+      borderRadius: 20,
       padding: wp(6),
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.05)',
+      borderColor: 'rgba(255,255,255,0.12)',
   },
   cardSectionTitle: {
       color: 'rgba(95, 158, 160, 0.85)',

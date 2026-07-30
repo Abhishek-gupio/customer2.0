@@ -49,6 +49,7 @@ import LoaderButton from '../../components/Button';
 import { triggerHaptic } from '../../utils/haptics';
 import GlassToast from '../../components/common/GlassToast';
 import VehicleActionSheet from '../../components/common/VehicleActionSheet';
+import TouchableCard from '../../components/common/TouchableCard';
 
 const CarImage = { uri: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400' };
 const BikeImage = { uri: 'https://images.unsplash.com/photo-1484981138541-3d074aa97716?auto=format&fit=crop&q=80&w=400' };
@@ -796,7 +797,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('Challans', { vehicle: activeVehicle })}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -824,7 +825,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('Fastag')}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -852,7 +853,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('DocumentList')}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -880,7 +881,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('MyVehicleQrCode', { vehicleId: activeVehicle.id, registrationNumber: activeVehicle.registrationNumber })}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -908,7 +909,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('ServiceHistory')}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -936,7 +937,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('Expenses')}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -964,7 +965,7 @@ export const DetailsScreen = ({
                                         onPress={() => navigation.navigate('WarrantyStatus')}
                                     >
                                         <LinearGradient
-                                            colors={['#1F2130', '#11121B']}
+                                            colors={['#181E30', '#0E121E']}
                                             start={{ x: 0, y: 0 }}
                                             end={{ x: 1, y: 1 }}
                                             style={styles.ownershipCardGradient}
@@ -2201,18 +2202,18 @@ const styles = StyleSheet.create({
         width: '48.5%',
         borderRadius: wp('4.5%'),
         marginBottom: hp('1.5%'),
-        shadowColor: '#000',
+        shadowColor: '#5F9EA0',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
+        shadowOpacity: 0.25,
+        shadowRadius: 10,
+        elevation: 6,
     },
     ownershipCardGradient: {
         width: '100%',
         borderRadius: wp('4.5%'),
         padding: wp('4%'),
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.12)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(95, 158, 160, 0.35)',
         position: 'relative',
     },
     badgeFree: {

@@ -422,9 +422,9 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   plateInputContainer: {
-    backgroundColor: '#111',
+    backgroundColor: '#161926',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
@@ -478,9 +478,8 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     fontSize: wp(4.5),
-    fontFamily: 'Outfit-Black',
+    fontFamily: 'Outfit-Bold',
     color: '#000',
-    letterSpacing: 1,
   },
   trustBanner: {
     flexDirection: 'row',
@@ -499,12 +498,12 @@ const styles = StyleSheet.create({
     marginTop: hp(2),
   },
   challanCard: {
-    backgroundColor: '#111',
+    backgroundColor: '#12141F',
     borderRadius: 20,
     padding: 20,
     marginBottom: hp(2),
     borderWidth: 1,
-    borderColor: '#222',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   challanHeader: {
     flexDirection: 'row',
