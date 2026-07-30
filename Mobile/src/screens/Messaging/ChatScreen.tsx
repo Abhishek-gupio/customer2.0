@@ -345,7 +345,11 @@ export default function ChatScreen() {
         </View>
       )}
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
         <FlatList
           data={messages}
           keyExtractor={(item) => item.id}
@@ -374,12 +378,14 @@ export default function ChatScreen() {
                   )}
                   {item.text ? <Text style={mine ? styles.bubbleTextMine : styles.bubbleTextTheirs}>{item.text}</Text> : null}
                   <View style={styles.bubbleMeta}>
-                    <Text style={styles.bubbleTime}>{format(new Date(item.createdAt), 'h:mm a')}</Text>
+                    <Text style={mine ? styles.bubbleTimeMine : styles.bubbleTimeTheirs}>
+                      {format(new Date(item.createdAt), 'h:mm a')}
+                    </Text>
                     {mine && (
                       <IconMC
                         name={item.readAt ? 'check-all' : item.deliveredAt ? 'check-all' : 'check'}
                         size={wp(3.4)}
-                        color={item.readAt ? '#60a5fa' : 'rgba(0,0,0,0.4)'}
+                        color={item.readAt ? '#2563eb' : 'rgba(9,10,15,0.5)'}
                       />
                     )}
                   </View>
@@ -417,10 +423,10 @@ export default function ChatScreen() {
         ) : (
           <View style={styles.inputRow}>
             <TouchableOpacity style={styles.iconBtn} onPress={sendPhotos} disabled={sending}>
-              <Icon name="camera" size={wp(4.5)} color="#888" />
+              <Icon name="camera" size={wp(4.2)} color="#FFBF00" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn} onPress={sendLocation} disabled={sending}>
-              <IconMC name="map-marker-outline" size={wp(5)} color="#888" />
+              <IconMC name="map-marker-outline" size={wp(4.8)} color="#FFBF00" />
             </TouchableOpacity>
             <TextInput
               value={text}
@@ -431,7 +437,7 @@ export default function ChatScreen() {
               multiline
             />
             <TouchableOpacity style={styles.sendBtn} onPress={() => sendText()} disabled={sending || !text.trim()}>
-              <IconMC name="send" size={wp(4.5)} color="#111" />
+              <IconMC name="send" size={wp(4.5)} color="#090a0f" />
             </TouchableOpacity>
           </View>
         )}
@@ -503,13 +509,21 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#090a0f' },
   flex: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: wp(5), paddingVertical: hp(1.6) },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: wp(5),
+    paddingVertical: hp(1.8),
+    borderBottomWidth: 1,
+    borderBottomColor: '#161926',
+    backgroundColor: '#0d0f17',
+  },
   headerBody: { flex: 1, marginLeft: wp(3) },
-  headerTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.3) },
-  headerSubtitle: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3) },
-  menuBtn: { padding: wp(2) },
+  headerTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.5), letterSpacing: 0.3 },
+  headerSubtitle: { color: '#8890a6', fontFamily: 'Outfit-Medium', fontSize: wp(3), marginTop: 1 },
+  menuBtn: { padding: wp(2), borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)' },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   priorityBanner: {
     flexDirection: 'row',
@@ -517,65 +531,102 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: wp(2),
     backgroundColor: '#f59e0b',
-    paddingVertical: hp(0.8),
+    paddingVertical: hp(1),
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  priorityBannerEmergency: { backgroundColor: '#ef4444' },
-  priorityBannerText: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.2) },
-  messagesList: { paddingHorizontal: wp(4), paddingVertical: hp(1.5), gap: hp(0.8) },
+  priorityBannerEmergency: { backgroundColor: '#ef4444', shadowColor: '#ef4444' },
+  priorityBannerText: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.4), letterSpacing: 0.5 },
+  messagesList: { paddingHorizontal: wp(4), paddingVertical: hp(2), gap: hp(1) },
   bubbleRow: { flexDirection: 'row', marginBottom: hp(0.4) },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
-  bubble: { maxWidth: wp(75), borderRadius: 16, paddingHorizontal: wp(3.5), paddingVertical: hp(1), position: 'relative' },
+  bubble: {
+    maxWidth: wp(78),
+    borderRadius: 20,
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(1.3),
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   bubbleMine: { backgroundColor: '#FFBF00', borderBottomRightRadius: 4 },
-  bubbleTheirs: { backgroundColor: '#1a1a1a', borderBottomLeftRadius: 4 },
-  bubbleTextMine: { color: '#111', fontFamily: 'Outfit-Medium', fontSize: wp(3.6) },
-  bubbleTextTheirs: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.6) },
-  bubbleMeta: { flexDirection: 'row', alignItems: 'center', gap: wp(1), alignSelf: 'flex-end', marginTop: hp(0.3) },
-  bubbleTime: { fontSize: wp(2.6), color: 'rgba(0,0,0,0.45)', fontFamily: 'Outfit-Regular' },
-  imageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(1), marginBottom: hp(0.5) },
-  messageImage: { width: wp(28), height: wp(28), borderRadius: 10 },
-  locationChip: { flexDirection: 'row', alignItems: 'center', gap: wp(1.5), marginBottom: hp(0.4) },
-  locationText: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.4) },
+  bubbleTheirs: { backgroundColor: '#161926', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#222636' },
+  bubbleTextMine: { color: '#090a0f', fontFamily: 'Outfit-Medium', fontSize: wp(3.7), lineHeight: wp(5.2) },
+  bubbleTextTheirs: { color: '#f1f5f9', fontFamily: 'Outfit-Medium', fontSize: wp(3.7), lineHeight: wp(5.2) },
+  bubbleMeta: { flexDirection: 'row', alignItems: 'center', gap: wp(1.2), alignSelf: 'flex-end', marginTop: hp(0.5) },
+  bubbleTimeMine: { fontSize: wp(2.7), color: 'rgba(9, 10, 15, 0.6)', fontFamily: 'Outfit-Regular' },
+  bubbleTimeTheirs: { fontSize: wp(2.7), color: 'rgba(255, 255, 255, 0.45)', fontFamily: 'Outfit-Regular' },
+  imageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(1.5), marginBottom: hp(0.6) },
+  messageImage: { width: wp(30), height: wp(30), borderRadius: 12 },
+  locationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.8),
+    borderRadius: 10,
+    marginBottom: hp(0.5),
+  },
+  locationText: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
   reactionBadge: {
     position: 'absolute',
     bottom: -hp(1),
     right: wp(2),
-    backgroundColor: '#0a0a0a',
-    borderRadius: 10,
-    paddingHorizontal: wp(1.3),
-    paddingVertical: 1,
-  },
-  reactionBadgeText: { fontSize: wp(3) },
-  quickReplyRow: { paddingHorizontal: wp(4), gap: wp(2), paddingBottom: hp(1) },
-  quickReplyChip: {
-    backgroundColor: '#141414',
+    backgroundColor: '#090a0f',
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#222636',
+    borderRadius: 12,
+    paddingHorizontal: wp(1.8),
+    paddingVertical: 2,
+  },
+  reactionBadgeText: { fontSize: wp(3.2) },
+  quickReplyRow: { paddingHorizontal: wp(4), gap: wp(2), paddingBottom: hp(1.2) },
+  quickReplyChip: {
+    backgroundColor: '#161926',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.3)',
     borderRadius: 999,
     paddingHorizontal: wp(4),
     paddingVertical: hp(0.9),
   },
-  quickReplyText: { color: '#ddd', fontFamily: 'Outfit-Medium', fontSize: wp(3.1) },
+  quickReplyText: { color: '#FFBF00', fontFamily: 'Outfit-Medium', fontSize: wp(3.2) },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: wp(2),
     paddingHorizontal: wp(4),
-    paddingVertical: hp(1.2),
+    paddingVertical: hp(1.4),
     borderTopWidth: 1,
-    borderTopColor: '#1a1a1a',
+    borderTopColor: '#161926',
+    backgroundColor: '#0d0f17',
   },
-  iconBtn: { padding: wp(2) },
+  iconBtn: {
+    width: wp(9.5),
+    height: wp(9.5),
+    borderRadius: wp(4.75),
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   textInput: {
     flex: 1,
     color: '#fff',
     fontFamily: 'Outfit-Regular',
-    fontSize: wp(3.6),
-    backgroundColor: '#141414',
-    borderRadius: 18,
+    fontSize: wp(3.7),
+    backgroundColor: '#161926',
+    borderRadius: 22,
     paddingHorizontal: wp(4),
     paddingVertical: hp(1),
     maxHeight: hp(12),
+    borderWidth: 1,
+    borderColor: '#222636',
   },
   sendBtn: {
     width: wp(10.5),
@@ -584,40 +635,47 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFBF00',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 5,
+    elevation: 3,
   },
-  closedBanner: { padding: wp(4), alignItems: 'center', borderTopWidth: 1, borderTopColor: '#1a1a1a' },
-  closedBannerText: { color: '#666', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+  closedBanner: { padding: wp(4), alignItems: 'center', borderTopWidth: 1, borderTopColor: '#161926', backgroundColor: '#0d0f17' },
+  closedBannerText: { color: '#64748b', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center' },
   reactionPicker: {
     flexDirection: 'row',
-    backgroundColor: '#181818',
-    borderRadius: 20,
-    padding: wp(3),
-    gap: wp(3),
+    backgroundColor: '#161926',
+    borderRadius: 24,
+    padding: wp(3.5),
+    gap: wp(3.5),
+    borderWidth: 1,
+    borderColor: '#222636',
   },
   reactionOption: { padding: wp(2) },
-  reactionOptionText: { fontSize: wp(7) },
-  actionMenu: { backgroundColor: '#181818', borderRadius: 16, overflow: 'hidden', minWidth: wp(65) },
+  reactionOptionText: { fontSize: wp(7.5) },
+  actionMenu: { backgroundColor: '#161926', borderRadius: 20, borderWidth: 1, borderColor: '#222636', overflow: 'hidden', minWidth: wp(65) },
   actionMenuItem: { flexDirection: 'row', alignItems: 'center', gap: wp(3), paddingHorizontal: wp(5), paddingVertical: hp(1.8) },
-  actionMenuText: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.6) },
-  reportCard: { width: wp(85), backgroundColor: '#181818', borderRadius: 18, padding: wp(5) },
-  reportTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.2) },
-  reportSubtitle: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.2), marginTop: hp(0.5), marginBottom: hp(1.5) },
+  actionMenuText: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.7) },
+  reportCard: { width: wp(85), backgroundColor: '#161926', borderRadius: 22, borderWidth: 1, borderColor: '#222636', padding: wp(5.5) },
+  reportTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.5) },
+  reportSubtitle: { color: '#8890a6', fontFamily: 'Outfit-Regular', fontSize: wp(3.3), marginTop: hp(0.5), marginBottom: hp(1.5) },
   reportInput: {
     color: '#fff',
     fontFamily: 'Outfit-Regular',
-    fontSize: wp(3.5),
-    backgroundColor: '#0a0a0a',
-    borderRadius: 12,
+    fontSize: wp(3.6),
+    backgroundColor: '#090a0f',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
-    padding: wp(3.5),
+    borderColor: '#222636',
+    padding: wp(4),
     minHeight: hp(10),
     textAlignVertical: 'top',
   },
   reportActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: wp(3), marginTop: hp(2) },
   reportCancelBtn: { paddingHorizontal: wp(4), paddingVertical: hp(1.2) },
-  reportCancelText: { color: '#888', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
-  reportSubmitBtn: { backgroundColor: '#FFBF00', paddingHorizontal: wp(5), paddingVertical: hp(1.2), borderRadius: 12 },
-  reportSubmitText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
+  reportCancelText: { color: '#8890a6', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
+  reportSubmitBtn: { backgroundColor: '#FFBF00', paddingHorizontal: wp(5.5), paddingVertical: hp(1.2), borderRadius: 12 },
+  reportSubmitText: { color: '#090a0f', fontFamily: 'Outfit-Bold', fontSize: wp(3.4) },
 });

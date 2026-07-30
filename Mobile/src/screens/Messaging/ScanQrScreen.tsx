@@ -69,34 +69,71 @@ export default function ScanQrScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
-        <Text style={styles.headerTitle}>Scan Vehicle QR</Text>
+        <View style={styles.headerTextWrap}>
+          <Text style={styles.headerTitle}>Scan Vehicle QR</Text>
+          <Text style={styles.headerSubtitle}>Instant anonymous owner alert</Text>
+        </View>
       </View>
 
       {permitted === false ? (
         <View style={styles.centerState}>
-          <IconMC name="camera-off" size={wp(14)} color="#444" />
-          <Text style={styles.centerStateText}>Camera access is needed to scan a vehicle's QR code.</Text>
+          <View style={styles.offIconWrap}>
+            <IconMC name="camera-off" size={wp(10)} color="#ef4444" />
+          </View>
+          <Text style={styles.centerStateTitle}>Camera Access Required</Text>
+          <Text style={styles.centerStateText}>
+            Grant camera permission to scan QR tags on vehicles and reach owners instantly.
+          </Text>
         </View>
       ) : resolved ? (
         <View style={styles.resultWrap}>
           <View style={styles.resultCard}>
-            <View style={styles.resultIconWrap}>
-              <IconMC name="car" size={wp(10)} color="#FFBF00" />
+            <View style={styles.resultHeader}>
+              <View style={styles.resultIconWrap}>
+                <IconMC name="car-sports" size={wp(8)} color="#FFBF00" />
+              </View>
+              <View style={styles.resultTitleWrap}>
+                <Text style={styles.resultPlateLabel}>IDENTIFIED VEHICLE</Text>
+                <Text style={styles.resultReg}>{resolved.registrationNumber}</Text>
+              </View>
             </View>
-            <Text style={styles.resultReg}>{resolved.registrationNumber}</Text>
-            {resolved.make ? <Text style={styles.resultMakeModel}>{resolved.make} {resolved.model} {resolved.color ? `· ${resolved.color}` : ''}</Text> : null}
-            {resolved.ownerName ? <Text style={styles.resultOwnerName}>Owner: {resolved.ownerName}</Text> : null}
-            {resolved.phoneNumber ? <Text style={styles.resultPhone}>{resolved.phoneNumber}</Text> : null}
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRowGrid}>
+              {resolved.make ? (
+                <View style={styles.infoPill}>
+                  <IconMC name="car-info" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.infoPillText}>{resolved.make} {resolved.model}</Text>
+                </View>
+              ) : null}
+              {resolved.color ? (
+                <View style={styles.infoPill}>
+                  <IconMC name="palette" size={wp(4)} color="#FFBF00" />
+                  <Text style={styles.infoPillText}>{resolved.color}</Text>
+                </View>
+              ) : null}
+              {resolved.ownerName ? (
+                <View style={styles.infoPill}>
+                  <IconMC name="account-check" size={wp(4)} color="#10b981" />
+                  <Text style={styles.infoPillText}>Owner: {resolved.ownerName}</Text>
+                </View>
+              ) : null}
+            </View>
           </View>
+
           <TouchableOpacity style={styles.messageBtn} onPress={handleMessageOwner} disabled={starting} activeOpacity={0.85}>
-            <IconMC name="message-text" size={wp(4.5)} color="#111" />
-            <Text style={styles.messageBtnText}>{starting ? 'Starting…' : 'Message Vehicle Owner'}</Text>
+            <IconMC name="message-processing" size={wp(5)} color="#090a0f" />
+            <Text style={styles.messageBtnText}>{starting ? 'Connecting…' : 'Message Vehicle Owner'}</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.rescanBtn}
             onPress={() => { setResolved(null); scannedRef.current = false; }}
+            activeOpacity={0.8}
           >
-            <Text style={styles.rescanBtnText}>Scan a different vehicle</Text>
+            <IconMC name="qrcode-scan" size={wp(4)} color="#8890a6" />
+            <Text style={styles.rescanBtnText}>Scan another vehicle</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -106,13 +143,38 @@ export default function ScanQrScreen() {
             scanBarcode={true}
             onReadCode={handleReadCode}
           />
+          
+          {/* Overlay mask with viewfinder target */}
+          <View style={styles.overlayContainer}>
+            <View style={styles.overlayTop} />
+            <View style={styles.overlayMiddleRow}>
+              <View style={styles.overlaySide} />
+              
+              {/* Viewfinder box with 4 corner reticles */}
+              <View style={styles.viewfinder}>
+                <View style={[styles.corner, styles.cornerTL]} />
+                <View style={[styles.corner, styles.cornerTR]} />
+                <View style={[styles.corner, styles.cornerBL]} />
+                <View style={[styles.corner, styles.cornerBR]} />
+                <View style={styles.laserLine} />
+              </View>
+              
+              <View style={styles.overlaySide} />
+            </View>
+            <View style={styles.overlayBottom}>
+              <View style={styles.hintBadge}>
+                <IconMC name="target" size={wp(4)} color="#FFBF00" />
+                <Text style={styles.scanHint}>Align vehicle QR code within frame</Text>
+              </View>
+            </View>
+          </View>
+
           {resolving && (
             <View style={styles.resolvingOverlay}>
               <ActivityIndicator size="large" color="#FFBF00" />
-              <Text style={styles.resolvingText}>Looking up vehicle…</Text>
+              <Text style={styles.resolvingText}>Decoding QR Tag & Looking up owner…</Text>
             </View>
           )}
-          <Text style={styles.scanHint}>Point your camera at the QR code on the vehicle</Text>
         </View>
       )}
     </SafeAreaView>
@@ -120,67 +182,146 @@ export default function ScanQrScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: wp(5), paddingVertical: hp(2) },
-  headerTitle: { fontSize: wp(5), fontFamily: 'Outfit-Bold', color: '#fff', marginLeft: wp(3) },
+  container: { flex: 1, backgroundColor: '#090a0f' },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: wp(5), paddingVertical: hp(1.8) },
+  headerTextWrap: { flex: 1, marginLeft: wp(3) },
+  headerTitle: { fontSize: wp(5.2), fontFamily: 'Outfit-Bold', color: '#fff' },
+  headerSubtitle: { fontSize: wp(2.8), fontFamily: 'Outfit-Medium', color: '#888', marginTop: 1 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: wp(10), gap: hp(1.5) },
-  centerStateText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.6), textAlign: 'center' },
-  cameraWrap: { flex: 1, marginHorizontal: wp(5), marginBottom: hp(3), borderRadius: 20, overflow: 'hidden' },
-  scanHint: {
-    position: 'absolute',
-    bottom: hp(3),
-    alignSelf: 'center',
-    color: '#fff',
-    fontFamily: 'Outfit-Medium',
-    fontSize: wp(3.3),
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(1),
-    borderRadius: 12,
+  offIconWrap: {
+    width: wp(18),
+    height: wp(18),
+    borderRadius: wp(9),
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  resolvingOverlay: {
+  centerStateTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.5) },
+  centerStateText: { color: '#8890a6', fontFamily: 'Outfit-Regular', fontSize: wp(3.4), textAlign: 'center', lineHeight: wp(5) },
+  
+  cameraWrap: { flex: 1, marginHorizontal: wp(4), marginBottom: hp(3), borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#222636' },
+  overlayContainer: { ...StyleSheet.absoluteFillObject },
+  overlayTop: { flex: 1, backgroundColor: 'rgba(9, 10, 15, 0.65)' },
+  overlayMiddleRow: { flexDirection: 'row', height: wp(68) },
+  overlaySide: { flex: 1, backgroundColor: 'rgba(9, 10, 15, 0.65)' },
+  overlayBottom: { flex: 1, backgroundColor: 'rgba(9, 10, 15, 0.65)', alignItems: 'center', paddingTop: hp(3) },
+  
+  viewfinder: {
+    width: wp(68),
+    height: wp(68),
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  corner: {
     position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    width: wp(6),
+    height: wp(6),
+    borderColor: '#FFBF00',
+  },
+  cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 8 },
+  cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 8 },
+  cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 8 },
+  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 8 },
+  laserLine: {
+    width: '90%',
+    height: 2,
+    backgroundColor: '#FFBF00',
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  
+  hintBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+    backgroundColor: '#12141d',
+    paddingHorizontal: wp(4.5),
+    paddingVertical: hp(1.2),
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 191, 0, 0.3)',
+  },
+  scanHint: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
+  
+  resolvingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(9, 10, 15, 0.85)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: hp(1.5),
   },
   resolvingText: { color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.6) },
-  resultWrap: { flex: 1, paddingHorizontal: wp(8), paddingTop: hp(4) },
+  
+  resultWrap: { flex: 1, paddingHorizontal: wp(5), paddingTop: hp(2) },
   resultCard: {
-    backgroundColor: '#111',
-    borderRadius: 20,
+    backgroundColor: '#12141d',
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#222',
-    padding: wp(6),
-    alignItems: 'center',
-    marginBottom: hp(3),
+    borderColor: '#222636',
+    padding: wp(5),
+    marginBottom: hp(2.5),
   },
+  resultHeader: { flexDirection: 'row', alignItems: 'center', gap: wp(3.5) },
   resultIconWrap: {
-    width: wp(20),
-    height: wp(20),
-    borderRadius: wp(10),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    width: wp(14),
+    height: wp(14),
+    borderRadius: wp(7),
+    backgroundColor: 'rgba(255,191,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: hp(2),
   },
-  resultReg: { color: '#fff', fontFamily: 'Outfit-Black', fontSize: wp(5.5) },
-  resultMakeModel: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.8), marginTop: hp(0.5) },
-  resultOwnerName: { color: '#bbb', fontFamily: 'Outfit-Medium', fontSize: wp(4), marginTop: hp(1.5) },
-  resultPhone: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.5), marginTop: hp(0.5) },
+  resultTitleWrap: { flex: 1 },
+  resultPlateLabel: { fontSize: wp(2.6), fontFamily: 'Outfit-Bold', color: '#FFBF00', letterSpacing: 0.8 },
+  resultReg: { color: '#fff', fontFamily: 'Outfit-Black', fontSize: wp(5.5), letterSpacing: 1, marginTop: 2 },
+  divider: { height: 1, backgroundColor: '#1d2130', marginVertical: hp(1.8) },
+  infoRowGrid: { gap: hp(1) },
+  infoPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2.5),
+    backgroundColor: '#171a26',
+    paddingHorizontal: wp(3.5),
+    paddingVertical: hp(1.1),
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#222636',
+  },
+  infoPillText: { color: '#e2e8f0', fontFamily: 'Outfit-Medium', fontSize: wp(3.4) },
+  
   messageBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: wp(2),
+    gap: wp(2.5),
     backgroundColor: '#FFBF00',
     paddingVertical: hp(1.8),
-    borderRadius: 16,
+    borderRadius: 18,
     marginBottom: hp(1.5),
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  messageBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(4) },
-  rescanBtn: { alignItems: 'center', paddingVertical: hp(1.2) },
-  rescanBtnText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.4) },
+  messageBtnText: { color: '#090a0f', fontFamily: 'Outfit-Bold', fontSize: wp(4) },
+  rescanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+    paddingVertical: hp(1.4),
+    borderRadius: 16,
+    backgroundColor: '#12141d',
+    borderWidth: 1,
+    borderColor: '#222636',
+  },
+  rescanBtnText: { color: '#8890a6', fontFamily: 'Outfit-Medium', fontSize: wp(3.4) },
 });

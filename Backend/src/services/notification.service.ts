@@ -113,9 +113,26 @@ export const notificationService = {
               },
               android: {
                 priority: "high",
+                ttl: 3600 * 1000,
                 notification: {
                   sound: "default",
-                  channelId: "gupio_notifications", // Must match notification channels on Android
+                  channelId: "gupio_notifications",
+                  priority: "max",
+                  defaultSound: true,
+                  defaultVibrateTimings: true,
+                  visibility: "public",
+                },
+              },
+              apns: {
+                payload: {
+                  aps: {
+                    sound: "default",
+                    badge: 1,
+                    contentAvailable: true,
+                  },
+                },
+                headers: {
+                  "apns-priority": "10",
                 },
               },
             };

@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
 import { connectAndJoin } from '../services/realtime/socketClient';
+import { registerDeviceWithBackend } from '../services/notification';
 import { useParkingStore } from '../store/parkingStore';
 import {
   createNativeStackNavigator,
@@ -184,6 +185,9 @@ export function RootNavigator() {
   // notably including the payment-processing screen itself.
   useEffect(() => {
     if (!isAuthenticated || !user?.id) return;
+    registerDeviceWithBackend().catch(err => {
+      console.warn('Error syncing device token with backend:', err);
+    });
     const socket = connectAndJoin(user.id);
     const onNewNotification = (notif: { type?: string; metadata?: { bookingId?: string } }) => {
       if (notif?.type === 'PARKING') {

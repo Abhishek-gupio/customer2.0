@@ -114,7 +114,7 @@ android {
 
     namespace = "com.gupio.customer.app"
     defaultConfig {
-        applicationId "com.gupio.customer.app"
+        applicationId "com.gupio.customer"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

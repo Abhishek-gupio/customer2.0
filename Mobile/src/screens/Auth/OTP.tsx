@@ -28,6 +28,7 @@ import { useRoute, useNavigation, type RouteProp } from '../../lib/react-navigat
 import type { NativeStackNavigationProp } from '../../lib/react-navigation-native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import { sendOtp, verifyOtp } from '../../services/authService';
+import { registerDeviceWithBackend } from '../../services/notification';
 import { clearLastReceivedOtp, getLastReceivedOtpAsync } from '../../services/storage';
 import { useAppDispatch } from '../../store/hooks';
 import { setUser } from '../../store/slices/authSlice';
@@ -298,6 +299,9 @@ export default function OTP() {
     try {
       const result = await verifyOtp(phoneFromParams, code);
       dispatch(setUser({ id: result.userId ?? '', email: undefined }));
+      registerDeviceWithBackend().catch(err => {
+        console.warn('Error syncing device token after login:', err);
+      });
       navigation.replace('LoginSuccessfull');
     } catch (e) {
       lastSubmittedOtpRef.current = '';

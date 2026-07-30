@@ -26,10 +26,10 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { navigationRef } from './src/navigation/navigationRef';
 import { initAgentEventHandlers } from './src/agent/eventHandlers';
 import { VoiceOwnerProvider } from './src/context/VoiceOwnerContext';
-import { setupNotifications } from './src/services/notification';
+import { registerDeviceWithBackend, setupNotifications } from './src/services/notification';
 import NetworkBanner from './src/components/NetworkBanner';
+import ForegroundTestNotificationBanner from './src/components/ForegroundTestNotificationBanner';
 import { initializeOfflineQueueAutoSync } from './src/services/offlineMutationQueue';
-import { initializeInHouseTelematicsAutoEngine } from './src/services/inHouseTelematicsAutoEngine';
 import ErrorBoundary from './src/components/ErrorBoundary';
 
 let RNAndroidNotificationListener: any = null;
@@ -101,8 +101,10 @@ function App() {
         setupNotifications().catch(err => {
           console.error('Error during notification setup:', err);
         });
+        registerDeviceWithBackend().catch(err => {
+          console.warn('Error syncing device token with backend:', err);
+        });
         initializeOfflineQueueAutoSync();
-        initializeInHouseTelematicsAutoEngine();
       });
   }, []);
 
@@ -172,6 +174,7 @@ function App() {
           <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             <NetworkBanner />
+            <ForegroundTestNotificationBanner />
             <NavigationContainer ref={navigationRef} linking={linking}>
               <VoiceOwnerProvider>
                 <RootNavigator />

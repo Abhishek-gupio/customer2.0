@@ -86,35 +86,48 @@ export default function InboxScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <BackButton onPress={() => navigation.goBack()} />
-        <Text style={styles.headerTitle}>Vehicle Messages</Text>
-        <TouchableOpacity style={styles.qrBtn} onPress={() => navigation.navigate('MyVehicleQrCode')}>
-          <IconMC name="qrcode" size={wp(5)} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.scanBtn} onPress={() => navigation.navigate('ScanQr')}>
-          <IconMC name="qrcode-scan" size={wp(5)} color="#111" />
-        </TouchableOpacity>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle}>Vehicle Messages</Text>
+          <Text style={styles.headerSubtitle}>Real-time guest & owner alerts</Text>
+        </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.qrBtn} onPress={() => navigation.navigate('MyVehicleQrCode')} activeOpacity={0.75}>
+            <IconMC name="qrcode" size={wp(5)} color="#FFBF00" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.scanBtn} onPress={() => navigation.navigate('ScanQr')} activeOpacity={0.75}>
+            <IconMC name="qrcode-scan" size={wp(4.8)} color="#111" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchWrap}>
-        <IconMC name="magnify" size={wp(4.5)} color="rgba(255,255,255,0.4)" />
+        <IconMC name="magnify" size={wp(4.5)} color="#FFBF00" />
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search by vehicle, name, or message"
+          placeholder="Search plate, owner, or message…"
           placeholderTextColor="rgba(255,255,255,0.35)"
           style={styles.searchInput}
         />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => setQuery('')}>
+            <IconMC name="close-circle" size={wp(4.5)} color="rgba(255,255,255,0.4)" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {loading ? (
         <View style={styles.centerState}>
           <ActivityIndicator size="large" color="#FFBF00" />
+          <Text style={styles.loadingText}>Fetching conversations…</Text>
         </View>
       ) : filtered.length === 0 ? (
         <View style={styles.centerState}>
-          <IconMC name="message-text-outline" size={wp(12)} color="#444" />
-          <Text style={styles.emptyTitle}>No conversations yet</Text>
-          <Text style={styles.emptyText}>Scan a vehicle's QR code to message its owner.</Text>
+          <View style={styles.emptyIconBg}>
+            <IconMC name="message-text-outline" size={wp(10)} color="#FFBF00" />
+          </View>
+          <Text style={styles.emptyTitle}>No messages yet</Text>
+          <Text style={styles.emptyText}>Scan a vehicle's QR code or share your own to initiate instant, privacy-first alerts.</Text>
         </View>
       ) : (
         <FlatList
@@ -124,35 +137,39 @@ export default function InboxScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFBF00" />}
           renderItem={({ item }) => {
             const isGuest = item.kind === 'guest';
-            const roleLabel = isGuest ? '· web scan, no app' : item.role === 'OWNER' ? '· your vehicle' : '· you messaged';
-            // Guest conversations don't track a numeric unread count (no per-party read receipts
-            // for an anonymous, account-less visitor) — the status pill is the signal instead.
+            const roleLabel = isGuest ? 'Web Scan' : item.role === 'OWNER' ? 'Your Car' : 'Contacted';
             const unreadCount = isGuest ? 0 : item.unreadCount;
             return (
               <TouchableOpacity
-                style={styles.row}
-                activeOpacity={0.8}
+                style={[styles.rowCard, unreadCount > 0 && styles.rowCardUnread]}
+                activeOpacity={0.85}
                 onPress={() =>
                   navigation.navigate(isGuest ? 'GuestConversation' : 'ChatConversation', { conversationId: item.id })
                 }
               >
                 <View style={styles.avatarWrap}>
-                  <IconMC name={isGuest ? 'web' : 'car'} size={wp(6)} color="#FFBF00" />
+                  <IconMC name={isGuest ? 'earth' : 'car-sports'} size={wp(6.5)} color="#FFBF00" />
                   {!isGuest && item.otherParty.online && <View style={styles.onlineDot} />}
                 </View>
+
                 <View style={styles.rowBody}>
                   <View style={styles.rowTop}>
-                    <Text style={styles.vehicleName} numberOfLines={1}>
-                      {item.vehicle.registrationNumber}
-                      <Text style={styles.roleTag}>  {roleLabel}</Text>
-                    </Text>
+                    <View style={styles.plateWrap}>
+                      <Text style={styles.vehicleName} numberOfLines={1}>
+                        {item.vehicle.registrationNumber}
+                      </Text>
+                      <View style={[styles.roleBadge, isGuest ? styles.roleBadgeGuest : item.role === 'OWNER' ? styles.roleBadgeOwner : styles.roleBadgeOther]}>
+                        <Text style={styles.roleBadgeText}>{roleLabel}</Text>
+                      </View>
+                    </View>
                     {item.lastMessageAt && (
                       <Text style={styles.time}>{formatDistanceToNowStrict(new Date(item.lastMessageAt))}</Text>
                     )}
                   </View>
+
                   <View style={styles.rowBottom}>
                     <Text style={[styles.lastMessage, unreadCount > 0 && styles.lastMessageUnread]} numberOfLines={1}>
-                      {item.lastMessage || (isGuest ? `${item.guestName || 'Someone'} messaged you` : 'Say hello…')}
+                      {item.lastMessage || (isGuest ? `${item.guestName || 'Someone'} sent a message` : 'Tap to open chat…')}
                     </Text>
                     {unreadCount > 0 && (
                       <View style={styles.unreadBadge}>
@@ -171,9 +188,12 @@ export default function InboxScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: wp(5), paddingVertical: hp(2) },
-  headerTitle: { flex: 1, fontSize: wp(5), fontFamily: 'Outfit-Bold', color: '#fff', marginLeft: wp(3) },
+  container: { flex: 1, backgroundColor: '#090a0f' },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: wp(5), paddingVertical: hp(1.8) },
+  headerTitleWrap: { flex: 1, marginLeft: wp(3) },
+  headerTitle: { fontSize: wp(5.2), fontFamily: 'Outfit-Bold', color: '#fff', tracking: 0.2 },
+  headerSubtitle: { fontSize: wp(2.8), fontFamily: 'Outfit-Medium', color: '#888', marginTop: 1 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: wp(2.5) },
   scanBtn: {
     width: wp(10),
     height: wp(10),
@@ -181,69 +201,103 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFBF00',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   qrBtn: {
     width: wp(10),
     height: wp(10),
     borderRadius: wp(5),
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,191,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(2),
   },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: wp(2.5),
     marginHorizontal: wp(5),
-    marginBottom: hp(1.5),
-    backgroundColor: '#141414',
+    marginBottom: hp(1.8),
+    backgroundColor: '#13151f',
     borderWidth: 1,
-    borderColor: '#2a2a2a',
-    borderRadius: 14,
+    borderColor: '#222636',
+    borderRadius: 16,
     paddingHorizontal: wp(4),
-    paddingVertical: hp(1.2),
+    paddingVertical: hp(1.3),
   },
-  searchInput: { flex: 1, color: '#fff', fontFamily: 'Outfit-Regular', fontSize: wp(3.5), padding: 0 },
-  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: wp(10), gap: hp(1) },
-  emptyTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.5), marginTop: hp(1) },
-  emptyText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.4), textAlign: 'center' },
-  listContent: { paddingHorizontal: wp(5), paddingBottom: hp(4) },
-  row: {
+  searchInput: { flex: 1, color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.6), padding: 0 },
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: wp(10), gap: hp(1.5) },
+  emptyIconBg: {
+    width: wp(20),
+    height: wp(20),
+    borderRadius: wp(10),
+    backgroundColor: 'rgba(255,191,0,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.2)',
+  },
+  emptyTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4.8) },
+  emptyText: { color: '#8890a6', fontFamily: 'Outfit-Regular', fontSize: wp(3.4), textAlign: 'center', lineHeight: wp(5) },
+  loadingText: { color: '#8890a6', fontFamily: 'Outfit-Medium', fontSize: wp(3.3) },
+  listContent: { paddingHorizontal: wp(5), paddingBottom: hp(4), gap: hp(1.2) },
+  rowCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: hp(1.6),
-    borderBottomWidth: 1,
-    borderBottomColor: '#181818',
+    padding: wp(3.8),
+    backgroundColor: '#12141d',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#1d2130',
+  },
+  rowCardUnread: {
+    borderColor: 'rgba(255,191,0,0.4)',
+    backgroundColor: '#171a26',
   },
   avatarWrap: {
     width: wp(13),
     height: wp(13),
     borderRadius: wp(6.5),
-    backgroundColor: 'rgba(255,191,0,0.1)',
+    backgroundColor: 'rgba(255,191,0,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: wp(3),
+    marginRight: wp(3.5),
+    borderWidth: 1,
+    borderColor: 'rgba(255,191,0,0.25)',
   },
   onlineDot: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: wp(3),
-    height: wp(3),
-    borderRadius: wp(1.5),
-    backgroundColor: '#22c55e',
+    bottom: 2,
+    right: 2,
+    width: wp(3.2),
+    height: wp(3.2),
+    borderRadius: wp(1.6),
+    backgroundColor: '#10b981',
     borderWidth: 2,
-    borderColor: '#0a0a0a',
+    borderColor: '#12141d',
   },
   rowBody: { flex: 1 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  vehicleName: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.8), flexShrink: 1 },
-  roleTag: { color: '#666', fontFamily: 'Outfit-Regular', fontSize: wp(2.8) },
-  time: { color: '#666', fontFamily: 'Outfit-Regular', fontSize: wp(2.8) },
-  rowBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(0.4) },
-  lastMessage: { flex: 1, color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.3), marginRight: wp(2) },
-  lastMessageUnread: { color: '#ddd', fontFamily: 'Outfit-Bold' },
+  plateWrap: { flexDirection: 'row', alignItems: 'center', gap: wp(2), flexShrink: 1 },
+  vehicleName: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4), flexShrink: 1 },
+  roleBadge: {
+    paddingHorizontal: wp(2),
+    paddingVertical: hp(0.3),
+    borderRadius: 6,
+  },
+  roleBadgeGuest: { backgroundColor: 'rgba(59, 130, 246, 0.15)' },
+  roleBadgeOwner: { backgroundColor: 'rgba(16, 185, 129, 0.15)' },
+  roleBadgeOther: { backgroundColor: 'rgba(255, 191, 0, 0.15)' },
+  roleBadgeText: { fontSize: wp(2.6), fontFamily: 'Outfit-Bold', color: '#e2e8f0' },
+  time: { color: '#64748b', fontFamily: 'Outfit-Regular', fontSize: wp(2.8) },
+  rowBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(0.6) },
+  lastMessage: { flex: 1, color: '#94a3b8', fontFamily: 'Outfit-Regular', fontSize: wp(3.3), marginRight: wp(2) },
+  lastMessageUnread: { color: '#fff', fontFamily: 'Outfit-Bold' },
   unreadBadge: {
     minWidth: wp(5.5),
     height: wp(5.5),
@@ -251,7 +305,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFBF00',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: wp(1),
+    paddingHorizontal: wp(1.5),
+    shadowColor: '#FFBF00',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  unreadBadgeText: { color: '#111', fontFamily: 'Outfit-Black', fontSize: wp(2.7) },
+  unreadBadgeText: { color: '#090a0f', fontFamily: 'Outfit-Black', fontSize: wp(2.7) },
 });

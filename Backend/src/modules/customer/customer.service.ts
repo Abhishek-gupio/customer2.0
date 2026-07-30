@@ -239,15 +239,31 @@ export const customerService = {
   },
 
   async registerDevice(customerId: string, data: RegisterDeviceInput) {
-    const device = await dbInstances.customerDevice.create({
+    if (!data.deviceToken) {
+      return null;
+    }
+    const existing = await dbInstances.customerDevice.findFirst({
+      where: { deviceToken: data.deviceToken },
+    });
+    if (existing) {
+      return dbInstances.customerDevice.update({
+        where: { id: existing.id },
+        data: {
+          customerId,
+          platform: data.platform,
+          deviceInfo: data.deviceInfo ?? undefined,
+          updatedAt: new Date(),
+        },
+      });
+    }
+    return dbInstances.customerDevice.create({
       data: {
         customerId,
         platform: data.platform,
-        deviceToken: data.deviceToken ?? null,
-        deviceInfo: data.deviceInfo ?? null,
+        deviceToken: data.deviceToken,
+        deviceInfo: data.deviceInfo ?? undefined,
       },
     });
-    return device;
   },
 
   /** Counts for profile Quick Stats (vehicles, expenses, documents). Each count is safe: failure returns 0. */

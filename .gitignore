@@ -65,6 +65,8 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 *.pem
+google-services.json
+*firebase-adminsdk*.json
 
 # Turbo
 .turbo/

@@ -2,7 +2,8 @@ import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { getStoredAccessToken } from './authService';
-import { Platform, PermissionsAndroid } from 'react-native';
+import { Platform, PermissionsAndroid, Alert } from 'react-native';
+import { navigateTo } from '../navigation/navigationRef';
 
 const isInstallationsAuthError = (error: unknown) => {
   const message =
@@ -33,6 +34,14 @@ export const setupNotifications = async () => {
 
     if (enabled) {
       try {
+        if (typeof messaging().setForegroundNotificationPresentationOptions === 'function') {
+          await messaging().setForegroundNotificationPresentationOptions({
+            alert: true,
+            badge: true,
+            sound: true,
+          });
+        }
+
         // 2. Get FCM token
         const fcmToken = await messaging().getToken();
         console.log('Firebase Cloud Messaging Token:', fcmToken);
@@ -53,14 +62,46 @@ export const setupNotifications = async () => {
       }
     }
 
+    const handleNotificationNavigation = (remoteMessage: any) => {
+      if (!remoteMessage?.data) return;
+      const conversationId = remoteMessage.data.conversationId || remoteMessage.data.id;
+      const isGuest = remoteMessage.data.isGuest === 'true' || remoteMessage.data.type === 'GUEST_MESSAGE';
+      const link = remoteMessage.data.link;
+
+      if (conversationId) {
+        if (isGuest) {
+          navigateTo('GuestConversation', { conversationId });
+        } else {
+          navigateTo('ChatConversation', { conversationId });
+        }
+      } else if (link && typeof link === 'string') {
+        const match = link.match(/\/conversations\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+          navigateTo('ChatConversation', { conversationId: match[1] });
+        } else {
+          navigateTo('VehicleInbox');
+        }
+      } else {
+        navigateTo('VehicleInbox');
+      }
+    };
+
     // 4. Handle Foreground Messages
     messaging().onMessage(async (remoteMessage: any) => {
       console.log('FCM Message received in Foreground:', remoteMessage);
+      const title = remoteMessage?.notification?.title || remoteMessage?.data?.title || '🚨 Vehicle Alert';
+      const body = remoteMessage?.notification?.body || remoteMessage?.data?.body || 'New alert received!';
+      const conversationId = remoteMessage?.data?.conversationId || remoteMessage?.data?.id;
+
+      if (typeof (globalThis as any).triggerTestBanner === 'function') {
+        (globalThis as any).triggerTestBanner(title, body, conversationId);
+      }
     });
 
     // 5. Handle notification opened when app is in background/quit
     messaging().onNotificationOpenedApp((remoteMessage: any) => {
       console.log('Notification caused app to open from background:', remoteMessage);
+      handleNotificationNavigation(remoteMessage);
     });
 
     messaging()
@@ -68,6 +109,7 @@ export const setupNotifications = async () => {
       .then((remoteMessage: any) => {
         if (remoteMessage) {
           console.log('Notification caused app to open from quit state:', remoteMessage);
+          setTimeout(() => handleNotificationNavigation(remoteMessage), 1000);
         }
       });
 
@@ -80,24 +122,24 @@ export const setupNotifications = async () => {
   }
 };
 
-const registerDeviceWithBackend = async (fcmToken: string) => {
-  const token = getStoredAccessToken();
-  if (!token) return;
+import { api } from './api';
 
+export const registerDeviceWithBackend = async (fcmToken?: string) => {
   try {
-    await axios.post(`${API_BASE_URL}/api/v1/customers/device`, {
+    const targetToken = fcmToken || (await messaging().getToken().catch(() => null));
+    if (!targetToken) return;
+
+    await api.post('/v1/customer/device', {
       platform: Platform.OS.toLowerCase(),
-      deviceToken: fcmToken,
-      deviceInfo: {
+      deviceToken: targetToken,
+      deviceInfo: JSON.stringify({
         model: Platform.OS,
         systemVersion: Platform.Version,
-        isEmulator: false, // You can add actual checks here
-      }
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
+        isEmulator: false,
+      }),
     });
     console.log('Device token successfully registered with backend.');
   } catch (err) {
-    console.warn('Failed to register device token with backend. User might not be logged in yet or server unreachable.');
+    console.warn('Failed to register device token with backend:', err);
   }
 };
