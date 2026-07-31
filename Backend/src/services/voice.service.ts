@@ -39,9 +39,10 @@ export const voiceService = {
     }
 
     // Try Cloud TTS first if configured
-    if (env.GOOGLE_CLOUD_TTS_KEY || env.GEMINI_API_KEY) {
+    if (env.GOOGLE_CLOUD_TTS_KEY || (env as any).GOOGLE_TTS_API_KEY || (env as any).GOOGLE_MAPS_API_KEY || env.GEMINI_API_KEY) {
       try {
-        return await this.generateCloudTTS(text, lang);
+        const cloudAudio = await this.generateCloudTTS(text, lang);
+        if (cloudAudio) return cloudAudio;
       } catch (error) {
         logger.error({ error }, "Cloud TTS failed, falling back to free TTS");
       }
@@ -59,7 +60,7 @@ export const voiceService = {
     text: string,
     lang: string,
   ): Promise<string | null> {
-    const apiKey = env.GOOGLE_CLOUD_TTS_KEY || env.GEMINI_API_KEY;
+    const apiKey = env.GOOGLE_CLOUD_TTS_KEY || (env as any).GOOGLE_TTS_API_KEY || (env as any).GOOGLE_MAPS_API_KEY || env.GEMINI_API_KEY;
     if (!apiKey) return null;
 
     try {

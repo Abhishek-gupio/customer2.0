@@ -227,8 +227,6 @@ export default function Home() {
     }, [dispatch, fetchDiscoveryContent, fetchPrimaryVehicle]),
   );
 
-import { triggerHaptic } from '../../utils/haptics';
-
   const handleRefresh = useCallback(async () => {
     triggerHaptic('medium');
     setRefreshing(true);
