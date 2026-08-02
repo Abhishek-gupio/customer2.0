@@ -59,7 +59,7 @@ export interface WashBooking {
   beforePhotoUrls: string[];
   afterPhotoUrls: string[];
   createdAt: string;
-  center?: { name: string; address: string } | null;
+  center?: { name: string; address: string; latitude?: number | null; longitude?: number | null } | null;
   partner?: { name: string } | null;
   technician?: { name: string; phoneNumber: string; photoUrl: string | null } | null;
 }

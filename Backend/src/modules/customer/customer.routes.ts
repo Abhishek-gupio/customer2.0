@@ -9,11 +9,17 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB for profile pic
 });
 
-// Public tracking endpoints used by customer-app valet tracking screens.
+router.use(authMiddleware);
+
+/**
+ * Valet tracking. These were mounted ABOVE `authMiddleware` and keyed only on a vehicle number —
+ * i.e. a licence plate, which is public information physically visible on the car. Anyone could
+ * `GET /valet-location/<any plate>` and receive that vehicle's parked coordinates plus the
+ * owner's last reported live location, or POST a forged location for a car they don't own.
+ * Both are now authenticated and owner-scoped in the service.
+ */
 router.get("/valet-location/:vehicleNumber", customerController.getValetLocation);
 router.post("/customer-location/:vehicleNumber", customerController.postCustomerLocation);
-
-router.use(authMiddleware);
 
 router.get("/profile", customerController.getProfile);
 router.get("/profile/stats", customerController.getProfileStats);

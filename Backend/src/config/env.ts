@@ -22,6 +22,17 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => (v == null ? undefined : v === "true")),
+  /**
+   * Synthesize cloud TTS for every assistant reply. Off by default and deliberately so: at
+   * ~$16/1M characters this was the single largest line item in the AI bill — several times the
+   * LLM spend — while the voice overlay uses on-device TTS and never reads `voiceUrl`, and the
+   * chat screen falls back to on-device TTS whenever `voiceUrl` is absent. Turn on only if a
+   * surface genuinely needs server-rendered audio.
+   */
+  CLOUD_TTS_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
   JWT_SECRET: z.string().min(1).default("dev-secret-change-in-production"),
   JWT_ACCESS_EXPIRY: z.string().default("15m"),
   JWT_REFRESH_EXPIRY: z.string().default("30d"),

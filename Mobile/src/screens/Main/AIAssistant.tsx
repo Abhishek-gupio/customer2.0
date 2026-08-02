@@ -55,6 +55,10 @@ interface UIMessage {
 }
 
 import { getVoiceLanguageIndex } from '../../services/storage';
+import { claimVoiceHandlers, releaseVoiceHandlers } from '../../services/voiceHandlerOwner';
+
+/** Identity for this screen's claim on the shared Voice handler slots. */
+const voiceOwnerToken: symbol = Symbol('AIAssistant.voice');
 
 const VOICE_LANGUAGES_MAP = [
   'en-IN',     // Auto / Device language defaults to en-IN
@@ -452,12 +456,19 @@ export default function AIAssistant() {
       return;
     }
 
-    Voice.onSpeechStart = () => {
+    // @react-native-voice exposes assignment-based handlers — a single global slot per event,
+    // shared with HeyGupioOverlay (which is mounted for the whole app session). Keep a reference
+    // to each handler we install so cleanup can clear *only* ours; calling `removeAllListeners()`
+    // here used to wipe the overlay's handlers too, leaving its mic permanently dead after one
+    // visit to this screen.
+    const onStart = () => {
       voiceRetryRef.current = 0;
       setIsListening(true);
     };
-    Voice.onSpeechEnd = () => setIsListening(false);
-    Voice.onSpeechResults = (e: { value?: string[] }) => {
+    const onEnd = () => setIsListening(false);
+    Voice.onSpeechStart = onStart;
+    Voice.onSpeechEnd = onEnd;
+    const onResults = (e: { value?: string[] }) => {
       const text = e?.value?.[0]?.trim();
       if (text) {
         const detectedLocale = detectInputLocale(text);
@@ -472,7 +483,8 @@ export default function AIAssistant() {
       if (text) setMessage(text);
       releaseChatMic();
     };
-    (Voice as any).onSpeechError = (e: any) => {
+    Voice.onSpeechResults = onResults;
+    const onError = (e: any) => {
       voiceStartInFlightRef.current = false;
       const code = e?.error?.code ?? e?.code;
       const nonFatalCodes = new Set([5, 6, 7, 8, 9, 11]);
@@ -497,13 +509,23 @@ export default function AIAssistant() {
         'Mic Error',
       );
     };
+    (Voice as any).onSpeechError = onError;
+    claimVoiceHandlers(voiceOwnerToken);
 
     return () => {
       releaseChatMic();
-      if (typeof (Voice as any)?.destroy === 'function') {
-        (Voice as any).destroy().then(() => (Voice as any).removeAllListeners?.()).catch(() => {});
-      } else {
-        (Voice as any).removeAllListeners?.();
+      const v = Voice as any;
+      // Clear the shared slots only while we still own them. The handlers are setter-only, so
+      // ownership has to be tracked explicitly — comparing `v.onSpeechStart === onStart` always
+      // reads undefined and would never fire. If the overlay has claimed them since, leave them.
+      if (releaseVoiceHandlers(voiceOwnerToken)) {
+        v.onSpeechStart = undefined;
+        v.onSpeechEnd = undefined;
+        v.onSpeechResults = undefined;
+        v.onSpeechError = undefined;
+      }
+      if (typeof v.destroy === 'function') {
+        v.destroy().catch(() => {});
       }
     };
   }, [releaseChatMic, reportAssistantError, setVoiceOwner]);
@@ -805,9 +827,36 @@ export default function AIAssistant() {
     scrollToBottom();
 
     let fallbackAttempted = false;
+    // Set as soon as the server reports any observable progress for this turn (a tool ran, text
+    // streamed, or the turn completed). Re-sending the message after that point would execute
+    // the whole turn a second time — duplicating non-idempotent work like filing a support
+    // ticket or writing a budget. Only a turn that failed before producing anything is safe to
+    // retry, so the fallback is a genuine retry rather than a blind replay.
+    let turnProducedOutput = false;
     const runFallback = async () => {
       if (fallbackAttempted) return;
       fallbackAttempted = true;
+      if (turnProducedOutput) {
+        // The turn already did work server-side; surface the failure instead of re-running it.
+        // The notice is APPENDED rather than used as a fallback: partial text is exactly the case
+        // where the user most needs telling that the rest never arrived, so `m.text || notice`
+        // would have hidden it precisely when it mattered.
+        const notice =
+          'That request was interrupted partway through. Please check whether it went through before trying again.';
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  text: m.text ? `${m.text}\n\n${notice}` : notice,
+                  isStreaming: false,
+                }
+              : m,
+          ),
+        );
+        setIsStreaming(false);
+        return;
+      }
       try {
         const response = await sendAgentMessage(messageText, sessionId);
         const profileUpdated = Array.isArray(response.toolResults)
@@ -901,6 +950,11 @@ export default function AIAssistant() {
         // Routed through the unified, streaming agent endpoint — the UI updates as each token
         // and event arrives instead of waiting for the full turn.
         await sendAgentMessageStream(messageText, sessionId, (chunk) => {
+          // Anything past `session` means the server has begun doing real work for this turn,
+          // which makes a blind re-send unsafe (see `turnProducedOutput` above).
+          if (chunk.type !== 'session' && chunk.type !== 'error') {
+            turnProducedOutput = true;
+          }
           switch (chunk.type) {
             case 'session':
               if (chunk.sessionId) setSessionId(chunk.sessionId);

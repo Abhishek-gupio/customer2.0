@@ -13,7 +13,22 @@ const SLOTS: Flow["slots"] = [
   { name: "amount", askPrompt: "How much should the monthly budget be?" },
 ];
 
+/**
+ * Read-only budget questions must not reach this flow — committing writes a budget, so
+ * "how much budget do I have left to spend" previously turned a question into an overwrite.
+ * Checked before the intent patterns, which stay broad for voice recall.
+ */
+/**
+ * Narrowed after the first version blocked real commands: `spent` killed "set my fuel budget to
+ * 5000, I have spent too much" and `is my` killed "change budget: fuel is my biggest expense, set
+ * it to 6000". Only phrasings that are unambiguously a question are listed now — an imperative
+ * verb elsewhere in the sentence should still reach the flow.
+ */
+const INFORMATIONAL =
+  /\b(how much|how many|what('s| is)?\s+(my|the)|whats my|do i have|how many.*left|what.*remaining|show me|tell me)\b/i;
+
 function matches(text: string): boolean {
+  if (INFORMATIONAL.test(text)) return false;
   return /\b(set|update|change)\b.*\bbudget\b/i.test(text) || /\bbudget\b.*\b(set|to|of|as)\b/i.test(text);
 }
 
@@ -42,15 +57,16 @@ Output ONLY raw JSON, no markdown, no explanation: {"category": string|null, "am
     parsed = {};
   }
 
+  // A newly extracted *valid* value overwrites the stored one, so a user correcting a mis-heard
+  // answer ("no, the parking budget") actually lands. This still honours the contract's "never
+  // drop a value already present in knownValues": when the extractor returns null (the common
+  // case for a field the user didn't mention this turn), the existing value is left untouched.
   const values: Record<string, any> = { ...knownValues };
-  for (const slot of SLOTS) {
-    if (values[slot.name] != null) continue;
-    if (slot.name === "category" && parsed.category) {
-      values.category = String(parsed.category).trim().toUpperCase();
-    }
-    if (slot.name === "amount" && parsed.amount != null && Number(parsed.amount) > 0) {
-      values.amount = Number(parsed.amount);
-    }
+  if (parsed.category) {
+    values.category = String(parsed.category).trim().toUpperCase();
+  }
+  if (parsed.amount != null && Number(parsed.amount) > 0) {
+    values.amount = Number(parsed.amount);
   }
 
   const missingSlots = SLOTS.map((s) => s.name).filter((name) => values[name] == null);

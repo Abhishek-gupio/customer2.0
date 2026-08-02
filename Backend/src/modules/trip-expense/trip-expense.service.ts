@@ -13,6 +13,19 @@ import { Prisma } from "@repo/db-customer";
 
 const TOLLGURU_API_KEY = process.env.TOLLGURU_API_KEY || "";
 const TOLLGURU_BASE_URL = "https://apis.tollguru.com/toll/v2";
+const TOLLGURU_TIMEOUT_MS = 15_000;
+
+/**
+ * Short-lived memo of TollGuru responses, keyed by the exact request body.
+ *
+ * One `calculateTripExpense` used to bill several identical requests for the same route, and the
+ * agent's `plan_trip` flow can legitimately re-run it when the user refines a detail. Toll rates
+ * and route geometry don't change minute to minute, so collapsing identical queries costs nothing
+ * in accuracy and removes the multiplier on a paid third-party API.
+ */
+const TOLLGURU_CACHE_TTL_MS = 5 * 60 * 1000;
+const TOLLGURU_CACHE_MAX = 200;
+const tollGuruCache = new Map<string, { at: number; body: any }>();
 
 const VEHICLE_TYPE_MAP: Record<string, string> = {
   CAR: "2AxlesAuto",
@@ -244,27 +257,22 @@ export const tripExpenseService = {
     return result;
   },
 
+  /**
+   * Earliest sensible departure for this route.
+   *
+   * This used to fan out three requests at +0/+2/+4 hours and pick the fastest — but the
+   * departure time was never actually forwarded to TollGuru (`callTollGuruAPI({ ...params })`
+   * dropped it), so all three requests were byte-identical: `savingsMinutes` was always 0 and
+   * `bestTime` was always "now", at three times the API cost. Reduced to the one call that the
+   * response can actually support. Reinstating a real comparison requires sending TollGuru a
+   * departure timestamp per request so the routes differ; until then, don't bill for it.
+   */
   async calculateOptimalStartTime(params: any): Promise<{ bestTime: string; savingsMinutes: number } | null> {
     try {
-      const now = new Date();
-      const offsetsHours = [0, 2, 4];
-      const durations = await Promise.all(
-        offsetsHours.map(async (h) => {
-          const departureTime = new Date(now.getTime() + h * 60 * 60 * 1000);
-          const res = await this.callTollGuruAPI({ ...params });
-          const durRaw = res?.route?.duration || res?.routes?.[0]?.duration || 0;
-          return { time: departureTime, duration: durRaw };
-        })
-      );
-
-      durations.sort((a, b) => a.duration - b.duration);
-      const best = durations[0];
-      const worst = durations[durations.length - 1];
-
-      return {
-        bestTime: best.time.toISOString(),
-        savingsMinutes: Math.floor((worst.duration - best.duration) / 60),
-      };
+      const res = await this.callTollGuruAPI({ ...params });
+      const duration = res?.route?.duration || res?.routes?.[0]?.duration || 0;
+      if (!duration) return null;
+      return { bestTime: new Date().toISOString(), savingsMinutes: 0 };
     } catch {
       return null;
     }
@@ -293,6 +301,12 @@ export const tripExpenseService = {
       map: { polyline: true },
     };
 
+    const cacheKey = JSON.stringify(requestBody);
+    const cached = tollGuruCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < TOLLGURU_CACHE_TTL_MS) {
+      return cached.body;
+    }
+
     try {
       const response = await fetch(`${TOLLGURU_BASE_URL}/origin-destination-waypoints`, {
         method: "POST",
@@ -301,10 +315,21 @@ export const tripExpenseService = {
           "x-api-key": TOLLGURU_API_KEY,
         },
         body: JSON.stringify(requestBody),
+        // Without this a hung TollGuru connection has no ceiling, and this sits on the
+        // request path of an agent turn.
+        signal: AbortSignal.timeout(TOLLGURU_TIMEOUT_MS),
       });
 
       if (!response.ok) throw new Error("API call failed");
-      return await response.json();
+      const body = await response.json();
+
+      if (tollGuruCache.size >= TOLLGURU_CACHE_MAX) {
+        // Cheap bound: drop the oldest insertion rather than growing without limit.
+        const oldest = tollGuruCache.keys().next().value;
+        if (oldest !== undefined) tollGuruCache.delete(oldest);
+      }
+      tollGuruCache.set(cacheKey, { at: Date.now(), body });
+      return body;
     } catch (err) {
       logger.error({ err }, "TollGuru API call failed");
       throw AppError.badRequest("Unable to calculate trip expenses");

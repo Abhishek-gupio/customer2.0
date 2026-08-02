@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -20,8 +19,10 @@ import {
 } from '../../services/carwashService';
 import { openRazorpayCheckout, paymentsService } from '../../services/paymentsService';
 import { useCarwashStore } from '../../store/carwashStore';
+import { openMapsNavigation } from '../../utils/mapUtils';
 
 const WASH_TYPES: WashType[] = ['EXTERIOR', 'FOAM', 'INTERIOR', 'STEAM', 'DETAILING', 'CERAMIC_COATING'];
+const BOTTOM_TAB_HEIGHT = Platform.OS === 'ios' ? hp(10) : hp(8);
 
 function generateIdempotencyKey(): string {
   return `washbooking_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
@@ -30,7 +31,7 @@ function generateIdempotencyKey(): string {
 export default function WashCenterDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
   const { centerId } = route.params as { centerId: string };
   const notifyBookingChanged = useCarwashStore((s) => s.notifyBookingChanged);
 
@@ -163,7 +164,16 @@ export default function WashCenterDetailScreen() {
             <IconMC name="map-marker" size={wp(4.5)} color="#5F9EA0" />
             <Text style={styles.addressText}>{center.address}</Text>
           </View>
-          <Text style={styles.dealerText}>Managed by {center.partner.name}</Text>
+          <View style={styles.cardFooterRow}>
+            <Text style={styles.dealerText}>Managed by {center.partner.name}</Text>
+            <TouchableOpacity
+              style={styles.navigateBtn}
+              onPress={() => openMapsNavigation({ latitude: center.latitude, longitude: center.longitude, address: center.address }, center.name)}
+            >
+              <IconMC name="navigation-variant" size={wp(3.8)} color="#111" />
+              <Text style={styles.navigateBtnText}>Navigate</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text style={styles.sectionTitle}>Wash type</Text>
@@ -223,7 +233,7 @@ export default function WashCenterDetailScreen() {
         )}
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: wp(5) + tabBarHeight }]}>
+      <View style={[styles.footer, { paddingBottom: wp(5) + BOTTOM_TAB_HEIGHT }]}>
         <TouchableOpacity
           style={[styles.bookBtn, !selectedSlot && styles.bookBtnDisabled]}
           activeOpacity={0.85}
@@ -250,7 +260,18 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#111', borderRadius: 18, padding: wp(4.5), marginBottom: hp(1.8), borderWidth: 1, borderColor: '#222' },
   addressRow: { flexDirection: 'row', alignItems: 'flex-start', gap: wp(2.5), marginBottom: hp(1) },
   addressText: { flex: 1, color: '#fff', fontFamily: 'Outfit-Medium', fontSize: wp(3.6) },
-  dealerText: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.1) },
+  dealerText: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(3.1), flex: 1 },
+  cardFooterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: hp(0.5) },
+  navigateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    backgroundColor: '#5F9EA0',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.6),
+    borderRadius: 10,
+  },
+  navigateBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3) },
   sectionTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.8), marginBottom: hp(1.2), marginTop: hp(0.5) },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: wp(2), marginBottom: hp(1) },
   chip: { paddingHorizontal: wp(3.5), paddingVertical: hp(0.9), borderRadius: 12, backgroundColor: '#141414', borderWidth: 1, borderColor: '#2a2a2a' },

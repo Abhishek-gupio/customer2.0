@@ -25,9 +25,25 @@ export function subscribeAll(listener: Listener): () => void {
     return () => wildcardListeners.delete(listener);
 }
 
+/**
+ * Delivery is isolated per listener: one screen's bad handler must not stop the remaining
+ * subscribers from seeing the event, and must not surface as a failure of the agent turn that
+ * emitted it. Errors are reported rather than swallowed silently.
+ */
+function deliver(listener: Listener, event: UIEvent): void {
+    try {
+        listener(event);
+    } catch (error) {
+        console.error(`[agent/eventBus] listener for "${event.type}" threw`, error);
+    }
+}
+
 export function publish(event: UIEvent): void {
-    listenersByType.get(event.type)?.forEach((listener) => listener(event));
-    wildcardListeners.forEach((listener) => listener(event));
+    // Snapshot before iterating: a listener that unsubscribes (or subscribes) during delivery
+    // would otherwise mutate the Set mid-iteration.
+    const typed = listenersByType.get(event.type);
+    if (typed) [...typed].forEach((listener) => deliver(listener, event));
+    [...wildcardListeners].forEach((listener) => deliver(listener, event));
 }
 
 export function publishAll(events: UIEvent[]): void {

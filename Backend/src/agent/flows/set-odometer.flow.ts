@@ -7,6 +7,9 @@ import { AppError } from "../../utils/AppError";
 
 const SLOTS: Flow["slots"] = [{ name: "reading", askPrompt: "What's the current odometer reading?" }];
 
+/** Sanity ceiling for a speech-extracted reading — see the guard in `extract`. */
+const MAX_ODOMETER_KM = 2_000_000;
+
 function matches(text: string): boolean {
   return (
     /\b(update|set|log|record)\b.*\bodometer\b/i.test(text) ||
@@ -38,9 +41,17 @@ Output ONLY raw JSON, no markdown, no explanation: {"reading": number|null}`;
     parsed = {};
   }
 
+  // Overwrite on a newly extracted valid reading so a correction lands; a null extraction
+  // (the user said something else this turn) leaves the stored value alone.
+  //
+  // The upper bound matters: an over-large mis-extraction ("four hundred fifty thousand" heard as
+  // 450000000) is rejected here rather than being written, because `addOdometerLog` refuses any
+  // future reading lower than the last one — one bad write would block every real reading after
+  // it. 2,000,000 km is comfortably beyond any real vehicle.
   const values: Record<string, any> = { ...knownValues };
-  if (values.reading == null && parsed.reading != null && Number(parsed.reading) > 0) {
-    values.reading = Number(parsed.reading);
+  const candidate = parsed.reading != null ? Number(parsed.reading) : NaN;
+  if (Number.isFinite(candidate) && Number.isInteger(candidate) && candidate > 0 && candidate <= MAX_ODOMETER_KM) {
+    values.reading = candidate;
   }
 
   const missingSlots = SLOTS.map((s) => s.name).filter((name) => values[name] == null);

@@ -16,6 +16,11 @@ export const voiceService = {
   ): Promise<string | null> {
     if (!text) return null;
 
+    // Opt-in, and gated here rather than at each call site so no path can bill for audio by
+    // accident. Every caller already treats `null` as "no server audio", and both mobile voice
+    // surfaces fall back to on-device TTS — see CLOUD_TTS_ENABLED in config/env.ts.
+    if (!env.CLOUD_TTS_ENABLED) return null;
+
     // Detect language
     let lang = "en-IN";
     if (langHint && langHint !== "auto" && langHint !== "en" && langHint !== "hi") {
@@ -86,6 +91,9 @@ export const voiceService = {
             pitch: 0.0,
           },
         },
+        // Synthesis is awaited before the reply is returned, so an unbounded call would hold the
+        // user's turn open indefinitely.
+        { timeout: 12_000 },
       );
 
       if (response.data?.audioContent) {

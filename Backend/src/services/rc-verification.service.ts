@@ -27,7 +27,9 @@ export const rcVerificationService = {
     try {
       const response = await axios.post<RCVerificationResponse>(
         "https://javabackend.idspay.in/api/v1/prod/srv2/validation/rc",
-        payload
+        payload,
+        // Paid third-party call reachable from a user turn; bound it.
+        { timeout: 20_000 }
       );
 
       const resStatus = response.data.status;

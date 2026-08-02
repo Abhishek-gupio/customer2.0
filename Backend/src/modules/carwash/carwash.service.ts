@@ -213,6 +213,23 @@ export const carwashService = {
       const partner = await dbInstances.washPartner.findUnique({ where: { id: input.partnerId! } });
       if (!partner || partner.status !== "ACTIVE") throw AppError.notFound("Wash partner not available");
       partnerId = partner.id;
+
+      if (input.latitude != null && input.longitude != null) {
+        const activeCenters = await dbInstances.washCenter.findMany({
+          where: { isActive: true },
+          select: { latitude: true, longitude: true },
+        });
+        if (activeCenters.length > 0) {
+          const minDistance = Math.min(
+            ...activeCenters.map((c) => distanceKm(input.latitude!, input.longitude!, c.latitude, c.longitude))
+          );
+          if (minDistance > 10) {
+            throw AppError.badRequest(
+              `Doorstep wash is only available within 10 km of a wash center. Your location is ${minDistance.toFixed(1)} km away.`
+            );
+          }
+        }
+      }
     }
 
     let booking;
@@ -263,7 +280,7 @@ export const carwashService = {
     return dbInstances.washBooking.findMany({
       where: { customerId },
       include: {
-        center: { select: { name: true, address: true } },
+        center: { select: { name: true, address: true, latitude: true, longitude: true } },
         partner: { select: { name: true } },
         technician: { select: { name: true, phoneNumber: true, photoUrl: true } },
       },
@@ -275,7 +292,7 @@ export const carwashService = {
     const booking = await dbInstances.washBooking.findUnique({
       where: { id: bookingId },
       include: {
-        center: { select: { name: true, address: true } },
+        center: { select: { name: true, address: true, latitude: true, longitude: true } },
         partner: { select: { name: true } },
         technician: { select: { name: true, phoneNumber: true, photoUrl: true } },
       },

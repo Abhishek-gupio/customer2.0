@@ -16,6 +16,7 @@ import {
   WASH_TYPE_LABELS,
 } from '../../services/carwashService';
 import { useCarwashStore } from '../../store/carwashStore';
+import { openMapsNavigation } from '../../utils/mapUtils';
 
 const STATUS_STYLE: Record<WashBookingStatus, { label: string; bg: string; fg: string }> = {
   PENDING_PAYMENT: { label: 'Awaiting payment', bg: 'rgba(95, 158, 160,0.3)', fg: '#5f9ea0' },
@@ -140,15 +141,35 @@ export default function MyWashBookingsScreen() {
                 )}
                 <View style={styles.cardBottom}>
                   <Text style={styles.amountText}>₹{(item.amountPaise / 100).toFixed(0)}</Text>
-                  {cancellable && (
-                    <TouchableOpacity
-                      style={styles.cancelBtn}
-                      onPress={() => onCancel(item)}
-                      disabled={cancellingId === item.id}
-                    >
-                      <Text style={styles.cancelBtnText}>{cancellingId === item.id ? 'Cancelling…' : 'Cancel'}</Text>
-                    </TouchableOpacity>
-                  )}
+                  <View style={styles.actionsRow}>
+                    {(item.serviceModel === 'VISIT_CENTER' || item.center) && (
+                      <TouchableOpacity
+                        style={styles.navBtn}
+                        onPress={() =>
+                          openMapsNavigation(
+                            {
+                              latitude: item.center?.latitude,
+                              longitude: item.center?.longitude,
+                              address: item.center?.address ?? item.addressLine,
+                            },
+                            item.center?.name ?? 'Wash Center',
+                          )
+                        }
+                      >
+                        <IconMC name="navigation-variant" size={wp(3.4)} color="#111" />
+                        <Text style={styles.navBtnText}>Navigate</Text>
+                      </TouchableOpacity>
+                    )}
+                    {cancellable && (
+                      <TouchableOpacity
+                        style={styles.cancelBtn}
+                        onPress={() => onCancel(item)}
+                        disabled={cancellingId === item.id}
+                      >
+                        <Text style={styles.cancelBtnText}>{cancellingId === item.id ? 'Cancelling…' : 'Cancel'}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </View>
             );
@@ -168,7 +189,7 @@ const styles = StyleSheet.create({
   emptyText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.4), textAlign: 'center' },
   searchBtn: { marginTop: hp(2), backgroundColor: '#5F9EA0', paddingHorizontal: wp(6), paddingVertical: hp(1.4), borderRadius: 12 },
   searchBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3.6) },
-  listContent: { paddingHorizontal: wp(5), paddingBottom: hp(4) },
+  listContent: { paddingHorizontal: wp(5), paddingBottom: hp(14) },
   card: { backgroundColor: '#111', borderRadius: 18, padding: wp(4.5), marginBottom: hp(1.6), borderWidth: 1, borderColor: '#222' },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: hp(0.4) },
   bookingTitle: { flex: 1, color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(4), marginRight: wp(2) },
@@ -182,6 +203,17 @@ const styles = StyleSheet.create({
   photoThumb: { width: wp(12), height: wp(12), borderRadius: 8, backgroundColor: '#222' },
   cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   amountText: { color: '#5F9EA0', fontFamily: 'Outfit-Black', fontSize: wp(4) },
-  cancelBtn: { borderWidth: 1, borderColor: '#ef4444', paddingHorizontal: wp(4), paddingVertical: hp(0.8), borderRadius: 10 },
-  cancelBtnText: { color: '#ef4444', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
+  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: wp(2) },
+  navBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    backgroundColor: '#5F9EA0',
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(0.7),
+    borderRadius: 10,
+  },
+  navBtnText: { color: '#111', fontFamily: 'Outfit-Bold', fontSize: wp(3) },
+  cancelBtn: { borderWidth: 1, borderColor: '#ef4444', paddingHorizontal: wp(3.5), paddingVertical: hp(0.7), borderRadius: 10 },
+  cancelBtnText: { color: '#ef4444', fontFamily: 'Outfit-Bold', fontSize: wp(3) },
 });

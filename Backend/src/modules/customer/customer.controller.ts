@@ -128,15 +128,23 @@ export const customerController = {
   }),
 
   getValetLocation: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) {
+      throw AppError.unauthorized();
+    }
     const vehicleParam = req.params.vehicleNumber;
     const vehicleNumber =
       typeof vehicleParam === "string" ? vehicleParam : vehicleParam?.[0];
     if (!vehicleNumber) throw AppError.badRequest("vehicleNumber is required");
-    const data = await customerService.getValetLocation(vehicleNumber);
+    const data = await customerService.getValetLocation(customerId, vehicleNumber);
     success(res, data);
   }),
 
   postCustomerLocation: asyncHandler(async (req: Request, res: Response) => {
+    const customerId = req.customer?.id;
+    if (!customerId) {
+      throw AppError.unauthorized();
+    }
     const vehicleParam = req.params.vehicleNumber;
     const vehicleNumber =
       typeof vehicleParam === "string" ? vehicleParam : vehicleParam?.[0];
@@ -146,7 +154,7 @@ export const customerController = {
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       throw AppError.badRequest("Valid latitude and longitude are required");
     }
-    const data = await customerService.upsertCustomerLocation(vehicleNumber, {
+    const data = await customerService.upsertCustomerLocation(customerId, vehicleNumber, {
       latitude,
       longitude,
       timestamp: Number(req.body?.timestamp) || undefined,

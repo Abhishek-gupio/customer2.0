@@ -22,6 +22,7 @@ import { useNavigation } from '../../lib/react-navigation-native';
 import BackButton from '../../components/BackButton';
 import { carwashService, type WashCenter } from '../../services/carwashService';
 import { placesService, type SearchSuggestion } from '../../services/placesService';
+import { openMapsNavigation } from '../../utils/mapUtils';
 
 let Geolocation: any = null;
 try {
@@ -255,7 +256,16 @@ export default function WashSearchScreen() {
                   </View>
                 </View>
               </View>
-              <IconMC name="chevron-right" size={wp(5)} color="#666" />
+              <View style={styles.resultRightActions}>
+                <TouchableOpacity
+                  style={styles.directNavBtn}
+                  onPress={() => openMapsNavigation({ latitude: r.latitude, longitude: r.longitude, address: r.address }, r.name)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <IconMC name="navigation-variant" size={wp(4.2)} color="#111" />
+                </TouchableOpacity>
+                <IconMC name="chevron-right" size={wp(5)} color="#666" />
+              </View>
             </TouchableOpacity>
           ))
         )}
@@ -347,7 +357,7 @@ const styles = StyleSheet.create({
   },
   doorstepTitle: { color: '#fff', fontFamily: 'Outfit-Bold', fontSize: wp(3.6) },
   doorstepSubtitle: { color: '#888', fontFamily: 'Outfit-Regular', fontSize: wp(2.9), marginTop: 2 },
-  resultsWrap: { paddingHorizontal: wp(5), paddingBottom: hp(4) },
+  resultsWrap: { paddingHorizontal: wp(5), paddingBottom: hp(14) },
   centerState: { alignItems: 'center', justifyContent: 'center', paddingVertical: hp(8), gap: hp(1.2) },
   centerStateText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.4), textAlign: 'center', paddingHorizontal: wp(6) },
   resultCard: {
@@ -367,4 +377,13 @@ const styles = StyleSheet.create({
   metaBadge: { flexDirection: 'row', alignItems: 'center', gap: wp(1) },
   metaText: { color: '#888', fontFamily: 'Outfit-Medium', fontSize: wp(3.1) },
   metaTextAccent: { color: '#5F9EA0', fontFamily: 'Outfit-Bold', fontSize: wp(3.1) },
+  resultRightActions: { flexDirection: 'row', alignItems: 'center', gap: wp(2) },
+  directNavBtn: {
+    width: wp(8.5),
+    height: wp(8.5),
+    borderRadius: wp(4.25),
+    backgroundColor: '#5F9EA0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

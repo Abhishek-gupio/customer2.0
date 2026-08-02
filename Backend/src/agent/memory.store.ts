@@ -4,8 +4,15 @@ import { AgentMemory, ExecutionRecord } from "./types";
 /**
  * Server-side session memory: which workflow (if any) is in progress, its slots, and a capped
  * history of completed actions. Per the architecture's memory principle, this must never live
- * only on the client — keyed by sessionId so a follow-up turn works regardless of which
+ * only on the client — keyed by session so a follow-up turn works regardless of which
  * client/device continues the conversation.
+ *
+ * The key is scoped by customerId as well as sessionId. `sessionId` is supplied by the client, and
+ * scoping on it alone meant a caller presenting someone else's session id would resume that
+ * customer's pending workflow — including half-collected `verify_dl` / `verify_fastag` slots
+ * (licence numbers, bank account details), with the paid verification result then landing on the
+ * caller's own account. Every other store in this codebase scopes on `{ id, customerId }`; this
+ * one now matches, so an unknown or borrowed session id simply reads as empty memory.
  */
 const MEMORY_PREFIX = "agent:memory:";
 const MEMORY_TTL_SEC = 15 * 60;
@@ -34,9 +41,14 @@ function useMemoryGet(key: string): AgentMemory | null {
   return record.entry;
 }
 
+/** Both identifiers are required — see the scoping note on MEMORY_PREFIX. */
+function memoryKey(customerId: string, sessionId: string): string {
+  return `${MEMORY_PREFIX}${customerId}:${sessionId}`;
+}
+
 export const agentMemoryStore = {
-  async get(sessionId: string): Promise<AgentMemory> {
-    const key = `${MEMORY_PREFIX}${sessionId}`;
+  async get(customerId: string, sessionId: string): Promise<AgentMemory> {
+    const key = memoryKey(customerId, sessionId);
     const redis = getRedis();
     if (redis) {
       try {
@@ -49,8 +61,8 @@ export const agentMemoryStore = {
     return useMemoryGet(key) ?? { ...EMPTY_MEMORY, updatedAt: Date.now() };
   },
 
-  async set(sessionId: string, entry: AgentMemory): Promise<void> {
-    const key = `${MEMORY_PREFIX}${sessionId}`;
+  async set(customerId: string, sessionId: string, entry: AgentMemory): Promise<void> {
+    const key = memoryKey(customerId, sessionId);
     const redis = getRedis();
     if (redis) {
       try {
@@ -64,15 +76,30 @@ export const agentMemoryStore = {
     useMemorySet(key, entry);
   },
 
-  async clearWorkflow(sessionId: string): Promise<void> {
-    const current = await this.get(sessionId);
-    await this.set(sessionId, { ...current, workflow: null, step: null, slots: {}, waitingFor: null, updatedAt: Date.now() });
+  async clearWorkflow(customerId: string, sessionId: string): Promise<void> {
+    const current = await this.get(customerId, sessionId);
+    await this.set(customerId, sessionId, {
+      ...current,
+      workflow: null,
+      step: null,
+      slots: {},
+      waitingFor: null,
+      updatedAt: Date.now(),
+    });
   },
 
-  /** Appends to the capped history without disturbing the current workflow state. */
-  async recordAction(sessionId: string, record: ExecutionRecord): Promise<void> {
-    const current = await this.get(sessionId);
+  /**
+   * Appends to the capped history without disturbing the current workflow state.
+   *
+   * Read-modify-write, so it is not atomic against a concurrent turn on the same session (a
+   * double-tap, or voice and text arriving together). The narrow risk is a lost history entry —
+   * acceptable, since history is advisory. What must *not* be clobbered is `workflow`/`slots`, so
+   * this re-reads and preserves them rather than writing a whole snapshot captured earlier; a
+   * caller that needs true atomicity on workflow state should use a Redis WATCH/MULTI or a lock.
+   */
+  async recordAction(customerId: string, sessionId: string, record: ExecutionRecord): Promise<void> {
+    const current = await this.get(customerId, sessionId);
     const history = [record, ...current.history].slice(0, MAX_HISTORY);
-    await this.set(sessionId, { ...current, history, updatedAt: Date.now() });
+    await this.set(customerId, sessionId, { ...current, history, updatedAt: Date.now() });
   },
 };

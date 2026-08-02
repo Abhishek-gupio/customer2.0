@@ -54,24 +54,42 @@ const CANCEL_PHRASE = /^\s*(cancel|never\s*mind|nevermind|forget it|stop(\s+that
  *      Gemini/Groq generation, unchanged) handles it.
  */
 async function resolveIntent(
+  customerId: string,
   sessionId: string,
   utterance: string,
   clientContext?: ClientContext,
 ): Promise<ResolvedIntent | null> {
-  const memory = await agentMemoryStore.get(sessionId);
+  const memory = await agentMemoryStore.get(customerId, sessionId);
   const pendingFlow = memory.workflow ? getFlow(memory.workflow) : undefined;
 
   if (pendingFlow) {
     if (CANCEL_PHRASE.test(utterance)) {
-      await agentMemoryStore.clearWorkflow(sessionId);
+      await agentMemoryStore.clearWorkflow(customerId, sessionId);
       return null; // falls through to "chat", which will just acknowledge naturally
     }
     const differentFlow = matchFlow(utterance);
     if (differentFlow && differentFlow.key !== pendingFlow.key) {
       // The user moved on to something else entirely — start that instead of force-feeding
       // this message into the stale flow's extractor as if it answered its question.
-      await agentMemoryStore.clearWorkflow(sessionId);
+      await agentMemoryStore.clearWorkflow(customerId, sessionId);
       return { kind: "flow", flow: differentFlow, knownValues: {} };
+    }
+    if (differentFlow && differentFlow.key === pendingFlow.key) {
+      // Re-stating this flow's own trigger is a restart, not an answer to the outstanding
+      // question. Carrying the old slots forward here is how "set my fuel budget" ... "no, set
+      // the parking budget to 2000" ended up writing ₹2000 against FUEL: the stale category
+      // survived and only the amount was taken from the correction.
+      //
+      // The attempt counter deliberately survives the reset. Clearing it too would let a user who
+      // keeps restating the trigger loop forever — each restart returning the cap to zero — which
+      // is exactly the unbounded-cost case the cap exists to stop.
+      const attemptsSoFar = memory.slots?.__attempts;
+      await agentMemoryStore.clearWorkflow(customerId, sessionId);
+      return {
+        kind: "flow",
+        flow: pendingFlow,
+        knownValues: attemptsSoFar != null ? { __attempts: attemptsSoFar } : {},
+      };
     }
     return { kind: "flow", flow: pendingFlow, knownValues: memory.slots };
   }
@@ -101,7 +119,7 @@ export async function handleAgentMessage(customerId: string, request: AgentReque
   const sessionId = request.sessionId || crypto.randomUUID();
   const utterance = request.message.trim();
 
-  const intent = await resolveIntent(sessionId, utterance, request.clientContext);
+  const intent = await resolveIntent(customerId, sessionId, utterance, request.clientContext);
   if (intent) {
     const result = await execute(customerId, sessionId, utterance, intent);
     return { sessionId, ...result };
@@ -118,7 +136,7 @@ export async function handleAgentMessage(customerId: string, request: AgentReque
     request.imageMimeType,
     false,
   );
-  await agentMemoryStore.recordAction(sessionId, { type: "general_turn", key: "chat", at: Date.now() });
+  await agentMemoryStore.recordAction(customerId, sessionId, { type: "general_turn", key: "chat", at: Date.now() });
 
   return {
     sessionId: chatResponse.sessionId || sessionId,
@@ -145,7 +163,7 @@ export async function* handleAgentMessageStream(
 
   yield JSON.stringify({ type: "session", sessionId });
 
-  const intent = await resolveIntent(sessionId, utterance, request.clientContext);
+  const intent = await resolveIntent(customerId, sessionId, utterance, request.clientContext);
   if (intent) {
     const result = await execute(customerId, sessionId, utterance, intent);
     for (const event of result.events) {
@@ -175,7 +193,7 @@ export async function* handleAgentMessageStream(
     if (chunk.type === "done") {
       const events = fromNavigate(chunk.navigate);
       yield JSON.stringify({ ...chunk, events });
-      await agentMemoryStore.recordAction(sessionId, { type: "general_turn", key: "chat", at: Date.now() });
+      await agentMemoryStore.recordAction(customerId, sessionId, { type: "general_turn", key: "chat", at: Date.now() });
       continue;
     }
 

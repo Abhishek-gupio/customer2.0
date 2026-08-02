@@ -9,6 +9,7 @@ import { fuelPriceService } from "../../services/fuel-price.service";
 import { expenseIntelligenceService } from "../../services/expense-intelligence.service";
 import { queues } from "../../config/queue";
 import { expenseBudgetService } from "./expense-budget.service";
+import { enqueueExpenseIngestion } from "./expense-ingestion.helper";
 import { storageService } from "../../services/storage.service";
 
 const db = dbInstances;
@@ -116,6 +117,7 @@ export const expenseParsingService = {
         } else {
           void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
         }
+        enqueueExpenseIngestion(expense.id);
 
         let fuelIntelligence = null;
         if (aiResult.category === "FUEL") {
@@ -168,6 +170,7 @@ export const expenseParsingService = {
         if (queues?.budgetCheck) {
           void queues.budgetCheck.add("check-budget", { customerId, metadata: { category: expense.category, amount: expense.amount } }).catch(() => {});
         }
+        enqueueExpenseIngestion(expense.id);
 
         return { success: true, expense, parserMeta: { method: "UPI_REGEX" } };
       }
@@ -203,6 +206,14 @@ export const expenseParsingService = {
           notes: `Basic regex fallback`,
         } as any,
       });
+      if (queues?.budgetCheck) {
+        void queues.budgetCheck
+          .add("check-budget", { customerId, metadata: { category: expense.category, amount: expense.amount } })
+          .catch(() => {});
+      } else {
+        void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
+      }
+      enqueueExpenseIngestion(expense.id);
       return { success: true, expense, parserMeta: { method: "BASIC_REGEX" } };
     }
 
@@ -288,6 +299,7 @@ export const expenseParsingService = {
     } else {
       void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
     }
+    enqueueExpenseIngestion(expense.id);
 
     let fuelIntelligence = null;
     if (category === "FUEL") {
@@ -339,6 +351,7 @@ export const expenseParsingService = {
     } else {
       void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
     }
+    enqueueExpenseIngestion(expense.id);
 
     let fuelIntelligence = null;
     if (category === "FUEL") {
@@ -446,6 +459,7 @@ export const expenseParsingService = {
     } else {
       void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
     }
+    enqueueExpenseIngestion(expense.id);
 
     let fuelIntelligence = null;
     if (category === "FUEL") {
@@ -536,6 +550,7 @@ export const expenseParsingService = {
     } else {
       void expenseBudgetService.checkBudget(customerId, expense.category, expense.amount).catch(() => {});
     }
+    enqueueExpenseIngestion(expense.id);
 
     let fuelIntelligence = null;
     if (category === "FUEL") {

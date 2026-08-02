@@ -17,7 +17,15 @@ const SLOTS: Flow["slots"] = [
   { name: "ifscCode", askPrompt: "What's the IFSC code for that account?" },
 ];
 
+/**
+ * Committing this flow asks the user to dictate a bank account number and IFSC, then spends a
+ * paid IDSPay call. A balance/status question must therefore not trigger it — "check my fastag
+ * balance" is a read, not a request to verify a beneficiary account.
+ */
+const INFORMATIONAL = /\b(balance|status|how much|recharge|amount|left|remaining|expiry|expires|history)\b/i;
+
 function matches(text: string): boolean {
+  if (INFORMATIONAL.test(text)) return false;
   return (
     /\b(verify|check)\b.*\b(fastag|bank account|beneficiary)\b/i.test(text) || /\bfastag verification\b/i.test(text)
   );
@@ -48,14 +56,21 @@ Output ONLY raw JSON, no markdown, no explanation: {"creditorAccountId": string|
     parsed = {};
   }
 
+  // Validate at *write* time against the same regexes the confidence gate below uses.
+  //
+  // These two rules previously disagreed: a loosely-checked value was stored, the strict gate
+  // then refused to accept it, and because slots were write-once no correction could ever
+  // replace it — leaving the user stuck on an unanswerable "Could you clarify that?". Storing
+  // only values that can actually pass means a bad transcription leaves the slot empty, so the
+  // engine re-asks the real question and the next answer overwrites cleanly.
   const values: Record<string, any> = { ...knownValues };
-  if (values.creditorAccountId == null && typeof parsed.creditorAccountId === "string") {
+  if (typeof parsed.creditorAccountId === "string") {
     const digits = parsed.creditorAccountId.replace(/\D/g, "");
-    if (digits.length >= 6) values.creditorAccountId = digits;
+    if (ACCOUNT_ID_REGEX.test(digits)) values.creditorAccountId = digits;
   }
-  if (values.ifscCode == null && typeof parsed.ifscCode === "string") {
+  if (typeof parsed.ifscCode === "string") {
     const clean = parsed.ifscCode.replace(/\s/g, "").toUpperCase();
-    if (clean.length > 0) values.ifscCode = clean;
+    if (IFSC_REGEX.test(clean)) values.ifscCode = clean;
   }
 
   const missingSlots = SLOTS.map((s) => s.name).filter((name) => values[name] == null);

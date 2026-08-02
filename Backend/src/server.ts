@@ -26,6 +26,19 @@ async function bootstrap() {
     .catch((err) => logger.error({ err }, "Scheduler initialization failed"));
 
   const httpServer = createServer(app);
+
+  /**
+   * Ceiling on a single request. Node's default is 0 (no limit), which let an AI turn whose
+   * upstream provider never answered hold a connection open indefinitely. Set above the longest
+   * legitimate AI turn so normal traffic is unaffected. `requestTimeout` must stay below
+   * `headersTimeout` for keep-alive connections to be reaped correctly.
+   *
+   * Socket.IO connections are long-lived by design and are unaffected — these apply to HTTP
+   * request/response cycles, not upgraded WebSockets.
+   */
+  httpServer.requestTimeout = 120_000;
+  httpServer.headersTimeout = 125_000;
+
   initSocket(httpServer);
 
   httpServer.listen(env.PORT, "0.0.0.0", () => {

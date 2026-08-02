@@ -8,12 +8,34 @@ import { documentService } from "../../modules/document/document.service";
 // DD-MM-YYYY, matching the exact format the manual DLVerification screen sends.
 const DOB_REGEX = /^\d{2}-\d{2}-\d{4}$/;
 
+/**
+ * Indian driving licence: two-letter state code, then digits (formats vary by state, e.g.
+ * "DL1420110012345", "MH0220120001234"). Deliberately shape-based rather than exhaustive — it
+ * only has to be strong enough that a date, a phone number, or a stray word cannot pass for one.
+ */
+const DL_NUMBER_REGEX = /^[A-Z]{2}[A-Z0-9]{6,18}$/;
+
 const SLOTS: Flow["slots"] = [
   { name: "dlNumber", askPrompt: "What's your driving licence number?" },
   { name: "dob", askPrompt: "What's your date of birth?" },
 ];
 
+/**
+ * This flow asks the user to dictate their licence number and date of birth, then spends a paid
+ * IDSPay call. Status/expiry questions are reads and must not trigger it — note the existing
+ * `\bdl\b` word boundary already keeps "download my documents" out.
+ */
+/**
+ * Read-only licence questions. Kept narrow on purpose: an over-broad guard here silently disables
+ * the flow for real commands. `number is`, `my dl number`, `valid`/`validity` and `show` were all
+ * removed after they blocked the natural one-shot phrasings "verify my dl number is DL14...",
+ * "verify my dl number DL14..." and "verify my driving licence validity" — a false negative that
+ * turns off the feature is worse than the false positive this guard exists to prevent.
+ */
+const INFORMATIONAL = /\b(status|expiry|expires|when does|how long)\b/i;
+
 function matches(text: string): boolean {
+  if (INFORMATIONAL.test(text)) return false;
   return (
     /\b(verify|check)\b.*\b(dl|driving licen[cs]e|license)\b/i.test(text) || /\bdl verification\b/i.test(text)
   );
@@ -44,12 +66,19 @@ Output ONLY raw JSON, no markdown, no explanation: {"dlNumber": string|null, "do
     parsed = {};
   }
 
+  // Overwrite on a newly extracted valid value so a correction lands; a null or malformed
+  // extraction leaves the stored value alone rather than wiping it.
   const values: Record<string, any> = { ...knownValues };
-  if (values.dlNumber == null && typeof parsed.dlNumber === "string") {
-    const clean = parsed.dlNumber.replace(/\s/g, "").toUpperCase();
-    if (clean.length >= 5) values.dlNumber = clean;
+  if (typeof parsed.dlNumber === "string") {
+    const clean = parsed.dlNumber.replace(/[\s-]/g, "").toUpperCase();
+    // Must look like a real licence, not merely be long enough. With the write-once guard removed
+    // so corrections can land, a weak `length >= 5` check meant a later turn's stray digits could
+    // overwrite an already-correct number — e.g. the extractor echoing a date of birth as
+    // "15081990" silently replaced the licence and still passed commit's identical length check,
+    // sending garbage to the paid IDSPay call. An Indian DL is state code + digits.
+    if (DL_NUMBER_REGEX.test(clean)) values.dlNumber = clean;
   }
-  if (values.dob == null && typeof parsed.dob === "string" && DOB_REGEX.test(parsed.dob.trim())) {
+  if (typeof parsed.dob === "string" && DOB_REGEX.test(parsed.dob.trim())) {
     values.dob = parsed.dob.trim();
   }
 

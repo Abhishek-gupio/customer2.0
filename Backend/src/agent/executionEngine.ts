@@ -1,8 +1,8 @@
 import { logger } from "../config/logger";
 import { agentMemoryStore } from "./memory.store";
 import { runFlowTurn } from "./flows/engine";
-import { fromToolResult } from "./events";
-import { Flow, ToolDefinition, UIEvent } from "./types";
+import { fromToolResult, kindForToolResult } from "./events";
+import { Flow, ToolDefinition, ToolResultPayload, UIEvent } from "./types";
 
 /** What the runtime resolved a turn down to — a flow to run, a tool to call directly, or chat. */
 export type ResolvedIntent =
@@ -13,7 +13,7 @@ export interface ExecutionResult {
   message: string;
   events: UIEvent[];
   voiceUrl?: string | null;
-  toolResults?: Array<{ tool: string; args: any; result: any }>;
+  toolResults?: ToolResultPayload[];
   contextUsed?: number;
 }
 
@@ -33,15 +33,15 @@ export async function execute(
     try {
       const turn = await runFlowTurn(customerId, intent.flow, utterance, intent.knownValues);
       if (turn.done) {
-        await agentMemoryStore.recordAction(sessionId, {
+        await agentMemoryStore.recordAction(customerId, sessionId, {
           type: turn.failed ? "flow_failed" : "flow_committed",
           key: turn.flowKey,
           at: Date.now(),
         });
-        await agentMemoryStore.clearWorkflow(sessionId);
+        await agentMemoryStore.clearWorkflow(customerId, sessionId);
       } else {
-        const memory = await agentMemoryStore.get(sessionId);
-        await agentMemoryStore.set(sessionId, {
+        const memory = await agentMemoryStore.get(customerId, sessionId);
+        await agentMemoryStore.set(customerId, sessionId, {
           ...memory,
           workflow: turn.flowKey,
           step: turn.waitingForSlot,
@@ -53,7 +53,7 @@ export async function execute(
       return { message: turn.message, events: turn.events, voiceUrl: null };
     } catch (err) {
       logger.error({ err, flowKey: intent.flow.key, customerId }, "[execution-engine] flow turn failed");
-      await agentMemoryStore.clearWorkflow(sessionId);
+      await agentMemoryStore.clearWorkflow(customerId, sessionId);
       return { message: "Something went wrong with that request. Please try again.", events: [] };
     }
   }
@@ -63,13 +63,20 @@ export async function execute(
   // risk in calling with an empty args object.
   try {
     const result = await intent.tool.execute(customerId, {});
-    await agentMemoryStore.recordAction(sessionId, { type: "tool_called", key: intent.tool.name, at: Date.now() });
+    await agentMemoryStore.recordAction(customerId, sessionId, { type: "tool_called", key: intent.tool.name, at: Date.now() });
     const message = typeof result?.message === "string" ? result.message : "Here's what I found.";
     return {
       message,
       events: fromToolResult(intent.tool.name, result),
       voiceUrl: null,
-      toolResults: [{ tool: intent.tool.name, args: {}, result }],
+      toolResults: [
+        {
+          tool: intent.tool.name,
+          args: {},
+          result,
+          kind: kindForToolResult(intent.tool.name, result),
+        },
+      ],
     };
   } catch (err) {
     logger.error({ err, tool: intent.tool.name, customerId }, "[execution-engine] direct tool call failed");

@@ -39,6 +39,21 @@ async function ensureVectorColumn(): Promise<void> {
   }
 }
 const EMBED_API = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent`;
+const EMBED_TIMEOUT_MS = 10_000;
+
+/**
+ * Minimum cosine similarity for a row to count as relevant. Tuned conservatively: high enough to
+ * drop unrelated records, low enough not to discard a genuine paraphrase match. Revisit once
+ * there is real indexed data to measure against — see the note in `searchSimilar`.
+ */
+const MIN_SIMILARITY = 0.5;
+
+/**
+ * Minimum `ts_rank_cd` for the lexical leg. Low by design — cover-density ranks are small numbers
+ * — but enough to exclude a row matched on one incidental term. Tune alongside MIN_SIMILARITY once
+ * there is real indexed data to measure against.
+ */
+const MIN_TEXT_RANK = 0.01;
 
 /**
  * Generate embedding via Gemini REST API (embed endpoint).
@@ -56,6 +71,9 @@ async function embedViaRest(text: string): Promise<number[] | null> {
         body: JSON.stringify({
           content: { parts: [{ text }] },
         }),
+        // Retrieval runs on the chat request path; an unbounded embed call would hold the whole
+        // turn open. Failing fast is correct here since callers already treat null as "no RAG".
+        signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
       },
     );
     if (!res.ok) {
@@ -169,14 +187,20 @@ export const vectorService = {
     const doSearch = async () => {
       const vectorString = `[${queryVector.join(",")}]`;
       return db.$queryRawUnsafe(
+        // The similarity floor is not cosmetic. Without it the top-N rows are returned no matter
+        // how unrelated they are, and the caller injects them under a "RELEVANT RECORDS" heading
+        // — which invites the model to answer confidently from records that have nothing to do
+        // with the question. Returning nothing is the correct answer to "no good match".
         `SELECT id, "entityId", "entityType", content, 1 - (vector <=> $1::vector) as similarity
                  FROM "customer"."DocumentEmbedding"
                  WHERE "customerId" = $2
+                   AND 1 - (vector <=> $1::vector) >= $4
                  ORDER BY vector <=> $1::vector ASC
                  LIMIT $3`,
         vectorString,
         customerId,
         limit,
+        MIN_SIMILARITY,
       ) as Promise<any[]>;
     };
 
@@ -210,7 +234,10 @@ export const vectorService = {
     limit = 10,
   ): Promise<any[]> {
     try {
-      // Convert user query to tsquery format (split words and AND them)
+      // Convert user query to tsquery format. Terms are OR-ed (`|`), not AND-ed — the comment
+      // here used to claim the opposite. OR is the right call for a recall-oriented lexical leg
+      // feeding RRF, but it does mean a single common term can match loosely-related rows, so
+      // precision has to come from the vector leg's similarity floor (see MIN_SIMILARITY).
       const tsQuery = queryText
         .split(/\s+/)
         .filter((w) => w.length > 2)
@@ -221,16 +248,23 @@ export const vectorService = {
       if (!tsQuery) return [];
 
       const results = await db.$queryRawUnsafe(
+        // Rank floor matters here as much as the vector leg's similarity floor. Terms are OR-ed,
+        // so `@@` alone matches a row that shares a single incidental word with the query — and
+        // because `hybridSearch` fuses these into the same result set that gets injected into the
+        // prompt as "RELEVANT RECORDS", one shared word was enough to feed the model an unrelated
+        // record. Requiring a minimum rank drops single-weak-term matches.
         `SELECT id, "entityId", "entityType", content,
                 ts_rank_cd(to_tsvector('english', content), to_tsquery('english', $1)) as rank
          FROM "customer"."DocumentEmbedding"
          WHERE "customerId" = $2
            AND to_tsvector('english', content) @@ to_tsquery('english', $1)
+           AND ts_rank_cd(to_tsvector('english', content), to_tsquery('english', $1)) >= $4
          ORDER BY rank DESC
          LIMIT $3`,
         tsQuery,
         customerId,
         limit,
+        MIN_TEXT_RANK,
       );
 
       return results as any[];

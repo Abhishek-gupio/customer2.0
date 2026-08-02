@@ -127,23 +127,40 @@ async function getPublicCustomerForCustomerId(customerId: string) {
   return publicCustomer;
 }
 
+/**
+ * Ownership predicate for the public-schema `Vehicle` table. Both lookup branches below MUST
+ * apply this — a bare `findUnique({ vehicleNumber })` matches any vehicle in the shared valet
+ * product's registry, which would let a caller act on a stranger's car.
+ */
+function vehicleOwnerFilter(publicCustomerPhone: string) {
+  const normalizedPhone = normalizePhone(publicCustomerPhone);
+  return [
+    publicCustomerPhone ? { ownerPhone: publicCustomerPhone } : undefined,
+    normalizedPhone ? { ownerPhone: { endsWith: normalizedPhone } } : undefined,
+  ].filter(Boolean) as any[];
+}
+
 async function resolveVehicle(publicCustomerPhone: string, vehicleNumber?: string) {
+  const ownerFilter = vehicleOwnerFilter(publicCustomerPhone);
+  if (!ownerFilter.length) {
+    throw AppError.notFound("No vehicle found for this customer");
+  }
+
   if (vehicleNumber) {
-    const vehicle = await dbInstances.vehicle.findUnique({
-      where: { vehicleNumber: vehicleNumber.toUpperCase().trim() },
+    // Scoped to the caller: a registration number the caller doesn't own must read as
+    // "not found", not resolve to someone else's vehicle.
+    const vehicle = await dbInstances.vehicle.findFirst({
+      where: {
+        vehicleNumber: vehicleNumber.toUpperCase().trim(),
+        OR: ownerFilter,
+      },
     });
     if (!vehicle) throw AppError.notFound("Vehicle not found");
     return vehicle;
   }
 
-  const normalizedPhone = normalizePhone(publicCustomerPhone);
   const vehicle = await dbInstances.vehicle.findFirst({
-    where: {
-      OR: [
-        publicCustomerPhone ? { ownerPhone: publicCustomerPhone } : undefined,
-        normalizedPhone ? { ownerPhone: { endsWith: normalizedPhone } } : undefined,
-      ].filter(Boolean) as any[],
-    },
+    where: { OR: ownerFilter },
     orderBy: { updatedAt: "desc" },
   });
   if (!vehicle) {
@@ -475,10 +492,16 @@ export const customerService = {
     };
   },
 
-  async getValetLocation(vehicleNumber: string) {
+  async getValetLocation(customerId: string, vehicleNumber: string) {
     const normalizedVehicle = vehicleNumber.toUpperCase().trim();
-    const vehicle = await dbInstances.vehicle.findUnique({
-      where: { vehicleNumber: normalizedVehicle },
+    // Owner-scoped: this returns location data, and the only identifier is a licence plate.
+    // A bare findUnique here let any caller track any vehicle in the shared valet registry.
+    const publicCustomer = await getPublicCustomerForCustomerId(customerId);
+    const ownerFilter = vehicleOwnerFilter(publicCustomer.phoneNumber);
+    if (!ownerFilter.length) throw AppError.notFound("Vehicle not found");
+
+    const vehicle = await dbInstances.vehicle.findFirst({
+      where: { vehicleNumber: normalizedVehicle, OR: ownerFilter },
       include: { Site: true },
     });
     if (!vehicle) throw AppError.notFound("Vehicle not found");
@@ -504,8 +527,14 @@ export const customerService = {
     };
   },
 
-  async upsertCustomerLocation(vehicleNumber: string, data: LocationInput) {
+  async upsertCustomerLocation(customerId: string, vehicleNumber: string, data: LocationInput) {
     const normalizedVehicle = vehicleNumber.toUpperCase().trim();
+    // Ownership is enforced before writing: the cache is keyed by vehicle number alone, so an
+    // unscoped write let anyone plant a forged location against a stranger's plate — which
+    // `getValetLocation` then serves back to that vehicle's real owner as `customerLocation`.
+    const publicCustomer = await getPublicCustomerForCustomerId(customerId);
+    await resolveVehicle(publicCustomer.phoneNumber, normalizedVehicle);
+
     customerLocationCache.set(normalizedVehicle, {
       latitude: data.latitude,
       longitude: data.longitude,

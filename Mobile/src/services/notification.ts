@@ -1,4 +1,4 @@
-import messaging from '@react-native-firebase/messaging';
+import messaging, { getToken, requestPermission } from '@react-native-firebase/messaging';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { getStoredAccessToken } from './authService';
@@ -27,7 +27,7 @@ export const setupNotifications = async () => {
       }
     }
 
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await requestPermission(messaging()).catch(() => messaging().requestPermission());
     const enabled =
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
@@ -133,7 +133,7 @@ import { api } from './api';
 
 export const registerDeviceWithBackend = async (fcmToken?: string) => {
   try {
-    const targetToken = fcmToken || (await messaging().getToken().catch(() => null));
+    const targetToken = fcmToken || (await getToken(messaging()).catch(() => messaging().getToken().catch(() => null)));
     if (!targetToken) return;
 
     await api.post('/v1/customer/device', {

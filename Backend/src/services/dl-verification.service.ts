@@ -23,7 +23,10 @@ export const dlVerificationService = {
     try {
       const response = await axios.post(
         "https://javabackend.idspay.in/api/v1/prod/srv2/validation/dl",
-        payload
+        payload,
+        // Reachable from the agent's verify_dl flow, which runs inside a user turn — an
+        // unbounded call here holds that turn open with no ceiling.
+        { timeout: 20_000 }
       );
 
       const data = response.data;

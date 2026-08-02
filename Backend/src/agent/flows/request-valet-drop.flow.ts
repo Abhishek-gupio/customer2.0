@@ -4,19 +4,60 @@ import { routeText } from "../modelRouter";
 import { logger } from "../../config/logger";
 import { customerService } from "../../modules/customer/customer.service";
 
-// No required slots — vehicleNumber defaults to the customer's primary vehicle server-side
-// (matching the manual Valet screen's "just tap the button" flow), so this auto-commits on
-// the first turn. It's opportunistically filled here only if the user names a specific
-// vehicle in the same utterance.
-const SLOTS: Flow["slots"] = [];
+// This flow dispatches a real, physical service, so it must never auto-commit off a single
+// utterance: `confirmed` is a required slot, and only an explicit yes fills it. vehicleNumber
+// stays optional (defaults to the caller's primary vehicle server-side, matching the manual
+// Valet screen) and is opportunistically filled if the user names one in the same utterance.
+const SLOTS: Flow["slots"] = [
+  {
+    name: "confirmed",
+    askPrompt: "Just to confirm — should I request a valet to drop your vehicle now?",
+    required: true,
+  },
+];
+
+/**
+ * Questions *about* the valet service ("how much does valet service cost", "do you offer
+ * valet?") must not enter this flow — it creates a real dispatch. Checked before the intent
+ * patterns below, which are otherwise deliberately broad for voice recall.
+ */
+/**
+ * `available` was removed: it blocked "send a valet to drop my car, I'm available at gate 3",
+ * which is a command, not a question. Only unambiguous question forms remain.
+ */
+const INFORMATIONAL = /\b(how much|how do|how does|how can|what is|what's|whats|cost|price|charges?|availability|do you (offer|have|provide)|is there)\b/i;
+
+/**
+ * "can I book a valet?" asks about capability; "can you book a valet" is a polite imperative.
+ * Only the leading modal+I form is treated as a question, so "can you ..." still routes here.
+ */
+const ASKS_ABOUT_SELF = /^\s*(can|could|may|should|would|do|am|will)\s+i\b/i;
+
+/** "cancel my valet drop" is the opposite of this flow's intent and must never start it. */
+const CANCELLING = /\b(cancel|don'?t|do not|stop|nahi|mat karo)\b/i;
 
 function matches(text: string): boolean {
+  if (INFORMATIONAL.test(text) || ASKS_ABOUT_SELF.test(text) || CANCELLING.test(text)) return false;
   return (
-    /\b(request|call|book|get)\b.*\bvalet\b/i.test(text) ||
-    /\bvalet\b.*\b(drop|service|pickup|pick up)\b/i.test(text) ||
+    /\b(request|call|book|send|order|arrange)\b.*\bvalet\b/i.test(text) ||
+    /\bvalet\b.*\b(drop|pickup|pick up)\b/i.test(text) ||
     /\bdrop my (car|vehicle)\b/i.test(text)
   );
 }
+
+/**
+ * Yes/no detection for the confirmation turn. Both are anchored to the WHOLE utterance, not just
+ * its start: a prefix match let a leading "please"/"ok" in a full sentence count as consent, so
+ * "please send a valet" self-confirmed on the first turn (skipping the gate entirely) and
+ * "please cancel my valet drop" was read as a yes and created the very request the user was
+ * trying to stop. NEGATIVE is also tested first, so a sentence containing both loses safely.
+ */
+const AFFIRMATIVE = /^\s*(y|ya|yes|yeah|yep|yup|ok|okay|sure|go ahead|do it|please do|yes please|confirm(ed)?|haan|ha|theek hai|kar do)\s*[.!]*\s*$/i;
+/**
+ * Unanchored on purpose: a refusal anywhere in the sentence should block consent, so a phrase
+ * like "ok cancel that" fails closed rather than being read as the leading "ok".
+ */
+const NEGATIVE = /\b(no|nope|nah|don'?t|do not|stop|cancel|no thanks|nahi|nahin|mat karo)\b/i;
 
 async function extract(
   _customerId: string,
@@ -43,11 +84,24 @@ async function extract(
     }
   }
 
-  // No required slots, so this is always complete — auto-commits immediately.
-  return { values, missingSlots: [], confidence: "HIGH" };
+  // Confirmation is resolved with a plain regex rather than an LLM call: it keeps the yes/no
+  // turn free and, more importantly, avoids a LOW-confidence dead end if extraction fails.
+  // An explicit "no" is recorded as `false` (not left null) so the slot counts as filled and
+  // commit can decline cleanly instead of re-asking forever.
+  if (values.confirmed == null) {
+    // NEGATIVE first: a reply that reads as a refusal must never be salvaged into consent.
+    if (NEGATIVE.test(newReplyText)) values.confirmed = false;
+    else if (AFFIRMATIVE.test(newReplyText)) values.confirmed = true;
+  }
+
+  const missingSlots = values.confirmed == null ? ["confirmed"] : [];
+  return { values, missingSlots, confidence: missingSlots.length === 0 ? "HIGH" : "LOW" };
 }
 
 async function commit(customerId: string, values: Record<string, any>): Promise<FlowCommitResult> {
+  if (values.confirmed !== true) {
+    return { success: false, message: "No problem — I haven't requested a valet." };
+  }
   try {
     const result = await customerService.requestDrop(customerId, values.vehicleNumber || undefined);
     return {

@@ -71,6 +71,30 @@ function screenForToolResult(toolName: string, result: any): { view: string; par
   }
 }
 
+/**
+ * Stable discriminant attached to every tool result sent to the client, so the app can branch on
+ * *what happened* without pattern-matching each tool's own result shape.
+ *
+ * This is load-bearing, not cosmetic: the mobile client gates its write-confirmation copy on
+ * these values, and treats their absence as "the write did not happen" — so a tool that performs
+ * a user-visible mutation and returns no `kind` makes a successful save report as a failure.
+ * Add a case here when adding a mutating tool the client needs to confirm.
+ */
+export type ToolResultKind = "expense_created" | "profile_updated";
+
+export function kindForToolResult(toolName: string, result: any): ToolResultKind | undefined {
+  if (!result || result.success === false) return undefined;
+  switch (toolName) {
+    case "add_expense":
+    case "update_expense":
+      return "expense_created";
+    case "update_profile":
+      return "profile_updated";
+    default:
+      return undefined;
+  }
+}
+
 /** A directly-dispatched (non-flow) tool call: patches its data into a draft (keyed by tool name, for any screen that cares to subscribe) and, where the tool maps to one, opens the relevant screen — same auto-navigate behavior a flow gets, not just a reply the user has to act on themselves. */
 export function fromToolResult(toolName: string, result: unknown): UIEvent[] {
   const events: UIEvent[] = [{ type: "update_state", draftKey: `tool:${toolName}`, fields: { result }, status: "ready" }];

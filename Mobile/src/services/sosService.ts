@@ -63,7 +63,10 @@ class SOSService {
             latitude: data.location.latitude,
             longitude: data.location.longitude,
             type: data.type,
-            metadata: { message: data.message, ...data.metadata }
+            // `accuracy` is forwarded in metadata rather than dropped: responders need to know
+            // whether these coordinates are a precise GPS fix or a fallback that could be
+            // kilometres out. Callers compute it deliberately (see deviceLocation.ts).
+            metadata: { message: data.message, accuracy: data.location.accuracy, ...data.metadata }
         };
         try {
             const response = await axios.post(`${API_URL}`, payload, {

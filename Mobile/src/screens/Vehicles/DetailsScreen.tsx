@@ -5,7 +5,7 @@ import {
     Animated, Easing, LayoutAnimation, UIManager
 } from 'react-native';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (Platform.OS === 'android' && !(global as any).nativeFabricUIManager && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 import { useRef } from 'react';

@@ -29,12 +29,32 @@ export type UIEvent =
     | { type: 'navigate_back' }
     | { type: 'speak'; text: string };
 
+/**
+ * One executed tool call. `kind` is the discriminant this app branches on to confirm a write
+ * actually happened — absence of it is treated as "not confirmed", so it must be emitted by the
+ * backend for every mutating tool (see `kindForToolResult` in Backend/src/agent/events.ts).
+ *
+ * `'sos'` is produced locally by chatService's emergency pre-check, not by the server — it is
+ * listed here because the same array is read by both paths.
+ */
+export interface ToolResult {
+    tool?: string;
+    args?: Record<string, unknown>;
+    result?: unknown;
+    kind?: 'expense_created' | 'profile_updated' | 'sos';
+    /** Present only on locally-produced `kind: 'sos'` results. */
+    sosAlertId?: string;
+    type?: string;
+    latitude?: number;
+    longitude?: number;
+}
+
 export interface AgentResponse {
     sessionId: string;
     message: string;
     voiceUrl?: string | null;
     events: UIEvent[];
-    toolResults?: any[];
+    toolResults?: ToolResult[];
     contextUsed?: number;
 }
 
@@ -51,7 +71,7 @@ export type AgentStreamChunk =
           message?: string;
           voiceUrl?: string | null;
           events?: UIEvent[];
-          toolResults?: any[];
+          toolResults?: ToolResult[];
           contextUsed?: number;
       }
     | { type: 'error'; message?: string };

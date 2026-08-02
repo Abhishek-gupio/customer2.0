@@ -6,7 +6,7 @@ import { setWarrantyStatusNeedsRefresh } from '../utils/refreshManager';
 import { useExpenseStore } from '../store/expenseStore';
 import { listDocuments, type DocumentResponse } from './documentService';
 import { getProfile, updateProfile, type ProfileResponse, type UpdateProfilePayload } from './profileService';
-import { googleMapsService } from './googleMapsService';
+import { getDeviceLocation, isPreciseFix } from './deviceLocation';
 import { placesService, type NearbyPlaceType } from './placesService';
 import { sosService, type SOSType } from './sosService';
 
@@ -1511,7 +1511,18 @@ export async function tryResolveLocalNearbyPlaces(
     if (!placeType) return null;
 
     try {
-        const coords = await googleMapsService.getCurrentLocation();
+        const coords = await getDeviceLocation();
+        if (!coords) {
+            return {
+                sessionId,
+                message: `I could not get your location, so I cannot look up nearby ${getNearbyPlaceLabel(placeType)}. Please turn on location and try again.`,
+                voiceUrl: null,
+                contextUsed: 0,
+                toolResults: [],
+                agentSteps: [],
+            };
+        }
+
         const places = await placesService.getNearby(
             coords.latitude,
             coords.longitude,
@@ -1563,7 +1574,22 @@ export async function tryResolveLocalEmergencyAlert(
     if (!intent) return null;
 
     try {
-        const coords = await googleMapsService.getCurrentLocation();
+        // Real device GPS, not an IP-derived guess: responders are dispatched to these
+        // coordinates. `getDeviceLocation` is time-bounded on every leg so an emergency can
+        // never hang waiting for a fix.
+        const coords = await getDeviceLocation();
+        if (!coords) {
+            return {
+                sessionId,
+                message:
+                    "I could not get your location, so I have not sent the alert. Please turn on location and try again, or use the SOS button to send it manually.",
+                voiceUrl: null,
+                contextUsed: 0,
+                toolResults: [],
+                agentSteps: [],
+            };
+        }
+
         const response = await sosService.triggerSOS({
             location: {
                 latitude: coords.latitude,
@@ -1572,11 +1598,18 @@ export async function tryResolveLocalEmergencyAlert(
             },
             type: intent.type,
             message: intent.message,
+            metadata: { locationSource: coords.source },
         });
+
+        // Tell the user when the fix is coarse — a silently-imprecise emergency location is
+        // worse than a stated one, because they can decide whether to add detail.
+        const accuracyCaveat = isPreciseFix(coords)
+            ? ''
+            : ' Your exact location could not be confirmed, so please share a landmark if you can.';
 
         return {
             sessionId,
-            message: `${intent.type.toLowerCase()} emergency alert triggered successfully.`,
+            message: `${intent.type.toLowerCase()} emergency alert triggered successfully.${accuracyCaveat}`,
             voiceUrl: null,
             contextUsed: 1,
             toolResults: [

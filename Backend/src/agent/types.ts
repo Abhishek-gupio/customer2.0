@@ -154,11 +154,23 @@ export interface AgentRequest {
   imageMimeType?: string;
 }
 
+/**
+ * One executed tool call, as reported to the client. `kind` is the client-facing discriminant —
+ * see `kindForToolResult` in agent/events.ts for why it must be populated for mutating tools.
+ * Mirrored in Mobile/src/agent/types.ts.
+ */
+export interface ToolResultPayload {
+  tool: string;
+  args: any;
+  result: any;
+  kind?: "expense_created" | "profile_updated";
+}
+
 export interface AgentResponse {
   sessionId: string;
   message: string;
   voiceUrl?: string | null;
   events: UIEvent[];
-  toolResults?: Array<{ tool: string; args: any; result: any }>;
+  toolResults?: ToolResultPayload[];
   contextUsed?: number;
 }

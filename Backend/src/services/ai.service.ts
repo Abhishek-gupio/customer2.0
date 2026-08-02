@@ -11,47 +11,45 @@ import { contextService } from "./context.service";
 import { analyticsService } from "./analytics.service";
 import { AppError } from "../utils/AppError";
 import { isGeminiRateLimitError } from "../utils/geminiRateLimit";
+import { kindForToolResult } from "../agent/events";
 import { Intent } from "../utils/intentSchema";
 
 const db = dbInstances as any;
 
-// Debug logging for AI tool-call path analysis.
-// #region agent log
-const DEBUG_LOG_ENDPOINT =
-  "http://127.0.0.1:7317/ingest/c1ee2c59-97af-43c3-b8e6-f54db6b420fe";
-const DEBUG_SESSION_ID = "3a03a4";
+/**
+ * Ceiling on a single Gemini generate call. Without one, the SDK waits indefinitely and a single
+ * user message has no bounded wall time — the tool loop can run up to 5 of these in sequence.
+ */
+const GEMINI_TIMEOUT_MS = 30_000;
+
+/**
+ * Appends a text turn to a prompt that may be either a plain string or a Gemini `parts` array.
+ * The tool loop needs this because carrying the original `parts` through (rather than a
+ * re-stringified text prompt) is what keeps an attached image attached across iterations.
+ */
+function appendPromptText(initialPrompt: any, text: string): any {
+  if (Array.isArray(initialPrompt)) return [...initialPrompt, { text }];
+  return `${initialPrompt}\n\n${text}`;
+}
+
+/**
+ * Local-only tracing of the AI tool-call path.
+ *
+ * This previously POSTed tool-call arguments and results to a hardcoded
+ * `http://127.0.0.1:7317/ingest/<uuid>` on *every* tool call — leftover instrumentation from a
+ * debugging session. In production that fired a doomed request per tool call while shipping
+ * argument payloads (which can contain customer data) to whatever happened to be listening on
+ * that port. Now it writes to the normal logger at debug level and only when explicitly enabled.
+ */
 function debugLog(
   location: string,
   hypothesisId: string,
   message: string,
   data: Record<string, unknown>,
 ) {
-  try {
-    const _fetch = (globalThis as any).fetch as
-      | ((url: string, init: any) => Promise<any>)
-      | undefined;
-    if (!_fetch) return;
-    _fetch(DEBUG_LOG_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": DEBUG_SESSION_ID,
-      },
-      body: JSON.stringify({
-        sessionId: DEBUG_SESSION_ID,
-        runId: "ai-doc-access-debug",
-        hypothesisId,
-        location,
-        message,
-        data,
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  } catch {
-    // ignore debug failures
-  }
+  if (env.NODE_ENV === "production") return;
+  logger.debug({ location, hypothesisId, ...data }, `[ai-trace] ${message}`);
 }
-// #endregion
 
 const genAI = env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(env.GEMINI_API_KEY)
@@ -63,6 +61,8 @@ const GEMINI_TEXT_MODEL = env.GEMINI_TEXT_MODEL;
 
 // Global singleton to store the current cache name
 let activeCache: { name: string; expiry: number } | null = null;
+/** In-flight cache creation, shared by concurrent callers so only one create is ever billed. */
+let cacheCreateInFlight: Promise<string | null> | null = null;
 
 // ============================================================================
 // Suggested actions derived from assistant response (for action chips in app)
@@ -445,31 +445,46 @@ export const aiService = {
       return activeCache.name;
     }
 
-    try {
-      logger.info("Creating new Gemini Context Cache for Gupio Tools...");
-      const declarations = this.getFunctionDeclarations();
+    // Collapse concurrent creates onto one request. Without this, a burst of simultaneous
+    // messages each sees an expired cache and creates its own — every one of them billed, and
+    // all but the last immediately orphaned.
+    if (cacheCreateInFlight) return cacheCreateInFlight;
 
-      const cache = await cacheManager.create({
-        model: GEMINI_TEXT_MODEL,
-        displayName: "gupio-base-logic",
-        systemInstruction: SYSTEM_PROMPT,
-        contents: [],
-        tools: [{ functionDeclarations: declarations } as any],
-        ttlSeconds: 3600,
-      });
+    cacheCreateInFlight = (async () => {
+      try {
+        logger.info("Creating new Gemini Context Cache for Gupio Tools...");
+        const declarations = this.getFunctionDeclarations();
 
-      activeCache = {
-        name: cache.name!,
-        expiry: now + 3600 * 1000,
-      };
+        const cache = await cacheManager!.create({
+          model: GEMINI_TEXT_MODEL,
+          displayName: "gupio-base-logic",
+          systemInstruction: SYSTEM_PROMPT,
+          contents: [],
+          tools: [{ functionDeclarations: declarations } as any],
+          ttlSeconds: 3600,
+        });
 
-      return cache.name!;
-    } catch (error) {
-      // Graceful fallback: if cache fails (e.g., content too small < 4096 tokens),
-      // continue without caching — the model will use system instructions inline.
-      logger.debug({ error }, "Context cache creation failed, using inline mode");
-      return null;
-    }
+        activeCache = {
+          name: cache.name!,
+          expiry: now + 3600 * 1000,
+        };
+
+        return cache.name!;
+      } catch (error) {
+        // Graceful fallback: if cache fails (e.g., content too small < 4096 tokens),
+        // continue without caching — the model will use system instructions inline.
+        //
+        // Logged at `warn`, not `debug`: inline mode re-sends the system prompt and all tool
+        // declarations (~4,000 tokens) on *every* message, so a persistently failing cache is a
+        // standing cost increase that must not be invisible.
+        logger.warn({ error }, "Context cache creation failed — falling back to inline mode (full prompt billed per message)");
+        return null;
+      } finally {
+        cacheCreateInFlight = null;
+      }
+    })();
+
+    return cacheCreateInFlight;
   },
 
   /**
@@ -515,17 +530,20 @@ export const aiService = {
     if (cacheName) {
       return genAI.getGenerativeModel(
         { model: GEMINI_TEXT_MODEL, cachedContent: cacheName } as any,
-        { apiVersion: "v1beta" },
+        { apiVersion: "v1beta", timeout: GEMINI_TIMEOUT_MS },
       );
     }
 
     // Fallback: inline system instructions and tools
     const declarations = this.getFunctionDeclarations();
-    return genAI.getGenerativeModel({
-      model: GEMINI_TEXT_MODEL,
-      systemInstruction: SYSTEM_PROMPT,
-      tools: [{ functionDeclarations: declarations } as any],
-    } as any);
+    return genAI.getGenerativeModel(
+      {
+        model: GEMINI_TEXT_MODEL,
+        systemInstruction: SYSTEM_PROMPT,
+        tools: [{ functionDeclarations: declarations } as any],
+      } as any,
+      { timeout: GEMINI_TIMEOUT_MS },
+    );
   },
 
   // ==========================================================================
@@ -623,9 +641,16 @@ Write a concise summary (max 200 words) capturing all important details.`;
   // ==========================================================================
   async executeToolLoop(
     model: any,
-    initialPrompt: string,
+    /** Either a plain text prompt or a Gemini `parts` array (which preserves an attached image). */
+    initialPrompt: string | any[],
     customerId: string,
     maxIterations: number = 5,
+    /**
+     * The caller's already-completed first `generateContent` response. When the caller has
+     * generated once to *detect* function calls, passing it here lets the loop start from that
+     * response instead of paying for a second identical full-prompt call.
+     */
+    priorResult?: any,
   ): Promise<{
     responseText: string;
     toolResults: any[];
@@ -633,12 +658,15 @@ Write a concise summary (max 200 words) capturing all important details.`;
   }> {
     let currentPrompt = initialPrompt;
     const toolResults: any[] = [];
+    /** Every tool result so far — see the prompt rebuild at the bottom of the loop. */
+    const allCallResults: string[] = [];
     let responseText = "";
     let iterations = 0;
 
     for (let i = 0; i < maxIterations; i++) {
       iterations++;
-      const result = await model.generateContent(currentPrompt);
+      const result =
+        i === 0 && priorResult ? priorResult : await model.generateContent(currentPrompt);
       const candidate = result.response.candidates?.[0];
       const functionCalls = candidate?.content.parts.filter(
         (p: any) => p.functionCall,
@@ -681,7 +709,12 @@ Write a concise summary (max 200 words) capturing all important details.`;
           );
           try {
             const result = await tool.execute(customerId, call.args);
-            toolResults.push({ tool: call.name, args: call.args, result });
+            toolResults.push({
+              tool: call.name,
+              args: call.args,
+              result,
+              kind: kindForToolResult(call.name, result),
+            });
             const res = result as any;
 
             debugLog(
@@ -715,8 +748,14 @@ Write a concise summary (max 200 words) capturing all important details.`;
         }
       }
 
-      // Feed tool results back into the next prompt
-      currentPrompt = `${initialPrompt}\n\nTOOL RESULTS:\n${callResults.join("\n")}\n\nBased on these tool results, provide a final direct and user-friendly answer. If you need more tools, call them. Otherwise, respond with text.`;
+      // Feed *every* tool result so far back into the next prompt. Rebuilding from only this
+      // iteration's `callResults` discarded earlier ones, so a question needing two tools lost
+      // the first tool's answer before the model composed its reply.
+      allCallResults.push(...callResults);
+      currentPrompt = appendPromptText(
+        initialPrompt,
+        `TOOL RESULTS:\n${allCallResults.join("\n")}\n\nBased on these tool results, provide a final direct and user-friendly answer. If you need more tools, call them. Otherwise, respond with text.`,
+      );
     }
 
     // If we ran out of iterations without a text answer
@@ -849,11 +888,16 @@ Write a concise summary (max 200 words) capturing all important details.`;
             );
 
             if (functionCalls && functionCalls.length > 0) {
-              // Multi-turn tool execution
+              // Multi-turn tool execution. `result` is handed over so the loop resumes from the
+              // response we already paid for instead of regenerating it — this call used to be
+              // billed twice at full prompt size. `parts` (not the text-only `userPrompt`) is
+              // passed as the base prompt so an attached image survives the tool iterations.
               const toolLoopResult = await this.executeToolLoop(
                 model,
-                userPrompt,
+                parts,
                 customerId,
+                5,
+                result,
               );
               responseText = toolLoopResult.responseText;
               allToolResults = toolLoopResult.toolResults;
@@ -1046,6 +1090,7 @@ Write a concise summary (max 200 words) capturing all important details.`;
                   tool: call.name,
                   args: call.args,
                   result: toolResult,
+                  kind: kindForToolResult(call.name, toolResult),
                 });
                 const res = toolResult as any;
                 const toolMessage =

@@ -9,6 +9,7 @@ import { vehicleService } from "../vehicle/vehicle.service";
 import { expenseBudgetService } from "./expense-budget.service";
 import { expenseParsingService } from "./expense-parsing.service";
 import { expenseWarrantyService } from "./expense-warranty.service";
+import { enqueueExpenseIngestion } from "./expense-ingestion.helper";
 
 const db = dbInstances;
 const MAX_RECEIPT_IMAGES_PER_CUSTOMER = 15;
@@ -61,6 +62,10 @@ export const expenseService = {
         mimeType,
       } as any,
     });
+
+    // Index into the AI's vector memory. This is the primary expense-creation path (including
+    // the AI's own `add_expense` tool), so omitting it left AI-created expenses invisible to RAG.
+    enqueueExpenseIngestion(expense.id);
 
     // 1. Warranty/Service Record Integration (Decomposed)
     if ((expenseCategory === "SERVICE" || expenseCategory === "REPAIR") && targetVehicleId) {

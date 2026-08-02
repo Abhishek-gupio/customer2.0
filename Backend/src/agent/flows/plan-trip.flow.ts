@@ -47,11 +47,13 @@ Output ONLY raw JSON, no markdown, no explanation: {"origin": string|null, "dest
     parsed = {};
   }
 
+  // Overwrite on a newly extracted value so a correction ("no, to Agra") lands; a null
+  // extraction leaves the stored value alone.
   const values: Record<string, any> = { ...knownValues };
-  if (values.origin == null && typeof parsed.origin === "string" && parsed.origin.trim()) {
+  if (typeof parsed.origin === "string" && parsed.origin.trim()) {
     values.origin = parsed.origin.trim();
   }
-  if (values.destination == null && typeof parsed.destination === "string" && parsed.destination.trim()) {
+  if (typeof parsed.destination === "string" && parsed.destination.trim()) {
     values.destination = parsed.destination.trim();
   }
   if (values.vehicleId == null && typeof parsed.vehicleName === "string" && parsed.vehicleName.trim()) {

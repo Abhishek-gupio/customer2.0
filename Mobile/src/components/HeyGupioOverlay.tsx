@@ -26,6 +26,10 @@ import {
 import { sendAgentMessage } from '../agent/agentClient';
 import { VoiceOwnerContext } from '../context/VoiceOwnerContext';
 import { getVoiceLanguageIndex } from '../services/storage';
+import { claimVoiceHandlers, releaseVoiceHandlers } from '../services/voiceHandlerOwner';
+
+/** Identity for this overlay's claim on the shared Voice handler slots. */
+const voiceOwnerToken: symbol = Symbol('HeyGupioOverlay.voice');
 
 const VOICE_LANGUAGES_MAP = [
   'en-IN',     // Auto / Device language defaults to en-IN
@@ -666,9 +670,12 @@ export default function HeyGupioOverlay() {
     };
 
     const attachHandlers = () => {
-      try {
-        Voice.removeAllListeners?.();
-      } catch (_) {}
+      // Deliberately no `Voice.removeAllListeners()` here. The handlers below are assignment-based
+      // single global slots, so assigning them already replaces whatever was there — the clear was
+      // redundant for us but destructive for AIAssistant, which shares the same slots: one overlay
+      // listen cycle used to leave that screen's mic permanently dead. Each surface now re-installs
+      // its own handlers when it starts listening, so both recover.
+      claimVoiceHandlers(voiceOwnerToken);
       (Voice as any).onSpeechResults = onResult;
       (Voice as any).onSpeechError = onError;
       (Voice as any).onSpeechStart = () => {
@@ -761,7 +768,10 @@ export default function HeyGupioOverlay() {
       ttsFinishRef.current = null;
       if (onDone) onDone();
     };
-    Tts.addEventListener('tts-finish', onTtsFinish);
+    // Keep the subscription so cleanup can remove exactly this listener. `Tts.removeAllListeners`
+    // takes an event type, not a handler, so it also removed AIAssistant's own 'tts-finish'
+    // listener — which is registered the same way and relies on it to know when playback ended.
+    const ttsFinishSub = Tts.addEventListener('tts-finish', onTtsFinish);
 
     (async () => {
       const ok = await requestMicPermission();
@@ -817,12 +827,21 @@ export default function HeyGupioOverlay() {
         listeningStuckTimeoutRef.current = null;
       }
       appSub.remove();
-      Tts.removeAllListeners('tts-finish');
+      (ttsFinishSub as any)?.remove?.();
       if (Platform.OS === 'android') {
         Tts.stop();
       }
       try {
-        Voice.destroy().then(() => Voice.removeAllListeners?.()).catch(() => {});
+        // Clear the shared slots only while we still own them — AIAssistant may have claimed them
+        // since. No `removeAllListeners()`: it takes no handler argument and would wipe that
+        // screen's handlers too.
+        if (releaseVoiceHandlers(voiceOwnerToken)) {
+          (Voice as any).onSpeechResults = undefined;
+          (Voice as any).onSpeechError = undefined;
+          (Voice as any).onSpeechStart = undefined;
+          (Voice as any).onSpeechEnd = undefined;
+        }
+        Voice.destroy().catch(() => {});
       } catch (_) {}
     };
   }, [requestMicPermission, setOverlayStatus]);
